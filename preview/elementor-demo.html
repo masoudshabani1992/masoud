@@ -3,13 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>پیش‌نمایش المنتور — بلوک سئو «دستگاه روغن گیری» بکردانه</title>
+<title>پیش‌نمایش المنتور — بلوک‌های سئو ۸ دسته‌بندی بکردانه</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   body{font-family:Vazirmatn,system-ui,Tahoma,sans-serif;background:#eef1f4;color:#1f2937;line-height:1.9}
   .bar{background:#93003c;color:#fff;text-align:center;padding:11px 16px;font-size:13.5px;position:sticky;top:0;z-index:60}
   .bar b{color:#ffd166}
   .canvas{max-width:1100px;margin:24px auto;padding:0 14px 60px}
+  .tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+  .tabs button{border:1px solid #d1d5db;background:#fff;color:#374151;border-radius:999px;padding:8px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:.15s}
+  .tabs button:hover{border-color:#166534;color:#166534}
+  .tabs button.active{background:#166534;border-color:#166534;color:#fff}
   .panel-hint{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #d1d5db;border-radius:12px;padding:12px 16px;margin-bottom:14px;font-size:13px;color:#4b5563}
   .panel-hint .chip{background:#f3f4f6;border:1px solid #d1d5db;border-radius:6px;padding:2px 10px;font-size:11.5px;color:#111827;white-space:nowrap}
   .widget{position:relative;background:#fff;border:2px dashed #9ca3af;border-radius:14px;padding:8px}
@@ -21,19 +25,30 @@
 </head>
 <body>
 
-<div class="bar">🧩 شبیه‌سازی محیط <b>المنتور</b> — ویجت HTML با کد فایل <b>elementor/bekrdaneh-category-oil-machine.html</b> | این فقط ماکاپ است، سایت واقعی نیست</div>
+<div class="bar">🧩 شبیه‌سازی محیط <b>المنتور</b> — پیش‌نمایش بلوک‌های HTML هر ۸ دسته‌بندی | فایل‌های آماده در پوشه elementor/ | این فقط ماکاپ است</div>
 
 <div class="canvas">
   <div class="panel-hint">
     <span>🧭</span>
-    <span>شما در حال مشاهده «پیش‌نمایش» هستید. برای اعمال واقعی: فایل HTML را باز کنید، کل کد را کپی و داخل ویجت HTML المنتور Paste کنید.</span>
+    <span>دسته مورد نظر را انتخاب کنید. برای اعمال واقعی: فایل متناظر در پوشه <b>elementor/</b> را باز کنید، کل کد را کپی و داخل ویجت HTML المنتور Paste کنید.</span>
     <span class="chip">HTML Widget</span>
+  </div>
+
+  <div class="tabs">
+    <button data-f="elementor-fragment-oil.html" class="active">دستگاه روغن‌گیری</button>
+    <button data-f="elementor-fragment-butter.html">کره گیر</button>
+    <button data-f="elementor-fragment-tahini.html">ارده گیر سنگی</button>
+    <button data-f="elementor-fragment-bainmarie.html">بن ماری روغن</button>
+    <button data-f="elementor-fragment-spice.html">آسیاب ادویه</button>
+    <button data-f="elementor-fragment-fruit.html">میوه خشک کن</button>
+    <button data-f="elementor-fragment-equipment.html">تجهیزات روغن‌گیری</button>
+    <button data-f="elementor-fragment-stand.html">استند کره‌گیری</button>
   </div>
 
   <div class="widget">
     <span class="tag">HTML WIDGET — ELEMENTOR</span>
     <div id="widget-body">
-      <div class="err">در حال بارگذاری کد… اگر این پیام ماند، از لینک Live Preview استفاده کنید (نه باز کردن فایل به‌صورت محلی).</div>
+      <div class="err">در حال بارگذاری…</div>
     </div>
   </div>
 
@@ -41,13 +56,25 @@
 </div>
 
 <script>
-  fetch('elementor-fragment.html')
-    .then(function(r){ return r.text(); })
-    .then(function(html){ document.getElementById('widget-body').innerHTML = html; })
-    .catch(function(){
-      document.getElementById('widget-body').innerHTML =
-        '<div class="err">بارگذاری خودکار ممکن نشد — فایل elementor/bekrdaneh-category-oil-machine.html را در ویرایشگر باز کنید تا کد کامل را ببینید.</div>';
-    });
+  var body = document.getElementById('widget-body');
+  var buttons = document.querySelectorAll('.tabs button');
+  function load(file, btn) {
+    body.innerHTML = '<div class="err">در حال بارگذاری…</div>';
+    fetch(file)
+      .then(function (r) { return r.text(); })
+      .then(function (html) {
+        body.innerHTML = html;
+        buttons.forEach(function (b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+      })
+      .catch(function () {
+        body.innerHTML = '<div class="err">بارگذاری ممکن نشد — از لینک Live Preview استفاده کنید (نه باز کردن فایل محلی).</div>';
+      });
+  }
+  buttons.forEach(function (btn) {
+    btn.addEventListener('click', function () { load(btn.dataset.f, btn); });
+  });
+  load('elementor-fragment-oil.html', buttons[0]);
 </script>
 </body>
 </html>

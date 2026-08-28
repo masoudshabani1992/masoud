@@ -1,6 +1,19 @@
 # راهنمای افزودن بلوک سئو با المنتور
 
-فایل آماده: `elementor/bekrdaneh-category-oil-machine.html`
+فایل‌های آماده در پوشه `elementor/` — برای هر دسته‌بندی یک فایل HTML جداگانه:
+
+| دسته‌بندی | فایل | لینک دسته در سایت |
+|---|---|---|
+| دستگاه روغن‌گیری | `bekrdaneh-category-oil-machine.html` | `/product-category/oil-extraction-machine/` |
+| دستگاه کره گیر | `bekrdaneh-category-butter-machine.html` | `/product-category/butter-making-machine/` |
+| دستگاه ارده گیر سنگی | `bekrdaneh-category-tahini-machine.html` | `/product-category/stone-sesame-pudding-machine/` |
+| دستگاه بن ماری روغن | `bekrdaneh-category-bain-marie.html` | `/product-category/bain-marie-machines/` |
+| دستگاه آسیاب ادویه | `bekrdaneh-category-spice-mill.html` | `/product-category/spice-mill/` |
+| دستگاه میوه خشک کن | `bekrdaneh-category-fruit-dryer.html` | `/product-category/fruit-drying-machine/` |
+| تجهیزات روغن‌گیری | `bekrdaneh-category-related-equipment.html` | `/product-category/related-equipment/` |
+| استند کره‌گیری | `bekrdaneh-category-stand-silo.html` | `/product-category/stand-silo/` |
+
+هر فایل شامل: متن سئوشده، کارت‌های مزیت، جدول «کدام مدل برای شما مناسب است»، جدول مقایسه با قیمت و لینک به صفحات محصول، ۵ سوال متداول و اسکیمای FAQPage است. متا تایتل و دیسکریپشن پیشنهادی هر دسته هم در ابتدای همان فایل (به‌صورت کامنت) نوشته شده است.
 
 ---
 
