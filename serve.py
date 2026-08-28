@@ -29,9 +29,30 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             return True
         return False
 
+    def _serve_zip(self, send_body=True):
+        fpath = os.path.join(PREVIEW, "bekrdaneh-elementor-blocks.zip")
+        if os.path.isfile(fpath):
+            self.send_response(200)
+            self.send_header("Content-Type", "application/zip")
+            self.send_header(
+                "Content-Disposition",
+                'attachment; filename="bekrdaneh-elementor-blocks.zip"',
+            )
+            self.send_header("Content-Length", str(os.path.getsize(fpath)))
+            self.end_headers()
+            if send_body:
+                with open(fpath, "rb") as f:
+                    self.wfile.write(f.read())
+            return True
+        return False
+
     def do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
+        if path == "/bekrdaneh-elementor-blocks.zip" or path.startswith("/dlzip"):
+            if not self._serve_zip():
+                self.send_error(404, "File not found")
+            return
         if path.startswith("/dl/"):
             name = urllib.parse.unquote(os.path.basename(path))
             if not self._serve_download(name):
@@ -42,6 +63,10 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     def do_HEAD(self):
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
+        if path == "/bekrdaneh-elementor-blocks.zip" or path.startswith("/dlzip"):
+            if not self._serve_zip(send_body=False):
+                self.send_error(404, "File not found")
+            return
         if path.startswith("/dl/"):
             name = urllib.parse.unquote(os.path.basename(path))
             if not self._serve_download(name, send_body=False):
