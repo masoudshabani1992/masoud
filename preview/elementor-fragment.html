@@ -1,0 +1,221 @@
+<!-- ============================================================
+  بکردانه — بلوک سئو صفحه دسته «دستگاه روغن گیری»
+  طرز استفاده با المنتور:
+  1) ویجت HTML را در صفحه/قالب بکشید
+  2) کل این کد (از <style> تا انتهای </div>) را داخل آن Paste کنید
+  3) ذخیره و انتشار
+  نکته: تیتر اصلی به صورت H2 است، چون H1 صفحه توسط قالب ساخته می‌شود.
+  ============================================================ -->
+
+<style>
+  .bkc-wrap{
+    direction:rtl; text-align:right; font-family:inherit;
+    --g:#166534; --g2:#15803d; --soft:#f0fdf4; --line:#e5e7eb;
+    --ink:#1f2937; --muted:#6b7280; --amber:#b45309; --amber-bg:#fffbeb;
+    color:var(--ink); line-height:2; max-width:100%;
+    background:#fff; border:1px solid var(--line); border-radius:16px;
+    padding:28px 26px; margin:20px 0; box-sizing:border-box;
+  }
+  .bkc-wrap *{box-sizing:border-box}
+  .bkc-wrap h2.bkc-title{font-size:24px; font-weight:800; color:var(--g); margin:0 0 14px; line-height:1.6}
+  .bkc-wrap h3.bkc-h{font-size:18px; font-weight:800; color:var(--ink); margin:30px 0 14px; padding-right:12px; border-right:4px solid var(--g); line-height:1.6}
+  .bkc-wrap p{font-size:14.5px; color:#374151; margin:0 0 12px}
+  .bkc-wrap p b, .bkc-wrap p strong{color:var(--g)}
+
+  /* --- کارت‌های مزیت --- */
+  .bkc-why{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:10px; margin-bottom:8px}
+  .bkc-why .bkc-item{background:#f8fafc; border:1px solid var(--line); border-radius:12px; padding:14px 16px; display:flex; gap:12px; align-items:flex-start}
+  .bkc-why .bkc-ic{font-size:24px; line-height:1.4}
+  .bkc-why .bkc-item b{display:block; font-size:14px; color:var(--ink)}
+  .bkc-why .bkc-item span{font-size:12.5px; color:var(--muted); line-height:1.9}
+
+  /* --- جداول --- */
+  .bkc-tblwrap{overflow-x:auto; margin-bottom:8px}
+  table.bkc-tbl{width:100%; min-width:560px; border-collapse:collapse; font-size:13.5px; background:#fff}
+  table.bkc-tbl th{background:var(--g); color:#fff; padding:10px 12px; font-weight:700; text-align:center; white-space:nowrap}
+  table.bkc-tbl td{padding:9px 12px; border-bottom:1px solid var(--line); text-align:center}
+  table.bkc-tbl tr:nth-child(even) td{background:#f8fafc}
+  table.bkc-tbl td:first-child{font-weight:700; text-align:right}
+  table.bkc-tbl a{color:var(--g); text-decoration:none; font-weight:700}
+  table.bkc-tbl a:hover{text-decoration:underline}
+  .bkc-note{font-size:12px; color:var(--muted); margin:4px 0 10px}
+
+  /* --- سوالات متداول --- */
+  .bkc-faq details{background:#fff; border:1px solid var(--line); border-radius:12px; padding:13px 18px; margin-bottom:10px}
+  .bkc-faq summary{cursor:pointer; font-weight:700; font-size:14px; list-style:none; display:flex; justify-content:space-between; align-items:center; gap:10px}
+  .bkc-faq summary::-webkit-details-marker{display:none}
+  .bkc-faq summary::after{content:"+"; color:var(--g); font-weight:800; font-size:18px; flex-shrink:0}
+  .bkc-faq details[open] summary::after{content:"−"}
+  .bkc-faq details p{margin:10px 0 2px; font-size:13.5px; color:#4b5563}
+
+  /* --- دعوت به اقدام --- */
+  .bkc-cta{background:linear-gradient(135deg,var(--g),var(--g2)); color:#fff; border-radius:14px; padding:24px; text-align:center; margin-top:24px}
+  .bkc-cta b{font-size:17px}
+  .bkc-cta .bkc-sub{font-size:13px; opacity:.9; margin-top:6px}
+  .bkc-cta .bkc-btns{margin-top:14px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap}
+  .bkc-cta a{display:inline-block; background:#fff; color:var(--g); padding:9px 22px; border-radius:9px; font-weight:800; font-size:14px; text-decoration:none}
+  .bkc-cta a.bkc-alt{background:transparent; border:1.5px solid rgba(255,255,255,.75); color:#fff}
+
+  @media (max-width:640px){
+    .bkc-wrap{padding:20px 14px}
+    .bkc-wrap h2.bkc-title{font-size:19px}
+    .bkc-wrap h3.bkc-h{font-size:16px}
+    .bkc-wrap p{font-size:13.5px}
+  }
+</style>
+
+<div class="bkc-wrap">
+
+  <h2 class="bkc-title">دستگاه روغن گیری پرس سرد بکردانه</h2>
+
+  <p>بکردانه از سال ۱۳۹۰ در اصفهان به‌عنوان <strong>تولیدکننده دستگاه روغن گیری پرس سرد</strong> فعالیت می‌کند و امروز یکی از شناخته‌شده‌ترین برندهای داخلی در زمینه ماشین‌آلات روغن‌کشی دانه‌های روغنی است. دستگاه‌های روغن گیری بکردانه برای روغن‌گیری از انواع دانه‌ها از جمله <strong>کنجد، سیاه‌دانه، کتان، بادام، پسته، نارگیل، هسته انگور و هسته انار</strong> طراحی شده‌اند.</p>
+
+  <p>تمام دستگاه‌ها با روش <strong>کلدپرس (پرس سرد)</strong> کار می‌کنند؛ یعنی روغن در دمای پایین استخراج می‌شود و خواص، طعم و ارزش غذایی دانه حفظ می‌شود. بدنه تمام استیل، قطعات فولادی با سختی بالا و موتور گیربکس کم‌صدای ایلماز از مشخصه‌های ثابت این محصولات است. تمام مدل‌ها تحت استاندارد <strong>ISO 9001</strong> و <strong>CE</strong> تولید می‌شوند و علاوه بر یک سال ضمانت بدنه، <strong>موتور، گیربکس و اینورتر آن‌ها ۵ سال گارانتی</strong> دارند.</p>
+
+  <p>برای مشاغل خانگی، مدل‌های <strong>مینی پرس ۲۵ و پرس ۳۲</strong>؛ برای فروشگاه‌های روغن‌گیری، <strong>۴۵ رومیزی و ۴۵ اکو</strong>؛ و برای کارگاه‌ها و خطوط تولید، مدل‌های <strong>۶۵، ۸۵، ۹۰، ۱۳۵ و ۱۶۰</strong> پیشنهاد می‌شود. لیست قیمت روز، جدول مقایسه و سوالات متداول در ادامه آمده است.</p>
+
+  <h3 class="bkc-h">چرا دستگاه روغن گیری بکردانه؟</h3>
+  <div class="bkc-why">
+    <div class="bkc-item"><div class="bkc-ic">🏭</div><div><b>تولیدکننده، نه واسطه</b><span>خرید مستقیم از کارخانه با قیمت مناسب‌تر</span></div></div>
+    <div class="bkc-item"><div class="bkc-ic">🛡️</div><div><b>۵ سال ضمانت</b><span>موتور، گیربکس و اینورتر + یک سال بدنه</span></div></div>
+    <div class="bkc-item"><div class="bkc-ic">✨</div><div><b>کلدپرس واقعی</b><span>حفظ خواص، عطر و طعم روغن‌های طبیعی</span></div></div>
+    <div class="bkc-item"><div class="bkc-ic">📜</div><div><b>استاندارد ISO و CE</b><span>تولید تحت استاندارد کیفی و ایمنی اروپا</span></div></div>
+    <div class="bkc-item"><div class="bkc-ic">🔩</div><div><b>بدنه تمام استیل</b><span>قطعات فولادی با سختی بالا</span></div></div>
+    <div class="bkc-item"><div class="bkc-ic">🚚</div><div><b>ارسال سراسر کشور</b><span>پشتیبانی فنی و تأمین قطعات یدکی</span></div></div>
+  </div>
+
+  <h3 class="bkc-h">کدام مدل برای شما مناسب است؟</h3>
+  <div class="bkc-tblwrap">
+    <table class="bkc-tbl">
+      <tr><th>کاربری</th><th>مدل پیشنهادی</th><th>ظرفیت (دانه ورودی در ساعت)</th></tr>
+      <tr><td>مشاغل خانگی و عطاری</td><td>مینی پرس ۲۵ / پرس ۳۲</td><td>۴ تا ۷ کیلوگرم</td></tr>
+      <tr><td>فروشگاه روغن‌گیری</td><td>۴۵ رومیزی / ۴۵ اکو</td><td>۷ کیلوگرم</td></tr>
+      <tr><td>کارگاه و تولید نیمه‌صنعتی</td><td>۶۵ / ۸۵</td><td>۱۳ تا ۲۰ کیلوگرم</td></tr>
+      <tr><td>صنعتی و خط تولید</td><td>۹۰ / ۱۳۵ / ۱۶۰</td><td>۵۰ کیلوگرم به بالا</td></tr>
+    </table>
+  </div>
+
+  <h3 class="bkc-h">جدول مقایسه مدل‌های پرفروش</h3>
+  <div class="bkc-tblwrap">
+    <table class="bkc-tbl">
+      <tr><th>مدل</th><th>ظرفیت</th><th>کاربری</th><th>توان</th><th>قیمت تقریبی</th></tr>
+      <tr>
+        <td><a href="https://www.bekrdaneh.ir/product/%d8%af%d8%b3%d8%aa%da%af%d8%a7%d9%87-%d9%85%db%8c%d9%86%db%8c-%d9%be%d8%b1%d8%b3-25-%d8%a8%da%a9%d8%b1%d8%af%d8%a7%d9%86%d9%87/">مینی پرس ۲۵ (BD25)</a></td>
+        <td>۴ کیلوگرم/ساعت</td><td>خانگی، عطاری</td><td>—</td><td>۲۱۰,۰۰۰,۰۰۰ تومان</td>
+      </tr>
+      <tr>
+        <td><a href="https://www.bekrdaneh.ir/product/%d8%af%d8%b3%d8%aa%da%af%d8%a7%d9%87-%d8%b1%d9%88%d8%ba%d9%86-%da%af%db%8c%d8%b1%db%8c-%d9%be%d8%b1%d8%b3-32-%d8%a8%da%a9%d8%b1%d8%af%d8%a7%d9%86%d9%87/">پرس ۳۲ (BD32)</a></td>
+        <td>—</td><td>خانگی، فروشگاه کوچک</td><td>—</td><td>۳۲۰,۰۰۰,۰۰۰ تومان</td>
+      </tr>
+      <tr>
+        <td><a href="https://www.bekrdaneh.ir/product/%d8%af%d8%b3%d8%aa%da%af%d8%a7%d9%87-%d8%b1%d9%88%d8%ba%d9%86-%da%af%db%8c%d8%b1%db%8c-45-%d8%b1%d9%88%d9%85%db%8c%d8%b2%db%8c/">۴۵ رومیزی (BD45)</a></td>
+        <td>۷ کیلوگرم/ساعت</td><td>فروشگاهی</td><td>۱۰۰۰ وات</td><td>۴۷۵,۰۰۰,۰۰۰ تومان</td>
+      </tr>
+      <tr>
+        <td><a href="https://www.bekrdaneh.ir/product/%d8%af%d8%b3%d8%aa%da%af%d8%a7%d9%87-%d8%b1%d9%88%d8%ba%d9%86-%da%af%db%8c%d8%b1%db%8c-45-%d8%a7%da%a9%d9%88/">۴۵ اکو (BD45 Eco)</a></td>
+        <td>۷ کیلوگرم/ساعت</td><td>فروشگاهی</td><td>—</td><td>۴۵۵,۰۰۰,۰۰۰ تومان</td>
+      </tr>
+      <tr>
+        <td><a href="https://www.bekrdaneh.ir/product/%d8%af%d8%b3%d8%aa%da%af%d8%a7%d9%87-%d8%b1%d9%88%d8%ba%d9%86-%da%af%db%8c%d8%b1%db%8c-45-%d9%81%d9%88%d9%84-%d8%a2%d9%be%d8%b4%d9%86/">۴۵ فول آپشن</a></td>
+        <td>۷ کیلوگرم/ساعت</td><td>فروشگاهی</td><td>—</td><td>۵۶۰,۰۰۰,۰۰۰ تومان</td>
+      </tr>
+      <tr>
+        <td><a href="https://www.bekrdaneh.ir/product/%d8%af%d8%b3%d8%aa%da%af%d8%a7%d9%87-%d8%b1%d9%88%d8%ba%d9%86-%da%af%db%8c%d8%b1%db%8c-65-%d8%a7%da%a9%d9%88/">۶۵ اکو (BD65 Eco)</a></td>
+        <td>۱۳ کیلوگرم/ساعت</td><td>کارگاهی</td><td>—</td><td>۶۴۰,۰۰۰,۰۰۰ تومان</td>
+      </tr>
+      <tr>
+        <td><a href="https://www.bekrdaneh.ir/product/%d8%af%d8%b3%d8%aa%da%af%d8%a7%d9%87-%d8%b1%d9%88%d8%ba%d9%86-%da%af%db%8c%d8%b1%db%8c-%d9%be%d8%b1%d8%b3-%d8%b3%d8%b1%d8%af-85-%d8%a7%da%a9%d9%88/">۸۵ اکو (BD85 Eco)</a></td>
+        <td>۲۰ کیلوگرم/ساعت</td><td>کارگاهی، تولیدی</td><td>—</td><td>صفحه محصول</td>
+      </tr>
+      <tr>
+        <td><a href="https://www.bekrdaneh.ir/product/%d8%af%d8%b3%d8%aa%da%af%d8%a7%d9%87-%d8%b1%d9%88%d8%ba%d9%86%da%af%db%8c%d8%b1%db%8c-135/">۱۳۵ (BD135)</a></td>
+        <td>۵۰ کیلوگرم/ساعت</td><td>صنعتی</td><td>—</td><td>صفحه محصول</td>
+      </tr>
+    </table>
+  </div>
+  <p class="bkc-note">قیمت‌ها به‌روزرسانی می‌شوند؛ برای قیمت روز هر مدل، روی نام مدل کلیک کنید.</p>
+
+  <h3 class="bkc-h">سوالات متداول دستگاه روغن گیری</h3>
+  <div class="bkc-faq">
+    <details open>
+      <summary>دستگاه روغن گیری پرس سرد یعنی چه؟</summary>
+      <p>در روش پرس سرد (کلدپرس)، دانه‌ها بدون حرارت‌دهی قبلی و در دمای پایین فشرده می‌شوند. نتیجه، روغنی با رنگ، عطر و خواص طبیعی دانه است. در مقابل، پرس گرم با حرارت بازده بیشتری دارد اما بخشی از خواص روغن از بین می‌رود.</p>
+    </details>
+    <details>
+      <summary>با دستگاه روغن گیری چه دانه‌هایی را می‌توان روغن گرفت؟</summary>
+      <p>کنجد، سیاه‌دانه، کتان، بادام، پسته، نارگیل، هسته انگور، هسته انار، گردو و فندق — با تنظیم دما و دور موتور (اینورتر) می‌توانید دستگاه را با هر نوع دانه‌ای تنظیم کنید.</p>
+    </details>
+    <details>
+      <summary>برای شروع کسب‌وکار خانگی کدام مدل مناسب است؟</summary>
+      <p>مدل مینی پرس ۲۵ با ظرفیت ۴ کیلوگرم دانه در ساعت پرفروش‌ترین گزینه برای مشاغل خانگی و عطاری است؛ برای حجم بیشتر، پرس ۳۲ یا ۴۵ رومیزی را انتخاب کنید.</p>
+    </details>
+    <details>
+      <summary>گارانتی دستگاه‌های بکردانه چقدر است؟</summary>
+      <p>تمام دستگاه‌ها یک سال ضمانت بدنه دارند و موتور، گیربکس و اینورتر آن‌ها ۵ سال گارانتی است. قطعات یدکی نیز مستقیم از کارخانه تأمین می‌شود.</p>
+    </details>
+    <details>
+      <summary>ارسال به شهرستان دارید؟</summary>
+      <p>بله، بکردانه محصولات خود را به سراسر کشور ارسال می‌کند و مشاوره تلفنی رایگان قبل از خرید در دسترس است.</p>
+    </details>
+  </div>
+
+  <div class="bkc-cta">
+    <b>برای انتخاب دستگاه مطمئن نیستید؟</b>
+    <div class="bkc-sub">کارشناسان بکردانه به‌صورت رایگان بر اساس کاربری و بودجه شما مشاوره می‌دهند.</div>
+    <div class="bkc-btns">
+      <a href="tel:09131293956">☎️ ۰۹۱۳۱۲۹۳۹۵۶</a>
+      <a class="bkc-alt" href="https://wa.me/989131293956" target="_blank" rel="noopener">مشاوره رایگان در واتس‌اپ</a>
+    </div>
+  </div>
+
+</div>
+
+<!-- اسکیمای سوالات متداول (FAQPage) — اگر افزونه سئوی شما همین اسکیما را می‌سازد، این بخش را حذف کنید تا تکراری نشود -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "دستگاه روغن گیری پرس سرد یعنی چه؟",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "در روش پرس سرد (کلدپرس)، دانه‌ها بدون حرارت‌دهی قبلی و در دمای پایین فشرده می‌شوند و خواص، عطر و طعم روغن حفظ می‌شود؛ برخلاف پرس گرم که بازده بیشتر اما کیفیت پایین‌تری دارد."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "با دستگاه روغن گیری چه دانه‌هایی را می‌توان روغن گرفت؟",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "کنجد، سیاه‌دانه، کتان، بادام، پسته، نارگیل، هسته انگور، هسته انار، گردو و فندق — با تنظیم دما و دور موتور (اینورتر) دستگاه برای هر نوع دانه قابل تنظیم است."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "برای شروع کسب‌وکار خانگی کدام مدل مناسب است؟",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "مدل مینی پرس ۲۵ با ظرفیت ۴ کیلوگرم دانه در ساعت پرفروش‌ترین گزینه برای مشاغل خانگی و عطاری است؛ برای حجم بیشتر، پرس ۳۲ یا ۴۵ رومیزی پیشنهاد می‌شود."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "گارانتی دستگاه‌های بکردانه چقدر است؟",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "تمام دستگاه‌ها یک سال ضمانت بدنه و ۵ سال گارانتی موتور، گیربکس و اینورتر دارند. قطعات یدکی مستقیم از کارخانه تأمین می‌شود."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "ارسال به شهرستان دارید؟",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "بله، بکردانه به سراسر کشور ارسال می‌کند و مشاوره تلفنی رایگان قبل از خرید ارائه می‌دهد."
+      }
+    }
+  ]
+}
+</script>

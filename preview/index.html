@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>پیش‌نمایش: صفحه دسته «دستگاه روغن گیری» — بکردانه</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green:#166534; --green-soft:#dcfce7; --ink:#1f2937; --muted:#6b7280;
+    --line:#e5e7eb; --card:#ffffff; --bg:#f6f7f9; --accent:#f59e0b;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Vazirmatn',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.9}
+  .preview-bar{background:#111827;color:#fff;text-align:center;padding:10px 16px;font-size:13px;position:sticky;top:0;z-index:50}
+  .preview-bar b{color:#4ade80}
+  .wrap{max-width:1160px;margin:0 auto;padding:24px 16px 80px}
+
+  /* ---------- SERP preview ---------- */
+  .serp-section{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:28px}
+  .serp-label{font-size:13px;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+  .serp-label::before{content:"";width:8px;height:8px;border-radius:50%;background:#4285f4}
+  .serp{margin:0 8px;max-width:620px}
+  .serp .fav{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+  .serp .fav .dot{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#166534,#4ade80);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700}
+  .serp .url{font-size:13px;color:#202124}
+  .serp h3{font-size:19px;color:#1a0dab;font-weight:500;margin:2px 0;cursor:pointer}
+  .serp p{font-size:13.5px;color:#4d5156}
+  .serp .stars{color:#f59e0b;font-size:13px}
+
+  /* ---------- page ---------- */
+  .page{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .breadcrumb{padding:14px 24px;background:#fafafa;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted)}
+  .breadcrumb a{color:var(--green);text-decoration:none}
+  .cat-head{padding:34px 24px 10px;text-align:center}
+  .cat-head h1{font-size:30px;font-weight:800;color:var(--green)}
+  .cat-head .sub{color:var(--muted);font-size:14px;margin-top:4px}
+  .cat-body{padding:6px 24px 30px;font-size:15px}
+  .cat-body p{margin-bottom:14px;color:#374151}
+  .cat-body p strong{color:var(--green)}
+
+  h2.sec{font-size:21px;font-weight:800;color:var(--ink);margin:34px 0 14px;padding-right:12px;border-right:4px solid var(--green)}
+  .why{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-bottom:10px}
+  .why .item{background:#f8fafc;border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start}
+  .why .item .ic{font-size:22px}
+  .why .item b{display:block;font-size:14.5px}
+  .why .item span{font-size:13px;color:var(--muted)}
+
+  table.cmp{width:100%;border-collapse:collapse;font-size:13.5px;background:#fff;border-radius:10px;overflow:hidden}
+  table.cmp th{background:var(--green);color:#fff;padding:10px 12px;font-weight:600}
+  table.cmp td{padding:9px 12px;border-bottom:1px solid var(--line);text-align:center}
+  table.cmp tr:nth-child(even){background:#f8fafc}
+  table.cmp td:first-child{font-weight:600;text-align:right}
+
+  .products{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px}
+  .prod{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;transition:.2s;display:flex;flex-direction:column}
+  .prod:hover{box-shadow:0 6px 18px rgba(0,0,0,.08);transform:translateY(-2px)}
+  .prod .img{aspect-ratio:1/1;background:#f3f4f6;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+  .prod .img img{width:100%;height:100%;object-fit:cover}
+  .prod .t{font-size:13.5px;font-weight:700;margin-top:10px;min-height:44px}
+  .prod .p{color:var(--green);font-weight:800;font-size:15px;margin-top:6px}
+  .prod .btn{margin-top:10px;background:var(--green);color:#fff;text-align:center;padding:8px;border-radius:8px;font-size:13px;font-weight:600}
+
+  .faq details{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin-bottom:10px}
+  .faq summary{cursor:pointer;font-weight:700;font-size:14.5px;list-style:none;display:flex;justify-content:space-between;align-items:center}
+  .faq summary::after{content:"＋";color:var(--green);font-weight:800}
+  .faq details[open] summary::after{content:"－"}
+  .faq details p{margin-top:10px;font-size:13.5px;color:#4b5563}
+
+  .note{background:#fffbeb;border:1px dashed var(--accent);border-radius:12px;padding:14px 18px;font-size:13.5px;color:#92400e;margin-top:26px}
+  .cta{background:linear-gradient(135deg,#166534,#15803d);color:#fff;border-radius:14px;padding:26px;text-align:center;margin-top:30px}
+  .cta b{font-size:19px}
+  .cta .sub{font-size:13.5px;opacity:.9;margin-top:6px}
+  .cta .btns{margin-top:14px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .cta .btns span{background:#fff;color:var(--green);padding:9px 22px;border-radius:9px;font-weight:700;font-size:14px}
+  .cta .btns span.alt{background:transparent;border:1.5px solid rgba(255,255,255,.7);color:#fff}
+  @media(max-width:600px){.cat-head h1{font-size:23px}}
+</style>
+</head>
+<body>
+
+<div class="preview-bar">🔍 <b>پیش‌نمایش پیشنهادی</b> — صفحه دسته «دستگاه روغن گیری» بعد از اعمال متن سئوشده (ماکاپ است، سایت واقعی نیست)</div>
+
+<div class="wrap">
+
+  <!-- ===== SERP ===== -->
+  <div class="serp-section">
+    <div class="serp-label">پیش‌نمایش نتیجه در گوگل بعد از بهینه‌سازی متا:</div>
+    <div class="serp">
+      <div class="fav"><span class="dot">ب</span>
+        <div><div style="font-size:13px;font-weight:600;color:#202124">بکردانه</div>
+        <div class="url">www.bekrdaneh.ir › product-category › oil-extraction-machine</div></div>
+      </div>
+      <h3>دستگاه روغن گیری پرس سرد | قیمت و خرید روغن گیر بکردانه</h3>
+      <p>خرید دستگاه روغن گیری پرس سرد بکردانه با ۵ سال گارانتی موتور و گیربکس | مقایسه مدل‌های خانگی، فروشگاهی و صنعتی | تولیدکننده در اصفهان، ارسال سراسر کشور</p>
+      <div class="stars">★★★★★</div>
+    </div>
+  </div>
+
+  <!-- ===== PAGE ===== -->
+  <div class="page">
+    <div class="breadcrumb"><a href="#">خانه</a> › <a href="#">فروشگاه</a> › دستگاه روغن گیری</div>
+
+    <div class="cat-head">
+      <h1>دستگاه روغن گیری پرس سرد بکردانه</h1>
+      <div class="sub">مدل‌های خانگی، فروشگاهی، کارگاهی و صنعتی — تولیدکننده از سال ۱۳۹۰ در اصفهان</div>
+    </div>
+
+    <div class="cat-body">
+      <p>بکردانه از سال ۱۳۹۰ در اصفهان به‌عنوان <strong>تولیدکننده دستگاه روغن گیری پرس سرد</strong> فعالیت می‌کند و امروز یکی از شناخته‌شده‌ترین برندهای داخلی در زمینه ماشین‌آلات روغن‌کشی دانه‌های روغنی است. دستگاه‌های روغن گیری بکردانه برای روغن‌گیری از انواع دانه‌ها از جمله <strong>کنجد، سیاه‌دانه، کتان، بادام، پسته، نارگیل، هسته انگور و هسته انار</strong> طراحی شده‌اند.</p>
+      <p>تمام دستگاه‌ها با روش <strong>کلدپرس (پرس سرد)</strong> کار می‌کنند؛ یعنی روغن در دمای پایین استخراج می‌شود و خواص، طعم و ارزش غذایی دانه حفظ می‌شود. بدنه تمام استیل، قطعات فولادی با سختی بالا و موتور گیربکس کم‌صدای ایلماز از مشخصه‌های ثابت این محصولات است. تمام مدل‌ها تحت استاندارد <strong>ISO 9001</strong> و <strong>CE</strong> تولید می‌شوند و علاوه بر یک سال ضمانت بدنه، <strong>موتور، گیربکس و اینورتر آن‌ها ۵ سال گارانتی</strong> دارند.</p>
+      <p>برای مشاغل خانگی، مدل‌های <strong>مینی پرس ۲۵ و پرس ۳۲</strong>؛ برای فروشگاه‌های روغن‌گیری، <strong>۴۵ رومیزی و ۴۵ اکو</strong>؛ و برای کارگاه‌ها و خطوط تولید، مدل‌های <strong>۶۵، ۸۵، ۹۰، ۱۳۵ و ۱۶۰</strong> پیشنهاد می‌شود. لیست قیمت روز، جدول مقایسه و سوالات متداول در ادامه آمده است.</p>
+
+      <h2 class="sec">چرا دستگاه روغن گیری بکردانه؟</h2>
+      <div class="why">
+        <div class="item"><div class="ic">🏭</div><div><b>تولیدکننده، نه واسطه</b><span>خرید مستقیم از کارخانه با قیمت مناسب‌تر</span></div></div>
+        <div class="item"><div class="ic">🛡️</div><div><b>۵ سال ضمانت</b><span>موتور، گیربکس و اینورتر + یک سال بدنه</span></div></div>
+        <div class="item"><div class="ic">✨</div><div><b>کلدپرس واقعی</b><span>حفظ خواص، عطر و طعم روغن‌های طبیعی</span></div></div>
+        <div class="item"><div class="ic">📜</div><div><b>استاندارد ISO و CE</b><span>تولید تحت استاندارد کیفی و ایمنی اروپا</span></div></div>
+        <div class="item"><div class="ic">🔩</div><div><b>بدنه تمام استیل</b><span>قطعات فولادی با سختی بالا</span></div></div>
+        <div class="item"><div class="ic">🚚</div><div><b>ارسال سراسر کشور</b><span>پشتیبانی فنی و تأمین قطعات یدکی</span></div></div>
+      </div>
+
+      <h2 class="sec">کدام مدل برای شما مناسب است؟</h2>
+      <table class="cmp">
+        <tr><th>کاربری</th><th>مدل پیشنهادی</th><th>ظرفیت (دانه ورودی در ساعت)</th></tr>
+        <tr><td>مشاغل خانگی و عطاری</td><td>مینی پرس ۲۵ / پرس ۳۲</td><td>۴ تا ۷ کیلوگرم</td></tr>
+        <tr><td>فروشگاه روغن‌گیری</td><td>۴۵ رومیزی / ۴۵ اکو</td><td>۷ کیلوگرم</td></tr>
+        <tr><td>کارگاه و تولید نیمه‌صنعتی</td><td>۶۵ / ۸۵</td><td>۱۳ تا ۲۰ کیلوگرم</td></tr>
+        <tr><td>صنعتی و خط تولید</td><td>۹۰ / ۱۳۵ / ۱۶۰</td><td>۵۰ کیلوگرم به بالا</td></tr>
+      </table>
+
+      <h2 class="sec">جدول مقایسه مدل‌های پرفروش</h2>
+      <table class="cmp">
+        <tr><th>مدل</th><th>ظرفیت</th><th>کاربری</th><th>توان</th><th>قیمت تقریبی</th></tr>
+        <tr><td>مینی پرس ۲۵ (BD25)</td><td>۴ کیلوگرم/ساعت</td><td>خانگی، عطاری</td><td>—</td><td>۲۱۰,۰۰۰,۰۰۰ تومان</td></tr>
+        <tr><td>پرس ۳۲ (BD32)</td><td>—</td><td>خانگی، فروشگاه کوچک</td><td>—</td><td>۳۲۰,۰۰۰,۰۰۰ تومان</td></tr>
+        <tr><td>۴۵ رومیزی (BD45)</td><td>۷ کیلوگرم/ساعت</td><td>فروشگاهی</td><td>۱۰۰۰ وات</td><td>۴۷۵,۰۰۰,۰۰۰ تومان</td></tr>
+        <tr><td>۴۵ اکو (BD45 Eco)</td><td>۷ کیلوگرم/ساعت</td><td>فروشگاهی</td><td>—</td><td>۴۵۵,۰۰۰,۰۰۰ تومان</td></tr>
+        <tr><td>۴۵ فول آپشن</td><td>۷ کیلوگرم/ساعت</td><td>فروشگاهی</td><td>—</td><td>۵۶۰,۰۰۰,۰۰۰ تومان</td></tr>
+        <tr><td>۶۵ اکو (BD65 Eco)</td><td>۱۳ کیلوگرم/ساعت</td><td>کارگاهی</td><td>—</td><td>۶۴۰,۰۰۰,۰۰۰ تومان</td></tr>
+        <tr><td>۸۵ اکو (BD85 Eco)</td><td>۲۰ کیلوگرم/ساعت</td><td>کارگاهی، تولیدی</td><td>—</td><td>صفحه محصول</td></tr>
+        <tr><td>۱۳۵ (BD135)</td><td>۵۰ کیلوگرم/ساعت</td><td>صنعتی</td><td>—</td><td>صفحه محصول</td></tr>
+      </table>
+
+      <h2 class="sec">محصولات (نمونه)</h2>
+      <div class="products">
+        <div class="prod"><div class="img"><img src="https://www.bekrdaneh.ir/wp-content/uploads/2026/07/bd25-mini-cold-press-machine.webp" alt="دستگاه مینی پرس 25 بکردانه" loading="lazy"></div><div class="t">دستگاه مینی پرس ۲۵ بکردانه</div><div class="p">۲۱۰,۰۰۰,۰۰۰ تومان</div><div class="btn">افزودن به سبد خرید</div></div>
+        <div class="prod"><div class="img"><img src="https://www.bekrdaneh.ir/wp-content/uploads/2026/07/bd32-cold-press-machine.webp" alt="دستگاه روغن گیری پرس 32 بکردانه" loading="lazy"></div><div class="t">دستگاه روغن گیری پرس ۳۲ بکردانه</div><div class="p">۳۲۰,۰۰۰,۰۰۰ تومان</div><div class="btn">افزودن به سبد خرید</div></div>
+        <div class="prod"><div class="img"><img src="https://www.bekrdaneh.ir/wp-content/uploads/2026/07/bd45-desktop-cold-press-machine.webp" alt="دستگاه روغن گیری 45 رومیزی" loading="lazy"></div><div class="t">دستگاه روغن گیری ۴۵ رومیزی</div><div class="p">۴۷۵,۰۰۰,۰۰۰ تومان</div><div class="btn">افزودن به سبد خرید</div></div>
+        <div class="prod"><div class="img"><img src="https://www.bekrdaneh.ir/wp-content/uploads/2026/07/bd45-eco-cold-press-machine.webp" alt="دستگاه روغن گیری 45 اکو" loading="lazy"></div><div class="t">دستگاه روغن گیری ۴۵ اکو</div><div class="p">۴۵۵,۰۰۰,۰۰۰ تومان</div><div class="btn">افزودن به سبد خرید</div></div>
+        <div class="prod"><div class="img"><img src="https://www.bekrdaneh.ir/wp-content/uploads/2026/07/bd45-full-option-cold-press-machine.webp" alt="دستگاه روغن گیری 45 فول آپشن" loading="lazy"></div><div class="t">دستگاه روغن گیری ۴۵ فول آپشن</div><div class="p">۵۶۰,۰۰۰,۰۰۰ تومان</div><div class="btn">افزودن به سبد خرید</div></div>
+        <div class="prod"><div class="img"><img src="https://www.bekrdaneh.ir/wp-content/uploads/2026/07/bd65-eco-cold-press-machine.webp" alt="دستگاه روغن گیری 65 اکو" loading="lazy"></div><div class="t">دستگاه روغن گیری ۶۵ اکو</div><div class="p">۶۴۰,۰۰۰,۰۰۰ تومان</div><div class="btn">افزودن به سبد خرید</div></div>
+      </div>
+
+      <h2 class="sec">سوالات متداول دستگاه روغن گیری</h2>
+      <div class="faq">
+        <details open>
+          <summary>دستگاه روغن گیری پرس سرد یعنی چه؟</summary>
+          <p>در روش پرس سرد (کلدپرس)، دانه‌ها بدون حرارت‌دهی قبلی و در دمای پایین فشرده می‌شوند. نتیجه، روغنی با رنگ، عطر و خواص طبیعی دانه است. در مقابل، پرس گرم با حرارت بازده بیشتری دارد اما بخشی از خواص روغن از بین می‌رود.</p>
+        </details>
+        <details>
+          <summary>با دستگاه روغن گیری چه دانه‌هایی را می‌توان روغن گرفت؟</summary>
+          <p>کنجد، سیاه‌دانه، کتان، بادام، پسته، نارگیل، هسته انگور، هسته انار، گردو، فندق و… — با تنظیم دما و دور موتور (اینورتر) دستگاه را با هر نوع دانه‌ای تنظیم کنید.</p>
+        </details>
+        <details>
+          <summary>برای شروع کسب‌وکار خانگی کدام مدل مناسب است؟</summary>
+          <p>مینی پرس ۲۵ با ظرفیت ۴ کیلوگرم دانه در ساعت پرفروش‌ترین گزینه برای مشاغل خانگی و عطاری است؛ برای حجم بیشتر، پرس ۳۲ یا ۴۵ رومیزی را انتخاب کنید.</p>
+        </details>
+        <details>
+          <summary>گارانتی دستگاه‌های بکردانه چقدر است؟</summary>
+          <p>یک سال ضمانت بدنه + ۵ سال گارانتی موتور، گیربکس و اینورتر. قطعات یدکی مستقیم از کارخانه تأمین می‌شود.</p>
+        </details>
+        <details>
+          <summary>ارسال به شهرستان دارید؟</summary>
+          <p>بله، ارسال به سراسر کشور انجام می‌شود و مشاوره تلفنی رایگان قبل از خرید در دسترس است.</p>
+        </details>
+      </div>
+
+      <div class="note">⚠️ این صفحه یک <b>ماکاپ (پیش‌نمایش)</b> از ساختار پیشنهادی است — تصاویر و قیمت‌ها از سایت واقعی bekrdaneh.ir بارگذاری می‌شوند. متن کامل برای کپی در ووکامرس در فایل <b>docs/seo/category-oil-machine-content.md</b> آماده است.</div>
+
+      <div class="cta">
+        <b>برای انتخاب دستگاه مطمئن نیستید؟</b>
+        <div class="sub">کارشناسان بکردانه به‌صورت رایگان بر اساس کاربری و بودجه شما مشاوره می‌دهند.</div>
+        <div class="btns"><span>☎️ ۰۹۱۳۱۲۹۳۹۵۶</span><span class="alt">مشاوره رایگان در واتس‌اپ</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
