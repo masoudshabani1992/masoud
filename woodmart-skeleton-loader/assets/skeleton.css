@@ -1,0 +1,19 @@
+/* WoodMart Skeleton Loader */
+:root { --mswl-color: #eeeeee; --mswl-highlight: #f8f8f8; }
+html.mswl-preloading body { cursor: progress; }
+.mswl-skeleton-host { position: relative !important; overflow: hidden; }
+.mswl-skeleton-overlay { position: absolute; z-index: 20; inset: 0; padding: 0; background: var(--mswl-highlight); pointer-events: none; opacity: 1; transition: opacity .22s ease; }
+.mswl-skeleton-overlay.is-hidden { opacity: 0; }
+.mswl-skeleton-shape { position: absolute; display: block; background: var(--mswl-color); border-radius: 4px; overflow: hidden; }
+.mswl-skeleton-shape::after { content: ""; position: absolute; inset: 0; transform: translateX(-100%); background: linear-gradient(90deg, transparent, rgba(255,255,255,.62), transparent); animation: mswl-shimmer 1.25s infinite; }
+.mswl-skeleton-image { top: 0; left: 0; right: 0; height: 64%; border-radius: 0; }
+.mswl-skeleton-line-1 { left: 7%; right: 18%; bottom: 22%; height: 10px; }
+.mswl-skeleton-line-2 { left: 7%; right: 35%; bottom: 13%; height: 9px; }
+.mswl-skeleton-price { left: 7%; right: 57%; bottom: 5%; height: 9px; }
+.mswl-skeleton-generic::before, .mswl-skeleton-generic::after { content: ""; position: absolute; left: 5%; right: 5%; height: 13px; background: var(--mswl-color); border-radius: 4px; }
+.mswl-skeleton-generic::before { top: 38%; }
+.mswl-skeleton-generic::after { top: 55%; right: 25%; }
+.mswl-skeleton-image-only .mswl-skeleton-image { height: 100%; }
+.mswl-skeleton-image-only .mswl-skeleton-line-1, .mswl-skeleton-image-only .mswl-skeleton-line-2, .mswl-skeleton-image-only .mswl-skeleton-price { display: none; }
+@keyframes mswl-shimmer { 100% { transform: translateX(100%); } }
+@media (prefers-reduced-motion: reduce) { .mswl-skeleton-shape::after { animation: none; } .mswl-skeleton-overlay { transition: none; } }
