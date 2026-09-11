@@ -429,6 +429,7 @@ fun ProductScreen(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun Gallery(images: List<String>, discount: Int, lowStock: Int?) {
     val imgs = images.ifEmpty { listOf("") }
@@ -573,6 +574,10 @@ private fun ReviewsTab(reviews: List<Review>) {
                     Text(review.text, style = MaterialTheme.typography.bodyMedium)
                 }
             }
+        }
+    }
+}
+}
         }
     }
 }
