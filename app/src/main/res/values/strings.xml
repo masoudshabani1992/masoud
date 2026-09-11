@@ -91,7 +91,7 @@
     <string name="shipping_method">روش ارسال</string>
     <string name="payment_method">روش پرداخت</string>
     <string name="place_order">ثبت سفارش و پرداخت</string>
-    <string name="continue">ادامه</string>
+    <string name="continue_btn">ادامه</string>
     <string name="back">بازگشت</string>
     <string name="fill_required">لطفاً همه فیلدهای ضروری را کامل کنید</string>
     <string name="invalid_mobile">شماره موبایل معتبر نیست</string>

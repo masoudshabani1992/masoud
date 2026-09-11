@@ -421,7 +421,7 @@ private fun AddressStep(
         }
         Button(onClick = onNext, enabled = !working, modifier = Modifier.fillMaxWidth().height(50.dp)) {
             if (working) CircularProgressIndicator(modifier = androidx.compose.ui.Modifier.size(22.dp), strokeWidth = 2.dp)
-            else Text(stringResource(R.string.continue))
+            else Text(stringResource(R.string.continue_btn))
         }
     }
 }
@@ -479,7 +479,7 @@ private fun ShippingStep(
             OutlinedButton(onClick = onBackStep, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.back)) }
             Button(onClick = onNext, enabled = !working, modifier = Modifier.weight(1f)) {
                 if (working) CircularProgressIndicator(modifier = androidx.compose.ui.Modifier.size(22.dp), strokeWidth = 2.dp)
-                else Text(stringResource(R.string.continue))
+                else Text(stringResource(R.string.continue_btn))
             }
         }
     }
