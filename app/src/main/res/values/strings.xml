@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">مانوش</string>
+
+    <!-- Bottom navigation -->
+    <string name="nav_home">خانه</string>
+    <string name="nav_categories">دسته‌بندی‌ها</string>
+    <string name="nav_cart">سبد خرید</string>
+    <string name="nav_profile">حساب کاربری</string>
+
+    <!-- Home -->
+    <string name="search_hint">جستجو در مانوش…</string>
+    <string name="amazing_offers">پیشنهادهای شگفت‌انگیز</string>
+    <string name="see_all">مشاهده همه</string>
+    <string name="new_arrivals">جدیدترین محصولات</string>
+    <string name="best_sellers">پرفروش‌ترین‌ها</string>
+    <string name="shop_by_category">خرید بر اساس دسته‌بندی</string>
+    <string name="on_sale">تخفیف‌دارها</string>
+    <string name="ends_in">پایان جشنواره تا</string>
+
+    <!-- Browse / filters -->
+    <string name="sort">مرتب‌سازی</string>
+    <string name="filter">فیلترها</string>
+    <string name="sort_newest">جدیدترین</string>
+    <string name="sort_cheapest">ارزان‌ترین</string>
+    <string name="sort_expensive">گران‌ترین</string>
+    <string name="sort_popular">پرفروش‌ترین</string>
+    <string name="sort_rating">بالاترین امتیاز</string>
+    <string name="only_available">فقط کالاهای موجود</string>
+    <string name="only_on_sale">فقط کالاهای تخفیف‌دار</string>
+    <string name="price_range">محدوده قیمت (تومان)</string>
+    <string name="min_price">از</string>
+    <string name="max_price">تا</string>
+    <string name="apply">اعمال</string>
+    <string name="clear">حذف فیلترها</string>
+    <string name="close">بستن</string>
+
+    <!-- Product -->
+    <string name="add_to_cart">افزودن به سبد خرید</string>
+    <string name="out_of_stock">ناموجود</string>
+    <string name="in_stock">موجود</string>
+    <string name="low_stock">تنها %1$s عدد باقی مانده</string>
+    <string name="specs">مشخصات</string>
+    <string name="description">توضیحات</string>
+    <string name="reviews">دیدگاه‌ها</string>
+    <string name="related_products">کالاهای مرتبط</string>
+    <string name="select_option">انتخاب %1$s</string>
+    <string name="added_to_cart">به سبد خرید اضافه شد</string>
+    <string name="added_to_favorites">به علاقه‌مندی‌ها اضافه شد</string>
+    <string name="removed_from_favorites">از علاقه‌مندی‌ها حذف شد</string>
+    <string name="share">اشتراک‌گذاری</string>
+    <string name="no_reviews">هنوز دیدگاهی ثبت نشده است</string>
+    <string name="based_on_reviews">از %1$d دیدگاه</string>
+
+    <!-- Search -->
+    <string name="search_title">جستجو</string>
+    <string name="recent_searches">جستجوهای اخیر</string>
+    <string name="no_results">نتیجه‌ای پیدا نشد</string>
+    <string name="try_other_keywords">عبارت دیگری را امتحان کنید</string>
+
+    <!-- Cart -->
+    <string name="cart_title">سبد خرید</string>
+    <string name="cart_empty">سبد خرید شما خالی است</string>
+    <string name="cart_empty_hint">می‌توانید برای مشاهده محصولات به فروشگاه بروید</string>
+    <string name="go_to_shop">رفتن به فروشگاه</string>
+    <string name="coupon_code">کد تخفیف</string>
+    <string name="apply_coupon">ثبت کد</string>
+    <string name="sum_items">جمع کالاها</string>
+    <string name="discount">تخفیف</string>
+    <string name="shipping_cost">هزینه ارسال</string>
+    <string name="payable">مبلغ قابل پرداخت</string>
+    <string name="continue_checkout">ادامه و ثبت سفارش</string>
+    <string name="remove">حذف</string>
+    <string name="toman">تومان</string>
+    <string name="shipping_at_checkout">در مرحله بعد مشخص می‌شود</string>
+
+    <!-- Checkout -->
+    <string name="checkout_title">ثبت سفارش</string>
+    <string name="step_address">آدرس</string>
+    <string name="step_shipping">ارسال</string>
+    <string name="step_payment">پرداخت</string>
+    <string name="first_name">نام</string>
+    <string name="last_name">نام خانوادگی</string>
+    <string name="mobile">شماره موبایل</string>
+    <string name="email_optional">ایمیل (اختیاری)</string>
+    <string name="province">استان</string>
+    <string name="city">شهر</string>
+    <string name="address">آدرس کامل</string>
+    <string name="postcode">کد پستی</string>
+    <string name="order_note">توضیحات سفارش (اختیاری)</string>
+    <string name="shipping_method">روش ارسال</string>
+    <string name="payment_method">روش پرداخت</string>
+    <string name="place_order">ثبت سفارش و پرداخت</string>
+    <string name="continue">ادامه</string>
+    <string name="back">بازگشت</string>
+    <string name="fill_required">لطفاً همه فیلدهای ضروری را کامل کنید</string>
+    <string name="invalid_mobile">شماره موبایل معتبر نیست</string>
+    <string name="order_success">سفارش شما با موفقیت ثبت شد</string>
+    <string name="order_number">شماره سفارش: %1$d</string>
+    <string name="track_order">پیگیری سفارش</string>
+    <string name="back_to_home">بازگشت به خانه</string>
+    <string name="payment_redirect">در حال انتقال به درگاه پرداخت…</string>
+    <string name="payment_failed">پرداخت ناموفق بود. می‌توانید دوباره تلاش کنید.</string>
+    <string name="open_in_browser">باز کردن در مرورگر</string>
+
+    <!-- Auth -->
+    <string name="login_title">ورود | ثبت‌نام</string>
+    <string name="login_hint">برای ورود یا ثبت‌نام، شماره موبایل خود را وارد کنید</string>
+    <string name="send_code">ارسال کد تایید</string>
+    <string name="otp_title">کد تایید را وارد کنید</string>
+    <string name="otp_hint">کد ۵ رقمی به شماره %1$s پیامک شد</string>
+    <string name="verify">تایید</string>
+    <string name="resend_code">ارسال مجدد کد</string>
+    <string name="resend_in">ارسال مجدد تا %1$s</string>
+    <string name="edit_mobile">ویرایش شماره</string>
+    <string name="login_success">خوش آمدید!</string>
+
+    <!-- Profile / orders -->
+    <string name="guest_title">مهمان</string>
+    <string name="login_prompt">وارد حساب کاربری خود شوید</string>
+    <string name="login_button">ورود | ثبت‌نام</string>
+    <string name="my_orders">سفارش‌های من</string>
+    <string name="favorites">علاقه‌مندی‌ها</string>
+    <string name="addresses">آدرس‌های من</string>
+    <string name="magazine">مجله مانوش</string>
+    <string name="support">پشتیبانی و ارتباط</string>
+    <string name="settings">تنظیمات</string>
+    <string name="about">درباره مانوش</string>
+    <string name="logout">خروج از حساب</string>
+    <string name="logout_confirm">از حساب کاربری خارج می‌شوید؟</string>
+    <string name="yes">بله</string>
+    <string name="no">خیر</string>
+    <string name="no_orders">هنوز سفارشی ثبت نکرده‌اید</string>
+    <string name="no_favorites">هنوز کالایی را نشان نکرده‌اید</string>
+    <string name="order_status_pending">در انتظار پرداخت</string>
+    <string name="order_status_processing">در حال پردازش</string>
+    <string name="order_status_on_hold">در انتظار بررسی</string>
+    <string name="order_status_completed">تکمیل شده</string>
+    <string name="order_status_cancelled">لغو شده</string>
+    <string name="order_status_refunded">مسترد شده</string>
+    <string name="order_status_failed">ناموفق</string>
+    <string name="order_status_other">نامشخص</string>
+    <string name="order_date">تاریخ ثبت</string>
+    <string name="order_items">اقلام سفارش</string>
+    <string name="order_total">مبلغ سفارش</string>
+    <string name="pay_order">پرداخت سفارش</string>
+
+    <!-- Addresses -->
+    <string name="new_address">آدرس جدید</string>
+    <string name="edit_address">ویرایش آدرس</string>
+    <string name="save">ذخیره</string>
+    <string name="delete">حذف</string>
+    <string name="no_addresses">هنوز آدرسی ثبت نکرده‌اید</string>
+    <string name="address_title">عنوان آدرس (مثلاً خانه)</string>
+    <string name="choose_address">انتخاب آدرس</string>
+
+    <!-- Settings -->
+    <string name="theme">پوسته</string>
+    <string name="theme_system">خودکار (سیستم)</string>
+    <string name="theme_light">روشن</string>
+    <string name="theme_dark">تیره</string>
+    <string name="app_version">نسخه اپلیکیشن</string>
+    <string name="website">وب‌سایت مانوش</string>
+    <string name="clear_history">پاک کردن جستجوهای اخیر</string>
+
+    <!-- Common -->
+    <string name="retry">تلاش مجدد</string>
+    <string name="error_title">خطایی رخ داد</string>
+    <string name="error_network">اتصال به اینترنت برقرار نیست</string>
+    <string name="error_server">خطای سرور. لطفاً بعداً تلاش کنید</string>
+    <string name="loading">در حال بارگذاری…</string>
+    <string name="ok">باشه</string>
+    <string name="cancel">انصراف</string>
+</resources>

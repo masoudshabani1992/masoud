@@ -1,0 +1,13 @@
+# Copy this file to `local.properties` and adjust values for your machine.
+# (local.properties is git-ignored.)
+
+## Android SDK location (Android Studio sets this automatically)
+# sdk.dir=/Users/you/Library/Android/sdk
+
+## Base URL of the WooCommerce site (no trailing slash)
+manoosh.baseUrl=https://manooshorganic.com
+
+## Optional: WooCommerce REST API read keys (only needed for extra admin features).
+## The app works without these for normal shopping (Store API is public).
+# manoosh.wcKey=ck_xxx
+# manoosh.wcSecret=cs_xxx

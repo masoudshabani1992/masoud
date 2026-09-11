@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Launcher / splash base theme. Real theming is done in Compose (Theme.Manoosh in Kotlin). -->
+    <style name="Theme.Manoosh" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="windowSplashScreenAnimationDuration">600</item>
+        <item name="postSplashScreenTheme">@style/Theme.Manoosh.Main</item>
+    </style>
+
+    <style name="Theme.Manoosh.Main" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/splash_background</item>
+        <item name="android:statusBarColor">?android:attr/windowBackground</item>
+    </style>
+</resources>
