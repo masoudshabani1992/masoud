@@ -571,13 +571,9 @@ private fun ReviewsTab(reviews: List<Review>) {
                         )
                     }
                     Spacer(Modifier.height(4.dp))
-                    Text(review.text, style = MaterialTheme.typography.bodyMedium)
-                }
+                Text(review.text, style = MaterialTheme.typography.bodyMedium)
             }
         }
     }
 }
-}
-        }
-    }
 }
