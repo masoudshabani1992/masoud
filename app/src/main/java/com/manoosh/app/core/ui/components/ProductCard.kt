@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddShoppingCart
+import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -49,6 +50,7 @@ fun ProductCard(
     product: Product,
     onClick: () -> Unit,
     onAdd: (() -> Unit)? = null,
+    onRemove: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -79,6 +81,21 @@ fun ProductCard(
                             .align(Alignment.TopStart)
                             .padding(8.dp)
                     )
+                }
+                if (onRemove != null) {
+                    IconButton(
+                        onClick = onRemove,
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(4.dp)
+                            .size(30.dp)
+                    ) {
+                        Icon(
+                            Icons.Filled.DeleteOutline,
+                            contentDescription = stringResource(R.string.remove),
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
                 }
                 if (!product.inStock) {
                     Box(

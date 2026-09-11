@@ -111,26 +111,23 @@ object Routes {
 // ---------- Shared VMs ----------
 
 @HiltViewModel
-class MainViewModel @Inject constructor(cartRepository: CartRepository) : ViewModel() {
+class MainViewModel @Inject constructor(private val cartRepository: CartRepository) : ViewModel() {
     val cartCount: StateFlow<Int> = cartRepository.count.stateIn(
-        scope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main.immediate + kotlinx.coroutines.SupervisorJob()),
+        scope = viewModelScope,
         started = SharingStarted.Eagerly,
         initialValue = 0
     )
 
     init {
         // Warm up the cart so the badge is correct on first paint.
-        viewModelScopeCompat().launch { cartRepository.refresh() }
+        viewModelScope.launch { cartRepository.refresh() }
     }
-
-    private fun viewModelScopeCompat() =
-        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main.immediate + kotlinx.coroutines.SupervisorJob())
 }
 
 @HiltViewModel
 class ThemeViewModel @Inject constructor(userPrefs: UserPrefs) : ViewModel() {
     val theme: StateFlow<Int> = userPrefs.themeFlow.stateIn(
-        scope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main.immediate + kotlinx.coroutines.SupervisorJob()),
+        scope = viewModelScope,
         started = SharingStarted.Eagerly,
         initialValue = 0
     )

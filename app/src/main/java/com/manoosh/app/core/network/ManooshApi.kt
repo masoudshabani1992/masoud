@@ -20,4 +20,7 @@ interface ManooshApi {
 
     @GET("manoosh/v1/variations")
     suspend fun variations(@Query("product_id") productId: Long): List<VariationDto>
+
+    @GET("manoosh/v1/orders/{id}/pay-url")
+    suspend fun orderPayUrl(@Path("id") id: Long): PayUrlResponse
 }

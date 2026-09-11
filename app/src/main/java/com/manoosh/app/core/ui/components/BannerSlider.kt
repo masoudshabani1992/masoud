@@ -28,6 +28,7 @@ import coil.compose.AsyncImage
 import com.manoosh.app.domain.BannerUi
 import kotlinx.coroutines.delay
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun BannerSlider(
     banners: List<BannerUi>,
