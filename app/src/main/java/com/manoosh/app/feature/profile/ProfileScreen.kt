@@ -23,7 +23,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.HeadsetMic
-import androidx.compose.material.icons.filled.InfoOutline
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ReceiptLong
@@ -159,7 +159,7 @@ fun ProfileScreen(
                     onClick = { onOpenUrl("تماس با ما", Config.baseUrl + Constants.CONTACT_PATH) }
                 )
                 MenuRow(icon = Icons.Filled.Settings, title = stringResource(R.string.settings), onClick = onSettings)
-                MenuRow(icon = Icons.Filled.InfoOutline, title = stringResource(R.string.about), onClick = { showAbout = true })
+                MenuRow(icon = Icons.Outlined.Info, title = stringResource(R.string.about), onClick = { showAbout = true })
             }
 
             if (session.loggedIn) {

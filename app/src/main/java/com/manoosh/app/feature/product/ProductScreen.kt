@@ -228,14 +228,15 @@ class ProductViewModel @Inject constructor(
             _messages.tryEmit("این کالا ناموجود است")
             return
         }
-        if (s.variations.isNotEmpty() && s.selectedVariation == null) {
+        val selected = s.selectedVariation
+        if (s.variations.isNotEmpty() && selected == null) {
             _messages.tryEmit("لطفاً همه گزینه‌ها را انتخاب کنید")
             return
         }
         viewModelScope.launch {
             _state.update { it.copy(adding = true) }
-            val res = if (s.selectedVariation != null) {
-                cart.addVariation(s.selectedVariation.id, s.quantity)
+            val res = if (selected != null) {
+                cart.addVariation(selected.id, s.quantity)
             } else {
                 cart.add(p.id, s.quantity)
             }
