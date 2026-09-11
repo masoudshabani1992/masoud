@@ -36,9 +36,11 @@ jobs:
   release:
     name: Build release AAB/APK
     runs-on: ubuntu-latest
-    # Runs only on version tags AND when signing secrets are configured.
-    if: startsWith(github.ref, 'refs/tags/v') && secrets.KEYSTORE_BASE64 != ''
+    # Runs only on version tags. Requires signing secrets (see docs/BUILD_AND_PUBLISH_FA.md).
+    if: startsWith(github.ref, 'refs/tags/v')
     needs: debug-apk
+    env:
+      HAS_KEYSTORE: ${{ secrets.KEYSTORE_BASE64 != '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -51,6 +53,13 @@ jobs:
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v3
+
+      - name: Verify signing secrets
+        run: |
+          if [ "$HAS_KEYSTORE" != "true" ]; then
+            echo "::error::Signing secrets are not configured. Add KEYSTORE_BASE64, KEYSTORE_PASSWORD, KEY_ALIAS and KEY_PASSWORD in Settings > Secrets > Actions. See docs/BUILD_AND_PUBLISH_FA.md"
+            exit 1
+          fi
 
       - name: Decode keystore
         run: |
