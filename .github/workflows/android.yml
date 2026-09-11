@@ -6,6 +6,9 @@ on:
     tags: ["v*"]
   pull_request:
 
+permissions:
+  contents: write
+
 jobs:
   debug-apk:
     name: Build debug APK
@@ -37,6 +40,23 @@ jobs:
           name: manoosh-debug-apk
           path: app/build/outputs/apk/debug/*.apk
           retention-days: 30
+
+      # Publishes the APK into apk/ when the commit message contains [apk].
+      - name: Commit APK to repo
+        if: success() && github.event_name == 'push' && contains(github.event.head_commit.message, '[apk]')
+        run: |
+          mkdir -p apk
+          cp app/build/outputs/apk/debug/app-debug.apk apk/manoosh-debug.apk
+          ls -la apk/
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apk/manoosh-debug.apk
+          if git diff --staged --quiet; then
+            echo "APK unchanged, nothing to commit."
+          else
+            git commit -m "chore: update debug APK [skip ci]"
+            git push origin "HEAD:${{ github.ref_name }}"
+          fi
 
       - name: Annotate errors on failure
         if: failure()
