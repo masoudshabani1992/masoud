@@ -2,19 +2,21 @@ package com.manoosh.app.core.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import com.manoosh.app.R
 
 /**
- * Persian-ready typography.
- *
- * NOTE: to use Vazirmatn instead of the system font, drop the TTF files into
- * `res/font/` (e.g. vazirmatn_regular.ttf) and replace [AppFontFamily] with:
- *
- *   FontFamily(Font(R.font.vazirmatn_regular, FontWeight.Normal), ...)
+ * Manoosh brand typography — Yekan throughout the app.
+ * (Only the regular cut is bundled, so it backs Normal/Medium/Bold.)
  */
-val AppFontFamily: FontFamily = FontFamily.Default
+val AppFontFamily: FontFamily = FontFamily(
+    Font(R.font.yekan, FontWeight.Normal),
+    Font(R.font.yekan, FontWeight.Medium),
+    Font(R.font.yekan, FontWeight.Bold)
+)
 
 val ManooshTypography = Typography(
     displaySmall = TextStyle(fontFamily = AppFontFamily, fontWeight = FontWeight.Bold, fontSize = 24.sp, lineHeight = 36.sp),

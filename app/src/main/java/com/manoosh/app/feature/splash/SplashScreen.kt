@@ -6,55 +6,52 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.manoosh.app.R
-import com.manoosh.app.core.ui.theme.ManooshGreen
+import com.manoosh.app.core.ui.theme.ManooshYellow
 import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(onDone: () -> Unit) {
     LaunchedEffect(Unit) {
-        delay(1200)
+        delay(1400)
         onDone()
     }
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
+            .background(Color.Black),
         contentAlignment = Alignment.Center
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Box(
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Image(
+                painter = painterResource(R.drawable.brand_wordmark),
+                contentDescription = "مانوش",
                 modifier = Modifier
-                    .size(110.dp)
-                    .clip(CircleShape)
-                    .background(ManooshGreen),
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.ic_launcher_foreground),
-                    contentDescription = null,
-                    modifier = Modifier.size(84.dp)
-                )
-            }
-            Spacer(Modifier.height(16.dp))
-            Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineSmall)
+                    .fillMaxWidth()
+                    .padding(horizontal = 48.dp),
+                contentScale = ContentScale.FillWidth
+            )
+            Spacer(Modifier.height(24.dp))
             Text(
                 "فروشگاه محصولات ارگانیک",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                style = MaterialTheme.typography.titleMedium,
+                color = ManooshYellow
             )
         }
     }
