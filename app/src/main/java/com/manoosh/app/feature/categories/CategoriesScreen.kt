@@ -45,6 +45,7 @@ import com.manoosh.app.core.ui.components.ErrorState
 import com.manoosh.app.core.ui.components.HomeSearchBar
 import com.manoosh.app.core.ui.components.LoadingBox
 import com.manoosh.app.data.repository.CategoryRepository
+import com.manoosh.app.core.ui.theme.ImageShape
 import com.manoosh.app.domain.Category
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -207,7 +208,7 @@ private fun ChildTile(name: String, imageUrl: String, onClick: () -> Unit) {
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .size(76.dp)
-                .clip(RoundedCornerShape(16.dp))
+                .clip(ImageShape)
                 .background(MaterialTheme.colorScheme.surfaceVariant)
         )
         Spacer(Modifier.height(4.dp))

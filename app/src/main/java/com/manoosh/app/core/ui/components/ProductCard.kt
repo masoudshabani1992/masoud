@@ -19,7 +19,6 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddShoppingCart
 import androidx.compose.material.icons.filled.DeleteOutline
@@ -44,6 +43,8 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.manoosh.app.R
 import com.manoosh.app.domain.Product
+import com.manoosh.app.core.ui.theme.ImageShape
+import com.manoosh.app.core.ui.theme.ImageTopShape
 
 @Composable
 fun ProductCard(
@@ -55,7 +56,7 @@ fun ProductCard(
 ) {
     Card(
         onClick = onClick,
-        shape = RoundedCornerShape(12.dp),
+        shape = ImageShape,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         modifier = modifier
@@ -65,7 +66,7 @@ fun ProductCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(1f)
-                    .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
+                    .clip(ImageTopShape)
                     .background(MaterialTheme.colorScheme.surfaceVariant)
             ) {
                 AsyncImage(

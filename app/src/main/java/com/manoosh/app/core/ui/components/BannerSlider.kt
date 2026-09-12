@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -26,6 +25,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.manoosh.app.domain.BannerUi
+import com.manoosh.app.core.ui.theme.ImageShape
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -63,7 +63,7 @@ fun BannerSlider(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(170.dp)
-                    .clip(RoundedCornerShape(16.dp))
+                    .clip(ImageShape)
                     .background(MaterialTheme.colorScheme.surfaceVariant)
                     .clickable { onBannerClick(banner) }
             )

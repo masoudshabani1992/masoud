@@ -62,6 +62,7 @@ import com.manoosh.app.core.ui.components.ManooshTopBar
 import com.manoosh.app.core.ui.components.PriceText
 import com.manoosh.app.core.ui.components.QuantityStepper
 import com.manoosh.app.data.repository.CartRepository
+import com.manoosh.app.core.ui.theme.ImageShape
 import com.manoosh.app.domain.CartItemUi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -306,7 +307,7 @@ private fun CartItemCard(
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .size(84.dp)
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(ImageShape)
                     .background(MaterialTheme.colorScheme.surfaceVariant)
             )
             Column(Modifier.weight(1f)) {
