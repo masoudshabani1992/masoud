@@ -17,7 +17,9 @@ import {
   ExternalLink,
   Layers,
   ArrowRight,
-  Info
+  Info,
+  Sparkles,
+  PhoneCall
 } from 'lucide-react';
 
 export default function NotificationCenterModal({ onClose, onSelectProject }) {
@@ -28,18 +30,27 @@ export default function NotificationCenterModal({ onClose, onSelectProject }) {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [settingsLoading, setSettingsLoading] = useState(false);
-  const [testLoading, setTestLoading] = useState(false);
-  const [testResult, setTestResult] = useState(null);
+
+  const [testBaleLoading, setTestBaleLoading] = useState(false);
+  const [testBaleResult, setTestBaleResult] = useState(null);
+
+  const [testSmsLoading, setTestSmsLoading] = useState(false);
+  const [testSmsPhone, setTestSmsPhone] = useState('');
+  const [testSmsResult, setTestSmsResult] = useState(null);
 
   // Settings states
-  const [baleEnabled, setBaleEnabled] = useState(false);
+  const [baleEnabled, setBaleEnabled] = useState(true);
   const [baleBotToken, setBaleBotToken] = useState('');
   const [baleChatId, setBaleChatId] = useState('');
 
-  const [smsEnabled, setSmsEnabled] = useState(false);
+  const [smsEnabled, setSmsEnabled] = useState(true);
   const [melipayamakUsername, setMelipayamakUsername] = useState('');
   const [melipayamakPassword, setMelipayamakPassword] = useState('');
   const [melipayamakFrom, setMelipayamakFrom] = useState('50004');
+
+  const [templatePrice, setTemplatePrice] = useState('مشتری گرامی {نام مشتری}، پیش‌فاکتور سفارش "{نام کار}" (کد آرشیو: {کد}) تایید شد و جهت آماده‌سازی خط تیغ و طراحی ارجاع گردید.\nصنایع چاپ و بسته‌بندی آرمان امیران');
+  const [templateDesign, setTemplateDesign] = useState('مشتری گرامی {نام مشتری}، طرح گرافیکی و خط تیغ سفارش "{نام کار}" (کد: {کد}) تایید نهایی شد و فرآیند ساخت ماکت و تامین متریال آغاز گردید.\nصنایع بسته‌بندی آرمان امیران');
+  const [templateProduction, setTemplateProduction] = useState('مشتری گرامی {نام مشتری}، سفارش "{نام کار}" (کد آرشیو: {کد}) وارد خط چاپ و سالن تولید گردید. زمان بارگیری و تحویل اطلاع‌رسانی خواهد شد.\nصنایع بسته‌بندی آرمان امیران');
 
   const [soundEnabled, setSoundEnabled] = useState(true);
 
@@ -61,14 +72,18 @@ export default function NotificationCenterModal({ onClose, onSelectProject }) {
       setSettingsLoading(true);
       const res = await api.getNotificationSettings();
       const s = res.settings || {};
-      setBaleEnabled(s.bale_enabled === 'true');
+      setBaleEnabled(s.bale_enabled !== 'false');
       setBaleBotToken(s.bale_bot_token || '');
       setBaleChatId(s.bale_chat_id || '');
 
-      setSmsEnabled(s.sms_enabled === 'true');
+      setSmsEnabled(s.sms_enabled !== 'false');
       setMelipayamakUsername(s.melipayamak_username || '');
       setMelipayamakPassword(s.melipayamak_password || '');
       setMelipayamakFrom(s.melipayamak_from || '50004');
+
+      if (s.sms_template_price) setTemplatePrice(s.sms_template_price);
+      if (s.sms_template_design) setTemplateDesign(s.sms_template_design);
+      if (s.sms_template_production) setTemplateProduction(s.sms_template_production);
 
       setSoundEnabled(s.browser_sound_enabled !== 'false');
     } catch (err) {
@@ -113,9 +128,12 @@ export default function NotificationCenterModal({ onClose, onSelectProject }) {
         melipayamak_username: melipayamakUsername,
         melipayamak_password: melipayamakPassword,
         melipayamak_from: melipayamakFrom,
+        sms_template_price: templatePrice,
+        sms_template_design: templateDesign,
+        sms_template_production: templateProduction,
         browser_sound_enabled: String(soundEnabled)
       });
-      alert('تنظیمات نوتیفیکیشن با موفقیت ذخیره شد.');
+      alert('تنظیمات پیام‌رسان بله و ملی‌پیامک با موفقیت ذخیره شد.');
     } catch (err) {
       alert('خطا در ذخیره تنظیمات: ' + err.message);
     } finally {
@@ -125,24 +143,47 @@ export default function NotificationCenterModal({ onClose, onSelectProject }) {
 
   const handleTestBale = async () => {
     if (!baleBotToken || !baleChatId) {
-      alert('لطفاً توکن بات و شناسه چت بله را وارد فرمایید.');
+      alert('لطفاً ابتدا توکن بات و شناسه چت بله را وارد فرمایید.');
       return;
     }
     try {
-      setTestLoading(true);
-      setTestResult(null);
+      setTestBaleLoading(true);
+      setTestBaleResult(null);
       const res = await api.testBaleNotification(baleBotToken, baleChatId);
-      setTestResult({ type: 'success', text: res.message || 'پیام تست به پیام‌رسان بله ارسال شد!' });
+      setTestBaleResult({ type: 'success', text: res.message || 'پیام تست به پیام‌رسان بله ارسال شد!' });
     } catch (err) {
-      setTestResult({ type: 'error', text: err.message });
+      setTestBaleResult({ type: 'error', text: err.message });
     } finally {
-      setTestLoading(false);
+      setTestBaleLoading(false);
+    }
+  };
+
+  const handleTestSms = async () => {
+    if (!melipayamakUsername || !melipayamakPassword || !testSmsPhone) {
+      alert('لطفاً نام کاربری، رمز عبور ملی‌پیامک و شماره موبایل گیرنده تست را وارد فرمایید.');
+      return;
+    }
+    try {
+      setTestSmsLoading(true);
+      setTestSmsResult(null);
+      await api.testCustomerSms({
+        username: melipayamakUsername,
+        password: melipayamakPassword,
+        from: melipayamakFrom,
+        to: testSmsPhone,
+        text: 'تست اتصال سامانه پیامک صنایع چاپ و بسته‌بندی آرمان امیران'
+      });
+      setTestSmsResult({ type: 'success', text: 'پیامک تستی به شماره ' + testSmsPhone + ' ارسال گردید.' });
+    } catch (err) {
+      setTestSmsResult({ type: 'error', text: err.message });
+    } finally {
+      setTestSmsLoading(false);
     }
   };
 
   return (
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4 animate-in fade-in zoom-in-95 duration-150">
-      <div className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl border border-slate-200 overflow-hidden max-h-[85vh] flex flex-col">
+      <div className="bg-white rounded-3xl w-full max-w-3xl shadow-2xl border border-slate-200 overflow-hidden max-h-[90vh] flex flex-col">
         
         {/* Header */}
         <div className="bg-slate-900 text-white p-4 sm:p-5 flex items-center justify-between border-b border-slate-800">
@@ -151,8 +192,8 @@ export default function NotificationCenterModal({ onClose, onSelectProject }) {
               <Bell className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base font-black text-white">مرکز اعلان‌ها و نوتیفیکیشن کارخانه</h2>
-              <p className="text-xs text-slate-400">اطلاع‌رسانی لحظه‌ای ارجاعات خط تولید به پرسنل و مشتریان</p>
+              <h2 className="text-base font-black text-white">مرکز اعلان‌ها و سامانه هوشمند اطلاع‌رسانی</h2>
+              <p className="text-xs text-slate-400">ارسال اعلان بله به پرسنل و پیامک به مشتریان در رویدادهای کلیدی</p>
             </div>
           </div>
 
@@ -169,7 +210,7 @@ export default function NotificationCenterModal({ onClose, onSelectProject }) {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setActiveTab('list')}
-              className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
+              className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
                 activeTab === 'list'
                   ? 'bg-white text-indigo-700 shadow-sm border border-slate-200'
                   : 'text-slate-600 hover:text-slate-900'
@@ -182,14 +223,14 @@ export default function NotificationCenterModal({ onClose, onSelectProject }) {
             {isCeo && (
               <button
                 onClick={() => setActiveTab('settings')}
-                className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
+                className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
                   activeTab === 'settings'
                     ? 'bg-white text-indigo-700 shadow-sm border border-slate-200'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
                 <Settings className="w-3.5 h-3.5 text-purple-600" />
-                <span>تنظیمات بله و ملی‌پیامک</span>
+                <span>پیکربندی بله (پرسنل) و ملی‌پیامک (مشتریان)</span>
               </button>
             )}
           </div>
@@ -217,7 +258,7 @@ export default function NotificationCenterModal({ onClose, onSelectProject }) {
                 <div className="py-16 text-center text-slate-400 space-y-2">
                   <Bell className="w-10 h-10 text-slate-300 mx-auto" />
                   <div className="font-bold text-sm text-slate-600">هیچ اعلان جدیدی وجود ندارد</div>
-                  <p className="text-xs text-slate-400">هنگامی که پروژه‌ای به مرحله بعدی ارجاع شود، در اینجا نمایش داده می‌شود.</p>
+                  <p className="text-xs text-slate-400">به محض ارجاع کار در خط تولید، در اینجا نمایش داده می‌شود.</p>
                 </div>
               ) : (
                 notifications.map((notif) => (
@@ -271,48 +312,16 @@ export default function NotificationCenterModal({ onClose, onSelectProject }) {
           {activeTab === 'settings' && isCeo && (
             <form onSubmit={handleSaveSettings} className="space-y-6 text-xs">
               
-              {/* Channel 1: Browser Audio Chime */}
-              <div className="bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-200 space-y-3">
+              {/* Channel 1: Bale Messenger (for Personnel) */}
+              <div className="bg-emerald-50/40 p-5 rounded-3xl border-2 border-emerald-200 space-y-4">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center">
-                      <Volume2 className="w-4 h-4" />
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-md shadow-emerald-200">
+                      <MessageSquare className="w-5 h-5" />
                     </div>
                     <div>
-                      <div className="font-black text-sm text-slate-800">۱. نوتیفیکیشن صوتی مرورگر و موبایل (رایگان و آفلاین)</div>
-                      <p className="text-[11px] text-slate-500">پخش صدای دینگ هنگام تغییر مرحله روی گوشی و کامپیوتر در شبکه کارخانه</p>
-                    </div>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={soundEnabled}
-                      onChange={(e) => setSoundEnabled(e.target.checked)}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-                  </label>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => playNotificationSound()}
-                  className="px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-slate-700 font-bold hover:bg-slate-100 flex items-center gap-1.5"
-                >
-                  <Volume2 className="w-3.5 h-3.5 text-indigo-600" />
-                  <span>تست پخش صدای اعلان</span>
-                </button>
-              </div>
-
-              {/* Channel 2: Bale Messenger Bot */}
-              <div className="bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-200 space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center">
-                      <MessageSquare className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <div className="font-black text-sm text-slate-800">۲. پیام‌رسان بله (Bale Messenger - رایگان با سرور داخلی)</div>
-                      <p className="text-[11px] text-slate-500">ارسال خودکار مشخصات کار به پیوی یا گروه پرسنل در اپلیکیشن ایرانی بله</p>
+                      <div className="font-black text-sm text-slate-900">۱. پیام‌رسان بله (مختص پرسنل کارخانه - ۱۰۰٪ رایگان)</div>
+                      <p className="text-xs text-slate-600 mt-0.5">ارسال خودکار مشخصات فنی، تیراژ و کد آرشیو به گروه یا پیوی پرسنل هر دپارتمان</p>
                     </div>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
@@ -327,55 +336,60 @@ export default function NotificationCenterModal({ onClose, onSelectProject }) {
                 </div>
 
                 {baleEnabled && (
-                  <div className="space-y-3 pt-2 border-t border-slate-200 animate-in fade-in">
-                    <div>
-                      <label className="block font-bold text-slate-700 mb-1">توکن بات بله (Bot Token):</label>
-                      <input
-                        type="text"
-                        placeholder="مثال: 123456789:ABCdefGhIJKlmNoPqRstUvwXyz"
-                        value={baleBotToken}
-                        onChange={(e) => setBaleBotToken(e.target.value)}
-                        className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 font-mono bg-white"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-bold text-slate-700 mb-1">شناسه چت یا کانال (Chat ID):</label>
-                      <input
-                        type="text"
-                        placeholder="مثال: 987654321 یا @arman_amiran_channel"
-                        value={baleChatId}
-                        onChange={(e) => setBaleChatId(e.target.value)}
-                        className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 font-mono bg-white"
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleTestBale}
-                      disabled={testLoading}
-                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold flex items-center gap-1.5"
-                    >
-                      {testLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
-                      <span>تست ارسال پیام به بله</span>
-                    </button>
-                    {testResult && (
-                      <div className={`p-2.5 rounded-xl text-xs font-bold ${testResult.type === 'success' ? 'bg-emerald-100 text-emerald-900' : 'bg-rose-100 text-rose-900'}`}>
-                        {testResult.text}
+                  <div className="space-y-3 pt-3 border-t border-emerald-200 animate-in fade-in">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">توکن بات بله (Bot Token):</label>
+                        <input
+                          type="text"
+                          placeholder="مثال: 123456789:ABCdefGhIJKlmNoPqRstUvwXyz"
+                          value={baleBotToken}
+                          onChange={(e) => setBaleBotToken(e.target.value)}
+                          className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 font-mono bg-white"
+                        />
                       </div>
-                    )}
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">شناسه چت یا کانال کارخانه (Chat ID):</label>
+                        <input
+                          type="text"
+                          placeholder="مثال: 987654321 یا @arman_amiran"
+                          value={baleChatId}
+                          onChange={(e) => setBaleChatId(e.target.value)}
+                          className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 font-mono bg-white"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-3 pt-1">
+                      <button
+                        type="button"
+                        onClick={handleTestBale}
+                        disabled={testBaleLoading}
+                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold flex items-center gap-1.5 shadow-xs"
+                      >
+                        {testBaleLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                        <span>تست ارسال پیام به بله</span>
+                      </button>
+                      {testBaleResult && (
+                        <div className={`p-2 rounded-xl text-xs font-bold ${testBaleResult.type === 'success' ? 'bg-emerald-100 text-emerald-900' : 'bg-rose-100 text-rose-900'}`}>
+                          {testBaleResult.text}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
 
-              {/* Channel 3: Melipayamak SMS Gateway */}
-              <div className="bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-200 space-y-4">
+              {/* Channel 2: Melipayamak 3 Smart Customer SMS Events */}
+              <div className="bg-purple-50/40 p-5 rounded-3xl border-2 border-purple-200 space-y-4">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-purple-100 text-purple-800 flex items-center justify-center">
-                      <Smartphone className="w-4 h-4" />
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-purple-600 text-white flex items-center justify-center shadow-md shadow-purple-200">
+                      <Smartphone className="w-5 h-5" />
                     </div>
                     <div>
-                      <div className="font-black text-sm text-slate-800">۳. سامانه ملی‌پیامک (SMS Gateway)</div>
-                      <p className="text-[11px] text-slate-500">ارسال پیامک اطلاع‌رسانی به شماره موبایل پرسنل و مشتریان</p>
+                      <div className="font-black text-sm text-slate-900">۲. سامانه ملی‌پیامک (۳ پیامک هوشمند برای مشتریان در رویدادهای کلیدی)</div>
+                      <p className="text-xs text-slate-600 mt-0.5">ارسال خودکار پیامک رسمی به شماره مشتری در ۳ زمان حیاتی</p>
                     </div>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
@@ -390,36 +404,112 @@ export default function NotificationCenterModal({ onClose, onSelectProject }) {
                 </div>
 
                 {smsEnabled && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-200 animate-in fade-in">
-                    <div>
-                      <label className="block font-bold text-slate-700 mb-1">نام کاربری ملی‌پیامک:</label>
+                  <div className="space-y-4 pt-3 border-t border-purple-200 animate-in fade-in">
+                    
+                    {/* Credentials */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">نام کاربری ملی‌پیامک:</label>
+                        <input
+                          type="text"
+                          placeholder="نام کاربری پنل ملی‌پیامک"
+                          value={melipayamakUsername}
+                          onChange={(e) => setMelipayamakUsername(e.target.value)}
+                          className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 bg-white font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">کلمه عبور / API Key:</label>
+                        <input
+                          type="password"
+                          placeholder="کلمه عبور پنل"
+                          value={melipayamakPassword}
+                          onChange={(e) => setMelipayamakPassword(e.target.value)}
+                          className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">شماره خط فرستنده:</label>
+                        <input
+                          type="text"
+                          placeholder="مثال: 50004..."
+                          value={melipayamakFrom}
+                          onChange={(e) => setMelipayamakFrom(e.target.value)}
+                          className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 font-mono bg-white"
+                        />
+                      </div>
+                    </div>
+
+                    {/* 3 Customer SMS Templates */}
+                    <div className="space-y-3 bg-white p-4 rounded-2xl border border-purple-100">
+                      <div className="font-bold text-purple-900 flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-amber-500" />
+                        <span>متن ۳ پیامک خودکار مشتری (با متغیرهای هوشمند):</span>
+                      </div>
+
+                      {/* Event 1: Price Approval */}
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">
+                          📩 ۱. پیامک تایید پیش‌فاکتور (مرحله ۳/۴):
+                        </label>
+                        <textarea
+                          rows={2}
+                          value={templatePrice}
+                          onChange={(e) => setTemplatePrice(e.target.value)}
+                          className="w-full p-2.5 text-xs rounded-xl border border-slate-200 focus:ring-2 focus:ring-purple-500/20"
+                        />
+                      </div>
+
+                      {/* Event 2: Design Approval */}
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">
+                          📩 ۲. پیامک تایید فایل طراحی و خط تیغ (مرحله ۶/۷):
+                        </label>
+                        <textarea
+                          rows={2}
+                          value={templateDesign}
+                          onChange={(e) => setTemplateDesign(e.target.value)}
+                          className="w-full p-2.5 text-xs rounded-xl border border-slate-200 focus:ring-2 focus:ring-purple-500/20"
+                        />
+                      </div>
+
+                      {/* Event 3: Production Entry */}
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">
+                          📩 ۳. پیامک ورود کار به سالن چاپ و خط تولید (مرحله ۱۰):
+                        </label>
+                        <textarea
+                          rows={2}
+                          value={templateProduction}
+                          onChange={(e) => setTemplateProduction(e.target.value)}
+                          className="w-full p-2.5 text-xs rounded-xl border border-slate-200 focus:ring-2 focus:ring-purple-500/20"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Test SMS Box */}
+                    <div className="flex items-center gap-3 flex-wrap pt-1">
                       <input
                         type="text"
-                        placeholder="نام کاربری پنل ملی‌پیامک"
-                        value={melipayamakUsername}
-                        onChange={(e) => setMelipayamakUsername(e.target.value)}
-                        className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 bg-white"
+                        placeholder="شماره موبایل جهت تست پیامک (مثلاً 0912...)"
+                        value={testSmsPhone}
+                        onChange={(e) => setTestSmsPhone(e.target.value)}
+                        className="px-3.5 py-2 text-xs rounded-xl border border-slate-300 font-mono bg-white w-64"
                       />
-                    </div>
-                    <div>
-                      <label className="block font-bold text-slate-700 mb-1">کلمه عبور / API Key:</label>
-                      <input
-                        type="password"
-                        placeholder="کلمه عبور"
-                        value={melipayamakPassword}
-                        onChange={(e) => setMelipayamakPassword(e.target.value)}
-                        className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 bg-white"
-                      />
-                    </div>
-                    <div className="sm:col-span-2">
-                      <label className="block font-bold text-slate-700 mb-1">شماره فرستنده (خط اختصاصی یا خدماتی):</label>
-                      <input
-                        type="text"
-                        placeholder="مثال: 50004..."
-                        value={melipayamakFrom}
-                        onChange={(e) => setMelipayamakFrom(e.target.value)}
-                        className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 font-mono bg-white"
-                      />
+                      <button
+                        type="button"
+                        onClick={handleTestSms}
+                        disabled={testSmsLoading}
+                        className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold flex items-center gap-1.5 shadow-xs"
+                      >
+                        {testSmsLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <PhoneCall className="w-3.5 h-3.5" />}
+                        <span>ارسال پیامک تست</span>
+                      </button>
+                      {testSmsResult && (
+                        <div className={`p-2 rounded-xl text-xs font-bold ${testSmsResult.type === 'success' ? 'bg-emerald-100 text-emerald-900' : 'bg-rose-100 text-rose-900'}`}>
+                          {testSmsResult.text}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -429,10 +519,10 @@ export default function NotificationCenterModal({ onClose, onSelectProject }) {
               <button
                 type="submit"
                 disabled={settingsLoading}
-                className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-sm shadow-md shadow-indigo-100 flex items-center justify-center gap-2"
+                className="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-2xl font-black text-sm sm:text-base shadow-lg shadow-indigo-200 flex items-center justify-center gap-2 transition-all active:scale-95"
               >
-                {settingsLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                <span>ذخیره تنظیمات کانال‌های نوتیفیکیشن</span>
+                {settingsLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-5 h-5 text-amber-300" />}
+                <span>ذخیره کلیه تنظیمات نوتیفیکیشن بله و ملی‌پیامک</span>
               </button>
             </form>
           )}

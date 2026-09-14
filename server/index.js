@@ -7,7 +7,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const db = require('./db');
 const { calculateBoxCost } = require('./calculator');
-const { sendNotification } = require('./notifications');
+const { sendNotification, sendTestCustomerSms } = require('./notifications');
 const {
   importCustomers,
   importProjects,
@@ -415,14 +415,15 @@ app.post('/api/projects/:id/advance-stage', authMiddleware, (req, res) => {
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `).run(id, currentStage, STAGES[currentStage]?.name || '', `انتقال به ${nextStageInfo.name}`, req.user.id, req.user.fullName, req.user.role, comment || `ارجاع به مرحله ${nextStage}`);
 
-  // Send Multi-Channel Notification to Target Department
+  // Send Multi-Channel Notification to Target Department (Bale / In-App) & Customer (Melipayamak SMS on 3 Milestones)
   sendNotification({
     targetRole: nextStageInfo.role || 'all',
     projectId: id,
     archiveCode: project.archive_code,
     title: `سفارش "${project.title}" به ${nextStageInfo.name} ارجاع شد`,
     message: comment || `کد آرشیو: ${project.archive_code} - لطفاً کارتابل خود را بررسی فرمایید.`,
-    stageNumber: nextStage
+    stageNumber: nextStage,
+    project: project
   });
 
   res.json({ success: true, nextStage });
@@ -720,6 +721,26 @@ app.post('/api/notifications/test-bale', authMiddleware, requireCeo, async (req,
     }
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+// Test Melipayamak Customer SMS
+app.post('/api/notifications/test-sms', authMiddleware, requireCeo, async (req, res) => {
+  try {
+    const { username, password, from, to, text } = req.body;
+    if (!username || !password || !to) {
+      return res.status(400).json({ error: 'نام کاربری، کلمه عبور و شماره موبایل گیرنده الزامی است' });
+    }
+    const result = await sendTestCustomerSms({
+      username,
+      password,
+      from: from || '50004',
+      to,
+      text: text || 'تست اتصال سامانه پیامک اتوماسیون آرمان امیران'
+    });
+    res.json({ success: true, result });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در ارسال پیامک: ' + err.message });
   }
 });
 

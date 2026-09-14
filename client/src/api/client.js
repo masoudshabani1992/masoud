@@ -77,6 +77,7 @@ export const api = {
   getNotificationSettings: () => apiRequest('/settings/notifications'),
   updateNotificationSettings: (data) => apiRequest('/settings/notifications', { method: 'POST', body: JSON.stringify(data) }),
   testBaleNotification: (token, chatId) => apiRequest('/notifications/test-bale', { method: 'POST', body: JSON.stringify({ token, chatId }) }),
+  testCustomerSms: (data) => apiRequest('/notifications/test-sms', { method: 'POST', body: JSON.stringify(data) }),
 
   // Customers & Analytics
   getCustomers: () => apiRequest('/customers'),
