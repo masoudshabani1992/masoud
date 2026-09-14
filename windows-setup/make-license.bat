@@ -1,18 +1,29 @@
 @echo off
-chcp 65001 >nul
-title ابزار صدور لایسنس - مهندس مسعود شعبانی
+setlocal EnableDelayedExpansion
+title License Key Generator - Masoud Shabani
 color 0B
 cls
 
-echo =======================================================================
-echo          سامانه صدور لایسنس سخت افزاری و امضای دیجیتال
-echo                 توسعه دهنده: مهندس مسعود شعبانی
-echo =======================================================================
-echo.
+:: Navigate to root directory
+cd /d "%~dp0"
+if exist "..\server\license-generator.js" (
+    cd /d "%~dp0\.."
+)
 
+:: Check Node.js
+where node >nul 2>nul
+if %errorlevel% neq 0 (
+    echo [ERROR] Node.js is not installed or not in PATH!
+    echo Please install Node.js from https://nodejs.org
+    echo.
+    pause
+    exit /b 1
+)
+
+:: Run Node.js License Generator
 node server\license-generator.js
 
 echo.
 echo =======================================================================
-echo عملیات به پایان رسید. جهت خروج یک کلید را فشار دهید.
+echo Press any key to exit...
 pause >nul

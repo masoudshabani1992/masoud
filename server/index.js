@@ -112,6 +112,25 @@ app.post('/api/license/deactivate', authMiddleware, requireCeo, (req, res) => {
   }
 });
 
+// Developer License Key Generator (Only CEO/Developer)
+app.post('/api/license/generate', authMiddleware, requireCeo, (req, res) => {
+  try {
+    const { hardwareId, companyName, issuedTo, expiry, maxUsers, type } = req.body;
+    const { generateSignedLicenseKey } = require('./license-generator');
+    const result = generateSignedLicenseKey({
+      hardwareId: hardwareId || 'ANY',
+      companyName: companyName || 'صنایع چاپ و بسته‌بندی آرمان امیران',
+      issuedTo: issuedTo || 'مدیریت کارخانه',
+      expiry: expiry || 'PERMANENT',
+      maxUsers: maxUsers || 100,
+      type: type || 'ENTERPRISE_UNLIMITED'
+    });
+    res.json({ success: true, ...result });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در صدور لایسنس: ' + err.message });
+  }
+});
+
 function authMiddleware(req, res, next) {
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {

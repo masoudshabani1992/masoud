@@ -41,6 +41,7 @@ export const api = {
   getLicenseStatus: () => apiRequest('/license/status'),
   activateLicense: (licenseKey) => apiRequest('/license/activate', { method: 'POST', body: JSON.stringify({ licenseKey }) }),
   deactivateLicense: () => apiRequest('/license/deactivate', { method: 'POST' }),
+  generateLicense: (data) => apiRequest('/license/generate', { method: 'POST', body: JSON.stringify(data) }),
 
   // Auth & Users
   login: (username, password) => apiRequest('/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) }),
