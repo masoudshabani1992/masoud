@@ -1,0 +1,26 @@
+{
+  "name": "box-factory-erp",
+  "version": "1.0.0",
+  "description": "سامانه اتوماسیون و مدیریت پروژه ۹ مرحله‌ای کارخانه جعبه‌سازی و کارتن‌سازی",
+  "main": "server/index.js",
+  "scripts": {
+    "setup": "cd server && npm install && cd ../client && npm install && npm run build",
+    "build": "cd client && npx vite build",
+    "start": "node server/index.js",
+    "dev:server": "node server/index.js",
+    "dev:client": "cd client && npx vite --host 0.0.0.0 --port 5173",
+    "dev": "node server/index.js"
+  },
+  "keywords": [
+    "box-factory",
+    "carton",
+    "packaging",
+    "erp",
+    "automation"
+  ],
+  "author": "Masoud Shabani",
+  "license": "MIT",
+  "dependencies": {
+    "xlsx": "^0.18.5"
+  }
+}

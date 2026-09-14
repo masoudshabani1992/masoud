@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  box-factory-automation:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    container_name: box_factory_erp
+    restart: always
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - JWT_SECRET=boxfactory-super-secret-key-1403
+      - NODE_ENV=production
+    volumes:
+      - ../server/factory.db:/app/server/factory.db
+      - ../server/uploads:/app/server/uploads
