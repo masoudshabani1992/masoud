@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { canAccessDepartment } from '../utils/helpers';
-import { Lock, AlertCircle, X, ShieldAlert, ArrowRightLeft, FileSpreadsheet, PlusCircle, Boxes } from 'lucide-react';
+import { Lock, AlertCircle, X, ShieldAlert, ArrowRightLeft, FileSpreadsheet, PlusCircle, Boxes, Sparkles } from 'lucide-react';
 
 // Custom SVGs crafted to match the legacy MIS screenshot
 function DesignerIcon({ className = "w-16 h-16" }) {
@@ -200,6 +200,14 @@ export default function DepartmentHubView({
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
+          <button
+            onClick={() => onNavigateDepartment('ai_assistant')}
+            className="px-4 py-2 bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-600 hover:to-indigo-600 text-white font-black rounded-xl text-xs sm:text-sm shadow-md transition-all flex items-center gap-2"
+          >
+            <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
+            <span>دستیار هوش مصنوعی و بهینه‌ساز فرم‌بندی</span>
+          </button>
+
           <button
             onClick={() => onNavigateDepartment('migration')}
             className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl text-xs sm:text-sm shadow-md transition-all flex items-center gap-2"

@@ -15,6 +15,12 @@ const {
   verifyLicenseString
 } = require('./license');
 const {
+  parsePackagingPrompt,
+  optimizeSheetNesting,
+  auditPackagingSpecs,
+  PACKAGING_FAQ
+} = require('./ai-assistant');
+const {
   importCustomers,
   importProjects,
   importMaterials,
@@ -129,6 +135,50 @@ app.post('/api/license/generate', authMiddleware, requireCeo, (req, res) => {
   } catch (err) {
     res.status(500).json({ error: 'خطا در صدور لایسنس: ' + err.message });
   }
+});
+
+// ================= AI PACKAGING COPILOT ROUTES =================
+app.post('/api/ai/parse-prompt', authMiddleware, (req, res) => {
+  try {
+    const { prompt } = req.body;
+    if (!prompt) {
+      return res.status(400).json({ error: 'متن استعلام خالی است.' });
+    }
+    const result = parsePackagingPrompt(prompt);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در پردازش هوش مصنوعی: ' + err.message });
+  }
+});
+
+app.post('/api/ai/optimize-nesting', authMiddleware, (req, res) => {
+  try {
+    const { flatLength, flatWidth, quantity, grammage, cardboardPricePerKg, customSheets } = req.body;
+    const result = optimizeSheetNesting({
+      flatLength,
+      flatWidth,
+      quantity,
+      grammage,
+      cardboardPricePerKg,
+      customSheets
+    });
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در بهینه‌سازی شیت: ' + err.message });
+  }
+});
+
+app.post('/api/ai/preflight-audit', authMiddleware, (req, res) => {
+  try {
+    const result = auditPackagingSpecs(req.body);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در بازرسی فنی: ' + err.message });
+  }
+});
+
+app.get('/api/ai/knowledge-base', authMiddleware, (req, res) => {
+  res.json({ faq: PACKAGING_FAQ });
 });
 
 function authMiddleware(req, res, next) {

@@ -19,6 +19,7 @@ import PrintTicketModal from './components/PrintTicketModal';
 import NotificationCenterModal from './components/NotificationCenterModal';
 import LicenseGate from './components/LicenseGate';
 import LicenseStatusModal from './components/LicenseStatusModal';
+import AiAssistantView from './components/AiAssistantView';
 import { playNotificationSound } from './utils/helpers';
 
 export default function App() {
@@ -262,6 +263,20 @@ export default function App() {
 
         {/* Data Migration & Import Center */}
         {activeTab === 'migration' && <DataMigrationView onRefreshData={fetchProjects} />}
+
+        {/* AI Packaging Assistant & Nesting Optimizer */}
+        {activeTab === 'ai_assistant' && (
+          <AiAssistantView
+            onTransferToOrderForm={(extractedData) => {
+              setReorderData({
+                ...extractedData,
+                order_code: String(Math.floor(1000 + Math.random() * 9000)),
+                archive_code: String(Math.floor(1000 + Math.random() * 9000))
+              });
+              setActiveTab('new_order');
+            }}
+          />
+        )}
 
         {/* Full-Page Industrial Price Calculator */}
         {activeTab === 'calculator' && (

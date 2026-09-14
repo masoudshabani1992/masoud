@@ -120,6 +120,20 @@ export default function Header({
             <span className="hidden sm:inline">لایسنس معتبر</span>
           </button>
 
+          {/* AI Assistant Fast Access Button */}
+          <button
+            onClick={() => setActiveTab('ai_assistant')}
+            className={`flex items-center gap-1.5 px-3.5 py-2 text-xs font-black rounded-xl transition-all shadow-xs border ${
+              activeTab === 'ai_assistant'
+                ? 'bg-gradient-to-r from-purple-700 to-indigo-700 text-white border-purple-800 shadow-md ring-2 ring-purple-400'
+                : 'bg-purple-50 hover:bg-purple-100 text-purple-900 border-purple-200'
+            }`}
+            title="دستیار هوش مصنوعی و بهینه‌ساز فرم‌بندی مقوا"
+          >
+            <Sparkles className="w-4 h-4 text-purple-600 animate-pulse" />
+            <span>هوش مصنوعی (AI)</span>
+          </button>
+
           {/* Notification Bell with Badge */}
           <button
             onClick={onOpenNotifications}
@@ -305,7 +319,20 @@ export default function Header({
             </button>
           )}
 
-          {/* 9. User Management (CEO only) */}
+          {/* 9. AI Packaging Copilot */}
+          <button
+            onClick={() => setActiveTab('ai_assistant')}
+            className={`flex items-center justify-center gap-2 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
+              activeTab === 'ai_assistant'
+                ? 'bg-gradient-to-r from-purple-700 to-indigo-700 text-amber-300 border-purple-800 shadow-md ring-2 ring-purple-400'
+                : 'bg-purple-50 text-purple-900 hover:text-purple-950 hover:bg-purple-100 border-purple-200 shadow-xs'
+            }`}
+          >
+            <Sparkles className="w-4 h-4 text-purple-600 flex-shrink-0 animate-pulse" />
+            <span className="truncate">دستیار هوش مصنوعی</span>
+          </button>
+
+          {/* 10. User Management (CEO only) */}
           {isCeo && (
             <button
               onClick={() => setActiveTab('users')}
@@ -320,7 +347,7 @@ export default function Header({
             </button>
           )}
 
-          {/* 10. Subdomain Deployment Guide */}
+          {/* 11. Subdomain Deployment Guide */}
           <button
             onClick={() => setActiveTab('subdomain_guide')}
             className={`flex items-center justify-center gap-2 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${

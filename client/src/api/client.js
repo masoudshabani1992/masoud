@@ -37,6 +37,12 @@ export async function apiRequest(endpoint, options = {}) {
 }
 
 export const api = {
+  // AI Packaging Assistant
+  aiParsePrompt: (prompt) => apiRequest('/ai/parse-prompt', { method: 'POST', body: JSON.stringify({ prompt }) }),
+  aiOptimizeNesting: (data) => apiRequest('/ai/optimize-nesting', { method: 'POST', body: JSON.stringify(data) }),
+  aiPreflightAudit: (specs) => apiRequest('/ai/preflight-audit', { method: 'POST', body: JSON.stringify(specs) }),
+  aiGetKnowledgeBase: () => apiRequest('/ai/knowledge-base'),
+
   // License Management
   getLicenseStatus: () => apiRequest('/license/status'),
   activateLicense: (licenseKey) => apiRequest('/license/activate', { method: 'POST', body: JSON.stringify({ licenseKey }) }),
