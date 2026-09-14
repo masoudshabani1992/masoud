@@ -17,6 +17,8 @@ import DataMigrationView from './components/DataMigrationView';
 import ProjectDetailsModal from './components/ProjectDetailsModal';
 import PrintTicketModal from './components/PrintTicketModal';
 import NotificationCenterModal from './components/NotificationCenterModal';
+import LicenseGate from './components/LicenseGate';
+import LicenseStatusModal from './components/LicenseStatusModal';
 import { playNotificationSound } from './utils/helpers';
 
 export default function App() {
@@ -27,10 +29,53 @@ export default function App() {
   const [reorderData, setReorderData] = useState(null);
   const [unreadNotifCount, setUnreadNotifCount] = useState(0);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const [showLicenseModal, setShowLicenseModal] = useState(false);
+
+  // License State
+  const [licenseState, setLicenseState] = useState({
+    checked: false,
+    isActive: true,
+    hardwareId: '',
+    license: null,
+    errorReason: null
+  });
 
   // Modals state
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [printProject, setPrintProject] = useState(null);
+
+  // Check License on Startup
+  const checkLicense = async () => {
+    try {
+      const res = await api.getLicenseStatus();
+      setLicenseState({
+        checked: true,
+        isActive: res.isActive,
+        hardwareId: res.hardwareId,
+        license: res.license,
+        errorReason: res.errorReason
+      });
+    } catch (err) {
+      console.error('License check error:', err);
+      setLicenseState((prev) => ({ ...prev, checked: true }));
+    }
+  };
+
+  useEffect(() => {
+    checkLicense();
+
+    const handleLicenseLocked = (e) => {
+      setLicenseState((prev) => ({
+        ...prev,
+        isActive: false,
+        hardwareId: e.detail?.hardwareId || prev.hardwareId,
+        errorReason: e.detail?.reason || e.detail?.message || 'سامانه قفل است'
+      }));
+    };
+
+    window.addEventListener('license_locked', handleLicenseLocked);
+    return () => window.removeEventListener('license_locked', handleLicenseLocked);
+  }, []);
 
   const fetchNotificationsCount = async () => {
     try {
@@ -65,13 +110,42 @@ export default function App() {
   };
 
   useEffect(() => {
-    if (currentUser) {
+    if (currentUser && licenseState.isActive) {
       fetchProjects();
       fetchNotificationsCount();
       const interval = setInterval(fetchNotificationsCount, 15000);
       return () => clearInterval(interval);
     }
-  }, [currentUser]);
+  }, [currentUser, licenseState.isActive]);
+
+  // If license is checking, display brief loader
+  if (!licenseState.checked) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-slate-400 font-sans" dir="rtl">
+        <div className="w-10 h-10 border-4 border-amber-500/20 border-t-amber-500 rounded-full animate-spin mb-4" />
+        <p className="text-sm">در حال اعتبارسنجی قفل سخت‌افزاری و لایسنس سرور...</p>
+      </div>
+    );
+  }
+
+  // If license is NOT active/valid, show License Lock Gate
+  if (!licenseState.isActive) {
+    return (
+      <LicenseGate
+        hardwareId={licenseState.hardwareId}
+        errorReason={licenseState.errorReason}
+        onActivated={(newLic) => {
+          setLicenseState({
+            checked: true,
+            isActive: true,
+            hardwareId: licenseState.hardwareId,
+            license: newLic,
+            errorReason: null
+          });
+        }}
+      />
+    );
+  }
 
   // If not logged in, show Login Screen
   if (!currentUser) {
@@ -114,6 +188,8 @@ export default function App() {
         myPendingCount={myPendingTasksCount}
         unreadNotificationsCount={unreadNotifCount}
         onOpenNotifications={() => setShowNotificationModal(true)}
+        onOpenLicense={() => setShowLicenseModal(true)}
+        licenseInfo={licenseState.license}
       />
 
       {/* Main Content Area - Full-Width Responsive */}
@@ -230,6 +306,21 @@ export default function App() {
           onSelectProject={(p) => setSelectedProjectId(p.id)}
         />
       )}
+
+      {/* License Status & Details Modal */}
+      <LicenseStatusModal
+        isOpen={showLicenseModal}
+        onClose={() => setShowLicenseModal(false)}
+        licenseInfo={licenseState.license}
+        hardwareId={licenseState.hardwareId}
+        onLicenseUpdated={(newLic) => {
+          setLicenseState((prev) => ({
+            ...prev,
+            isActive: true,
+            license: newLic
+          }));
+        }}
+      />
     </div>
   );
 }

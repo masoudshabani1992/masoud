@@ -17,7 +17,7 @@ import {
   FilePlus2,
   Users,
   LogOut,
-  ShieldAlert,
+  ShieldCheck,
   LayoutGrid,
   ArrowRightLeft,
   Sparkles
@@ -28,7 +28,9 @@ export default function Header({
   setActiveTab,
   myPendingCount = 0,
   unreadNotificationsCount = 0,
-  onOpenNotifications
+  onOpenNotifications,
+  onOpenLicense,
+  licenseInfo
 }) {
   const { currentUser, role, switchRole, logout } = useAuth();
 
@@ -108,6 +110,16 @@ export default function Header({
         {/* Action Buttons & Logout */}
         <div className="flex items-center gap-2.5 flex-wrap">
           
+          {/* License Status Badge Button */}
+          <button
+            onClick={onOpenLicense}
+            className="flex items-center gap-1.5 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-xl transition text-emerald-800 font-bold text-xs shadow-xs"
+            title="مشاهده اطلاعات لایسنس و قفل سخت‌افزاری"
+          >
+            <ShieldCheck className="w-4 h-4 text-emerald-600" />
+            <span className="hidden sm:inline">لایسنس معتبر</span>
+          </button>
+
           {/* Notification Bell with Badge */}
           <button
             onClick={onOpenNotifications}
@@ -129,7 +141,7 @@ export default function Header({
             title="دانلود پکیج کامل ستاپ ویندوز سرور"
           >
             <Download className="w-4 h-4 text-emerald-600" />
-            <span>دانلود ستاپ ویندوز سرور</span>
+            <span className="hidden md:inline">دانلود ستاپ سرور</span>
           </a>
 
           {(isEstimator || isCeo) && (
@@ -142,7 +154,7 @@ export default function Header({
               }`}
             >
               <Calculator className="w-4 h-4 text-amber-600" />
-              <span>ماشین‌حساب قیمت جعبه</span>
+              <span>ماشین‌حساب قیمت</span>
             </button>
           )}
 
@@ -156,7 +168,7 @@ export default function Header({
               }`}
             >
               <PlusCircle className="w-4 h-4" />
-              <span>ثبت سفارش جدید (مرحله ۱)</span>
+              <span>ثبت سفارش جدید</span>
             </button>
           )}
 

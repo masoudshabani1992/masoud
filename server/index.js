@@ -9,6 +9,12 @@ const db = require('./db');
 const { calculateBoxCost } = require('./calculator');
 const { sendNotification, sendTestCustomerSms } = require('./notifications');
 const {
+  getHardwareFingerprint,
+  getSystemLicenseStatus,
+  activateLicense,
+  verifyLicenseString
+} = require('./license');
+const {
   importCustomers,
   importProjects,
   importMaterials,
@@ -41,6 +47,70 @@ const upload = multer({ storage, limits: { fileSize: 50 * 1024 * 1024 } });
 app.use(cors());
 app.use(express.json({ limit: '20mb' }));
 app.use('/uploads', express.static(uploadDir));
+
+// ================= OFFLINE HARDWARE LICENSE GUARD =================
+function licenseGuard(req, res, next) {
+  // Allow license status & activation, download setup, static assets, uploads
+  if (
+    !req.path.startsWith('/api') ||
+    req.path.startsWith('/api/license') ||
+    req.path === '/download-setup'
+  ) {
+    return next();
+  }
+
+  const status = getSystemLicenseStatus(db);
+  if (!status.isActive) {
+    return res.status(403).json({
+      error: 'LICENSE_LOCKED',
+      message: 'سامانه نرم‌افزاری فاقد لایسنس فعال است یا لایسنس منقضی شده است.',
+      hardwareId: status.hardwareId,
+      reason: status.errorReason
+    });
+  }
+
+  req.license = status.license;
+  next();
+}
+
+app.use(licenseGuard);
+
+// ================= LICENSE API ENDPOINTS =================
+app.get('/api/license/status', (req, res) => {
+  try {
+    const status = getSystemLicenseStatus(db);
+    res.json(status);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/license/activate', (req, res) => {
+  try {
+    const { licenseKey } = req.body;
+    if (!licenseKey) {
+      return res.status(400).json({ error: 'کلید لایسنس وارد نشده است.' });
+    }
+    const result = activateLicense(db, licenseKey);
+    if (!result.success) {
+      return res.status(400).json(result);
+    }
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/license/deactivate', authMiddleware, requireCeo, (req, res) => {
+  try {
+    db.prepare('UPDATE license_store SET is_active = 0 WHERE id = 1').run();
+    const licPath = path.join(__dirname, 'license.lic');
+    if (fs.existsSync(licPath)) fs.unlinkSync(licPath);
+    res.json({ success: true, message: 'لایسنس با موفقیت غیرفعال شد.' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 function authMiddleware(req, res, next) {
   const authHeader = req.headers.authorization;

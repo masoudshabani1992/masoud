@@ -24,13 +24,24 @@ export async function apiRequest(endpoint, options = {}) {
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({ error: 'خطای سرور' }));
-    throw new Error(errorData.error || `خطا در ارتباط با سرور (${response.status})`);
+    if (response.status === 403 && (errorData.error === 'LICENSE_LOCKED' || errorData.code === 'LICENSE_LOCKED')) {
+      window.dispatchEvent(new CustomEvent('license_locked', { detail: errorData }));
+    }
+    const err = new Error(errorData.error || errorData.message || `خطا در ارتباط با سرور (${response.status})`);
+    err.status = response.status;
+    err.data = errorData;
+    throw err;
   }
 
   return response.json();
 }
 
 export const api = {
+  // License Management
+  getLicenseStatus: () => apiRequest('/license/status'),
+  activateLicense: (licenseKey) => apiRequest('/license/activate', { method: 'POST', body: JSON.stringify({ licenseKey }) }),
+  deactivateLicense: () => apiRequest('/license/deactivate', { method: 'POST' }),
+
   // Auth & Users
   login: (username, password) => apiRequest('/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) }),
   demoLogin: (role) => apiRequest(`/auth/demo-login/${role}`, { method: 'POST' }),
