@@ -705,9 +705,7 @@ app.post('/api/notifications/test-bale', authMiddleware, requireCeo, async (req,
       return res.status(400).json({ error: 'توکن و شناسه چت بله الزامی است' });
     }
 
-    const testText = '🔔 *تست اتصال اتوماسیون آرمان امیران به پیام‌رسان بله*
-
-اتصال بات با موفقیت برقرار شد!';
+    const testText = '🔔 *تست اتصال اتوماسیون آرمان امیران به پیام‌رسان بله*\\n\\nاتصال بات با موفقیت برقرار شد!';
     const response = await fetch(`https://tapi.bale.ai/bot${token}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
