@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Scissors,
   Layers,
@@ -18,59 +18,67 @@ import {
   Boxes,
   HelpCircle,
   TrendingUp,
-  Award
+  Award,
+  Grid
 } from 'lucide-react';
 import { api } from '../api/client';
 
 const BOX_TYPES = [
   {
+    id: 'sleeve_drawer',
+    name: 'کشویی کبریتی (Sleeve & Drawer)',
+    desc: 'جعبه دو تکه شامل کاور دورپیچ بیرونی با جای انگشت + کشوی متحرک ریلی داخلی با دیواره‌های دوبل',
+    icon: '🗃️',
+    defaultDim: { l: 92, w: 55, h: 20 },
+    isMultiPart: true
+  },
+  {
     id: 'tuck_end',
     name: 'سر و ته دارویی (Tuck End)',
     desc: 'پرکاربردترین جعبه دارویی، بهداشتی و غذایی با زبانه‌های قفل‌شونده در بالا و پایین',
     icon: '💊',
-    defaultDim: { l: 120, w: 60, h: 160 }
+    defaultDim: { l: 120, w: 60, h: 160 },
+    isMultiPart: false
   },
   {
     id: 'snap_lock_bottom',
     name: 'سر دارویی ته قفلی (Lock-Bottom)',
     desc: 'درب بالا دارویی + ۴ زبانه زاویه‌دار ۴۵ درجه قفل‌شونده خودکار در کف جعبه',
     icon: '🔒',
-    defaultDim: { l: 140, w: 80, h: 180 }
+    defaultDim: { l: 140, w: 80, h: 180 },
+    isMultiPart: false
   },
   {
     id: 'keyboard',
     name: 'کیبوردی سرهم‌شونده (Mailer Box)',
     desc: 'جعبه لپ‌تاپی، پستی و آنلاین شاپ با دیواره‌های دوبل مستحکم و قفل سرخود بدون چسب',
     icon: '🎹',
-    defaultDim: { l: 200, w: 150, h: 50 }
+    defaultDim: { l: 200, w: 150, h: 50 },
+    isMultiPart: false
   },
   {
     id: 'american',
     name: 'آمریکایی ۴ درب (RSC Carton)',
     desc: 'کارتن مادر صنعتی استاندارد ۴ درب بالا و پایین با لبه اتصال چسب یا منگنه',
     icon: '📦',
-    defaultDim: { l: 300, w: 200, h: 250 }
+    defaultDim: { l: 300, w: 200, h: 250 },
+    isMultiPart: false
   },
   {
     id: 'base_lid',
     name: 'زیره و رویه (iPhone Style Base & Lid)',
     desc: 'جعبه دو تکه لوکس کادویی، موبایل، طلا و ساعت با بادخور مهندسی شده رویه',
     icon: '📱',
-    defaultDim: { l: 160, w: 90, h: 40 }
-  },
-  {
-    id: 'sleeve_drawer',
-    name: 'کشویی کبریتی (Sleeve & Drawer)',
-    desc: 'جعبه دو تکه شامل کاور دورپیچ بیرونی + کشوی متحرک ریلی داخلی',
-    icon: '🗃️',
-    defaultDim: { l: 150, w: 100, h: 35 }
+    defaultDim: { l: 160, w: 90, h: 40 },
+    isMultiPart: true
   },
   {
     id: 'tray',
     name: 'کفی بدون در (Open Tray)',
     desc: 'سینی مقوایی و کارتنی روباز برای میوه، قطعات صنعتی و بسته‌بندی شیرینی',
     icon: '📥',
-    defaultDim: { l: 250, w: 180, h: 60 }
+    defaultDim: { l: 250, w: 180, h: 60 },
+    isMultiPart: false
   }
 ];
 
@@ -82,10 +90,10 @@ const MATERIALS = [
 ];
 
 export default function DielineGeneratorView({ onTransferToOrder }) {
-  const [selectedBoxType, setSelectedBoxType] = useState('tuck_end');
-  const [lengthMm, setLengthMm] = useState(120);
-  const [widthMm, setWidthMm] = useState(60);
-  const [heightMm, setHeightMm] = useState(160);
+  const [selectedBoxType, setSelectedBoxType] = useState('sleeve_drawer');
+  const [lengthMm, setLengthMm] = useState(92);
+  const [widthMm, setWidthMm] = useState(55);
+  const [heightMm, setHeightMm] = useState(20);
   const [selectedMaterial, setSelectedMaterial] = useState('cardboard');
   const [quantity, setQuantity] = useState(10000);
 
@@ -93,6 +101,7 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
   const [dielineData, setDielineData] = useState(null);
   const [montageData, setMontageData] = useState(null);
   const [activeSubTab, setActiveSubTab] = useState('dieline'); // 'dieline' | 'montage'
+  const [montageMode, setMontageMode] = useState('combo'); // 'combo' | 'part1' | 'part2'
   const [zoomScale, setZoomScale] = useState(1);
 
   // Run generation
@@ -167,7 +176,7 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
             </div>
           </div>
           <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">
-            تولید برداری وکتور SVG
+            تولید برداری وکتور SVG استاندارد
           </span>
         </div>
 
@@ -205,7 +214,7 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
                 <Sliders className="w-4 h-4 text-indigo-600" />
                 ۲. ابعاد و ضخامت متریال (میلی‌متر)
               </h3>
-              <p className="text-[11px] text-slate-500 mt-0.5">{currentBox?.desc}</p>
+              <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">{currentBox?.desc}</p>
             </div>
 
             {/* Dimensions Inputs */}
@@ -237,7 +246,7 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 block mb-1">ارتفاع (H):</label>
+                <label className="font-bold text-slate-700 block mb-1">عمق/ارتفاع (H):</label>
                 <div className="relative">
                   <input
                     type="number"
@@ -317,13 +326,13 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
 
               <div className="grid grid-cols-2 gap-2">
                 <div className="p-2.5 bg-slate-50 rounded-xl">
-                  <span className="text-slate-400 block text-[11px]">عرض بازشده:</span>
+                  <span className="text-slate-400 block text-[11px]">عرض کل شیت:</span>
                   <span className="font-black text-slate-900 text-sm mt-0.5 block font-mono">
                     {dielineData.flatDimensions.flatWidthMm} mm ({dielineData.flatDimensions.flatWidthCm} cm)
                   </span>
                 </div>
                 <div className="p-2.5 bg-slate-50 rounded-xl">
-                  <span className="text-slate-400 block text-[11px]">طول بازشده:</span>
+                  <span className="text-slate-400 block text-[11px]">طول کل شیت:</span>
                   <span className="font-black text-slate-900 text-sm mt-0.5 block font-mono">
                     {dielineData.flatDimensions.flatHeightMm} mm ({dielineData.flatDimensions.flatHeightCm} cm)
                   </span>
@@ -331,12 +340,14 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
               </div>
 
               {dielineData.parts?.length > 1 && (
-                <div className="p-2.5 bg-indigo-50/60 rounded-xl border border-indigo-100 text-[11px] text-indigo-900">
-                  <span className="font-bold block mb-1">قطعات مجزای خط تیغ:</span>
+                <div className="p-3 bg-indigo-50/70 rounded-2xl border border-indigo-100 text-[11px] text-indigo-950 space-y-2">
+                  <span className="font-black block text-indigo-900">مشخصات مجزای قطعات خط تیغ:</span>
                   {dielineData.parts.map((p, pIdx) => (
-                    <div key={pIdx} className="flex items-center justify-between mt-0.5">
-                      <span>• {p.name}:</span>
-                      <strong className="font-mono">{p.flatW} × {p.flatH} mm</strong>
+                    <div key={pIdx} className="flex items-center justify-between border-t border-indigo-100/60 pt-1.5">
+                      <span className="font-medium">• {p.name}:</span>
+                      <strong className="font-mono bg-white px-2 py-0.5 rounded border border-indigo-200 text-indigo-700">
+                        {p.flatW} × {p.flatH} mm ({p.areaCm2} cm²)
+                      </strong>
                     </div>
                   ))}
                 </div>
@@ -361,7 +372,7 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
                 }`}
               >
                 <Scissors className="w-3.5 h-3.5 text-rose-400" />
-                <span>نمای برداری خط تیغ تک‌قالب (Dieline Vector)</span>
+                <span>نمای برداری خط تیغ (Dieline Vector)</span>
               </button>
 
               <button
@@ -413,41 +424,44 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
 
           {/* VIEW 1: SINGLE DIELINE VECTOR VIEWER */}
           {activeSubTab === 'dieline' && dielineData && (
-            <div className="bg-slate-950 rounded-3xl p-6 border border-slate-800 shadow-2xl relative overflow-hidden flex flex-col items-center justify-center min-h-[480px]">
+            <div className="bg-slate-950 rounded-3xl p-6 border border-slate-800 shadow-2xl relative overflow-hidden flex flex-col items-center justify-center min-h-[500px]">
               {/* Legend & Help Bar */}
-              <div className="absolute top-4 right-4 left-4 flex items-center justify-between text-[11px] text-slate-400 bg-slate-900/90 border border-slate-800 px-3.5 py-1.5 rounded-xl z-10 backdrop-blur-sm">
-                <div className="flex items-center gap-4">
-                  <span className="flex items-center gap-1.5 font-medium">
+              <div className="absolute top-4 right-4 left-4 flex items-center justify-between text-[11px] text-slate-400 bg-slate-900/95 border border-slate-800 px-4 py-2 rounded-2xl z-10 backdrop-blur-sm shadow-md">
+                <div className="flex items-center gap-4 flex-wrap">
+                  <span className="flex items-center gap-1.5 font-bold text-rose-400">
                     <span className="w-3 h-0.5 bg-rose-500 rounded-full" />
-                    خط تیغ و برش (Cut: ممتد قرمز)
+                    خط تیغ و برش (Cut Line: قرمز)
                   </span>
-                  <span className="flex items-center gap-1.5 font-medium">
-                    <span className="w-3 h-0.5 border-b border-dashed border-blue-400" />
-                    خط تا و خط‌کشی (Crease: خط‌چین آبی)
+                  <span className="flex items-center gap-1.5 font-bold text-blue-400">
+                    <span className="w-3 h-0.5 border-b-2 border-dashed border-blue-400" />
+                    خط تا و خط‌کشی (Crease Line: آبی)
+                  </span>
+                  <span className="text-slate-400">
+                    ابعاد: <strong className="text-amber-300 font-mono">{lengthMm} × {widthMm} × {heightMm} mm</strong>
                   </span>
                 </div>
 
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => setZoomScale((z) => Math.min(2, z + 0.15))}
+                    onClick={() => setZoomScale((z) => Math.min(2.5, z + 0.2))}
                     className="p-1 hover:text-white transition"
                     title="بزرگنمایی"
                   >
-                    <ZoomIn className="w-3.5 h-3.5" />
+                    <ZoomIn className="w-4 h-4" />
                   </button>
                   <button
                     type="button"
-                    onClick={() => setZoomScale((z) => Math.max(0.5, z - 0.15))}
+                    onClick={() => setZoomScale((z) => Math.max(0.4, z - 0.2))}
                     className="p-1 hover:text-white transition"
                     title="کوچک‌نمایی"
                   >
-                    <ZoomOut className="w-3.5 h-3.5" />
+                    <ZoomOut className="w-4 h-4" />
                   </button>
                   <button
                     type="button"
                     onClick={() => setZoomScale(1)}
-                    className="text-[10px] font-mono px-1.5 py-0.5 bg-slate-800 rounded hover:text-white"
+                    className="text-[10px] font-mono px-2 py-0.5 bg-slate-800 rounded hover:text-white"
                   >
                     {Math.round(zoomScale * 100)}%
                   </button>
@@ -462,7 +476,7 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
               />
 
               <div className="absolute bottom-3 right-4 text-[10px] text-slate-500 font-mono">
-                Arman Amiran AI Parametric Dieline Engine | Scale 1:1
+                Arman Amiran AI Parametric Dieline Engine | Real Scale 1:1 Vector
               </div>
             </div>
           )}
@@ -479,7 +493,7 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
                   <div>
                     <span className="text-xs text-emerald-400 font-bold block">بهترین چیدمان و کمترین پرتی مقوا:</span>
                     <h3 className="text-base font-black text-white">
-                      شیت {montageData.bestChoice?.sheetName} ({montageData.bestChoice?.boxesPerSheet} جعبه در هر شیت)
+                      شیت {montageData.bestChoice?.sheetName} ({montageData.bestChoice?.boxesPerSheet} ست کامل در هر شیت)
                     </h3>
                     <p className="text-xs text-emerald-300/80 mt-0.5">
                       فقط {montageData.bestChoice?.wastePercentage}٪ پرت مقوا | {montageData.bestChoice?.efficiencyPercentage}٪ راندمان مفید سطح
@@ -496,22 +510,22 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
               </div>
 
               {/* Sheet Assembly Visual Canvas */}
-              <div className="bg-slate-950 rounded-3xl p-6 border border-slate-800 shadow-2xl flex flex-col items-center justify-center min-h-[380px]">
+              <div className="bg-slate-950 rounded-3xl p-6 border border-slate-800 shadow-2xl flex flex-col items-center justify-center min-h-[400px]">
                 <div className="text-xs font-bold text-slate-400 mb-3 flex items-center justify-between w-full">
                   <span>نمای شماتیک مونتاژ و چیدمان زینک / قالب در شیت {montageData.bestChoice?.sheetLength} × {montageData.bestChoice?.sheetWidth} cm</span>
                   <span className="text-amber-400">جهت چیدمان: {montageData.bestChoice?.orientation}</span>
                 </div>
 
                 <div
-                  className="relative bg-white rounded-xl shadow-2xl border-4 border-amber-400 p-3 flex flex-wrap content-start gap-1 transition-all"
+                  className="relative bg-white rounded-xl shadow-2xl border-4 border-amber-400 p-3 flex flex-wrap content-start gap-1.5 transition-all"
                   style={{
-                    width: `${Math.min(520, montageData.bestChoice?.sheetLength * 4.6)}px`,
-                    height: `${Math.min(360, montageData.bestChoice?.sheetWidth * 4.6)}px`
+                    width: `${Math.min(540, montageData.bestChoice?.sheetLength * 4.8)}px`,
+                    height: `${Math.min(380, montageData.bestChoice?.sheetWidth * 4.8)}px`
                   }}
                 >
                   {/* Gripper indicator */}
                   <div className="absolute top-0 right-0 left-0 h-2 bg-rose-500/30 text-[8px] text-rose-800 font-bold text-center leading-none">
-                    لب‌پنجه ماشین چاپ (Gripper Margin: 1.5cm)
+                    حاشیه لب‌پنجه ماشین چاپ (Gripper Margin: 1.5cm)
                   </div>
 
                   {Array.from({ length: montageData.bestChoice?.boxesPerSheet || 2 }).map((_, idx) => (
