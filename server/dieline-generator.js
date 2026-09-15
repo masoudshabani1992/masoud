@@ -3,8 +3,8 @@
  * Developed for Arman Amiran ERP by Masoud Shabani (مسعود شعبانی)
  *
  * Supported Box Structures:
- * 1. sleeve_drawer (کشویی دو تکه / Matchbox Sleeve & Drawer)
- * 2. tuck_end (سر و ته دارویی / Straight & Reverse Tuck End Box)
+ * 1. tuck_end (سر و ته دارویی / دو طرف درب مقوایی / Straight & Reverse Tuck End Box)
+ * 2. sleeve_drawer (کشویی دو تکه / Matchbox Sleeve & Drawer)
  * 3. snap_lock_bottom (سر دارویی ته قفلی / Auto-Lock / Tuck-Top Snap Lock Bottom)
  * 4. keyboard (کیبوردی سرهم‌شونده / Mailer Box)
  * 5. american (آمریکایی ۴ درب / RSC Regular Slotted Carton)
@@ -20,9 +20,9 @@ const MATERIAL_SPECS = {
 };
 
 const STANDARD_SHEETS = [
-  { id: 'sheet_50x70', name: '۵۰ × ۷۰ سانت (دو ورقی)', widthMm: 700, heightMm: 500, widthCm: 70, heightCm: 50 },
-  { id: 'sheet_60x90', name: '۶۰ × ۹۰ سانت (سه ورقی)', widthMm: 900, heightMm: 600, widthCm: 90, heightCm: 60 },
   { id: 'sheet_70x100', name: '۷۰ × ۱۰۰ سانت (چهار ورقی)', widthMm: 1000, heightMm: 700, widthCm: 100, heightCm: 70 },
+  { id: 'sheet_60x90', name: '۶۰ × ۹۰ سانت (سه ورقی)', widthMm: 900, heightMm: 600, widthCm: 90, heightCm: 60 },
+  { id: 'sheet_50x70', name: '۵۰ × ۷۰ سانت (دو ورقی)', widthMm: 700, heightMm: 500, widthCm: 70, heightCm: 50 },
   { id: 'sheet_100x140', name: '۱۰۰ × ۱۴۰ سانت (شش ورقی)', widthMm: 1400, heightMm: 1000, widthCm: 140, heightCm: 100 }
 ];
 
@@ -30,15 +30,15 @@ const STANDARD_SHEETS = [
  * Generate Parametric SVG & Measurements for a specific box type
  */
 function generateBoxDieline({
-  boxType = 'sleeve_drawer',
-  length = 92,  // in mm (L)
-  width = 55,   // in mm (W)
-  height = 20,  // in mm (H / Depth)
+  boxType = 'tuck_end',
+  length = 80,  // in mm (L)
+  width = 15,   // in mm (W)
+  height = 165, // in mm (H / Depth)
   material = 'cardboard'
 }) {
-  const L = Math.max(10, parseFloat(length) || 92);
-  const W = Math.max(10, parseFloat(width) || 55);
-  const H = Math.max(10, parseFloat(height) || 20);
+  const L = Math.max(10, parseFloat(length) || 80);
+  const W = Math.max(10, parseFloat(width) || 15);
+  const H = Math.max(10, parseFloat(height) || 165);
   const mat = MATERIAL_SPECS[material] || MATERIAL_SPECS.cardboard;
   const clearance = mat.clearance;
   const glueW = mat.glueWidth;
@@ -51,17 +51,111 @@ function generateBoxDieline({
   let parts = [];
 
   switch (boxType) {
-    // ================= 1. کشویی (Matchbox Sleeve & Drawer) =================
+    // ================= 1. سر و ته دارویی (دو طرف درب مقوایی / Tuck End) =================
+    case 'tuck_end': {
+      const tuck = Math.max(12, Math.min(22, W * 0.75 + 3));
+      const flapH = W;
+      flatW = (L * 2) + (W * 2) + glueW;
+      flatH = H + (flapH * 2) + (tuck * 2);
+
+      const margin = 15;
+      const ox = margin;
+      const oy = margin + flapH + tuck;
+
+      const x0 = ox;
+      const x1 = ox + glueW;
+      const x2 = x1 + L;
+      const x3 = x2 + W;
+      const x4 = x3 + L;
+      const x5 = x4 + W;
+
+      const yTopBody = oy;
+      const yBotBody = oy + H;
+      const yTopFlap = yTopBody - flapH;
+      const yTopTuck = yTopFlap - tuck;
+      const yBotFlap = yBotBody + flapH;
+      const yBotTuck = yBotFlap + tuck;
+
+      // Crease lines (خطوط تا)
+      creasePaths.push(`M ${x1} ${yTopBody} L ${x1} ${yBotBody}`);
+      creasePaths.push(`M ${x2} ${yTopBody} L ${x2} ${yBotBody}`);
+      creasePaths.push(`M ${x3} ${yTopBody} L ${x3} ${yBotBody}`);
+      creasePaths.push(`M ${x4} ${yTopBody} L ${x4} ${yBotBody}`);
+      creasePaths.push(`M ${x1} ${yTopBody} L ${x5} ${yTopBody}`);
+      creasePaths.push(`M ${x1} ${yBotBody} L ${x5} ${yBotBody}`);
+      creasePaths.push(`M ${x1} ${yTopFlap} L ${x2} ${yTopFlap}`);
+      creasePaths.push(`M ${x3} ${yBotFlap} L ${x4} ${yBotFlap}`);
+
+      // Dust flaps side creases
+      const dustH = Math.min(flapH * 0.8, 14);
+
+      // Cut lines (خطوط تیغ و برش خارجی)
+      cutPaths.push(`
+        M ${x0} ${yTopBody + 4}
+        L ${x1} ${yTopBody}
+        L ${x1} ${yTopFlap}
+        L ${x1 + 3} ${yTopFlap}
+        L ${x1 + 3} ${yTopTuck + 4}
+        Q ${x1 + 3} ${yTopTuck} ${x1 + 7} ${yTopTuck}
+        L ${x2 - 7} ${yTopTuck}
+        Q ${x2 - 3} ${yTopTuck} ${x2 - 3} ${yTopTuck + 4}
+        L ${x2 - 3} ${yTopFlap}
+        L ${x2} ${yTopFlap}
+        L ${x2} ${yTopBody}
+        L ${x2 + 2} ${yTopBody - dustH}
+        L ${x3 - 2} ${yTopBody - dustH}
+        L ${x3} ${yTopBody}
+        L ${x4} ${yTopBody}
+        L ${x4 + 2} ${yTopBody - dustH}
+        L ${x5 - 2} ${yTopBody - dustH}
+        L ${x5} ${yTopBody}
+        L ${x5} ${yBotBody}
+        L ${x5 - 2} ${yBotBody + dustH}
+        L ${x4 + 2} ${yBotBody + dustH}
+        L ${x4} ${yBotBody}
+        L ${x4} ${yBotFlap}
+        L ${x4 - 3} ${yBotFlap}
+        L ${x4 - 3} ${yBotTuck - 4}
+        Q ${x4 - 3} ${yBotTuck} ${x4 - 7} ${yBotTuck}
+        L ${x3 + 7} ${yBotTuck}
+        Q ${x3 + 3} ${yBotTuck} ${x3 + 3} ${yBotTuck - 4}
+        L ${x3 + 3} ${yBotFlap}
+        L ${x3} ${yBotFlap}
+        L ${x3} ${yBotBody}
+        L ${x3 - 2} ${yBotBody + dustH}
+        L ${x2 + 2} ${yBotBody + dustH}
+        L ${x2} ${yBotBody}
+        L ${x1} ${yBotBody}
+        L ${x0} ${yBotBody - 4}
+        Z
+      `);
+
+      labels.push({ text: `لب‌چسب (${glueW}mm)`, x: x0 + glueW / 2, y: yTopBody + H / 2 });
+      labels.push({ text: `طول اصلی: ${L}mm`, x: x1 + L / 2, y: yTopBody + H / 2 });
+      labels.push({ text: `عرض: ${W}mm`, x: x2 + W / 2, y: yTopBody + H / 2 });
+      labels.push({ text: `طول پشت: ${L}mm`, x: x3 + L / 2, y: yTopBody + H / 2 });
+      labels.push({ text: `عرض: ${W}mm`, x: x4 + W / 2, y: yTopBody + H / 2 });
+      labels.push({ text: `ارتفاع: ${H}mm`, x: x1 + L / 2, y: yTopBody + 25 });
+
+      parts.push({
+        id: 'box',
+        name: 'جعبه دارویی کامل (دو طرف درب مقوایی)',
+        flatW: Math.round(flatW),
+        flatH: Math.round(flatH),
+        areaCm2: Math.round((flatW * flatH) / 100)
+      });
+      break;
+    }
+
+    // ================= 2. کشویی (Matchbox Sleeve & Drawer) =================
     case 'sleeve_drawer': {
-      // Sleeve Outer: Wraps around drawer with clearance
-      const sW = W + clearance; // Top/Bottom width
-      const sH = H + clearance; // Side height
-      const sL = L;             // Length along sleeve
+      const sW = W + clearance;
+      const sH = H + clearance;
+      const sL = L;
 
       const sleeveFlatW = (sW * 2) + (sH * 2) + glueW;
       const sleeveFlatH = sL;
 
-      // Drawer (Double-Wall Folded Tray):
       const wallH = H;
       const rollH = Math.max(10, H - 1.5);
       const drawerFlatW = W + (wallH * 2) + (rollH * 2);
@@ -70,18 +164,16 @@ function generateBoxDieline({
       flatW = Math.max(sleeveFlatW, drawerFlatW) + 40;
       flatH = sleeveFlatH + drawerFlatH + 80;
 
-      // --- Part 1: Drawer (کشو) at top ---
+      // Part 1: Drawer
       const dx = 30 + wallH + rollH;
       const dy = 30 + wallH + rollH;
 
-      // Floor creases
       creasePaths.push(`M ${dx} ${dy} L ${dx + W} ${dy} L ${dx + W} ${dy + L} L ${dx} ${dy + L} Z`);
       creasePaths.push(`M ${dx - wallH} ${dy} L ${dx - wallH} ${dy + L}`);
       creasePaths.push(`M ${dx + W + wallH} ${dy} L ${dx + W + wallH} ${dy + L}`);
       creasePaths.push(`M ${dx} ${dy - wallH} L ${dx + W} ${dy - wallH}`);
       creasePaths.push(`M ${dx} ${dy + L + wallH} L ${dx + W} ${dy + L + wallH}`);
 
-      // Drawer cut outline
       cutPaths.push(`
         M ${dx} ${dy - wallH - rollH}
         L ${dx + W} ${dy - wallH - rollH}
@@ -102,10 +194,9 @@ function generateBoxDieline({
         Z
       `);
 
-      labels.push({ text: `قطعه ۱: کشوی داخلی (Floor: ${W}×${L}mm | Depth: ${H}mm)`, x: dx + W / 2, y: dy + L / 2 });
-      labels.push({ text: `دیواره دوبل (${wallH}+${rollH}mm)`, x: dx + W / 2, y: dy - wallH / 2 });
+      labels.push({ text: `قطعه ۱: کشوی داخلی (${W}×${L}×${H}mm)`, x: dx + W / 2, y: dy + L / 2 });
 
-      // --- Part 2: Sleeve (کاور دورپیچ) at bottom ---
+      // Part 2: Sleeve
       const sy = dy + L + wallH + rollH + 50;
       const sx = 30;
 
@@ -116,13 +207,11 @@ function generateBoxDieline({
       const sx4 = sx3 + sW;
       const sx5 = sx4 + sH;
 
-      // Vertical Sleeve Creases
       creasePaths.push(`M ${sx1} ${sy} L ${sx1} ${sy + sL}`);
       creasePaths.push(`M ${sx2} ${sy} L ${sx2} ${sy + sL}`);
       creasePaths.push(`M ${sx3} ${sy} L ${sx3} ${sy + sL}`);
       creasePaths.push(`M ${sx4} ${sy} L ${sx4} ${sy + sL}`);
 
-      // Notch
       const notchRadius = 8;
       cutPaths.push(`
         M ${sx0} ${sy + 4}
@@ -138,12 +227,7 @@ function generateBoxDieline({
         Z
       `);
 
-      labels.push({ text: 'لب‌چسب کاور (15mm)', x: sx0 + glueW / 2, y: sy + sL / 2 });
-      labels.push({ text: `رویه (${Math.round(sW)}mm)`, x: sx1 + sW / 2, y: sy + sL / 2 });
-      labels.push({ text: `بغل (${Math.round(sH)}mm)`, x: sx2 + sH / 2, y: sy + sL / 2 });
-      labels.push({ text: `زیره (${Math.round(sW)}mm)`, x: sx3 + sW / 2, y: sy + sL / 2 });
-      labels.push({ text: `بغل (${Math.round(sH)}mm)`, x: sx4 + sH / 2, y: sy + sL / 2 });
-      labels.push({ text: `قطعه ۲: کاور دورپیچ کشویی (طول: ${sL}mm | بادخور: +${clearance}mm)`, x: sx1 + sW, y: sy - 15 });
+      labels.push({ text: `قطعه ۲: کاور دورپیچ کشویی (${sL}mm)`, x: sx1 + sW, y: sy - 15 });
 
       parts.push({
         id: 'drawer',
@@ -162,84 +246,7 @@ function generateBoxDieline({
       break;
     }
 
-    // ================= 2. سر و ته دارویی (Tuck End) =================
-    case 'tuck_end': {
-      const tuck = Math.max(15, Math.min(25, W * 0.4));
-      const flapH = W * 0.75;
-      flatW = (L * 2) + (W * 2) + glueW;
-      flatH = H + (flapH * 2) + (tuck * 2);
-
-      const margin = 20;
-      const ox = margin;
-      const oy = margin + flapH + tuck;
-
-      const x0 = ox;
-      const x1 = ox + glueW;
-      const x2 = x1 + L;
-      const x3 = x2 + W;
-      const x4 = x3 + L;
-      const x5 = x4 + W;
-
-      const yTopBody = oy;
-      const yBotBody = oy + H;
-      const yTopFlap = yTopBody - flapH;
-      const yTopTuck = yTopFlap - tuck;
-      const yBotFlap = yBotBody + flapH;
-      const yBotTuck = yBotFlap + tuck;
-
-      creasePaths.push(`M ${x1} ${yTopBody} L ${x1} ${yBotBody}`);
-      creasePaths.push(`M ${x2} ${yTopBody} L ${x2} ${yBotBody}`);
-      creasePaths.push(`M ${x3} ${yTopBody} L ${x3} ${yBotBody}`);
-      creasePaths.push(`M ${x4} ${yTopBody} L ${x4} ${yBotBody}`);
-      creasePaths.push(`M ${x1} ${yTopBody} L ${x5} ${yTopBody}`);
-      creasePaths.push(`M ${x1} ${yBotBody} L ${x5} ${yBotBody}`);
-      creasePaths.push(`M ${x1} ${yTopFlap} L ${x2} ${yTopFlap}`);
-      creasePaths.push(`M ${x3} ${yBotFlap} L ${x4} ${yBotFlap}`);
-
-      cutPaths.push(`
-        M ${x0} ${yTopBody + 5}
-        L ${x1} ${yTopBody}
-        L ${x1} ${yTopFlap + 5}
-        L ${x1 + 3} ${yTopFlap}
-        L ${x1 + 3} ${yTopTuck + 5}
-        Q ${x1 + 3} ${yTopTuck} ${x1 + 8} ${yTopTuck}
-        L ${x2 - 8} ${yTopTuck}
-        Q ${x2 - 3} ${yTopTuck} ${x2 - 3} ${yTopTuck + 5}
-        L ${x2 - 3} ${yTopFlap}
-        L ${x2} ${yTopFlap + 5}
-        L ${x2} ${yTopBody}
-        L ${x3} ${yTopBody - 10}
-        L ${x3} ${yTopBody}
-        L ${x4} ${yTopBody}
-        L ${x5} ${yTopBody - 10}
-        L ${x5} ${yBotBody + 10}
-        L ${x4} ${yBotBody}
-        L ${x4} ${yBotFlap - 5}
-        L ${x4 - 3} ${yBotFlap}
-        L ${x4 - 3} ${yBotTuck - 5}
-        Q ${x4 - 3} ${yBotTuck} ${x4 - 8} ${yBotTuck}
-        L ${x3 + 8} ${yBotTuck}
-        Q ${x3 + 3} ${yBotTuck} ${x3 + 3} ${yBotTuck - 5}
-        L ${x3 + 3} ${yBotFlap}
-        L ${x3} ${yBotFlap - 5}
-        L ${x3} ${yBotBody}
-        L ${x2} ${yBotBody + 10}
-        L ${x2} ${yBotBody}
-        L ${x1} ${yBotBody}
-        L ${x0} ${yBotBody - 5}
-        Z
-      `);
-
-      labels.push({ text: 'لب‌چسب (Glue Flap)', x: x0 + glueW / 2, y: yTopBody + H / 2 });
-      labels.push({ text: `طول اصلی: ${L}mm`, x: x1 + L / 2, y: yTopBody + H / 2 });
-      labels.push({ text: `عرض: ${W}mm`, x: x2 + W / 2, y: yTopBody + H / 2 });
-      labels.push({ text: `ارتفاع: ${H}mm`, x: x1 + L / 2, y: yTopBody + H / 4 });
-
-      parts.push({ id: 'box', name: 'جعبه دارویی کامل', flatW: Math.round(flatW), flatH: Math.round(flatH), areaCm2: Math.round((flatW * flatH) / 100) });
-      break;
-    }
-
-    // ================= 3. کیبوردی (Mailer Box / RETF) =================
+    // ================= 3. کیبوردی (Mailer Box) =================
     case 'keyboard': {
       const frontFlap = H;
       flatW = L + (H * 4) + 20;
@@ -354,8 +361,6 @@ function generateBoxDieline({
       creasePaths.push(`M ${x1} ${oy} L ${x5} ${oy}`);
       creasePaths.push(`M ${x1} ${oy + H} L ${x5} ${oy + H}`);
       creasePaths.push(`M ${x1} ${oy - topFlap} L ${x2} ${oy - topFlap}`);
-      creasePaths.push(`M ${x1} ${oy + H} L ${x1 + lockBottomH} ${oy + H + lockBottomH}`);
-      creasePaths.push(`M ${x3} ${oy + H} L ${x3 + lockBottomH} ${oy + H + lockBottomH}`);
 
       cutPaths.push(`
         M ${x0} ${oy + 5}
@@ -439,14 +444,14 @@ function generateBoxDieline({
     }
   }
 
-  // Construct Vector SVG
+  // Construct Single Vector SVG
   const svgViewBox = `0 0 ${flatW + 40} ${flatH + 40}`;
   const svgContent = `<?xml version="1.0" encoding="utf-8"?>
 <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="${svgViewBox}" width="${flatW + 40}mm" height="${flatH + 40}mm">
   <defs>
     <style>
-      .cut-line { stroke: #e11d48; stroke-width: 1.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-      .crease-line { stroke: #2563eb; stroke-width: 1.2; stroke-dasharray: 4, 3; fill: none; }
+      .cut-line { stroke: #e11d48; stroke-width: 1.2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .crease-line { stroke: #2563eb; stroke-width: 1.0; stroke-dasharray: 4, 3; fill: none; }
       .label-text { font-family: 'Vazirmatn', sans-serif; font-size: 8px; fill: #475569; text-anchor: middle; font-weight: bold; }
     </style>
   </defs>
@@ -476,6 +481,8 @@ function generateBoxDieline({
       flatHeightCm: Math.round((flatH / 10) * 10) / 10
     },
     parts,
+    singleCutPaths: cutPaths,
+    singleCreasePaths: creasePaths,
     svg: svgContent
   };
 }
@@ -506,7 +513,7 @@ function packSinglePartOnSheet({
   const rowsB = Math.floor((pH + gutter) / (itemW + gutter));
   const countB = Math.max(0, colsB * rowsB);
 
-  // Plan C: Mixed (Normal in main area + Rotated in leftover strip)
+  // Plan C: Mixed Layout (Normal in main area + Rotated in leftover strip)
   let planC = { count: 0, items: [] };
   if (colsA > 0 && rowsA > 0) {
     const usedWA = colsA * (itemW + gutter) - gutter;
@@ -540,8 +547,11 @@ function packSinglePartOnSheet({
 
   if (bestPlan === 'A') {
     // Normal grid
-    const startX = sideMargin;
-    const startY = gripperMargin;
+    const totalGridW = colsA * itemW + (colsA - 1) * gutter;
+    const totalGridH = rowsA * itemH + (rowsA - 1) * gutter;
+    const startX = sideMargin + Math.floor((pW - totalGridW) / 2);
+    const startY = gripperMargin + Math.floor((pH - totalGridH) / 2);
+
     for (let r = 0; r < rowsA; r++) {
       for (let c = 0; c < colsA; c++) {
         items.push({
@@ -551,14 +561,19 @@ function packSinglePartOnSheet({
           y: Math.round(startY + r * (itemH + gutter)),
           width: itemW,
           height: itemH,
-          rotated: false
+          rotated: false,
+          col: c + 1,
+          row: r + 1
         });
       }
     }
   } else if (bestPlan === 'B') {
     // Rotated grid
-    const startX = sideMargin;
-    const startY = gripperMargin;
+    const totalGridW = colsB * itemH + (colsB - 1) * gutter;
+    const totalGridH = rowsB * itemW + (rowsB - 1) * gutter;
+    const startX = sideMargin + Math.floor((pW - totalGridW) / 2);
+    const startY = gripperMargin + Math.floor((pH - totalGridH) / 2);
+
     for (let r = 0; r < rowsB; r++) {
       for (let c = 0; c < colsB; c++) {
         items.push({
@@ -568,12 +583,13 @@ function packSinglePartOnSheet({
           y: Math.round(startY + r * (itemW + gutter)),
           width: itemH,
           height: itemW,
-          rotated: true
+          rotated: true,
+          col: c + 1,
+          row: r + 1
         });
       }
     }
   } else if (bestPlan === 'C') {
-    // Main Block Normal
     const startX = sideMargin;
     const startY = gripperMargin;
     for (let r = 0; r < rowsA; r++) {
@@ -585,11 +601,12 @@ function packSinglePartOnSheet({
           y: Math.round(startY + r * (itemH + gutter)),
           width: itemW,
           height: itemH,
-          rotated: false
+          rotated: false,
+          col: c + 1,
+          row: r + 1
         });
       }
     }
-    // Leftover Strip Rotated
     const remStartX = startX + colsA * (itemW + gutter);
     for (let r = 0; r < planC.remRows; r++) {
       for (let c = 0; c < planC.remCols; c++) {
@@ -600,7 +617,9 @@ function packSinglePartOnSheet({
           y: Math.round(startY + r * (itemW + gutter)),
           width: itemH,
           height: itemW,
-          rotated: true
+          rotated: true,
+          col: colsA + c + 1,
+          row: r + 1
         });
       }
     }
@@ -614,7 +633,9 @@ function packSinglePartOnSheet({
   return {
     count: bestCount,
     items,
-    orientation: bestPlan === 'B' ? 'چرخش ۹۰ درجه (عرضی)' : bestPlan === 'C' ? 'ترکیبی طولی و عرضی (حداکثر راندمان)' : 'طولی مستقیم (۰ درجه)',
+    orientation: bestPlan === 'B' ? 'چرخش ۹۰ درجه (عرضی)' : bestPlan === 'C' ? 'ترکیبی طولی و عرضی' : 'طولی مستقیم (۰ درجه)',
+    cols: bestPlan === 'B' ? colsB : colsA,
+    rows: bestPlan === 'B' ? rowsB : rowsA,
     usedArea,
     totalSheetArea,
     efficiencyPercentage: parseFloat(efficiency),
@@ -626,8 +647,8 @@ function packSinglePartOnSheet({
  * Packing Algorithm for Combo/Paired Imposition (Part 1 + Part 2 in same sheet)
  */
 function packComboPartsOnSheet({
-  part1, // { name, flatW, flatH }
-  part2, // { name, flatW, flatH }
+  part1,
+  part2,
   sheetW = 1000,
   sheetH = 700,
   gripperMargin = 15,
@@ -647,7 +668,7 @@ function packComboPartsOnSheet({
     wastePercentage: 100
   };
 
-  // Test vertical splits
+  // Vertical split
   for (let splitFrac = 0.25; splitFrac <= 0.75; splitFrac += 0.05) {
     const w1 = Math.floor(pW * splitFrac) - gutter;
     const w2 = pW - w1 - gutter;
@@ -676,13 +697,12 @@ function packComboPartsOnSheet({
 
     const pairs = Math.min(pack1.count, pack2.count);
     if (pairs > bestResult.pairs) {
-      // Offset pack2 x coordinates
       const adjustedPack2Items = pack2.items.map((it) => ({
         ...it,
+        id: it.id + pack1.items.length,
         x: it.x + w1 + gutter
       }));
 
-      // Keep only balanced pairs if desired, or all pieces
       const allItems = [...pack1.items, ...adjustedPack2Items];
       const usedArea = (pack1.count * part1.flatW * part1.flatH) + (pack2.count * part2.flatW * part2.flatH);
       const totalSheetArea = sheetW * sheetH;
@@ -703,7 +723,7 @@ function packComboPartsOnSheet({
     }
   }
 
-  // Test horizontal splits
+  // Horizontal split
   for (let splitFrac = 0.25; splitFrac <= 0.75; splitFrac += 0.05) {
     const h1 = Math.floor(pH * splitFrac) - gutter;
     const h2 = pH - h1 - gutter;
@@ -732,9 +752,9 @@ function packComboPartsOnSheet({
 
     const pairs = Math.min(pack1.count, pack2.count);
     if (pairs > bestResult.pairs) {
-      // Offset pack2 y coordinates
       const adjustedPack2Items = pack2.items.map((it) => ({
         ...it,
+        id: it.id + pack1.items.length,
         y: it.y + h1 + gutter
       }));
 
@@ -762,67 +782,124 @@ function packComboPartsOnSheet({
 }
 
 /**
- * Generate Full Sheet Montage SVG with Vector Outlines of Each Placed Box
+ * Generate Full CAD Vector Montage SVG with Die Cut & Crease Lines & Title Block
  */
 function generateSheetMontageSvg({
   sheetW,
   sheetH,
   items = [],
   gripperMargin = 15,
-  sheetName = 'شیت مقوا'
+  sheetName = 'شیت مقوا',
+  dieline = null,
+  efficiencyPercentage = 80,
+  wastePercentage = 20
 }) {
   const svgViewBox = `0 0 ${sheetW} ${sheetH}`;
 
   const itemSvgs = items.map((it) => {
-    const isCombo2 = it.name && it.name.includes('کاور');
-    const bgFill = isCombo2 ? '#fef3c7' : '#e0e7ff';
-    const borderStroke = isCombo2 ? '#d97706' : '#4f46e5';
+    const isSleeve = it.name && it.name.includes('کاور');
+    const isDrawer = it.name && it.name.includes('کشو');
+    const strokeColor = isSleeve ? '#d97706' : '#e11d48';
+    const creaseColor = '#2563eb';
+    const bgFill = isSleeve ? '#fffbeb' : isDrawer ? '#f0fdf4' : '#f8fafc';
+
+    // Internal cut & crease lines to replicate die maker visual
+    const innerCrease1 = `M 15 15 L ${it.width - 15} 15 L ${it.width - 15} ${it.height - 15} L 15 ${it.height - 15} Z`;
+    const innerCrease2 = `M ${Math.floor(it.width * 0.45)} 15 L ${Math.floor(it.width * 0.45)} ${it.height - 15}`;
+    const innerCrease3 = `M ${Math.floor(it.width * 0.55)} 15 L ${Math.floor(it.width * 0.55)} ${it.height - 15}`;
 
     return `
-      <!-- Item #${it.id} -->
+      <!-- Placed Dieline #${it.id} -->
       <g transform="translate(${it.x}, ${it.y})">
-        <rect width="${it.width}" height="${it.height}" rx="2" fill="${bgFill}" fill-opacity="0.65" stroke="${borderStroke}" stroke-width="1.2" />
-        <rect x="2" y="2" width="${Math.max(0, it.width - 4)}" height="${Math.max(0, it.height - 4)}" fill="none" stroke="${borderStroke}" stroke-width="0.6" stroke-dasharray="3,2" />
-        <text x="${it.width / 2}" y="${Math.max(12, it.height / 2 - 4)}" font-family="'Vazirmatn', sans-serif" font-size="9px" font-weight="900" fill="#1e1b4b" text-anchor="middle">
+        <!-- Box Paper Blank -->
+        <rect width="${it.width}" height="${it.height}" rx="1" fill="${bgFill}" fill-opacity="0.8" stroke="${strokeColor}" stroke-width="1.2" />
+        
+        <!-- Crease lines (خطوط تا و خط‌کشی آبی) -->
+        <path d="${innerCrease1}" stroke="${creaseColor}" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
+        <path d="${innerCrease2}" stroke="${creaseColor}" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
+        <path d="${innerCrease3}" stroke="${creaseColor}" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
+
+        <!-- Dimension and Part Info -->
+        <text x="${it.width / 2}" y="${Math.max(14, it.height / 2 - 5)}" font-family="'Vazirmatn', sans-serif" font-size="10px" font-weight="900" fill="#0f172a" text-anchor="middle">
           #${it.id} (${it.width}×${it.height}mm)
         </text>
-        <text x="${it.width / 2}" y="${Math.min(it.height - 4, it.height / 2 + 10)}" font-family="'Vazirmatn', sans-serif" font-size="7.5px" fill="#4338ca" text-anchor="middle">
+        <text x="${it.width / 2}" y="${Math.min(it.height - 6, it.height / 2 + 10)}" font-family="'Vazirmatn', sans-serif" font-size="8px" font-weight="bold" fill="#475569" text-anchor="middle">
           ${it.name || 'قالب'}
         </text>
       </g>
     `;
   }).join('\n');
 
+  // Title Block Dimensions
+  const tbW = Math.min(380, sheetW - 40);
+  const tbH = 45;
+  const tbX = sheetW - tbW - 15;
+  const tbY = sheetH - tbH - 15;
+
   return `<?xml version="1.0" encoding="utf-8"?>
 <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="${svgViewBox}" width="${sheetW}mm" height="${sheetH}mm">
   <defs>
     <style>
-      .sheet-bg { fill: #ffffff; stroke: #94a3b8; stroke-width: 2; }
-      .gripper-bar { fill: #fed7aa; stroke: #f97316; stroke-dasharray: 4, 3; }
-      .margin-line { stroke: #cbd5e1; stroke-width: 0.8; stroke-dasharray: 2, 2; fill: none; }
-      .crop-mark { stroke: #0f172a; stroke-width: 1; }
-      .sheet-title { font-family: 'Vazirmatn', sans-serif; font-size: 11px; font-weight: bold; fill: #334155; }
+      .sheet-bg { fill: #ffffff; stroke: #0f172a; stroke-width: 2.5; }
+      .gripper-bar { fill: #fef3c7; stroke: #d97706; stroke-width: 1; }
+      .register-cross { stroke: #0f172a; stroke-width: 0.8; fill: none; }
+      .title-block-bg { fill: #f8fafc; stroke: #1e293b; stroke-width: 1.5; }
+      .tb-text-bold { font-family: 'Vazirmatn', sans-serif; font-size: 8.5px; font-weight: 900; fill: #0f172a; }
+      .tb-text-reg { font-family: 'Vazirmatn', sans-serif; font-size: 7.5px; fill: #334155; }
     </style>
   </defs>
 
   <!-- Sheet Cardboard Paper Background -->
-  <rect x="0" y="0" width="${sheetW}" height="${sheetH}" class="sheet-bg" rx="4" />
+  <rect x="0" y="0" width="${sheetW}" height="${sheetH}" class="sheet-bg" />
 
-  <!-- Gripper Strip (لب‌پنجه چاپ) -->
+  <!-- Gripper Edge (حاشیه لب‌پنجه چاپ) -->
   <rect x="0" y="0" width="${sheetW}" height="${gripperMargin}" class="gripper-bar" />
-  <text x="${sheetW / 2}" y="${gripperMargin - 4}" font-family="'Vazirmatn', sans-serif" font-size="8px" font-weight="bold" fill="#c2410c" text-anchor="middle">
-    حاشیه لب‌پنجه ماشین چاپ (${gripperMargin}mm Gripper Edge)
+  <text x="${sheetW / 2}" y="${gripperMargin - 4}" font-family="'Vazirmatn', sans-serif" font-size="8.5px" font-weight="bold" fill="#92400e" text-anchor="middle">
+    حاشیه لب‌پنجه ماشین چاپ (${gripperMargin}mm Gripper Margin)
   </text>
+
+  <!-- Prepress Registration Marks (صلیب و علائم رجیستر لیتوگرافی در ۴ گوشه) -->
+  <g class="register-cross">
+    <circle cx="5" cy="5" r="3" />
+    <line x1="1" y1="5" x2="9" y2="5" />
+    <line x1="5" y1="1" x2="5" y2="9" />
+
+    <circle cx="${sheetW - 5}" cy="5" r="3" />
+    <line x1="${sheetW - 9}" y1="5" x2="${sheetW - 1}" y2="5" />
+    <line x1="${sheetW - 5}" y1="1" x2="${sheetW - 5}" y2="9" />
+
+    <circle cx="5" cy="${sheetH - 5}" r="3" />
+    <line x1="1" y1="${sheetH - 5}" x2="9" y2="${sheetH - 5}" />
+    <line x1="5" y1="${sheetH - 9}" x2="5" y2="${sheetH - 1}" />
+
+    <circle cx="${sheetW - 5}" cy="${sheetH - 5}" r="3" />
+    <line x1="${sheetW - 9}" y1="${sheetH - 5}" x2="${sheetW - 1}" y2="${sheetH - 5}" />
+    <line x1="${sheetW - 5}" y1="${sheetH - 9}" x2="${sheetW - 5}" y2="${sheetH - 1}" />
+  </g>
 
   <!-- Placed Box Dieline Instances -->
   <g id="SheetItems">
     ${itemSvgs}
   </g>
 
-  <!-- Sheet Technical Info Bar -->
-  <text x="12" y="${sheetH - 6}" class="sheet-title">
-    ${sheetName} (${sheetW}×${sheetH} mm) | تعداد در فرم: ${items.length} عدد | اتوماسیون آرمان امیران
-  </text>
+  <!-- Professional Prepress & Die-Maker Title Block (جدول مشخصات فنی قالب‌سازی) -->
+  <g id="DieMakerTitleBlock" transform="translate(${tbX}, ${tbY})">
+    <rect width="${tbW}" height="${tbH}" class="title-block-bg" rx="2" />
+    <line x1="0" y1="22" x2="${tbW}" y2="22" stroke="#cbd5e1" stroke-width="1" />
+    <line x1="${tbW * 0.5}" y1="0" x2="${tbW * 0.5}" y2="${tbH}" stroke="#cbd5e1" stroke-width="1" />
+
+    <!-- Row 1: Factory & Box Specs -->
+    <text x="${tbW - 10}" y="15" text-anchor="end" class="tb-text-bold">صنایع چاپ و بسته‌بندی آرمان امیران</text>
+    <text x="${tbW * 0.5 - 10}" y="15" text-anchor="end" class="tb-text-reg">ساختار: ${dieline?.boxType || 'جعبه استاندارد'}</text>
+
+    <!-- Row 2: Sheet Specs & Efficiency -->
+    <text x="${tbW - 10}" y="36" text-anchor="end" class="tb-text-reg">
+      شیت: ${sheetW}×${sheetH}mm | تعداد در فرم: ${items.length} عدد
+    </text>
+    <text x="${tbW * 0.5 - 10}" y="36" text-anchor="end" class="tb-text-reg">
+      سطح مفید: ${efficiencyPercentage}٪ | ضایعات: ${wastePercentage}٪
+    </text>
+  </g>
 </svg>`;
 }
 
@@ -830,23 +907,22 @@ function generateSheetMontageSvg({
  * Master Sheet Imposition Optimizer
  */
 function optimizeSheetMontage({
-  boxType = 'sleeve_drawer',
-  length = 92,
-  width = 55,
-  height = 20,
+  boxType = 'tuck_end',
+  length = 80,
+  width = 15,
+  height = 165,
   material = 'cardboard',
   quantity = 10000,
   grammage = null,
   cardboardPricePerKg = 65000,
   customSheet = null,
-  montageMode = 'auto' // 'auto' | 'combo' | 'part1' | 'part2'
+  montageMode = 'auto'
 }) {
   const dieline = generateBoxDieline({ boxType, length, width, height, material });
   const matSpec = MATERIAL_SPECS[material] || MATERIAL_SPECS.cardboard;
   const gsm = grammage || matSpec.defaultGsm;
   const isMultiPart = dieline.parts && dieline.parts.length > 1;
 
-  // Determine active sheet candidates
   let sheetList = [...STANDARD_SHEETS];
   if (customSheet && customSheet.widthMm > 50 && customSheet.heightMm > 50) {
     sheetList.unshift({
@@ -865,7 +941,6 @@ function optimizeSheetMontage({
     let result = null;
 
     if (isMultiPart && (montageMode === 'combo' || montageMode === 'auto')) {
-      // Combo Paired Imposition
       result = packComboPartsOnSheet({
         part1: dieline.parts[0],
         part2: dieline.parts[1],
@@ -873,7 +948,6 @@ function optimizeSheetMontage({
         sheetH: sheet.heightMm
       });
     } else if (isMultiPart && montageMode === 'part1') {
-      // Dedicated Part 1
       result = packSinglePartOnSheet({
         itemW: dieline.parts[0].flatW,
         itemH: dieline.parts[0].flatH,
@@ -882,7 +956,6 @@ function optimizeSheetMontage({
         sheetH: sheet.heightMm
       });
     } else if (isMultiPart && montageMode === 'part2') {
-      // Dedicated Part 2
       result = packSinglePartOnSheet({
         itemW: dieline.parts[1].flatW,
         itemH: dieline.parts[1].flatH,
@@ -891,7 +964,6 @@ function optimizeSheetMontage({
         sheetH: sheet.heightMm
       });
     } else {
-      // Single Box Imposition
       result = packSinglePartOnSheet({
         itemW: dieline.flatDimensions.flatWidthMm,
         itemH: dieline.flatDimensions.flatHeightMm,
@@ -902,12 +974,10 @@ function optimizeSheetMontage({
     }
 
     const boxesPerSheet = result.count || 1;
-    // Quantity calculation with 5% press setup scrap
     const rawSheetsNeeded = Math.ceil(quantity / Math.max(1, boxesPerSheet));
     const pressScrapSheets = Math.ceil(rawSheetsNeeded * 0.05);
     const totalSheetsNeeded = rawSheetsNeeded + pressScrapSheets;
 
-    // Weight & Cost calculation
     const sheetAreaSqm = (sheet.widthMm / 1000) * (sheet.heightMm / 1000);
     const weightPerSheetKg = (sheetAreaSqm * gsm) / 1000;
     const totalWeightKg = Math.round(totalSheetsNeeded * weightPerSheetKg);
@@ -918,7 +988,10 @@ function optimizeSheetMontage({
       sheetW: sheet.widthMm,
       sheetH: sheet.heightMm,
       items: result.items,
-      sheetName: sheet.name
+      sheetName: sheet.name,
+      dieline,
+      efficiencyPercentage: result.efficiencyPercentage,
+      wastePercentage: result.wastePercentage
     });
 
     evaluations.push({

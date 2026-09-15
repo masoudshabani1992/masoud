@@ -19,11 +19,22 @@ import {
   DollarSign,
   Maximize2,
   Box,
-  Cpu
+  Cpu,
+  Printer,
+  Bookmark
 } from 'lucide-react';
 import { api } from '../api/client';
 
 const BOX_TYPES = [
+  {
+    id: 'tuck_end',
+    name: 'سر و ته دارویی (دو طرف درب مقوایی)',
+    desc: 'پرکاربردترین جعبه دارویی، بهداشتی، خمیردندان و آرایشی با درب‌های قفل‌شونده و زبانه‌های گردگیر در بالا و پایین',
+    icon: '💊',
+    defaultDim: { l: 80, w: 15, h: 165 },
+    isMultiPart: false,
+    formulaExpl: 'شامل ۴ وجه اصلی (طول + عرض + طول + عرض)، زبانه لب‌چسب استاندارد ۱۵ میلی‌متری، زبانه‌های گردگیر گوشه (Dust Flaps) با پخ زاویه‌دار و ۲ درب اصلی بالا و پایین با گوشواره‌های اصطکاکی قفل‌شونده.'
+  },
   {
     id: 'sleeve_drawer',
     name: 'کشویی کبریتی (Sleeve & Drawer)',
@@ -32,15 +43,6 @@ const BOX_TYPES = [
     defaultDim: { l: 92, w: 55, h: 20 },
     isMultiPart: true,
     formulaExpl: 'ابعاد کاور با بادخور ۲ برابری ضخامت مقوا (+1.5mm) محاسبه شده و کشوی داخلی دارای پروانه‌های گوشه ۴۵ درجه و لبه‌های دوبل جهت قفل بدون چسب است.'
-  },
-  {
-    id: 'tuck_end',
-    name: 'سر و ته دارویی (Tuck End)',
-    desc: 'پرکاربردترین جعبه دارویی، بهداشتی و آرایشی با زبانه‌های قفل‌شونده در بالا و پایین و لبه چسب استاندارد',
-    icon: '💊',
-    defaultDim: { l: 120, w: 60, h: 160 },
-    isMultiPart: false,
-    formulaExpl: 'شامل ۴ وجه اصلی، زبانه لب‌چسب ۱۵ میلی‌متری، زبانه‌های گردگیر گوشه با پخ ۳۰ درجه و درب قفل‌شونده با گوشواره‌های اصطکاکی.'
   },
   {
     id: 'snap_lock_bottom',
@@ -90,17 +92,17 @@ const BOX_TYPES = [
 ];
 
 const MATERIALS = [
-  { id: 'cardboard', name: 'جعبه مقوایی (ایندربرد / پشت طوسی)', thickness: '۰.۵ میلی‌متر', defaultGsm: 300, desc: 'مناسب جعبه‌های سبک، دارویی و آرایشی' },
+  { id: 'cardboard', name: 'جعبه مقوایی (ایندربرد / پشت طوسی)', thickness: '۰.۵ میلی‌متر', defaultGsm: 300, desc: 'مناسب جعبه‌های سبک، دارویی، خمیردندان و بهداشتی' },
   { id: 'flute_e', name: 'کارتن لمینتی E-Flute (ای فلوت)', thickness: '۱.۵ میلی‌متر', defaultGsm: 450, desc: 'مقاومت خمشی عالی با قابلیت چاپ افست لمینتی' },
   { id: 'flute_b', name: 'کارتن B-Flute (بی فلوت)', thickness: '۳.۰ میلی‌متر', defaultGsm: 550, desc: 'استحکام بالا جهت حمل قطعات و کارتن متوسط' },
   { id: 'flute_c', name: 'کارتن C-Flute (سی فلوت)', thickness: '۴.۰ میلی‌متر', defaultGsm: 650, desc: 'کارتن مادر سنگین با بالاترین مقاومت فشاری' }
 ];
 
 export default function DielineGeneratorView({ onTransferToOrder }) {
-  const [selectedBoxType, setSelectedBoxType] = useState('sleeve_drawer');
-  const [lengthMm, setLengthMm] = useState(92);
-  const [widthMm, setWidthMm] = useState(55);
-  const [heightMm, setHeightMm] = useState(20);
+  const [selectedBoxType, setSelectedBoxType] = useState('tuck_end');
+  const [lengthMm, setLengthMm] = useState(80);
+  const [widthMm, setWidthMm] = useState(15);
+  const [heightMm, setHeightMm] = useState(165);
   const [selectedMaterial, setSelectedMaterial] = useState('cardboard');
   const [quantity, setQuantity] = useState(10000);
   const [cardboardPricePerKg, setCardboardPricePerKg] = useState(65000);
@@ -111,10 +113,19 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
   const [dielineData, setDielineData] = useState(null);
   const [montageResult, setMontageResult] = useState(null);
   const [activeSubTab, setActiveSubTab] = useState('montage'); // 'dieline' | 'montage'
-  const [montageMode, setMontageMode] = useState('combo'); // 'combo' | 'part1' | 'part2'
-  const [selectedSheetId, setSelectedSheetId] = useState(null);
+  const [montageMode, setMontageMode] = useState('auto'); // 'auto' | 'combo' | 'part1' | 'part2'
+  const [selectedSheetId, setSelectedSheetId] = useState('sheet_70x100');
   const [zoomScale, setZoomScale] = useState(1);
-  const [hoveredItem, setHoveredItem] = useState(null);
+
+  // Apply Sample: Tuck End 8 x 1.5 x 16.5 cm
+  const handleApplyTuckEndSample = () => {
+    setSelectedBoxType('tuck_end');
+    setLengthMm(80);
+    setWidthMm(15);
+    setHeightMm(165);
+    setSelectedMaterial('cardboard');
+    setSelectedSheetId('sheet_70x100');
+  };
 
   // Run calculation
   const handleGenerate = async (forcedMode = null) => {
@@ -145,7 +156,7 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
         setDielineData(res.dieline);
         setMontageResult(res);
         if (!selectedSheetId || !res.allSheets?.some(s => s.sheetId === selectedSheetId)) {
-          setSelectedSheetId(res.bestChoice?.sheetId);
+          setSelectedSheetId(res.bestChoice?.sheetId || 'sheet_70x100');
         }
       }
     } catch (err) {
@@ -189,7 +200,7 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `sheet-montage-${selectedBoxType}-${currentSheet.sheetLength}x${currentSheet.sheetWidth}cm-${currentSheet.boxesPerSheet}ups.svg`;
+    a.download = `sheet-montage-CAD-${selectedBoxType}-${currentSheet.sheetLength}x${currentSheet.sheetWidth}cm-${currentSheet.boxesPerSheet}ups.svg`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -201,6 +212,30 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
 
   return (
     <div className="space-y-6" dir="rtl">
+      {/* Quick Example Loader Banner */}
+      <div className="bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 rounded-3xl p-4 text-white shadow-lg flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-indigo-500/30 border border-indigo-400/30 flex items-center justify-center text-amber-300">
+            <Bookmark className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="text-sm font-black">نمونه درخواستی شما (جعبه دو طرف درب مقوایی):</h3>
+            <p className="text-xs text-indigo-200 mt-0.5">
+              طول: ۸ سانتی‌متر (۸۰mm) | عرض: ۱.۵ سانتی‌متر (۱۵mm) | ارتفاع: ۱۶.۵ سانتی‌متر (۱۶۵mm)
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleApplyTuckEndSample}
+          className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs px-4 py-2.5 rounded-xl shadow-md transition flex items-center gap-1.5 active:scale-95"
+        >
+          <Sparkles className="w-4 h-4 text-slate-950" />
+          <span>بارگذاری و مشاهده آنی مونتاژ این جعبه</span>
+        </button>
+      </div>
+
       {/* 1. Box Model Selector */}
       <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3 flex-wrap gap-2">
@@ -213,13 +248,13 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
                 ۱. انتخاب ساختار هندسی جعبه (۷ مدل استاندارد خط تیغ)
               </h2>
               <span className="text-xs text-slate-500">
-                محاسبه ریاضی خطوط برش، خطوط تا، بادخور ضخامت متریال و چیدمان بدون پرتی
+                محاسبه خودکار خطوط برش، خطوط تا، پروانه‌ها، زبانه‌ها و چیدمان بدون پرتی
               </span>
             </div>
           </div>
           <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 flex items-center gap-1.5">
             <CheckCircle2 className="w-3.5 h-3.5" />
-            دقت ۱۰۰٪ برداری با تفکیک خط تیغ و تا
+            دقت ۱۰۰٪ نرم‌افزارهای قالب‌سازی CAD
           </span>
         </div>
 
@@ -289,7 +324,7 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 block mb-1">ارتفاع/عمق (H):</label>
+                <label className="font-bold text-slate-700 block mb-1">ارتفاع (H):</label>
                 <div className="relative">
                   <input
                     type="number"
@@ -305,7 +340,7 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
             {/* Material */}
             <div>
               <label className="text-xs font-bold text-slate-700 block mb-1.5">
-                ۳. جنس مقوا / کارتن (محاسبه بادخور خط تا):
+                ۳. جنس متریال (ضخامت و گراماژ):
               </label>
               <div className="space-y-1.5">
                 {MATERIALS.map((mat) => (
@@ -367,19 +402,19 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
             {/* Custom Sheet (Optional) */}
             <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 text-xs space-y-2">
               <span className="font-bold text-slate-700 block text-[11px]">
-                شیت اختصاصی / رول بازکنی سفارشی (اختیاری - بر حسب سانتی‌متر):
+                شیت اختصاصی / رول بازکنی سفارشی (بر حسب سانتی‌متر):
               </span>
               <div className="grid grid-cols-2 gap-2">
                 <input
                   type="number"
-                  placeholder="طول شیت (مثلاً ۶۳)"
+                  placeholder="طول شیت (مثلاً ۷۰)"
                   value={customSheetW}
                   onChange={(e) => setCustomSheetW(e.target.value)}
                   className="bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-bold"
                 />
                 <input
                   type="number"
-                  placeholder="عرض شیت (مثلاً ۸۸)"
+                  placeholder="عرض شیت (مثلاً ۱۰۰)"
                   value={customSheetH}
                   onChange={(e) => setCustomSheetH(e.target.value)}
                   className="bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-bold"
@@ -394,47 +429,43 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
               className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs py-3 px-4 rounded-xl shadow-md shadow-indigo-100 transition flex items-center justify-center gap-2 active:scale-[0.99]"
             >
               {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-              <span>محاسبه مجدد خط تیغ و بهینه‌سازی چیدمان شیت</span>
+              <span>محاسبه مجدد خط تیغ و مونتاژ شیت</span>
             </button>
           </div>
 
-          {/* Dieline Mathematical Accuracy Proof */}
-          <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-3 text-xs">
-            <h4 className="font-black text-slate-800 flex items-center gap-1.5 border-b border-slate-100 pb-2">
-              <Cpu className="w-4 h-4 text-emerald-600" />
-              آیا این خط تیغ دقیق و آماده تولید است؟
-            </h4>
+          {/* Dieline Mathematical Accuracy Specifications */}
+          {dielineData && (
+            <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-3 text-xs">
+              <h4 className="font-black text-slate-800 flex items-center gap-1.5 border-b border-slate-100 pb-2">
+                <Cpu className="w-4 h-4 text-emerald-600" />
+                شناسنامه فنی ابعاد بازشده (Flat Blank Specs)
+              </h4>
 
-            <div className="p-3 bg-emerald-50/70 rounded-2xl border border-emerald-200 text-[11px] text-emerald-950 space-y-1.5 leading-relaxed">
-              <p className="font-bold text-emerald-900 flex items-center gap-1">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                بله، این خط تیغ با استانداردهای کارخانه‌ای محاسبه شده است:
-              </p>
-              <ul className="space-y-1 text-slate-700 mr-3 list-disc">
-                <li>{currentBox?.formulaExpl}</li>
-                <li>ضخامت متریال ({MATERIALS.find(m => m.id === selectedMaterial)?.thickness}) در خطوط تا و بادخورها لحاظ شده است.</li>
-                <li>خطوط قرمز نشان‌دهنده تیغ برش (Cut) و خطوط آبی خط‌چین نشان‌دهنده خط‌کشی و تا (Crease) هستند.</li>
-                <li>وکتور SVG خروجی استاندارد ۱:۱ جهت بازگشایی در CorelDraw، Illustrator و دستگاه لیزر قالب‌سازی است.</li>
-              </ul>
-            </div>
-
-            {dielineData?.parts?.length > 1 && (
-              <div className="p-3 bg-indigo-50/70 rounded-2xl border border-indigo-100 text-[11px] text-indigo-950 space-y-2">
-                <span className="font-black block text-indigo-900">مشخصات مجزای قطعات بازشده:</span>
-                {dielineData.parts.map((p, pIdx) => (
-                  <div key={pIdx} className="flex items-center justify-between border-t border-indigo-100/60 pt-1.5">
-                    <span className="font-medium">• {p.name}:</span>
-                    <strong className="font-mono bg-white px-2 py-0.5 rounded border border-indigo-200 text-indigo-700">
-                      {p.flatW} × {p.flatH} mm ({p.areaCm2} cm²)
-                    </strong>
-                  </div>
-                ))}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="p-2.5 bg-slate-50 rounded-xl">
+                  <span className="text-slate-400 block text-[11px]">عرض بازشده:</span>
+                  <span className="font-black text-slate-900 text-sm mt-0.5 block font-mono">
+                    {dielineData.flatDimensions.flatWidthMm} mm ({dielineData.flatDimensions.flatWidthCm} cm)
+                  </span>
+                </div>
+                <div className="p-2.5 bg-slate-50 rounded-xl">
+                  <span className="text-slate-400 block text-[11px]">طول بازشده:</span>
+                  <span className="font-black text-slate-900 text-sm mt-0.5 block font-mono">
+                    {dielineData.flatDimensions.flatHeightMm} mm ({dielineData.flatDimensions.flatHeightCm} cm)
+                  </span>
+                </div>
               </div>
-            )}
-          </div>
+
+              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 text-[11px] text-slate-700 space-y-1">
+                <span className="font-bold text-slate-800 block">نحوه محاسبه ابعاد بازشده:</span>
+                <p>• عرض: ۱۵mm لب‌چسب + ۲×(۸۰mm طول) + ۲×(۱۵mm عرض) = <strong>{dielineData.flatDimensions.flatWidthMm} میلی‌متر</strong></p>
+                <p>• طول: ۱۶۵mm بدنه + ۲×(۱۵mm درب) + ۲×(۱۱.۵mm زبانه) = <strong>{dielineData.flatDimensions.flatHeightMm} میلی‌متر</strong></p>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Right Side: Interactive Visual Montage & Dieline Canvas */}
+        {/* Right Side: Interactive CAD Visual Montage & Dieline Canvas */}
         <div className="lg:col-span-8 space-y-4">
           
           {/* Top Control Bar: Mode Switcher & Download Actions */}
@@ -450,7 +481,7 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
                 }`}
               >
                 <Layers className="w-3.5 h-3.5 text-amber-300" />
-                <span>مونتاژ و چیدمان شیت با حداقل پرتی</span>
+                <span>نمای مونتاژ و چیدمان CAD شیت با حداقل پرتی</span>
               </button>
 
               <button
@@ -474,10 +505,10 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
                   type="button"
                   onClick={handleDownloadSheetMontageSvg}
                   className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition shadow-sm flex items-center gap-1.5"
-                  title="دانلود وکتور SVG کامل فرم چیدمان شیت برای لیتوگرافی و قالب‌سازی"
+                  title="دانلود وکتور SVG کامل نقشه چیدمان شیت جهت لیتوگرافی و لیزر قالب‌سازی"
                 >
                   <Download className="w-3.5 h-3.5" />
-                  <span>دانلود وکتور فرم شیت</span>
+                  <span>دانلود وکتور CAD فرم شیت</span>
                 </button>
               ) : (
                 <button
@@ -516,54 +547,9 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
           {activeSubTab === 'montage' && montageResult && (
             <div className="space-y-4">
               
-              {/* Multi-Part Montage Mode Switcher (برای جعبه‌های کشویی یا زیره رویه) */}
-              {currentBox?.isMultiPart && (
-                <div className="bg-amber-50/80 border border-amber-200 p-3 rounded-2xl flex items-center justify-between flex-wrap gap-2 text-xs">
-                  <div className="flex items-center gap-2 text-amber-900 font-black">
-                    <Grid className="w-4 h-4 text-amber-700" />
-                    <span>روش فرم‌بندی جعبه دو تکه:</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => { setMontageMode('combo'); handleGenerate('combo'); }}
-                      className={`px-3 py-1.5 rounded-xl font-bold transition text-xs ${
-                        montageMode === 'combo'
-                          ? 'bg-amber-600 text-white shadow-sm'
-                          : 'bg-white text-amber-900 border border-amber-300 hover:bg-amber-100'
-                      }`}
-                    >
-                      🌟 فرم ترکیبی جفتی (چاپ همزمان کاور + کشو در یک شیت)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => { setMontageMode('part1'); handleGenerate('part1'); }}
-                      className={`px-3 py-1.5 rounded-xl font-bold transition text-xs ${
-                        montageMode === 'part1'
-                          ? 'bg-amber-600 text-white shadow-sm'
-                          : 'bg-white text-amber-900 border border-amber-300 hover:bg-amber-100'
-                      }`}
-                    >
-                      📦 فرم اختصاصی کشو
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => { setMontageMode('part2'); handleGenerate('part2'); }}
-                      className={`px-3 py-1.5 rounded-xl font-bold transition text-xs ${
-                        montageMode === 'part2'
-                          ? 'bg-amber-600 text-white shadow-sm'
-                          : 'bg-white text-amber-900 border border-amber-300 hover:bg-amber-100'
-                      }`}
-                    >
-                      📄 فرم اختصاصی کاور
-                    </button>
-                  </div>
-                </div>
-              )}
-
               {/* Sheet Selection Pills */}
               <div className="bg-white rounded-2xl p-3 border border-slate-200 flex items-center gap-2 overflow-x-auto text-xs">
-                <span className="text-slate-400 font-bold whitespace-nowrap pl-2 border-l border-slate-200">انتخاب شیت:</span>
+                <span className="text-slate-400 font-bold whitespace-nowrap pl-2 border-l border-slate-200">انتخاب شیت چاپ:</span>
                 {montageResult.allSheets?.map((sh) => {
                   const isSelected = (selectedSheetId || montageResult.bestChoice?.sheetId) === sh.sheetId;
                   const isBest = montageResult.bestChoice?.sheetId === sh.sheetId;
@@ -584,7 +570,7 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
                       }`}>
                         {sh.boxesPerSheet} قالب ({sh.wastePercentage}٪ پرت)
                       </span>
-                      {isBest && <span className="text-amber-300">★</span>}
+                      {isBest && <span className="text-amber-300">★ کمترین پرتی</span>}
                     </button>
                   );
                 })}
@@ -598,10 +584,10 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
                   <div className="w-full flex items-center justify-between text-xs text-slate-300 border-b border-slate-800 pb-3 mb-4">
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-white text-sm">
-                        فرم چیدمان شیت {activeSheet.sheetLength} × {activeSheet.sheetWidth} سانتی‌متر
+                        نقشه مونتاژ فرم شیت {activeSheet.sheetLength} × {activeSheet.sheetWidth} سانتی‌متر
                       </span>
                       <span className="bg-indigo-900/80 text-indigo-300 border border-indigo-700 px-2.5 py-0.5 rounded-full font-bold text-[11px]">
-                        {activeSheet.boxesPerSheet} عدد در هر شیت
+                        {activeSheet.boxesPerSheet} قالب در فرم
                       </span>
                     </div>
 
@@ -647,7 +633,7 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
                   </div>
 
                   <div className="absolute bottom-4 right-4 text-[10px] text-slate-400 font-mono">
-                    جهت فرم: {activeSheet.orientation}
+                    جهت چیدمان: {activeSheet.orientation}
                   </div>
                 </div>
               )}
@@ -658,7 +644,7 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
                   <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm text-center">
                     <span className="text-slate-400 block text-[11px] mb-1">تعداد در فرم (Ups)</span>
                     <strong className="text-indigo-600 text-base font-black font-mono">
-                      {activeSheet.boxesPerSheet} عدد
+                      {activeSheet.boxesPerSheet} قالب
                     </strong>
                     <span className="text-[10px] text-slate-500 block mt-0.5">در هر شیت مقوا</span>
                   </div>
