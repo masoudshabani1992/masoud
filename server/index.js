@@ -22,7 +22,9 @@ const {
 } = require('./ai-assistant');
 const {
   MATERIAL_SPECS,
-  generateBoxDieline
+  STANDARD_SHEETS,
+  generateBoxDieline,
+  optimizeSheetMontage
 } = require('./dieline-generator');
 const {
   importCustomers,
@@ -204,25 +206,33 @@ app.post('/api/dieline/generate', authMiddleware, (req, res) => {
 
 app.post('/api/dieline/montage', authMiddleware, (req, res) => {
   try {
-    const { boxType, length, width, height, material, quantity, grammage, cardboardPricePerKg } = req.body;
+    const {
+      boxType,
+      length,
+      width,
+      height,
+      material,
+      quantity,
+      grammage,
+      cardboardPricePerKg,
+      customSheet,
+      montageMode
+    } = req.body;
     
-    // 1. Generate single box dieline
-    const dieline = generateBoxDieline({ boxType, length, width, height, material });
-    
-    // 2. Perform intelligent nesting on calculated flat dimensions
-    const nesting = optimizeSheetNesting({
-      flatLength: dieline.flatDimensions.flatWidthCm,
-      flatWidth: dieline.flatDimensions.flatHeightCm,
+    const montage = optimizeSheetMontage({
+      boxType,
+      length,
+      width,
+      height,
+      material,
       quantity: quantity || 10000,
       grammage: grammage || 300,
-      cardboardPricePerKg: cardboardPricePerKg || 65000
+      cardboardPricePerKg: cardboardPricePerKg || 65000,
+      customSheet,
+      montageMode: montageMode || 'auto'
     });
 
-    res.json({
-      success: true,
-      dieline,
-      nesting
-    });
+    res.json(montage);
   } catch (err) {
     res.status(500).json({ error: 'خطا در مونتاژ و چیدمان شیت: ' + err.message });
   }
