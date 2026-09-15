@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Sparkles,
   Bot,
@@ -19,14 +19,14 @@ import {
   HelpCircle,
   Maximize2,
   RefreshCw,
-  Send,
-  Boxes,
+  Scissors,
   Sliders,
   DollarSign,
   Palette,
   Package
 } from 'lucide-react';
 import { api } from '../api/client';
+import DielineGeneratorView from './DielineGeneratorView';
 
 const SAMPLE_PROMPTS = [
   {
@@ -48,7 +48,7 @@ const SAMPLE_PROMPTS = [
 ];
 
 export default function AiAssistantView({ onTransferToOrderForm }) {
-  const [activeTab, setActiveTab] = useState('nlp'); // 'nlp' | 'nesting' | 'preflight' | 'copilot'
+  const [activeTab, setActiveTab] = useState('dieline'); // 'dieline' | 'nlp' | 'nesting' | 'preflight'
 
   // Tab 1: NLP Order State
   const [promptText, setPromptText] = useState('');
@@ -70,17 +70,6 @@ export default function AiAssistantView({ onTransferToOrderForm }) {
   const [auditLoading, setAuditLoading] = useState(false);
   const [auditResult, setAuditResult] = useState(null);
 
-  // Tab 4: Copilot QA State
-  const [faqList, setFaqList] = useState([]);
-  const [copilotSearch, setCopilotSearch] = useState('');
-
-  // Initial loading
-  useEffect(() => {
-    // Run default sample nesting
-    handleRunNesting();
-    api.aiGetKnowledgeBase().then((res) => setFaqList(res.faq || [])).catch(() => {});
-  }, []);
-
   // 1. NLP Parser Handler
   const handleParsePrompt = async (textToParse = null) => {
     const text = textToParse || promptText;
@@ -93,7 +82,6 @@ export default function AiAssistantView({ onTransferToOrderForm }) {
       const res = await api.aiParsePrompt(text.trim());
       if (res.success) {
         setNlpResult(res);
-        // Automatically trigger preflight on the parsed specs
         api.aiPreflightAudit(res.data).then((aRes) => setAuditResult(aRes)).catch(() => {});
       }
     } catch (err) {
@@ -152,19 +140,31 @@ export default function AiAssistantView({ onTransferToOrderForm }) {
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">
-                  دستیار هوش مصنوعی و مهندسی بسته‌بندی آرمان امیران
+                  دستیار هوش مصنوعی، طراحی خط تیغ و بهینه‌سازی مونتاژ شیت
                 </h1>
                 <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                  AI Packaging Engine v2.5
+                  AI Packaging & Dieline Engine v2.5
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl leading-relaxed">
-                استخراج خودکار سفارش از روی پیام‌های متنی و وویس مشتریان، بهینه‌سازی فرم‌بندی چیدمان شیت جهت کاهش باطله مقوا، بازرسی هوشمند خط تیغ و محاسبه آنی پیش‌فاکتور.
+                طراحی پارامتریک ۷ مدل خط تیغ استاندارد، استخراج هوشمند سفارش از متن، مونتاژ زینک و قالب در شیت با حداقل باطله مقوا و دانلود فایل برداری وکتور SVG.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 bg-slate-800/80 p-1.5 rounded-2xl border border-slate-700/60 shrink-0">
+          <div className="flex items-center gap-2 bg-slate-800/80 p-1.5 rounded-2xl border border-slate-700/60 shrink-0 flex-wrap">
+            <button
+              onClick={() => setActiveTab('dieline')}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                activeTab === 'dieline'
+                  ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-md font-black'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-700'
+              }`}
+            >
+              <Scissors className="w-4 h-4" />
+              <span>سامانه طراحی خط تیغ و مونتاژ</span>
+            </button>
+
             <button
               onClick={() => setActiveTab('nlp')}
               className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
@@ -174,7 +174,7 @@ export default function AiAssistantView({ onTransferToOrderForm }) {
               }`}
             >
               <Bot className="w-4 h-4" />
-              <span>استخراج سفارش از متن</span>
+              <span>استخراج سفارش از متن (NLP)</span>
             </button>
 
             <button
@@ -186,7 +186,7 @@ export default function AiAssistantView({ onTransferToOrderForm }) {
               }`}
             >
               <Layers className="w-4 h-4" />
-              <span>بهینه‌ساز پرت مقوا</span>
+              <span>محاسبه پرت شیت</span>
             </button>
 
             <button
@@ -203,6 +203,11 @@ export default function AiAssistantView({ onTransferToOrderForm }) {
           </div>
         </div>
       </div>
+
+      {/* ================= TAB 0: PARAMETRIC DIELINE & MONTAGE ================= */}
+      {activeTab === 'dieline' && (
+        <DielineGeneratorView onTransferToOrder={onTransferToOrderForm} />
+      )}
 
       {/* ================= TAB 1: NLP ORDER EXTRACTION ================= */}
       {activeTab === 'nlp' && (
@@ -388,7 +393,7 @@ export default function AiAssistantView({ onTransferToOrderForm }) {
                   </div>
                 </div>
 
-                {/* Customer Ready Quotation Message (WhatsApp / Bale Format) */}
+                {/* Customer Ready Quotation Message */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
@@ -444,7 +449,7 @@ export default function AiAssistantView({ onTransferToOrderForm }) {
                   <input
                     type="number"
                     value={nestFlatL}
-                    onChange={(e) => setNestFlatL(e.target.value)}
+                    onChange={(e) => setNestFlatL(Number(e.target.value))}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500"
                   />
                 </div>
@@ -453,7 +458,7 @@ export default function AiAssistantView({ onTransferToOrderForm }) {
                   <input
                     type="number"
                     value={nestFlatW}
-                    onChange={(e) => setNestFlatW(e.target.value)}
+                    onChange={(e) => setNestFlatW(Number(e.target.value))}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500"
                   />
                 </div>
@@ -466,7 +471,7 @@ export default function AiAssistantView({ onTransferToOrderForm }) {
                     type="number"
                     step="1000"
                     value={nestQty}
-                    onChange={(e) => setNestQty(e.target.value)}
+                    onChange={(e) => setNestQty(Number(e.target.value))}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500"
                   />
                 </div>
@@ -475,7 +480,7 @@ export default function AiAssistantView({ onTransferToOrderForm }) {
                   <input
                     type="number"
                     value={nestGsm}
-                    onChange={(e) => setNestGsm(e.target.value)}
+                    onChange={(e) => setNestGsm(Number(e.target.value))}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500"
                   />
                 </div>
@@ -487,7 +492,7 @@ export default function AiAssistantView({ onTransferToOrderForm }) {
                   type="number"
                   step="1000"
                   value={nestCardboardPriceKg}
-                  onChange={(e) => setNestCardboardPriceKg(e.target.value)}
+                  onChange={(e) => setNestCardboardPriceKg(Number(e.target.value))}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500"
                 />
               </div>
@@ -522,7 +527,6 @@ export default function AiAssistantView({ onTransferToOrderForm }) {
 
           {/* Visualization & Comparison Column */}
           <div className="lg:col-span-8 space-y-4">
-            {/* Sheet Choices Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
               {nestingResult?.allChoices?.map((item, idx) => {
                 const isSelected = selectedSheetIndex === idx;
@@ -593,7 +597,6 @@ export default function AiAssistantView({ onTransferToOrderForm }) {
                   </span>
                 </div>
 
-                {/* Visual Sheet Canvas Container */}
                 <div className="p-6 bg-slate-900 rounded-2xl flex items-center justify-center overflow-x-auto min-h-[300px]">
                   <div
                     className="relative bg-white rounded-lg shadow-2xl border-4 border-amber-400 p-2 flex flex-wrap content-start gap-1 transition-all"
@@ -602,12 +605,10 @@ export default function AiAssistantView({ onTransferToOrderForm }) {
                       height: `${Math.min(350, currentSheet.sheetWidth * 4.5)}px`
                     }}
                   >
-                    {/* Gripper / Margin indicator */}
                     <div className="absolute top-0 right-0 left-0 h-2 bg-rose-500/30 text-[9px] text-rose-800 font-bold text-center leading-none">
                       لب‌پنجه ماشین چاپ (Gripper)
                     </div>
 
-                    {/* Render Box Tiles */}
                     {Array.from({ length: currentSheet.boxesPerSheet }).map((_, bIdx) => (
                       <div
                         key={bIdx}
@@ -678,7 +679,6 @@ export default function AiAssistantView({ onTransferToOrderForm }) {
             </button>
           </div>
 
-          {/* Audit Result Cards */}
           <div className="space-y-4">
             {auditResult?.issues?.map((issue, idx) => (
               <div

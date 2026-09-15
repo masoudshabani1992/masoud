@@ -43,6 +43,10 @@ export const api = {
   aiPreflightAudit: (specs) => apiRequest('/ai/preflight-audit', { method: 'POST', body: JSON.stringify(specs) }),
   aiGetKnowledgeBase: () => apiRequest('/ai/knowledge-base'),
 
+  // Parametric Dieline & Montage
+  generateDieline: (data) => apiRequest('/dieline/generate', { method: 'POST', body: JSON.stringify(data) }),
+  generateDielineMontage: (data) => apiRequest('/dieline/montage', { method: 'POST', body: JSON.stringify(data) }),
+
   // License Management
   getLicenseStatus: () => apiRequest('/license/status'),
   activateLicense: (licenseKey) => apiRequest('/license/activate', { method: 'POST', body: JSON.stringify({ licenseKey }) }),

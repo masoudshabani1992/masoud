@@ -21,6 +21,10 @@ const {
   PACKAGING_FAQ
 } = require('./ai-assistant');
 const {
+  MATERIAL_SPECS,
+  generateBoxDieline
+} = require('./dieline-generator');
+const {
   importCustomers,
   importProjects,
   importMaterials,
@@ -179,6 +183,49 @@ app.post('/api/ai/preflight-audit', authMiddleware, (req, res) => {
 
 app.get('/api/ai/knowledge-base', authMiddleware, (req, res) => {
   res.json({ faq: PACKAGING_FAQ });
+});
+
+// ================= DIELINE GENERATOR & MONTAGE ROUTES =================
+app.post('/api/dieline/generate', authMiddleware, (req, res) => {
+  try {
+    const { boxType, length, width, height, material } = req.body;
+    const dieline = generateBoxDieline({
+      boxType,
+      length,
+      width,
+      height,
+      material
+    });
+    res.json(dieline);
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در تولید خط تیغ: ' + err.message });
+  }
+});
+
+app.post('/api/dieline/montage', authMiddleware, (req, res) => {
+  try {
+    const { boxType, length, width, height, material, quantity, grammage, cardboardPricePerKg } = req.body;
+    
+    // 1. Generate single box dieline
+    const dieline = generateBoxDieline({ boxType, length, width, height, material });
+    
+    // 2. Perform intelligent nesting on calculated flat dimensions
+    const nesting = optimizeSheetNesting({
+      flatLength: dieline.flatDimensions.flatWidthCm,
+      flatWidth: dieline.flatDimensions.flatHeightCm,
+      quantity: quantity || 10000,
+      grammage: grammage || 300,
+      cardboardPricePerKg: cardboardPricePerKg || 65000
+    });
+
+    res.json({
+      success: true,
+      dieline,
+      nesting
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در مونتاژ و چیدمان شیت: ' + err.message });
+  }
 });
 
 function authMiddleware(req, res, next) {
