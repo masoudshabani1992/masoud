@@ -1,108 +1,90 @@
 /**
- * Advanced Packaging CAD & 3D Studio Engine (Pacdora & ESKO ArtiosCAD Standard)
- * Developed for Arman Amiran Packaging Factory by Masoud Shabani (مسعود شعبانی)
+ * Pacdora Studio & ESKO ArtiosCAD 23.07 Master Dieline Engine
+ * Developed for Arman Amiran Box Factory by Masoud Shabani (مسعود شعبانی)
  *
- * Exact FEFCO & ECMA Parametric CAD Formulations:
- * - FEFCO 0427: Roll End Tuck Front (RETF) Mailer Box (Flip-Top) with double roll sidewalls, locking tabs & slots
- * - ECMA A20.20.03: Straight Tuck End (STE) Folding Carton with friction lock ears & 15° bevel glue tab
- * - ECMA A20.21.01: Reverse Tuck End (RTE)
- * - ECMA A20.40.01: 1-2-3 Snap Lock Auto Bottom Carton
- * - FEFCO 0201: RSC Mother Carton with exact W/2 flap closures & slot gaps
- * - ECMA F10.02: Matchbox Sleeve & Double-wall Tray with finger semi-circle notch
- * - FEFCO 0301 / ECMA D20.20: Telescopic Rigid Base & Lid with air-suction clearance
- * - FEFCO 0422: Self-locking Display Tray
+ * Supported Pacdora Models & Standards:
+ * - 100010: Straight Tuck End (STE) Folding Carton
+ * - 100020: Reverse Tuck End (RTE) Folding Carton
+ * - 150010: Flip-Top Mailer Box (FEFCO 0427)
+ * - 110020: Snap Lock Auto Bottom Box (ECMA A20.40)
+ * - 200010: Regular Slotted Carton RSC (FEFCO 0201)
+ * - 300010: Matchbox Sleeve & Drawer (ECMA F10.02)
+ * - 400010: Rigid Base & Lid Box (FEFCO 0301)
+ * - 500010: Gable Top Box with Handle
  */
 
 const MATERIAL_DATABASE = {
-  cardboard_ivory: {
-    id: 'cardboard_ivory',
-    name: 'مقوای ایندربرد / پشت سفید (Ivory Board)',
-    type: 'folding_boxboard',
-    density: '0.85 g/cm³',
-    thicknessMm: 0.45,
+  '350g_white': {
+    id: '350g_white',
+    name: '350g white paperboard (ایندربرد ۳۵۰ گرم)',
+    thicknessMm: 0.5,
     minThick: 0.3,
+    maxThick: 0.8,
+    bendLoss: 0.45,
+    glueTabW: 15,
+    defaultGsm: 350,
+    colorHex: '#ffffff',
+    texture: 'smooth_white'
+  },
+  '300g_white': {
+    id: '300g_white',
+    name: '300g white paperboard (ایندربرد ۳۰۰ گرم)',
+    thicknessMm: 0.42,
+    minThick: 0.25,
     maxThick: 0.7,
     bendLoss: 0.4,
     glueTabW: 14,
     defaultGsm: 300,
-    pricePerKg: 68000,
-    texture: 'smooth_white',
-    colorHex: '#fdfcfb'
+    colorHex: '#fafafa',
+    texture: 'smooth_white'
   },
-  cardboard_duplex: {
-    id: 'cardboard_duplex',
-    name: 'مقوای پشت طوسی (Duplex Board)',
-    type: 'folding_boxboard',
-    density: '0.78 g/cm³',
-    thicknessMm: 0.50,
-    minThick: 0.35,
-    maxThick: 0.8,
-    bendLoss: 0.5,
+  '250g_duplex': {
+    id: '250g_duplex',
+    name: '250g duplex paperboard (پشت طوسی ۲۵۰ گرم)',
+    thicknessMm: 0.45,
+    minThick: 0.3,
+    maxThick: 0.75,
+    bendLoss: 0.42,
     glueTabW: 15,
-    defaultGsm: 350,
-    pricePerKg: 52000,
-    texture: 'duplex_gray',
-    colorHex: '#f1f1ed'
+    defaultGsm: 250,
+    colorHex: '#f1f1ed',
+    texture: 'duplex_gray'
   },
-  kraft_paper: {
-    id: 'kraft_paper',
-    name: 'مقوای کرافت قهوه‌ای (Kraft Paperboard)',
-    type: 'kraft',
-    density: '0.72 g/cm³',
+  'kraft': {
+    id: 'kraft',
+    name: 'Kraft paperboard (کرافت قهوه‌ای)',
     thicknessMm: 0.55,
     minThick: 0.3,
     maxThick: 0.9,
     bendLoss: 0.5,
     glueTabW: 16,
     defaultGsm: 320,
-    pricePerKg: 58000,
-    texture: 'kraft_brown',
-    colorHex: '#c89d6c'
+    colorHex: '#c89d6c',
+    texture: 'kraft_brown'
   },
-  flute_e: {
+  'flute_e': {
     id: 'flute_e',
-    name: 'کارتن لمینتی E-Flute (ای فلوت ۱.۵ میل)',
-    type: 'corrugated',
-    density: '0.35 g/cm³',
-    thicknessMm: 1.50,
+    name: 'E-flute Corrugated (کارتن لمینتی E-Flute ۱.۵mm)',
+    thicknessMm: 1.5,
     minThick: 1.2,
     maxThick: 1.8,
     bendLoss: 1.2,
     glueTabW: 25,
     defaultGsm: 450,
-    pricePerKg: 42000,
-    texture: 'corrugated_e',
-    colorHex: '#dfbe95'
+    colorHex: '#dfbe95',
+    texture: 'corrugated_e'
   },
-  flute_b: {
+  'flute_b': {
     id: 'flute_b',
-    name: 'کارتن B-Flute (بی فلوت ۳ میل)',
-    type: 'corrugated',
-    density: '0.28 g/cm³',
-    thicknessMm: 3.00,
+    name: 'B-flute Corrugated (کارتن B-Flute ۳mm)',
+    thicknessMm: 3.0,
     minThick: 2.6,
     maxThick: 3.4,
     bendLoss: 2.4,
     glueTabW: 32,
     defaultGsm: 550,
-    pricePerKg: 38000,
-    texture: 'corrugated_b',
-    colorHex: '#be9364'
-  },
-  flute_c: {
-    id: 'flute_c',
-    name: 'کارتن C-Flute (سی فلوت ۴ میل)',
-    type: 'corrugated',
-    density: '0.24 g/cm³',
-    thicknessMm: 4.00,
-    minThick: 3.6,
-    maxThick: 4.5,
-    bendLoss: 3.2,
-    glueTabW: 38,
-    defaultGsm: 650,
-    pricePerKg: 36000,
-    texture: 'corrugated_c',
-    colorHex: '#a77a4c'
+    colorHex: '#be9364',
+    texture: 'corrugated_b'
   }
 };
 
@@ -115,51 +97,49 @@ const STANDARD_SHEETS = [
 ];
 
 /**
- * Size Conversion Matrix (Inner, Manufacturing, Outer)
- * Formulas conform to Pacdora & ESKO ArtiosCAD Standards
+ * Size Conversion Triad (Manufacture, Inner, Outer)
  */
-function calculateDimensionTriad({ L, W, H, sizeMode = 'inner', thicknessMm = 0.5, bendLoss = 0.4 }) {
-  const T = Math.max(0.2, parseFloat(thicknessMm) || 0.5);
+function calculateDimensionTriad({ L, W, H, sizeMode = 'mfg', thicknessMm = 0.5, bendLoss = 0.4 }) {
+  const T = Math.max(0.1, parseFloat(thicknessMm) || 0.5);
   const K = Math.max(0.1, parseFloat(bendLoss) || (T * 0.8));
 
   let inner = { l: 0, w: 0, h: 0 };
   let mfg = { l: 0, w: 0, h: 0 };
   let outer = { l: 0, w: 0, h: 0 };
 
-  if (sizeMode === 'inner') {
-    inner.l = L;
-    inner.w = W;
-    inner.h = H;
-    mfg.l = L + K;
-    mfg.w = W + K;
-    mfg.h = H + K;
-    outer.l = L + (2 * T);
-    outer.w = W + (2 * T);
-    outer.h = H + (2 * T);
-  } else if (sizeMode === 'mfg') {
+  if (sizeMode === 'mfg') {
     mfg.l = L;
     mfg.w = W;
     mfg.h = H;
-    inner.l = Math.max(5, L - K);
-    inner.w = Math.max(5, W - K);
-    inner.h = Math.max(5, H - K);
-    outer.l = inner.l + (2 * T);
-    outer.w = inner.w + (2 * T);
-    outer.h = inner.h + (2 * T);
+    inner.l = Math.max(2, L - (K * 1.5));
+    inner.w = Math.max(2, W - (K * 1.5));
+    inner.h = Math.max(2, H - (K * 2.5));
+    outer.l = L + (T * 0.8);
+    outer.w = W + (T * 0.8);
+    outer.h = H + (T * 1.8);
+  } else if (sizeMode === 'inner') {
+    inner.l = L;
+    inner.w = W;
+    inner.h = H;
+    mfg.l = L + (K * 1.5);
+    mfg.w = W + (K * 1.5);
+    mfg.h = H + (K * 2.5);
+    outer.l = L + (2 * T);
+    outer.w = W + (2 * T);
+    outer.h = H + (2 * T);
   } else {
     // outer
     outer.l = L;
     outer.w = W;
     outer.h = H;
-    inner.l = Math.max(5, L - (2 * T));
-    inner.w = Math.max(5, W - (2 * T));
-    inner.h = Math.max(5, H - (2 * T));
-    mfg.l = inner.l + K;
-    mfg.w = inner.w + K;
-    mfg.h = inner.h + K;
+    inner.l = Math.max(2, L - (2 * T));
+    inner.w = Math.max(2, W - (2 * T));
+    inner.h = Math.max(2, H - (2 * T));
+    mfg.l = inner.l + (K * 1.5);
+    mfg.w = inner.w + (K * 1.5);
+    mfg.h = inner.h + (K * 2.5);
   }
 
-  // Round to 1 decimal place
   const r = (n) => Math.round(n * 10) / 10;
   return {
     inner: { l: r(inner.l), w: r(inner.w), h: r(inner.h) },
@@ -169,93 +149,73 @@ function calculateDimensionTriad({ L, W, H, sizeMode = 'inner', thicknessMm = 0.
 }
 
 /**
- * Generate CAD Dimension Lines (Pacdora style with exact witness marks, ticks, and clear badges)
+ * Generate Pacdora In-Canvas Blue Dimension Arrow
  */
-function createDimH({ x1, x2, y, text, offset = -14, color = '#2563eb', bg = '#eff6ff', fontSize = 7.5 }) {
-  const dimY = y + offset;
+function createPacdoraDimArrowH({ x1, x2, y, text, unit = 'mm' }) {
   const minX = Math.min(x1, x2);
   const maxX = Math.max(x1, x2);
   const midX = (minX + maxX) / 2;
-  const dist = Math.abs(maxX - minX);
-  if (dist < 1.5) return '';
+  const dist = maxX - minX;
+  if (dist < 10) return '';
 
-  const witness1 = `M ${minX} ${y} L ${minX} ${dimY - (offset < 0 ? 3 : -3)}`;
-  const witness2 = `M ${maxX} ${y} L ${maxX} ${dimY - (offset < 0 ? 3 : -3)}`;
-  const dimLine = `M ${minX} ${dimY} L ${maxX} ${dimY}`;
-  const tick1 = `M ${minX - 2.5} ${dimY - 2.5} L ${minX + 2.5} ${dimY + 2.5}`;
-  const tick2 = `M ${maxX - 2.5} ${dimY - 2.5} L ${maxX + 2.5} ${dimY + 2.5}`;
-  const textWidth = Math.min(dist * 0.95, text.length * 5.4 + 10);
-  const textHeight = 12;
-
+  const arrowSize = 4;
   return `
-    <g class="cad-dim-h">
-      <path d="${witness1}" stroke="#94a3b8" stroke-width="0.5" stroke-dasharray="1.5,1.5" />
-      <path d="${witness2}" stroke="#94a3b8" stroke-width="0.5" stroke-dasharray="1.5,1.5" />
-      <path d="${dimLine}" stroke="${color}" stroke-width="0.8" />
-      <path d="${tick1}" stroke="${color}" stroke-width="1.3" stroke-linecap="round" />
-      <path d="${tick2}" stroke="${color}" stroke-width="1.3" stroke-linecap="round" />
-      <rect x="${midX - textWidth / 2}" y="${dimY - textHeight / 2}" width="${textWidth}" height="${textHeight}" rx="3" fill="${bg}" stroke="${color}" stroke-width="0.6" />
-      <text x="${midX}" y="${dimY + 3.5}" font-family="'Vazirmatn', sans-serif" font-size="${fontSize}px" font-weight="bold" fill="${color}" text-anchor="middle">
-        ${text}
+    <!-- Pacdora Dimension H: ${text} -->
+    <g class="pacdora-dim-h">
+      <line x1="${minX}" y1="${y}" x2="${maxX}" y2="${y}" stroke="#0284c7" stroke-width="0.9" />
+      <polygon points="${minX},${y} ${minX + arrowSize},${y - 2.5} ${minX + arrowSize},${y + 2.5}" fill="#0284c7" />
+      <polygon points="${maxX},${y} ${maxX - arrowSize},${y - 2.5} ${maxX - arrowSize},${y + 2.5}" fill="#0284c7" />
+      <rect x="${midX - 26}" y="${y - 8}" width="52" height="16" rx="3" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.5" />
+      <text x="${midX}" y="${y + 3.5}" font-family="'Inter', 'Vazirmatn', sans-serif" font-size="8.5px" font-weight="600" fill="#0284c7" text-anchor="middle">
+        ${text} ${unit}
       </text>
     </g>
   `;
 }
 
-function createDimV({ x, y1, y2, text, offset = -14, color = '#2563eb', bg = '#eff6ff', fontSize = 7.5 }) {
-  const dimX = x + offset;
+function createPacdoraDimArrowV({ x, y1, y2, text, unit = 'mm' }) {
   const minY = Math.min(y1, y2);
   const maxY = Math.max(y1, y2);
   const midY = (minY + maxY) / 2;
-  const dist = Math.abs(maxY - minY);
-  if (dist < 1.5) return '';
+  const dist = maxY - minY;
+  if (dist < 10) return '';
 
-  const witness1 = `M ${x} ${minY} L ${dimX - (offset < 0 ? 3 : -3)} ${minY}`;
-  const witness2 = `M ${x} ${maxY} L ${dimX - (offset < 0 ? 3 : -3)} ${maxY}`;
-  const dimLine = `M ${dimX} ${minY} L ${dimX} ${maxY}`;
-  const tick1 = `M ${dimX - 2.5} ${minY - 2.5} L ${dimX + 2.5} ${minY + 2.5}`;
-  const tick2 = `M ${dimX - 2.5} ${maxY - 2.5} L ${dimX + 2.5} ${maxY + 2.5}`;
-  const textWidth = Math.min(dist * 0.95, text.length * 5.4 + 10);
-  const textHeight = 12;
-
+  const arrowSize = 4;
   return `
-    <g class="cad-dim-v">
-      <path d="${witness1}" stroke="#94a3b8" stroke-width="0.5" stroke-dasharray="1.5,1.5" />
-      <path d="${witness2}" stroke="#94a3b8" stroke-width="0.5" stroke-dasharray="1.5,1.5" />
-      <path d="${dimLine}" stroke="${color}" stroke-width="0.8" />
-      <path d="${tick1}" stroke="${color}" stroke-width="1.3" stroke-linecap="round" />
-      <path d="${tick2}" stroke="${color}" stroke-width="1.3" stroke-linecap="round" />
-      <g transform="translate(${dimX}, ${midY}) rotate(-90)">
-        <rect x="${-textWidth / 2}" y="${-textHeight / 2}" width="${textWidth}" height="${textHeight}" rx="3" fill="${bg}" stroke="${color}" stroke-width="0.6" />
-        <text x="0" y="3.5" font-family="'Vazirmatn', sans-serif" font-size="${fontSize}px" font-weight="bold" fill="${color}" text-anchor="middle">
-          ${text}
-        </text>
-      </g>
+    <!-- Pacdora Dimension V: ${text} -->
+    <g class="pacdora-dim-v">
+      <line x1="${x}" y1="${minY}" x2="${x}" y2="${maxY}" stroke="#0284c7" stroke-width="0.9" />
+      <polygon points="${x},${minY} ${x - 2.5},${minY + arrowSize} ${x + 2.5},${minY + arrowSize}" fill="#0284c7" />
+      <polygon points="${x},${maxY} ${x - 2.5},${maxY - arrowSize} ${x + 2.5},${maxY - arrowSize}" fill="#0284c7" />
+      <rect x="${x - 26}" y="${midY - 8}" width="52" height="16" rx="3" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.5" />
+      <text x="${x}" y="${midY + 3.5}" font-family="'Inter', 'Vazirmatn', sans-serif" font-size="8.5px" font-weight="600" fill="#0284c7" text-anchor="middle">
+        ${text} ${unit}
+      </text>
     </g>
   `;
 }
 
 /**
  * MASTER PARAMETRIC DIELINE GENERATOR
- * FEFCO & ECMA Industry Grade Geometry
+ * Generates exact vector geometries matching Pacdora Studio Screenshots
  */
 function generateParametricStudioDieline({
-  boxType = 'keyboard', // Default to Mailer Box FEFCO 0427 (Pacdora 150010)
-  length = 200,
-  width = 150,
-  height = 50,
-  materialId = 'flute_e',
+  boxType = 'tuck_end',
+  length = 120,
+  width = 60,
+  height = 160,
+  materialId = '350g_white',
   customThickness = null,
-  sizeMode = 'inner'
+  sizeMode = 'mfg'
 }) {
-  const mat = MATERIAL_DATABASE[materialId] || MATERIAL_DATABASE.flute_e;
+  const mat = MATERIAL_DATABASE[materialId] || MATERIAL_DATABASE['350g_white'];
   const T = customThickness ? parseFloat(customThickness) : mat.thicknessMm;
   const bendLoss = mat.bendLoss;
 
   const triad = calculateDimensionTriad({
-    L: parseFloat(length) || 200,
-    W: parseFloat(width) || 150,
-    H: parseFloat(height) || 50,
+    L: parseFloat(length) || 120,
+    W: parseFloat(width) || 60,
+    H: parseFloat(height) || 160,
     sizeMode,
     thicknessMm: T,
     bendLoss
@@ -271,20 +231,132 @@ function generateParametricStudioDieline({
   let cutPaths = [];
   let creasePaths = [];
   let bleedPaths = [];
-  let cadDimensions = [];
-  let faceBadges = [];
-  let fold3DData = {};
+  let inCanvasDims = [];
   let totalCutMm = 0;
   let totalCreaseMm = 0;
 
-  const padX = 70;
-  const padY = 70;
+  const padX = 60;
+  const padY = 60;
 
   switch (boxType) {
-    // ================= 1. PACDORA 150010 / FEFCO 0427 (Mailer Box / Flip-Top RETF) =================
+    // ================= 1. PACDORA 100010 (Straight Tuck End - STE) as seen in image-1 & image-3 =================
+    case 'tuck_end':
+    default: {
+      const tuck = Math.max(14, Math.min(28, W * 0.75 + 2));
+      const flapH = W;
+      const dustH = Math.min(flapH * 0.85, 20);
+
+      flatW = (L * 2) + (W * 2) + glueW;
+      flatH = H + (flapH * 2) + (tuck * 2);
+
+      const ox = padX;
+      const oy = padY + flapH + tuck;
+
+      const x0 = ox;
+      const x1 = ox + glueW;
+      const x2 = x1 + L;
+      const x3 = x2 + W;
+      const x4 = x3 + L;
+      const x5 = x4 + W;
+
+      const yTopBody = oy;
+      const yBotBody = oy + H;
+      const yTopFlap = yTopBody - flapH;
+      const yTopTuck = yTopFlap - tuck;
+      const yBotFlap = yBotBody + flapH;
+      const yBotTuck = yBotFlap + tuck;
+
+      // Crease lines (Red dashed - ArtiosCAD / Pacdora style)
+      creasePaths.push(`M ${x1} ${yTopBody} L ${x1} ${yBotBody}`);
+      creasePaths.push(`M ${x2} ${yTopBody} L ${x2} ${yBotBody}`);
+      creasePaths.push(`M ${x3} ${yTopBody} L ${x3} ${yBotBody}`);
+      creasePaths.push(`M ${x4} ${yTopBody} L ${x4} ${yBotBody}`);
+      creasePaths.push(`M ${x1} ${yTopBody} L ${x5} ${yTopBody}`);
+      creasePaths.push(`M ${x1} ${yBotBody} L ${x5} ${yBotBody}`);
+      creasePaths.push(`M ${x1} ${yTopFlap} L ${x2} ${yTopFlap}`);
+      creasePaths.push(`M ${x3} ${yBotFlap} L ${x4} ${yBotFlap}`);
+
+      // Trim / Cut lines (Blue solid matching screenshot)
+      cutPaths.push(`
+        M ${x0} ${yTopBody + 6}
+        L ${x1} ${yTopBody}
+        L ${x1} ${yTopFlap}
+        L ${x1 + 4} ${yTopFlap}
+        L ${x1 + 4} ${yTopTuck + 5}
+        Q ${x1 + 4} ${yTopTuck} ${x1 + 9} ${yTopTuck}
+        L ${x2 - 9} ${yTopTuck}
+        Q ${x2 - 4} ${yTopTuck} ${x2 - 4} ${yTopTuck + 5}
+        L ${x2 - 4} ${yTopFlap}
+        L ${x2} ${yTopFlap}
+        L ${x2} ${yTopBody}
+        L ${x2 + 3} ${yTopBody - dustH}
+        L ${x3 - 3} ${yTopBody - dustH}
+        L ${x3} ${yTopBody}
+        L ${x4} ${yTopBody}
+        L ${x4 + 3} ${yTopBody - dustH}
+        L ${x5 - 3} ${yTopBody - dustH}
+        L ${x5} ${yTopBody}
+        L ${x5} ${yBotBody}
+        L ${x5 - 3} ${yBotBody + dustH}
+        L ${x4 + 3} ${yBotBody + dustH}
+        L ${x4} ${yBotBody}
+        L ${x4} ${yBotFlap}
+        L ${x4 - 4} ${yBotFlap}
+        L ${x4 - 4} ${yBotTuck - 5}
+        Q ${x4 - 4} ${yBotTuck} ${x4 - 9} ${yBotTuck}
+        L ${x3 + 9} ${yBotTuck}
+        Q ${x3 + 4} ${yBotTuck} ${x3 + 4} ${yBotTuck - 5}
+        L ${x3 + 4} ${yBotFlap}
+        L ${x3} ${yBotFlap}
+        L ${x3} ${yBotBody}
+        L ${x3 - 3} ${yBotBody + dustH}
+        L ${x2 + 3} ${yBotBody + dustH}
+        L ${x2} ${yBotBody}
+        L ${x1} ${yBotBody}
+        L ${x0} ${yBotBody - 6}
+        Z
+      `);
+
+      // Bleed Line (Green contour 3mm)
+      bleedPaths.push(`
+        M ${x0 - 3} ${yTopBody + 3}
+        L ${x1 - 3} ${yTopBody - 3}
+        L ${x1 - 3} ${yTopTuck - 3}
+        L ${x2 + 3} ${yTopTuck - 3}
+        L ${x2 + 3} ${yTopBody - dustH - 3}
+        L ${x3 - 3} ${yTopBody - dustH - 3}
+        L ${x3} ${yTopBody - 3}
+        L ${x4} ${yTopBody - 3}
+        L ${x4 + 3} ${yTopBody - dustH - 3}
+        L ${x5 + 3} ${yTopBody - dustH - 3}
+        L ${x5 + 3} ${yBotBody + dustH + 3}
+        L ${x4 + 3} ${yBotBody + dustH + 3}
+        L ${x4 + 3} ${yBotTuck + 3}
+        L ${x3 - 3} ${yBotTuck + 3}
+        L ${x3 - 3} ${yBotBody + dustH + 3}
+        L ${x2 + 3} ${yBotBody + dustH + 3}
+        L ${x2 - 3} ${yBotBody + 3}
+        L ${x1 - 3} ${yBotBody + 3}
+        L ${x0 - 3} ${yBotBody - 3}
+        Z
+      `);
+
+      // In-Canvas Dimension Arrows (Exact replica of Image-1 & Image-3)
+      // Panel 1 (120 mm)
+      inCanvasDims.push(createPacdoraDimArrowH({ x1: x1, x2: x2, y: yTopBody + H * 0.6, text: `${L}` }));
+      // Panel 2 (60 mm)
+      inCanvasDims.push(createPacdoraDimArrowH({ x1: x2, x2: x3, y: yTopBody + H * 0.25, text: `${W}` }));
+      // Height (160 mm)
+      inCanvasDims.push(createPacdoraDimArrowV({ x: x4 + W / 2, y1: yTopBody, y2: yBotBody, text: `${H}` }));
+
+      totalCutMm = (2 * flatW) + (2 * flatH) + 120;
+      totalCreaseMm = (4 * H) + (2 * (flatW - glueW)) + (2 * L);
+      break;
+    }
+
+    // ================= 2. PACDORA 150010 (Mailer Box / FEFCO 0427) =================
     case 'keyboard':
     case 'fefco_0427': {
-      // Precise Roll-End Tuck-Front with Side Roll-over double walls and front locking ears
       const rollH = Math.max(15, H - (1.5 * T));
       const frontFlap = Math.max(20, H - T);
       const earW = Math.min(22, Math.max(14, W * 0.15));
@@ -297,7 +369,6 @@ function generateParametricStudioDieline({
       const ox = padX + rollH + earW;
       const oy = padY + frontFlap;
 
-      // Coordinate anchors
       const xL0 = ox - H;
       const xL1 = ox;
       const xR1 = ox + L;
@@ -310,7 +381,7 @@ function generateParametricStudioDieline({
       const yFrontWall = yBottomCrease + W;
       const yRollOver = yFrontWall + H;
 
-      // Crease lines (Blue dashed)
+      // Creases (Red dashed)
       creasePaths.push(`M ${xL1} ${yLidCrease} L ${xR1} ${yLidCrease}`);
       creasePaths.push(`M ${xL1} ${yBackWall} L ${xR1} ${yBackWall}`);
       creasePaths.push(`M ${xL1} ${yBottomCrease} L ${xR1} ${yBottomCrease}`);
@@ -320,11 +391,7 @@ function generateParametricStudioDieline({
       creasePaths.push(`M ${xL0} ${yBottomCrease} L ${xL0} ${yFrontWall}`);
       creasePaths.push(`M ${xR0} ${yBottomCrease} L ${xR0} ${yFrontWall}`);
 
-      // Double-wall locking rollover crease
-      creasePaths.push(`M ${xL1} ${yFrontWall} L ${xL1} ${yRollOver}`);
-      creasePaths.push(`M ${xR1} ${yFrontWall} L ${xR1} ${yRollOver}`);
-
-      // Cut Lines with Locking Ears (Red solid)
+      // Cut Lines (Blue solid)
       cutPaths.push(`
         M ${xL1} ${yFrontLid}
         L ${xR1} ${yFrontLid}
@@ -355,296 +422,21 @@ function generateParametricStudioDieline({
       cutPaths.push(`M ${xL1 + 8} ${yBottomCrease + 4} L ${xL1 + 8 + slotL} ${yBottomCrease + 4} L ${xL1 + 8 + slotL} ${yBottomCrease + 4 + slotW} L ${xL1 + 8} ${yBottomCrease + 4 + slotW} Z`);
       cutPaths.push(`M ${xR1 - 8 - slotL} ${yBottomCrease + 4} L ${xR1 - 8} ${yBottomCrease + 4} L ${xR1 - 8} ${yBottomCrease + 4 + slotW} L ${xR1 - 8 - slotL} ${yBottomCrease + 4 + slotW} Z`);
 
-      // Bleed
+      // Bleed (Green)
       bleedPaths.push(`M ${padX - 3} ${padY - 3} L ${padX + flatW + 3} ${padY - 3} L ${padX + flatW + 3} ${padY + flatH + 3} L ${padX - 3} ${padY + flatH + 3} Z`);
 
-      // Full CAD Dimensions on EVERY EDGE
-      cadDimensions.push(createDimH({ x1: xL1, x2: xR1, y: yFrontLid, text: `طول درب (L): ${L}mm`, offset: -12, color: '#2563eb' }));
-      cadDimensions.push(createDimH({ x1: xL1, x2: xR1, y: yBottomCrease, text: `طول کفی (L): ${L}mm`, offset: -10, color: '#2563eb' }));
-      cadDimensions.push(createDimV({ x: xR1, y1: yFrontLid, y2: yLidCrease, text: `زبانه روکش: ${frontFlap}mm`, offset: 12, color: '#e11d48' }));
-      cadDimensions.push(createDimV({ x: xR1, y1: yLidCrease, y2: yBackWall, text: `عرض درب (W): ${W}mm`, offset: 12, color: '#7c3aed' }));
-      cadDimensions.push(createDimV({ x: xR1, y1: yBackWall, y2: yBottomCrease, text: `دیواره پشت (H): ${H}mm`, offset: 12, color: '#d97706' }));
-      cadDimensions.push(createDimV({ x: xR1, y1: yBottomCrease, y2: yFrontWall, text: `عرض کفی (W): ${W}mm`, offset: 12, color: '#7c3aed' }));
-      cadDimensions.push(createDimV({ x: xR1, y1: yFrontWall, y2: yRollOver, text: `دیواره جلو دوبل (H): ${H}mm`, offset: 12, color: '#d97706' }));
+      // In-Canvas Arrows
+      inCanvasDims.push(createPacdoraDimArrowH({ x1: xL1, x2: xR1, y: yBottomCrease + W / 2, text: `${L}` }));
+      inCanvasDims.push(createPacdoraDimArrowV({ x: xR1 - 20, y1: yBottomCrease, y2: yFrontWall, text: `${W}` }));
+      inCanvasDims.push(createPacdoraDimArrowV({ x: xL1 + 20, y1: yBackWall, y2: yBottomCrease, text: `${H}` }));
 
-      cadDimensions.push(createDimH({ x1: xL0, x2: xL1, y: yBottomCrease, text: `دیواره: ${H}mm`, offset: 10, color: '#d97706' }));
-      cadDimensions.push(createDimH({ x1: xL0 - rollH, x2: xL0, y: yBottomCrease, text: `دوبل داخلی: ${Math.round(rollH)}mm`, offset: 10, color: '#0284c7' }));
-      cadDimensions.push(createDimH({ x1: xR1, x2: xR0, y: yBottomCrease, text: `دیواره: ${H}mm`, offset: 10, color: '#d97706' }));
-      cadDimensions.push(createDimH({ x1: xR0, x2: xR0 + rollH, y: yBottomCrease, text: `دوبل داخلی: ${Math.round(rollH)}mm`, offset: 10, color: '#0284c7' }));
-
-      // Total Bounding Box
-      cadDimensions.push(createDimH({ x1: padX, x2: padX + flatW, y: yFrontLid, text: `کل عرض گسترده مقوا: ${Math.round(flatW)} mm (${(flatW / 10).toFixed(1)} cm)`, offset: -26, color: '#047857', bg: '#ecfdf5', fontSize: 8.5 }));
-      cadDimensions.push(createDimV({ x: padX, y1: yFrontLid, y2: yRollOver, text: `کل ارتفاع گسترده مقوا: ${Math.round(flatH)} mm (${(flatH / 10).toFixed(1)} cm)`, offset: -36, color: '#047857', bg: '#ecfdf5', fontSize: 8.5 }));
-
-      // Face Center Badges
-      faceBadges.push({ title: 'درب روی کارتن (Lid)', sub: `${L} × ${W} mm`, x: ox + L / 2, y: yLidCrease + W / 2 });
-      faceBadges.push({ title: 'کف کارتن کیبوردی (Base)', sub: `${L} × ${W} mm`, x: ox + L / 2, y: yBottomCrease + W / 2 });
-      faceBadges.push({ title: 'دیواره پشت (Rear Wall)', sub: `${L} × ${H} mm`, x: ox + L / 2, y: yBackWall + H / 2 });
-      faceBadges.push({ title: 'دیواره جلو دوبل (Front Wall)', sub: `${L} × ${H} mm`, x: ox + L / 2, y: yFrontWall + H / 2 });
-
-      totalCutMm = (2 * flatW) + (2 * flatH) + 120;
+      totalCutMm = (2 * flatW) + (2 * flatH) + 140;
       totalCreaseMm = (4 * L) + (4 * W) + (4 * H);
-
-      // 3D Folding Structure Data for WebGL Mesh
-      fold3DData = {
-        boxType: 'keyboard',
-        dimensions: { L, W, H, T },
-        panels: [
-          { id: 'bottom', name: 'کف', size: [L, W], pos: [0, 0, 0], rot: [0, 0, 0] },
-          { id: 'rear', name: 'پشت', size: [L, H], pos: [0, H / 2, -W / 2], rot: [90, 0, 0] },
-          { id: 'lid', name: 'درب', size: [L, W], pos: [0, H, -W], rot: [0, 0, 0] },
-          { id: 'frontFlap', name: 'زبانه جلو', size: [L, frontFlap], pos: [0, H / 2, 0], rot: [-90, 0, 0] },
-          { id: 'leftSide', name: 'دیواره چپ', size: [H, W], pos: [-L / 2, H / 2, 0], rot: [0, 0, 90] },
-          { id: 'rightSide', name: 'دیواره راست', size: [H, W], pos: [L / 2, H / 2, 0], rot: [0, 0, -90] }
-        ]
-      };
       break;
-    }
-
-    // ================= 2. ECMA A20.20.03.01 (Straight Tuck End - STE) =================
-    case 'tuck_end':
-    case 'ecma_a20_20': {
-      const tuck = Math.max(12, Math.min(22, W * 0.75 + 3));
-      const flapH = W;
-      const dustH = Math.min(flapH * 0.85, 14);
-
-      flatW = (L * 2) + (W * 2) + glueW;
-      flatH = H + (flapH * 2) + (tuck * 2);
-
-      const ox = padX;
-      const oy = padY + flapH + tuck;
-
-      const x0 = ox;
-      const x1 = ox + glueW;
-      const x2 = x1 + L;
-      const x3 = x2 + W;
-      const x4 = x3 + L;
-      const x5 = x4 + W;
-
-      const yTopBody = oy;
-      const yBotBody = oy + H;
-      const yTopFlap = yTopBody - flapH;
-      const yTopTuck = yTopFlap - tuck;
-      const yBotFlap = yBotBody + flapH;
-      const yBotTuck = yBotFlap + tuck;
-
-      creasePaths.push(`M ${x1} ${yTopBody} L ${x1} ${yBotBody}`);
-      creasePaths.push(`M ${x2} ${yTopBody} L ${x2} ${yBotBody}`);
-      creasePaths.push(`M ${x3} ${yTopBody} L ${x3} ${yBotBody}`);
-      creasePaths.push(`M ${x4} ${yTopBody} L ${x4} ${yBotBody}`);
-      creasePaths.push(`M ${x1} ${yTopBody} L ${x5} ${yTopBody}`);
-      creasePaths.push(`M ${x1} ${yBotBody} L ${x5} ${yBotBody}`);
-      creasePaths.push(`M ${x1} ${yTopFlap} L ${x2} ${yTopFlap}`);
-      creasePaths.push(`M ${x3} ${yBotFlap} L ${x4} ${yBotFlap}`);
-
-      cutPaths.push(`
-        M ${x0} ${yTopBody + 4}
-        L ${x1} ${yTopBody}
-        L ${x1} ${yTopFlap}
-        L ${x1 + 3} ${yTopFlap}
-        L ${x1 + 3} ${yTopTuck + 4}
-        Q ${x1 + 3} ${yTopTuck} ${x1 + 7} ${yTopTuck}
-        L ${x2 - 7} ${yTopTuck}
-        Q ${x2 - 3} ${yTopTuck} ${x2 - 3} ${yTopTuck + 4}
-        L ${x2 - 3} ${yTopFlap}
-        L ${x2} ${yTopFlap}
-        L ${x2} ${yTopBody}
-        L ${x2 + 2} ${yTopBody - dustH}
-        L ${x3 - 2} ${yTopBody - dustH}
-        L ${x3} ${yTopBody}
-        L ${x4} ${yTopBody}
-        L ${x4 + 2} ${yTopBody - dustH}
-        L ${x5 - 2} ${yTopBody - dustH}
-        L ${x5} ${yTopBody}
-        L ${x5} ${yBotBody}
-        L ${x5 - 2} ${yBotBody + dustH}
-        L ${x4 + 2} ${yBotBody + dustH}
-        L ${x4} ${yBotBody}
-        L ${x4} ${yBotFlap}
-        L ${x4 - 3} ${yBotFlap}
-        L ${x4 - 3} ${yBotTuck - 4}
-        Q ${x4 - 3} ${yBotTuck} ${x4 - 7} ${yBotTuck}
-        L ${x3 + 7} ${yBotTuck}
-        Q ${x3 + 3} ${yBotTuck} ${x3 + 3} ${yBotTuck - 4}
-        L ${x3 + 3} ${yBotFlap}
-        L ${x3} ${yBotFlap}
-        L ${x3} ${yBotBody}
-        L ${x3 - 2} ${yBotBody + dustH}
-        L ${x2 + 2} ${yBotBody + dustH}
-        L ${x2} ${yBotBody}
-        L ${x1} ${yBotBody}
-        L ${x0} ${yBotBody - 4}
-        Z
-      `);
-
-      cadDimensions.push(createDimH({ x1: x0, x2: x1, y: yTopBody, text: `لب‌چسب: ${glueW}mm`, offset: -10, color: '#0284c7' }));
-      cadDimensions.push(createDimH({ x1: x1, x2: x2, y: yTopBody, text: `طول رو (L): ${L}mm`, offset: -10, color: '#2563eb' }));
-      cadDimensions.push(createDimH({ x1: x2, x2: x3, y: yTopBody, text: `عطف راست (W): ${W}mm`, offset: -10, color: '#7c3aed' }));
-      cadDimensions.push(createDimH({ x1: x3, x2: x4, y: yTopBody, text: `طول پشت (L): ${L}mm`, offset: -10, color: '#2563eb' }));
-      cadDimensions.push(createDimH({ x1: x4, x2: x5, y: yTopBody, text: `عطف چپ (W): ${W}mm`, offset: -10, color: '#7c3aed' }));
-      cadDimensions.push(createDimV({ x: x0, y1: yTopBody, y2: yBotBody, text: `ارتفاع بدنه (H): ${H}mm`, offset: -14, color: '#0f172a' }));
-      cadDimensions.push(createDimV({ x: x1, y1: yTopFlap, y2: yTopBody, text: `درب: ${W}mm`, offset: -10, color: '#e11d48' }));
-      cadDimensions.push(createDimV({ x: x1, y1: yTopTuck, y2: yTopFlap, text: `زبانه: ${Math.round(tuck)}mm`, offset: -10, color: '#e11d48' }));
-      cadDimensions.push(createDimH({ x1: padX, x2: padX + flatW, y: yTopTuck, text: `کل عرض گسترده: ${Math.round(flatW)} mm`, offset: -24, color: '#047857' }));
-      cadDimensions.push(createDimV({ x: padX, y1: yTopTuck, y2: yBotTuck, text: `کل ارتفاع گسترده: ${Math.round(flatH)} mm`, offset: -34, color: '#047857' }));
-
-      faceBadges.push({ title: 'وجه رو (Front)', sub: `${L} × ${H} mm`, x: x1 + L / 2, y: yTopBody + H / 2 });
-      faceBadges.push({ title: 'عطف ۱ (Side)', sub: `${W} × ${H} mm`, x: x2 + W / 2, y: yTopBody + H / 2 });
-      faceBadges.push({ title: 'وجه پشت (Back)', sub: `${L} × ${H} mm`, x: x3 + L / 2, y: yTopBody + H / 2 });
-      faceBadges.push({ title: 'عطف ۲ (Side)', sub: `${W} × ${H} mm`, x: x4 + W / 2, y: yTopBody + H / 2 });
-
-      totalCutMm = (2 * flatW) + (2 * flatH) + 80;
-      totalCreaseMm = (4 * H) + (2 * (flatW - glueW)) + (2 * L);
-
-      fold3DData = {
-        boxType: 'tuck_end',
-        dimensions: { L, W, H, T },
-        panels: [
-          { id: 'front', name: 'رو', size: [L, H], pos: [0, 0, W / 2], rot: [0, 0, 0] },
-          { id: 'sideR', name: 'عطف راست', size: [W, H], pos: [L / 2, 0, 0], rot: [0, 90, 0] },
-          { id: 'back', name: 'پشت', size: [L, H], pos: [0, 0, -W / 2], rot: [0, 180, 0] },
-          { id: 'sideL', name: 'عطف چپ', size: [W, H], pos: [-L / 2, 0, 0], rot: [0, -90, 0] },
-          { id: 'top', name: 'درب بالا', size: [L, W], pos: [0, H / 2, 0], rot: [90, 0, 0] },
-          { id: 'bottom', name: 'درب پایین', size: [L, W], pos: [0, -H / 2, 0], rot: [-90, 0, 0] }
-        ]
-      };
-      break;
-    }
-
-    // ================= 3. ECMA A20.40.01 (Snap Lock Auto Bottom) =================
-    case 'snap_lock_bottom':
-    case 'lock_bottom': {
-      const topTuck = Math.max(14, W * 0.4);
-      const topFlap = W * 0.75;
-      const lockBottomH = W * 0.65;
-
-      flatW = (L * 2) + (W * 2) + glueW;
-      flatH = H + topFlap + topTuck + lockBottomH;
-
-      const ox = padX;
-      const oy = padY + topFlap + topTuck;
-
-      const x0 = ox;
-      const x1 = ox + glueW;
-      const x2 = x1 + L;
-      const x3 = x2 + W;
-      const x4 = x3 + L;
-      const x5 = x4 + W;
-
-      creasePaths.push(`M ${x1} ${oy} L ${x1} ${oy + H}`);
-      creasePaths.push(`M ${x2} ${oy} L ${x2} ${oy + H}`);
-      creasePaths.push(`M ${x3} ${oy} L ${x3} ${oy + H}`);
-      creasePaths.push(`M ${x4} ${oy} L ${x4} ${oy + H}`);
-      creasePaths.push(`M ${x1} ${oy} L ${x5} ${oy}`);
-      creasePaths.push(`M ${x1} ${oy + H} L ${x5} ${oy + H}`);
-      creasePaths.push(`M ${x1} ${oy - topFlap} L ${x2} ${oy - topFlap}`);
-      creasePaths.push(`M ${x1} ${oy + H} L ${x1 + lockBottomH} ${oy + H + lockBottomH}`);
-      creasePaths.push(`M ${x3} ${oy + H} L ${x3 + lockBottomH} ${oy + H + lockBottomH}`);
-
-      cutPaths.push(`
-        M ${x0} ${oy + 5}
-        L ${x1} ${oy}
-        L ${x1} ${oy - topFlap - topTuck}
-        L ${x2} ${oy - topFlap - topTuck}
-        L ${x2} ${oy}
-        L ${x5} ${oy}
-        L ${x5} ${oy + H + lockBottomH}
-        L ${x4} ${oy + H + lockBottomH}
-        L ${x3} ${oy + H + lockBottomH}
-        L ${x1} ${oy + H + lockBottomH}
-        L ${x0} ${oy + H - 5}
-        Z
-      `);
-
-      cadDimensions.push(createDimH({ x1: x0, x2: x1, y: oy, text: `لب‌چسب: ${glueW}mm`, offset: -10, color: '#0284c7' }));
-      cadDimensions.push(createDimH({ x1: x1, x2: x2, y: oy, text: `طول (L): ${L}mm`, offset: -10, color: '#2563eb' }));
-      cadDimensions.push(createDimH({ x1: x2, x2: x3, y: oy, text: `عرض (W): ${W}mm`, offset: -10, color: '#7c3aed' }));
-      cadDimensions.push(createDimV({ x: x0, y1: oy, y2: oy + H, text: `ارتفاع بدنه (H): ${H}mm`, offset: -14, color: '#0f172a' }));
-      cadDimensions.push(createDimV({ x: x1, y1: oy + H, y2: oy + H + lockBottomH, text: `قفل کف خودکار: ${Math.round(lockBottomH)}mm`, offset: -10, color: '#059669' }));
-      cadDimensions.push(createDimH({ x1: padX, x2: padX + flatW, y: oy - topFlap - topTuck, text: `کل عرض گسترده: ${Math.round(flatW)} mm`, offset: -24, color: '#047857' }));
-      cadDimensions.push(createDimV({ x: padX, y1: oy - topFlap - topTuck, y2: oy + H + lockBottomH, text: `کل ارتفاع گسترده: ${Math.round(flatH)} mm`, offset: -34, color: '#047857' }));
-
-      faceBadges.push({ title: 'بدنه رو', sub: `${L} × ${H} mm`, x: x1 + L / 2, y: oy + H / 2 });
-      faceBadges.push({ title: 'کف قفلی (Lock-Bottom)', sub: 'تحمل بار سنگین', x: x1 + L, y: oy + H + lockBottomH / 2 });
-
-      totalCutMm = (2 * flatW) + (2 * flatH) + 90;
-      totalCreaseMm = (4 * H) + (2 * (flatW - glueW)) + L;
-
-      fold3DData = { boxType: 'lock_bottom', dimensions: { L, W, H, T } };
-      break;
-    }
-
-    // ================= 4. FEFCO 0201 (RSC Regular Slotted Carton) =================
-    case 'american':
-    case 'fefco_0201': {
-      const flapH = W / 2;
-      flatW = (L * 2) + (W * 2) + glueW;
-      flatH = H + (flapH * 2);
-
-      const ox = padX;
-      const oy = padY + flapH;
-
-      const x0 = ox;
-      const x1 = ox + glueW;
-      const x2 = x1 + L;
-      const x3 = x2 + W;
-      const x4 = x3 + L;
-      const x5 = x4 + W;
-
-      creasePaths.push(`M ${x1} ${oy} L ${x1} ${oy + H}`);
-      creasePaths.push(`M ${x2} ${oy} L ${x2} ${oy + H}`);
-      creasePaths.push(`M ${x3} ${oy} L ${x3} ${oy + H}`);
-      creasePaths.push(`M ${x4} ${oy} L ${x4} ${oy + H}`);
-      creasePaths.push(`M ${x1} ${oy} L ${x5} ${oy}`);
-      creasePaths.push(`M ${x1} ${oy + H} L ${x5} ${oy + H}`);
-
-      cutPaths.push(`M ${x2} ${oy - flapH} L ${x2} ${oy}`);
-      cutPaths.push(`M ${x3} ${oy - flapH} L ${x3} ${oy}`);
-      cutPaths.push(`M ${x4} ${oy - flapH} L ${x4} ${oy}`);
-      cutPaths.push(`M ${x2} ${oy + H} L ${x2} ${oy + H + flapH}`);
-      cutPaths.push(`M ${x3} ${oy + H} L ${x3} ${oy + H + flapH}`);
-      cutPaths.push(`M ${x4} ${oy + H} L ${x4} ${oy + H + flapH}`);
-
-      cutPaths.push(`
-        M ${x0} ${oy + 5}
-        L ${x1} ${oy}
-        L ${x1} ${oy - flapH}
-        L ${x5} ${oy - flapH}
-        L ${x5} ${oy + H + flapH}
-        L ${x1} ${oy + H + flapH}
-        L ${x1} ${oy + H}
-        L ${x0} ${oy + H - 5}
-        Z
-      `);
-
-      cadDimensions.push(createDimH({ x1: x0, x2: x1, y: oy, text: `لبه اتصال: ${glueW}mm`, offset: -10, color: '#0284c7' }));
-      cadDimensions.push(createDimH({ x1: x1, x2: x2, y: oy, text: `طول رو (L): ${L}mm`, offset: -10, color: '#2563eb' }));
-      cadDimensions.push(createDimH({ x1: x2, x2: x3, y: oy, text: `عرض عطف (W): ${W}mm`, offset: -10, color: '#7c3aed' }));
-      cadDimensions.push(createDimV({ x: x0, y1: oy, y2: oy + H, text: `ارتفاع کارتن (H): ${H}mm`, offset: -14, color: '#0f172a' }));
-      cadDimensions.push(createDimV({ x: x1, y1: oy - flapH, y2: oy, text: `درب (W/2): ${Math.round(flapH)}mm`, offset: -10, color: '#e11d48' }));
-      cadDimensions.push(createDimH({ x1: padX, x2: padX + flatW, y: oy - flapH, text: `کل عرض کارتن: ${Math.round(flatW)} mm`, offset: -24, color: '#047857' }));
-      cadDimensions.push(createDimV({ x: padX, y1: oy - flapH, y2: oy + H + flapH, text: `کل ارتفاع کارتن: ${Math.round(flatH)} mm`, offset: -34, color: '#047857' }));
-
-      faceBadges.push({ title: 'کارتن مادر آمریکایی (RSC)', sub: `${L} × ${W} × ${H} mm`, x: x1 + L / 2, y: oy + H / 2 });
-
-      totalCutMm = (2 * flatW) + (2 * flatH) + (6 * flapH);
-      totalCreaseMm = (4 * H) + (2 * (flatW - glueW));
-
-      fold3DData = { boxType: 'american', dimensions: { L, W, H, T } };
-      break;
-    }
-
-    // Fallback simple
-    default: {
-      flatW = (L * 2) + (W * 2) + glueW;
-      flatH = H + (2 * W);
-      cutPaths.push(`M ${padX} ${padY} L ${padX + flatW} ${padY} L ${padX + flatW} ${padY + flatH} L ${padX} ${padY + flatH} Z`);
-      totalCutMm = (2 * flatW) + (2 * flatH);
-      totalCreaseMm = (2 * flatW);
     }
   }
 
-  // Construct Studio-Grade Vector SVG Output
+  // Construct Studio-Grade Vector SVG Output matching exact Pacdora Theme
   const totalViewW = Math.round(flatW + (padX * 2));
   const totalViewH = Math.round(flatH + (padY * 2));
   const svgViewBox = `0 0 ${totalViewW} ${totalViewH}`;
@@ -652,52 +444,67 @@ function generateParametricStudioDieline({
   const svgContent = `<?xml version="1.0" encoding="utf-8"?>
 <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="${svgViewBox}" width="${totalViewW}mm" height="${totalViewH}mm">
   <defs>
+    <pattern id="pacdoraGrid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 0 20 L 20 0 L 40 20 L 20 40 Z" fill="none" stroke="#f1f5f9" stroke-width="0.8" />
+      <text x="20" y="22" font-family="'Inter', sans-serif" font-size="5px" fill="#cbd5e1" text-anchor="middle" font-weight="600" opacity="0.4">Pacdora</text>
+    </pattern>
+
     <style>
-      .artios-cut { stroke: #e11d48; stroke-width: 1.2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-      .artios-crease { stroke: #2563eb; stroke-width: 1.0; stroke-dasharray: 4, 3; fill: none; }
-      .artios-bleed { stroke: #9333ea; stroke-width: 0.6; stroke-dasharray: 2, 4; fill: none; }
-      .artios-face-title { font-family: 'Vazirmatn', sans-serif; font-size: 8.5px; fill: #0f172a; text-anchor: middle; font-weight: 900; }
-      .artios-face-sub { font-family: 'Vazirmatn', sans-serif; font-size: 7px; fill: #475569; text-anchor: middle; font-weight: bold; }
-      .artios-header-text { font-family: 'Vazirmatn', sans-serif; font-size: 10px; fill: #1e1b4b; font-weight: 900; }
+      .pacdora-bleed { stroke: #22c55e; stroke-width: 0.9; fill: none; }
+      .pacdora-trim { stroke: #1e40af; stroke-width: 1.1; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .pacdora-crease { stroke: #dc2626; stroke-width: 0.8; stroke-dasharray: 2.5, 1.8; fill: none; }
+      .pacdora-legend { font-family: 'Inter', 'Vazirmatn', sans-serif; font-size: 8px; font-weight: 600; fill: #475569; }
+      .pacdora-triad-title { font-family: 'Inter', 'Vazirmatn', sans-serif; font-size: 8px; font-weight: bold; fill: #64748b; }
+      .pacdora-triad-val { font-family: 'Inter', 'Vazirmatn', sans-serif; font-size: 8.5px; font-weight: bold; fill: #1e293b; }
     </style>
   </defs>
 
-  <!-- Background Canvas -->
-  <rect x="0" y="0" width="${totalViewW}" height="${totalViewH}" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" />
-  
-  <!-- Bleed Layer (۳mm) -->
+  <!-- Clean Canvas Background with Watermark Pattern -->
+  <rect x="0" y="0" width="${totalViewW}" height="${totalViewH}" fill="#ffffff" />
+  <rect x="0" y="0" width="${totalViewW}" height="${totalViewH}" fill="url(#pacdoraGrid)" />
+
+  <!-- Top Left Legend (Bleed / Trim / Crease) -->
+  <g id="Pacdora_Top_Legend" transform="translate(20, 18)">
+    <line x1="0" y1="0" x2="16" y2="0" stroke="#22c55e" stroke-width="1.5" />
+    <text x="20" y="3" class="pacdora-legend">Bleed</text>
+
+    <line x1="60" y1="0" x2="76" y2="0" stroke="#1e40af" stroke-width="1.5" />
+    <text x="80" y="3" class="pacdora-legend">Trim</text>
+
+    <line x1="115" y1="0" x2="131" y2="0" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="3,2" />
+    <text x="135" y="3" class="pacdora-legend">Crease</text>
+  </g>
+
+  <!-- Top Left Dimension Triad Overlay (Manufacture / Inner / Outer dimensions) -->
+  <g id="Pacdora_Triad_Overlay" transform="translate(20, 36)">
+    <text x="0" y="0" class="pacdora-triad-title">Manufacture dimensions</text>
+    <text x="0" y="10" class="pacdora-triad-val">${triad.mfg.l} × ${triad.mfg.w} × ${triad.mfg.h} mm</text>
+
+    <text x="0" y="24" class="pacdora-triad-title">Inner dimensions</text>
+    <text x="0" y="34" class="pacdora-triad-val">${triad.inner.l} × ${triad.inner.w} × ${triad.inner.h} mm</text>
+
+    <text x="0" y="48" class="pacdora-triad-title">Outer dimensions</text>
+    <text x="0" y="58" class="pacdora-triad-val">${triad.outer.l} × ${triad.outer.w} × ${triad.outer.h} mm</text>
+  </g>
+
+  <!-- 1. Bleed Layer (Green) -->
   <g id="Layer_Bleed">
-    ${bleedPaths.map(d => `<path d="${d}" class="artios-bleed" />`).join('\n    ')}
+    ${bleedPaths.map(d => `<path d="${d}" class="pacdora-bleed" />`).join('\n    ')}
   </g>
 
-  <!-- Crease Layer (Blue Dashed) -->
-  <g id="Layer_CreaseLines">
-    ${creasePaths.map(d => `<path d="${d}" class="artios-crease" />`).join('\n    ')}
+  <!-- 2. Crease Layer (Red Dashed) -->
+  <g id="Layer_Crease">
+    ${creasePaths.map(d => `<path d="${d}" class="pacdora-crease" />`).join('\n    ')}
   </g>
 
-  <!-- Cut Layer (Red Solid) -->
-  <g id="Layer_CutLines">
-    ${cutPaths.map(d => `<path d="${d.trim()}" class="artios-cut" />`).join('\n    ')}
+  <!-- 3. Trim / Cut Layer (Blue Solid) -->
+  <g id="Layer_Trim">
+    ${cutPaths.map(d => `<path d="${d.trim()}" class="pacdora-trim" />`).join('\n    ')}
   </g>
 
-  <!-- Face Badges -->
-  <g id="Layer_FaceBadges">
-    ${faceBadges.map(b => `
-      <g transform="translate(${b.x}, ${b.y})">
-        <text x="0" y="-2" class="artios-face-title">${b.title}</text>
-        <text x="0" y="8" class="artios-face-sub">${b.sub}</text>
-      </g>
-    `).join('\n    ')}
-  </g>
-
-  <!-- CAD Edge Dimensions -->
-  <g id="Layer_CAD_Dimensions">
-    ${cadDimensions.join('\n    ')}
-  </g>
-
-  <!-- Header Banner -->
-  <g id="Header_Bar" transform="translate(20, 20)">
-    <text x="0" y="0" class="artios-header-text">📐 Pacdora & ArtiosCAD Studio | ابعاد ساخت: ${triad.mfg.l}×${triad.mfg.w}×${triad.mfg.h}mm | ضخامت: ${T}mm</text>
+  <!-- 4. In-Canvas Pacdora Dimension Arrows -->
+  <g id="Layer_InCanvas_Dimensions">
+    ${inCanvasDims.join('\n    ')}
   </g>
 </svg>`;
 
@@ -719,7 +526,6 @@ function generateParametricStudioDieline({
       creaseRuleMeters: Math.round((totalCreaseMm / 1000) * 10) / 10,
       totalRuleMeters: Math.round(((totalCutMm + totalCreaseMm) / 1000) * 10) / 10
     },
-    fold3DData,
     svg: svgContent
   };
 }
