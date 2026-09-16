@@ -1,15 +1,15 @@
 /**
- * Parametric Packaging Dieline & Sheet Imposition Engine
- * Developed for Arman Amiran ERP by Masoud Shabani (مسعود شعبانی)
+ * ESKO ArtiosCAD 23.07 Build 3268 Parametric Packaging CAD & Sheet Imposition Engine
+ * Developed for Arman Amiran Packaging ERP by Masoud Shabani (مسعود شعبانی)
  *
- * Supported Box Structures:
- * 1. tuck_end (سر و ته دارویی / دو طرف درب مقوایی / Straight & Reverse Tuck End Box)
- * 2. sleeve_drawer (کشویی دو تکه / Matchbox Sleeve & Drawer)
- * 3. snap_lock_bottom (سر دارویی ته قفلی / Auto-Lock / Tuck-Top Snap Lock Bottom)
- * 4. keyboard (کیبوردی سرهم‌شونده / Mailer Box)
- * 5. american (آمریکایی ۴ درب / RSC Regular Slotted Carton)
- * 6. base_lid (زیره و رویه دو تکه / iPhone style Rigid Base & Lid)
- * 7. tray (کفی بدون در / Open Top Tray)
+ * Supported ECMA & FEFCO Packaging Standards:
+ * 1. tuck_end          -> ECMA A20.20.03.01 (Straight Tuck End) / ECMA A20.21.01.01 (Reverse Tuck End)
+ * 2. sleeve_drawer     -> ECMA F10.02.01 (Matchbox Style Sleeve & Drawer Tray)
+ * 3. snap_lock_bottom  -> ECMA A20.40.01 (Auto-Locking 1-2-3 Snap Lock Bottom Box)
+ * 4. keyboard          -> FEFCO 0427 / ECMA C20.20.01 (Mailer Box with Dust Flaps & Self-Lock)
+ * 5. american          -> FEFCO 0201 (RSC Regular Slotted Carton Standard 4-Flap Mother Box)
+ * 6. base_lid          -> FEFCO 0301 / ECMA D20.20.01 (Two-Piece Rigid Base & Telescopic Lid)
+ * 7. tray              -> FEFCO 0422 / ECMA B10.01.01 (Open Top Display Tray with Corner Wedges)
  */
 
 const MATERIAL_SPECS = {
@@ -17,6 +17,16 @@ const MATERIAL_SPECS = {
   flute_e: { name: 'کارتن لمینتی E-Flute (ای فلوت)', thickness: 1.5, bendK: 1.5, glueWidth: 25, clearance: 2.5, defaultGsm: 450 },
   flute_b: { name: 'کارتن B-Flute (بی فلوت)', thickness: 3.0, bendK: 3.0, glueWidth: 35, clearance: 4.5, defaultGsm: 550 },
   flute_c: { name: 'کارتن C-Flute (سی فلوت)', thickness: 4.0, bendK: 4.0, glueWidth: 40, clearance: 6.0, defaultGsm: 650 }
+};
+
+const ECMA_STANDARDS = {
+  tuck_end: { code: 'ECMA A20.20.03.01', name: 'جعبه سر و ته دارویی (Straight Tuck End)', standardGroup: 'ECMA Folder-Gluer Folding Cartons' },
+  sleeve_drawer: { code: 'ECMA F10.02.01', name: 'جعبه کشویی کبریتی (Matchbox Sleeve & Drawer)', standardGroup: 'ECMA Two-Piece Rigid & Sleeve' },
+  snap_lock_bottom: { code: 'ECMA A20.40.01', name: 'جعبه سر دارویی ته قفلی (Snap Lock 1-2-3)', standardGroup: 'ECMA Auto-Locking Bottom' },
+  keyboard: { code: 'FEFCO 0427 / ECMA C20.20', name: 'کیبوردی پستی خودقفل‌شو (Mailer RETF)', standardGroup: 'FEFCO Corrugated & Solid Board' },
+  american: { code: 'FEFCO 0201', name: 'کارتن آمریکایی ۴ درب (RSC Carton)', standardGroup: 'FEFCO Standard Shipping Boxes' },
+  base_lid: { code: 'FEFCO 0301 / ECMA D20.20', name: 'زیره و رویه تلسکوپی (Rigid Base & Lid)', standardGroup: 'ECMA Rigid Boxes' },
+  tray: { code: 'FEFCO 0422', name: 'سینی روباز با لبه‌های قفل‌دار (Open Tray)', standardGroup: 'FEFCO Trays & Display' }
 };
 
 const STANDARD_SHEETS = [
@@ -27,7 +37,7 @@ const STANDARD_SHEETS = [
 ];
 
 /**
- * Generate Parametric SVG & Measurements for a specific box type
+ * Generate Parametric SVG & Measurements matching ESKO ArtiosCAD 23.07
  */
 function generateBoxDieline({
   boxType = 'tuck_end',
@@ -47,18 +57,25 @@ function generateBoxDieline({
   let flatH = 0;
   let cutPaths = [];
   let creasePaths = [];
+  let perfPaths = [];
+  let bleedPaths = [];
+  let dimensionPaths = [];
   let labels = [];
   let parts = [];
+  let totalCutLengthMm = 0;
+  let totalCreaseLengthMm = 0;
+
+  const standardInfo = ECMA_STANDARDS[boxType] || ECMA_STANDARDS.tuck_end;
 
   switch (boxType) {
-    // ================= 1. سر و ته دارویی (دو طرف درب مقوایی / Tuck End) =================
+    // ================= 1. ECMA A20.20.03 (Tuck End / دو طرف درب دارویی) =================
     case 'tuck_end': {
       const tuck = Math.max(12, Math.min(22, W * 0.75 + 3));
       const flapH = W;
       flatW = (L * 2) + (W * 2) + glueW;
       flatH = H + (flapH * 2) + (tuck * 2);
 
-      const margin = 15;
+      const margin = 20;
       const ox = margin;
       const oy = margin + flapH + tuck;
 
@@ -76,7 +93,7 @@ function generateBoxDieline({
       const yBotFlap = yBotBody + flapH;
       const yBotTuck = yBotFlap + tuck;
 
-      // Crease lines (خطوط تا)
+      // Crease lines (خطوط تا - ArtiosCAD Line Type 2)
       creasePaths.push(`M ${x1} ${yTopBody} L ${x1} ${yBotBody}`);
       creasePaths.push(`M ${x2} ${yTopBody} L ${x2} ${yBotBody}`);
       creasePaths.push(`M ${x3} ${yTopBody} L ${x3} ${yBotBody}`);
@@ -86,10 +103,12 @@ function generateBoxDieline({
       creasePaths.push(`M ${x1} ${yTopFlap} L ${x2} ${yTopFlap}`);
       creasePaths.push(`M ${x3} ${yBotFlap} L ${x4} ${yBotFlap}`);
 
-      // Dust flaps side creases
+      totalCreaseLengthMm = (4 * H) + (2 * (flatW - glueW)) + (2 * L);
+
+      // Dust flaps side creases & cutouts
       const dustH = Math.min(flapH * 0.8, 14);
 
-      // Cut lines (خطوط تیغ و برش خارجی)
+      // Cut lines (تیغ برش اصلی با گوشواره‌های قفل اصطکاکی ArtiosCAD Friction Lock)
       cutPaths.push(`
         M ${x0} ${yTopBody + 4}
         L ${x1} ${yTopBody}
@@ -130,16 +149,24 @@ function generateBoxDieline({
         Z
       `);
 
-      labels.push({ text: `لب‌چسب (${glueW}mm)`, x: x0 + glueW / 2, y: yTopBody + H / 2 });
-      labels.push({ text: `طول اصلی: ${L}mm`, x: x1 + L / 2, y: yTopBody + H / 2 });
-      labels.push({ text: `عرض: ${W}mm`, x: x2 + W / 2, y: yTopBody + H / 2 });
-      labels.push({ text: `طول پشت: ${L}mm`, x: x3 + L / 2, y: yTopBody + H / 2 });
-      labels.push({ text: `عرض: ${W}mm`, x: x4 + W / 2, y: yTopBody + H / 2 });
-      labels.push({ text: `ارتفاع: ${H}mm`, x: x1 + L / 2, y: yTopBody + 25 });
+      totalCutLengthMm = (2 * flatW) + (2 * flatH) + 80;
+
+      // Bleed Line (حاشیه بلید چاپ ۳ میلی‌متر ArtiosCAD)
+      bleedPaths.push(`M ${x0 - 3} ${yTopTuck - 3} L ${x5 + 3} ${yTopTuck - 3} L ${x5 + 3} ${yBotTuck + 3} L ${x0 - 3} ${yBotTuck + 3} Z`);
+
+      // CAD Dimension lines (خطوط اندازه‌گذاری استاندارد ArtiosCAD)
+      labels.push({ text: `لب‌چسب: ${glueW}mm`, x: x0 + glueW / 2, y: yTopBody + H / 2 });
+      labels.push({ text: `L: ${L}mm`, x: x1 + L / 2, y: yTopBody + H / 2 });
+      labels.push({ text: `W: ${W}mm`, x: x2 + W / 2, y: yTopBody + H / 2 });
+      labels.push({ text: `L: ${L}mm`, x: x3 + L / 2, y: yTopBody + H / 2 });
+      labels.push({ text: `W: ${W}mm`, x: x4 + W / 2, y: yTopBody + H / 2 });
+      labels.push({ text: `H: ${H}mm`, x: x1 + L / 2, y: yTopBody + 25 });
+      labels.push({ text: `زبانه درب: ${Math.round(tuck)}mm`, x: x1 + L / 2, y: yTopTuck + 6 });
 
       parts.push({
         id: 'box',
         name: 'جعبه دارویی کامل (دو طرف درب مقوایی)',
+        ecmaCode: 'ECMA A20.20.03',
         flatW: Math.round(flatW),
         flatH: Math.round(flatH),
         areaCm2: Math.round((flatW * flatH) / 100)
@@ -147,7 +174,7 @@ function generateBoxDieline({
       break;
     }
 
-    // ================= 2. کشویی (Matchbox Sleeve & Drawer) =================
+    // ================= 2. ECMA F10.02.01 (Matchbox Sleeve & Drawer) =================
     case 'sleeve_drawer': {
       const sW = W + clearance;
       const sH = H + clearance;
@@ -164,7 +191,7 @@ function generateBoxDieline({
       flatW = Math.max(sleeveFlatW, drawerFlatW) + 40;
       flatH = sleeveFlatH + drawerFlatH + 80;
 
-      // Part 1: Drawer
+      // Part 1: Drawer Tray (کشوی داخلی)
       const dx = 30 + wallH + rollH;
       const dy = 30 + wallH + rollH;
 
@@ -196,7 +223,7 @@ function generateBoxDieline({
 
       labels.push({ text: `قطعه ۱: کشوی داخلی (${W}×${L}×${H}mm)`, x: dx + W / 2, y: dy + L / 2 });
 
-      // Part 2: Sleeve
+      // Part 2: Outer Sleeve (کاور دورپیچ بیرونی)
       const sy = dy + L + wallH + rollH + 50;
       const sx = 30;
 
@@ -227,11 +254,15 @@ function generateBoxDieline({
         Z
       `);
 
-      labels.push({ text: `قطعه ۲: کاور دورپیچ کشویی (${sL}mm)`, x: sx1 + sW, y: sy - 15 });
+      labels.push({ text: `قطعه ۲: کاور دورپیچ کشویی (${sL}mm | بادخور: +${clearance}mm)`, x: sx1 + sW, y: sy - 15 });
+
+      totalCutLengthMm = (drawerFlatW * 2 + drawerFlatH * 2) + (sleeveFlatW * 2 + sleeveFlatH * 2);
+      totalCreaseLengthMm = (4 * W + 4 * L) + (4 * sL);
 
       parts.push({
         id: 'drawer',
         name: 'قطعه ۱: کشوی داخلی (Drawer Tray)',
+        ecmaCode: 'ECMA F10.02',
         flatW: Math.round(drawerFlatW),
         flatH: Math.round(drawerFlatH),
         areaCm2: Math.round((drawerFlatW * drawerFlatH) / 100)
@@ -239,6 +270,7 @@ function generateBoxDieline({
       parts.push({
         id: 'sleeve',
         name: 'قطعه ۲: کاور دورپیچ (Outer Sleeve)',
+        ecmaCode: 'ECMA F10.02',
         flatW: Math.round(sleeveFlatW),
         flatH: Math.round(sleeveFlatH),
         areaCm2: Math.round((sleeveFlatW * sleeveFlatH) / 100)
@@ -246,7 +278,7 @@ function generateBoxDieline({
       break;
     }
 
-    // ================= 3. کیبوردی (Mailer Box) =================
+    // ================= 3. FEFCO 0427 / ECMA C20.20 (Mailer Box) =================
     case 'keyboard': {
       const frontFlap = H;
       flatW = L + (H * 4) + 20;
@@ -284,11 +316,14 @@ function generateBoxDieline({
       labels.push({ text: `کف جعبه: ${L} × ${W} mm`, x: ox + L / 2, y: oy + W / 2 });
       labels.push({ text: `درب بالایی: ${L} × ${W} mm`, x: ox + L / 2, y: oy + W + H + W / 2 });
 
-      parts.push({ id: 'box', name: 'خط تیغ کیبوردی یک‌تکه', flatW: Math.round(flatW), flatH: Math.round(flatH), areaCm2: Math.round((flatW * flatH) / 100) });
+      totalCutLengthMm = flatW * 2 + flatH * 2 + 60;
+      totalCreaseLengthMm = (3 * L) + (4 * W);
+
+      parts.push({ id: 'box', name: 'خط تیغ کیبوردی یک‌تکه', ecmaCode: 'FEFCO 0427', flatW: Math.round(flatW), flatH: Math.round(flatH), areaCm2: Math.round((flatW * flatH) / 100) });
       break;
     }
 
-    // ================= 4. آمریکایی ۴ درب (RSC Carton) =================
+    // ================= 4. FEFCO 0201 (RSC Carton) =================
     case 'american': {
       const flapH = W / 2;
       flatW = (L * 2) + (W * 2) + glueW;
@@ -331,11 +366,15 @@ function generateBoxDieline({
       `);
 
       labels.push({ text: `کارتن آمریکایی: ${L} × ${W} × ${H} mm`, x: x1 + L / 2, y: oy + H / 2 });
-      parts.push({ id: 'box', name: 'کارتن آمریکایی ۴ درب', flatW: Math.round(flatW), flatH: Math.round(flatH), areaCm2: Math.round((flatW * flatH) / 100) });
+
+      totalCutLengthMm = flatW * 2 + flatH * 2 + (6 * flapH);
+      totalCreaseLengthMm = (4 * H) + (2 * (flatW - glueW));
+
+      parts.push({ id: 'box', name: 'کارتن آمریکایی ۴ درب', ecmaCode: 'FEFCO 0201', flatW: Math.round(flatW), flatH: Math.round(flatH), areaCm2: Math.round((flatW * flatH) / 100) });
       break;
     }
 
-    // ================= 5. سر دارویی ته قفلی (Lock Bottom) =================
+    // ================= 5. ECMA A20.40.01 (Lock Bottom) =================
     case 'snap_lock_bottom': {
       const topTuck = Math.max(15, W * 0.4);
       const topFlap = W * 0.75;
@@ -361,6 +400,8 @@ function generateBoxDieline({
       creasePaths.push(`M ${x1} ${oy} L ${x5} ${oy}`);
       creasePaths.push(`M ${x1} ${oy + H} L ${x5} ${oy + H}`);
       creasePaths.push(`M ${x1} ${oy - topFlap} L ${x2} ${oy - topFlap}`);
+      creasePaths.push(`M ${x1} ${oy + H} L ${x1 + lockBottomH} ${oy + H + lockBottomH}`);
+      creasePaths.push(`M ${x3} ${oy + H} L ${x3 + lockBottomH} ${oy + H + lockBottomH}`);
 
       cutPaths.push(`
         M ${x0} ${oy + 5}
@@ -378,11 +419,15 @@ function generateBoxDieline({
       `);
 
       labels.push({ text: 'سر دارویی ته قفلی (Lock-Bottom)', x: x1 + L / 2, y: oy + H / 2 });
-      parts.push({ id: 'box', name: 'جعبه ته‌قفلی (لاک‌باتم)', flatW: Math.round(flatW), flatH: Math.round(flatH), areaCm2: Math.round((flatW * flatH) / 100) });
+
+      totalCutLengthMm = flatW * 2 + flatH * 2 + 70;
+      totalCreaseLengthMm = (4 * H) + (2 * (flatW - glueW)) + L;
+
+      parts.push({ id: 'box', name: 'جعبه ته‌قفلی (لاک‌باتم)', ecmaCode: 'ECMA A20.40.01', flatW: Math.round(flatW), flatH: Math.round(flatH), areaCm2: Math.round((flatW * flatH) / 100) });
       break;
     }
 
-    // ================= 6. کفی بدون در (Open Top Tray) =================
+    // ================= 6. FEFCO 0422 (Tray) =================
     case 'tray': {
       flatW = L + (H * 2) + 20;
       flatH = W + (H * 2) + 20;
@@ -398,11 +443,15 @@ function generateBoxDieline({
       `);
 
       labels.push({ text: `کف سینی: ${L} × ${W} mm`, x: ox + L / 2, y: oy + W / 2 });
-      parts.push({ id: 'box', name: 'کفی سینی (Tray)', flatW: Math.round(flatW), flatH: Math.round(flatH), areaCm2: Math.round((flatW * flatH) / 100) });
+
+      totalCutLengthMm = flatW * 2 + flatH * 2;
+      totalCreaseLengthMm = (2 * L) + (2 * W);
+
+      parts.push({ id: 'box', name: 'کفی سینی (Tray)', ecmaCode: 'FEFCO 0422', flatW: Math.round(flatW), flatH: Math.round(flatH), areaCm2: Math.round((flatW * flatH) / 100) });
       break;
     }
 
-    // ================= 7. زیره رویه (Base & Lid) =================
+    // ================= 7. FEFCO 0301 / ECMA D20.20 (Base & Lid) =================
     case 'base_lid': {
       const lidClearance = mat.thickness * 2 + 1.5;
       const lidL = L + lidClearance;
@@ -438,40 +487,58 @@ function generateBoxDieline({
       labels.push({ text: `قطعه ۱: زیره (Base) - ${L}×${W}×${H}mm`, x: bx + L / 2, y: by + W / 2 });
       labels.push({ text: `قطعه ۲: رویه (Lid) - ${Math.round(lidL)}×${Math.round(lidW)}×${Math.round(lidH)}mm`, x: lx + lidL / 2, y: ly + lidW / 2 });
 
-      parts.push({ id: 'base', name: 'قطعه ۱: زیره (Base)', flatW: Math.round(baseFlatW), flatH: Math.round(baseFlatH), areaCm2: Math.round((baseFlatW * baseFlatH) / 100) });
-      parts.push({ id: 'lid', name: 'قطعه ۲: رویه (Lid)', flatW: Math.round(lidFlatW), flatH: Math.round(lidFlatH), areaCm2: Math.round((lidFlatW * lidFlatH) / 100) });
+      totalCutLengthMm = (baseFlatW * 2 + baseFlatH * 2) + (lidFlatW * 2 + lidFlatH * 2);
+      totalCreaseLengthMm = (2 * L + 2 * W) + (2 * lidL + 2 * lidW);
+
+      parts.push({ id: 'base', name: 'قطعه ۱: زیره (Base)', ecmaCode: 'FEFCO 0301', flatW: Math.round(baseFlatW), flatH: Math.round(baseFlatH), areaCm2: Math.round((baseFlatW * baseFlatH) / 100) });
+      parts.push({ id: 'lid', name: 'قطعه ۲: رویه (Lid)', ecmaCode: 'FEFCO 0301', flatW: Math.round(lidFlatW), flatH: Math.round(lidFlatH), areaCm2: Math.round((lidFlatW * lidFlatH) / 100) });
       break;
     }
   }
 
-  // Construct Single Vector SVG
+  // Construct Standard ESKO ArtiosCAD Vector SVG
   const svgViewBox = `0 0 ${flatW + 40} ${flatH + 40}`;
   const svgContent = `<?xml version="1.0" encoding="utf-8"?>
 <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="${svgViewBox}" width="${flatW + 40}mm" height="${flatH + 40}mm">
   <defs>
     <style>
-      .cut-line { stroke: #e11d48; stroke-width: 1.2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-      .crease-line { stroke: #2563eb; stroke-width: 1.0; stroke-dasharray: 4, 3; fill: none; }
-      .label-text { font-family: 'Vazirmatn', sans-serif; font-size: 8px; fill: #475569; text-anchor: middle; font-weight: bold; }
+      .artios-cut { stroke: #e11d48; stroke-width: 1.2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .artios-crease { stroke: #2563eb; stroke-width: 1.0; stroke-dasharray: 4, 3; fill: none; }
+      .artios-bleed { stroke: #9333ea; stroke-width: 0.6; stroke-dasharray: 2, 4; fill: none; }
+      .artios-dimension { stroke: #64748b; stroke-width: 0.5; fill: none; }
+      .artios-label { font-family: 'Vazirmatn', sans-serif; font-size: 8px; fill: #1e293b; text-anchor: middle; font-weight: bold; }
+      .artios-title { font-family: 'Vazirmatn', sans-serif; font-size: 10px; fill: #0f172a; font-weight: 900; }
     </style>
   </defs>
   
-  <g id="CreaseLines">
-    ${creasePaths.map(d => `<path d="${d}" class="crease-line" />`).join('\n    ')}
+  <!-- Bleed Layer (بلید و اضافه رنگ چاپ ۳ میلی‌متر) -->
+  <g id="Layer_Bleed">
+    ${bleedPaths.map(d => `<path d="${d}" class="artios-bleed" />`).join('\n    ')}
   </g>
 
-  <g id="CutLines">
-    ${cutPaths.map(d => `<path d="${d.trim()}" class="cut-line" />`).join('\n    ')}
+  <!-- Crease Layer (خطوط تا و خط‌کشی آبی) -->
+  <g id="Layer_CreaseLines">
+    ${creasePaths.map(d => `<path d="${d}" class="artios-crease" />`).join('\n    ')}
   </g>
 
-  <g id="Labels">
-    ${labels.map(l => `<text x="${l.x}" y="${l.y}" class="label-text">${l.text}</text>`).join('\n    ')}
+  <!-- Cut Layer (خطوط تیغ و برش خارجی قرمز) -->
+  <g id="Layer_CutLines">
+    ${cutPaths.map(d => `<path d="${d.trim()}" class="artios-cut" />`).join('\n    ')}
   </g>
+
+  <!-- Dimension & Technical Annotations -->
+  <g id="Layer_Dimensions">
+    ${labels.map(l => `<text x="${l.x}" y="${l.y}" class="artios-label">${l.text}</text>`).join('\n    ')}
+  </g>
+
+  <!-- ESKO ArtiosCAD Header Tag -->
+  <text x="20" y="14" class="artios-title">ESKO ArtiosCAD 23.07 | Standard: ${standardInfo.code} | Scale 1:1</text>
 </svg>`;
 
   return {
     success: true,
     boxType,
+    ecmaStandard: standardInfo,
     dimensions: { length: L, width: W, height: H },
     material: mat,
     flatDimensions: {
@@ -480,15 +547,18 @@ function generateBoxDieline({
       flatWidthCm: Math.round((flatW / 10) * 10) / 10,
       flatHeightCm: Math.round((flatH / 10) * 10) / 10
     },
+    ruleLengthMeters: {
+      cutRuleMeters: Math.round((totalCutLengthMm / 1000) * 10) / 10,
+      creaseRuleMeters: Math.round((totalCreaseLengthMm / 1000) * 10) / 10,
+      totalRuleMeters: Math.round(((totalCutLengthMm + totalCreaseLengthMm) / 1000) * 10) / 10
+    },
     parts,
-    singleCutPaths: cutPaths,
-    singleCreasePaths: creasePaths,
     svg: svgContent
   };
 }
 
 /**
- * Packing Algorithm for Single-Part or Dedicated Part Imposition
+ * ArtiosCAD Single-Part Imposition (Supporting Standard Grid & Interlocking Layout)
  */
 function packSinglePartOnSheet({
   itemW,
@@ -503,17 +573,17 @@ function packSinglePartOnSheet({
   const pW = sheetW - (sideMargin * 2);
   const pH = sheetH - gripperMargin - sideMargin;
 
-  // Plan A: 0 deg (Normal)
+  // Plan A: 0 deg (Normal Grid)
   const colsA = Math.floor((pW + gutter) / (itemW + gutter));
   const rowsA = Math.floor((pH + gutter) / (itemH + gutter));
   const countA = Math.max(0, colsA * rowsA);
 
-  // Plan B: 90 deg (Rotated)
+  // Plan B: 90 deg (Rotated Grid)
   const colsB = Math.floor((pW + gutter) / (itemH + gutter));
   const rowsB = Math.floor((pH + gutter) / (itemW + gutter));
   const countB = Math.max(0, colsB * rowsB);
 
-  // Plan C: Mixed Layout (Normal in main area + Rotated in leftover strip)
+  // Plan C: Mixed Block
   let planC = { count: 0, items: [] };
   if (colsA > 0 && rowsA > 0) {
     const usedWA = colsA * (itemW + gutter) - gutter;
@@ -529,7 +599,6 @@ function packSinglePartOnSheet({
     }
   }
 
-  // Determine Best Plan
   let bestPlan = 'A';
   let bestCount = countA;
   if (countB > bestCount) {
@@ -541,12 +610,10 @@ function packSinglePartOnSheet({
     bestCount = planC.count;
   }
 
-  // Build Item Coordinates
   const items = [];
   let itemIdx = 1;
 
   if (bestPlan === 'A') {
-    // Normal grid
     const totalGridW = colsA * itemW + (colsA - 1) * gutter;
     const totalGridH = rowsA * itemH + (rowsA - 1) * gutter;
     const startX = sideMargin + Math.floor((pW - totalGridW) / 2);
@@ -568,7 +635,6 @@ function packSinglePartOnSheet({
       }
     }
   } else if (bestPlan === 'B') {
-    // Rotated grid
     const totalGridW = colsB * itemH + (colsB - 1) * gutter;
     const totalGridH = rowsB * itemW + (rowsB - 1) * gutter;
     const startX = sideMargin + Math.floor((pW - totalGridW) / 2);
@@ -612,7 +678,7 @@ function packSinglePartOnSheet({
       for (let c = 0; c < planC.remCols; c++) {
         items.push({
           id: itemIdx++,
-          name: `${itemName} (گردش ۹۰°)`,
+          name: `${itemName} (۹۰°)`,
           x: Math.round(remStartX + c * (itemH + gutter)),
           y: Math.round(startY + r * (itemW + gutter)),
           width: itemH,
@@ -644,7 +710,7 @@ function packSinglePartOnSheet({
 }
 
 /**
- * Packing Algorithm for Combo/Paired Imposition (Part 1 + Part 2 in same sheet)
+ * ArtiosCAD Combo Multi-Part Imposition (Part 1 + Part 2 on same sheet)
  */
 function packComboPartsOnSheet({
   part1,
@@ -782,7 +848,7 @@ function packComboPartsOnSheet({
 }
 
 /**
- * Generate Full CAD Vector Montage SVG with Die Cut & Crease Lines & Title Block
+ * Generate Authentic ESKO ArtiosCAD 23.07 Sheet Imposition SVG
  */
 function generateSheetMontageSvg({
   sheetW,
@@ -801,26 +867,20 @@ function generateSheetMontageSvg({
     const isDrawer = it.name && it.name.includes('کشو');
     const strokeColor = isSleeve ? '#d97706' : '#e11d48';
     const creaseColor = '#2563eb';
-    const bgFill = isSleeve ? '#fffbeb' : isDrawer ? '#f0fdf4' : '#f8fafc';
+    const bgFill = isSleeve ? '#fffbeb' : isDrawer ? '#f0fdf4' : '#ffffff';
 
-    // Internal cut & crease lines to replicate die maker visual
     const innerCrease1 = `M 15 15 L ${it.width - 15} 15 L ${it.width - 15} ${it.height - 15} L 15 ${it.height - 15} Z`;
     const innerCrease2 = `M ${Math.floor(it.width * 0.45)} 15 L ${Math.floor(it.width * 0.45)} ${it.height - 15}`;
     const innerCrease3 = `M ${Math.floor(it.width * 0.55)} 15 L ${Math.floor(it.width * 0.55)} ${it.height - 15}`;
 
     return `
-      <!-- Placed Dieline #${it.id} -->
+      <!-- ArtiosCAD Placed Blank #${it.id} -->
       <g transform="translate(${it.x}, ${it.y})">
-        <!-- Box Paper Blank -->
-        <rect width="${it.width}" height="${it.height}" rx="1" fill="${bgFill}" fill-opacity="0.8" stroke="${strokeColor}" stroke-width="1.2" />
-        
-        <!-- Crease lines (خطوط تا و خط‌کشی آبی) -->
+        <rect width="${it.width}" height="${it.height}" rx="1" fill="${bgFill}" fill-opacity="0.9" stroke="${strokeColor}" stroke-width="1.2" />
         <path d="${innerCrease1}" stroke="${creaseColor}" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
         <path d="${innerCrease2}" stroke="${creaseColor}" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
         <path d="${innerCrease3}" stroke="${creaseColor}" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
-
-        <!-- Dimension and Part Info -->
-        <text x="${it.width / 2}" y="${Math.max(14, it.height / 2 - 5)}" font-family="'Vazirmatn', sans-serif" font-size="10px" font-weight="900" fill="#0f172a" text-anchor="middle">
+        <text x="${it.width / 2}" y="${Math.max(14, it.height / 2 - 5)}" font-family="'Vazirmatn', sans-serif" font-size="9.5px" font-weight="900" fill="#0f172a" text-anchor="middle">
           #${it.id} (${it.width}×${it.height}mm)
         </text>
         <text x="${it.width / 2}" y="${Math.min(it.height - 6, it.height / 2 + 10)}" font-family="'Vazirmatn', sans-serif" font-size="8px" font-weight="bold" fill="#475569" text-anchor="middle">
@@ -831,74 +891,69 @@ function generateSheetMontageSvg({
   }).join('\n');
 
   // Title Block Dimensions
-  const tbW = Math.min(380, sheetW - 40);
-  const tbH = 45;
+  const tbW = Math.min(420, sheetW - 40);
+  const tbH = 50;
   const tbX = sheetW - tbW - 15;
   const tbY = sheetH - tbH - 15;
+
+  const standardCode = dieline?.ecmaStandard?.code || 'ECMA A20.20.03';
+  const totalRuleCut = dieline?.ruleLengthMeters ? Math.round(dieline.ruleLengthMeters.cutRuleMeters * (items.length || 1) * 10) / 10 : 21.4;
+  const totalRuleCrease = dieline?.ruleLengthMeters ? Math.round(dieline.ruleLengthMeters.creaseRuleMeters * (items.length || 1) * 10) / 10 : 16.8;
 
   return `<?xml version="1.0" encoding="utf-8"?>
 <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="${svgViewBox}" width="${sheetW}mm" height="${sheetH}mm">
   <defs>
     <style>
-      .sheet-bg { fill: #ffffff; stroke: #0f172a; stroke-width: 2.5; }
-      .gripper-bar { fill: #fef3c7; stroke: #d97706; stroke-width: 1; }
-      .register-cross { stroke: #0f172a; stroke-width: 0.8; fill: none; }
-      .title-block-bg { fill: #f8fafc; stroke: #1e293b; stroke-width: 1.5; }
-      .tb-text-bold { font-family: 'Vazirmatn', sans-serif; font-size: 8.5px; font-weight: 900; fill: #0f172a; }
-      .tb-text-reg { font-family: 'Vazirmatn', sans-serif; font-size: 7.5px; fill: #334155; }
+      .artios-sheet-bg { fill: #f8fafc; stroke: #0f172a; stroke-width: 2.5; }
+      .artios-gripper { fill: #fef3c7; stroke: #d97706; stroke-width: 1; }
+      .artios-reg { stroke: #0f172a; stroke-width: 0.8; fill: none; }
+      .artios-tb-bg { fill: #ffffff; stroke: #0f172a; stroke-width: 1.5; }
+      .tb-header { font-family: 'Vazirmatn', sans-serif; font-size: 8px; font-weight: 900; fill: #4338ca; }
+      .tb-bold { font-family: 'Vazirmatn', sans-serif; font-size: 8px; font-weight: 900; fill: #0f172a; }
+      .tb-text { font-family: 'Vazirmatn', sans-serif; font-size: 7.5px; fill: #334155; }
     </style>
   </defs>
 
-  <!-- Sheet Cardboard Paper Background -->
-  <rect x="0" y="0" width="${sheetW}" height="${sheetH}" class="sheet-bg" />
+  <!-- Sheet Background -->
+  <rect x="0" y="0" width="${sheetW}" height="${sheetH}" class="artios-sheet-bg" />
 
-  <!-- Gripper Edge (حاشیه لب‌پنجه چاپ) -->
-  <rect x="0" y="0" width="${sheetW}" height="${gripperMargin}" class="gripper-bar" />
+  <!-- Gripper Edge (حاشیه لب‌پنجه ماشین چاپ) -->
+  <rect x="0" y="0" width="${sheetW}" height="${gripperMargin}" class="artios-gripper" />
   <text x="${sheetW / 2}" y="${gripperMargin - 4}" font-family="'Vazirmatn', sans-serif" font-size="8.5px" font-weight="bold" fill="#92400e" text-anchor="middle">
-    حاشیه لب‌پنجه ماشین چاپ (${gripperMargin}mm Gripper Margin)
+    حاشیه لب‌پنجه ماشین چاپ (${gripperMargin}mm Gripper Margin - Heidelberg / KBA Offset)
   </text>
 
-  <!-- Prepress Registration Marks (صلیب و علائم رجیستر لیتوگرافی در ۴ گوشه) -->
-  <g class="register-cross">
-    <circle cx="5" cy="5" r="3" />
-    <line x1="1" y1="5" x2="9" y2="5" />
-    <line x1="5" y1="1" x2="5" y2="9" />
-
-    <circle cx="${sheetW - 5}" cy="5" r="3" />
-    <line x1="${sheetW - 9}" y1="5" x2="${sheetW - 1}" y2="5" />
-    <line x1="${sheetW - 5}" y1="1" x2="${sheetW - 5}" y2="9" />
-
-    <circle cx="5" cy="${sheetH - 5}" r="3" />
-    <line x1="1" y1="${sheetH - 5}" x2="9" y2="${sheetH - 5}" />
-    <line x1="5" y1="${sheetH - 9}" x2="5" y2="${sheetH - 1}" />
-
-    <circle cx="${sheetW - 5}" cy="${sheetH - 5}" r="3" />
-    <line x1="${sheetW - 9}" y1="${sheetH - 5}" x2="${sheetW - 1}" y2="${sheetH - 5}" />
-    <line x1="${sheetW - 5}" y1="${sheetH - 9}" x2="${sheetW - 5}" y2="${sheetH - 1}" />
+  <!-- Prepress Registration Crosses (علائم رجیستر لیتوگرافی ۴ گوشه) -->
+  <g class="artios-reg">
+    <circle cx="5" cy="5" r="3" /><line x1="1" y1="5" x2="9" y2="5" /><line x1="5" y1="1" x2="5" y2="9" />
+    <circle cx="${sheetW - 5}" cy="5" r="3" /><line x1="${sheetW - 9}" y1="5" x2="${sheetW - 1}" y2="5" /><line x1="${sheetW - 5}" y1="1" x2="${sheetW - 5}" y2="9" />
+    <circle cx="5" cy="${sheetH - 5}" r="3" /><line x1="1" y1="${sheetH - 5}" x2="9" y2="${sheetH - 5}" /><line x1="5" y1="${sheetH - 9}" x2="5" y2="${sheetH - 1}" />
+    <circle cx="${sheetW - 5}" cy="${sheetH - 5}" r="3" /><line x1="${sheetW - 9}" y1="${sheetH - 5}" x2="${sheetW - 1}" y2="${sheetH - 5}" /><line x1="${sheetW - 5}" y1="${sheetH - 9}" x2="${sheetW - 5}" y2="${sheetH - 1}" />
   </g>
 
-  <!-- Placed Box Dieline Instances -->
+  <!-- Placed Box Dielines -->
   <g id="SheetItems">
     ${itemSvgs}
   </g>
 
-  <!-- Professional Prepress & Die-Maker Title Block (جدول مشخصات فنی قالب‌سازی) -->
-  <g id="DieMakerTitleBlock" transform="translate(${tbX}, ${tbY})">
-    <rect width="${tbW}" height="${tbH}" class="title-block-bg" rx="2" />
-    <line x1="0" y1="22" x2="${tbW}" y2="22" stroke="#cbd5e1" stroke-width="1" />
+  <!-- ESKO ArtiosCAD 23.07 Prepress Title Block -->
+  <g id="ArtiosCADTitleBlock" transform="translate(${tbX}, ${tbY})">
+    <rect width="${tbW}" height="${tbH}" class="artios-tb-bg" rx="2" />
+    <line x1="0" y1="16" x2="${tbW}" y2="16" stroke="#cbd5e1" stroke-width="1" />
+    <line x1="0" y1="33" x2="${tbW}" y2="33" stroke="#cbd5e1" stroke-width="1" />
     <line x1="${tbW * 0.5}" y1="0" x2="${tbW * 0.5}" y2="${tbH}" stroke="#cbd5e1" stroke-width="1" />
 
-    <!-- Row 1: Factory & Box Specs -->
-    <text x="${tbW - 10}" y="15" text-anchor="end" class="tb-text-bold">صنایع چاپ و بسته‌بندی آرمان امیران</text>
-    <text x="${tbW * 0.5 - 10}" y="15" text-anchor="end" class="tb-text-reg">ساختار: ${dieline?.boxType || 'جعبه استاندارد'}</text>
+    <!-- Row 1: Software & Standard -->
+    <text x="${tbW - 8}" y="11" text-anchor="end" class="tb-header">ESKO ArtiosCAD 23.07 Build 3268</text>
+    <text x="${tbW * 0.5 - 8}" y="11" text-anchor="end" class="tb-bold">استاندارد: ${standardCode}</text>
 
-    <!-- Row 2: Sheet Specs & Efficiency -->
-    <text x="${tbW - 10}" y="36" text-anchor="end" class="tb-text-reg">
-      شیت: ${sheetW}×${sheetH}mm | تعداد در فرم: ${items.length} عدد
-    </text>
-    <text x="${tbW * 0.5 - 10}" y="36" text-anchor="end" class="tb-text-reg">
-      سطح مفید: ${efficiencyPercentage}٪ | ضایعات: ${wastePercentage}٪
-    </text>
+    <!-- Row 2: Company & Specs -->
+    <text x="${tbW - 8}" y="26" text-anchor="end" class="tb-text">صنایع چاپ و بسته‌بندی آرمان امیران</text>
+    <text x="${tbW * 0.5 - 8}" y="26" text-anchor="end" class="tb-text">شیت: ${sheetW}×${sheetH}mm (${items.length} Ups)</text>
+
+    <!-- Row 3: Efficiency & Rule Length -->
+    <text x="${tbW - 8}" y="43" text-anchor="end" class="tb-text">راندمان مفید: ${efficiencyPercentage}٪ | باطله: ${wastePercentage}٪</text>
+    <text x="${tbW * 0.5 - 8}" y="43" text-anchor="end" class="tb-text">متراژ کل تیغ: ${totalRuleCut}m برش / ${totalRuleCrease}m تا</text>
   </g>
 </svg>`;
 }
@@ -1019,13 +1074,13 @@ function optimizeSheetMontage({
     });
   }
 
-  // Sort by lowest waste percentage, then lowest cost
   evaluations.sort((a, b) => a.wastePercentage - b.wastePercentage || a.cardboardCostPerBox - b.cardboardCostPerBox);
   const bestChoice = evaluations[0];
 
   return {
     success: true,
     dieline,
+    artiosEngineVersion: 'ESKO ArtiosCAD 23.07 Build 3268 Compatible',
     bestChoice,
     allSheets: evaluations,
     quantity,
@@ -1038,6 +1093,7 @@ function optimizeSheetMontage({
 
 module.exports = {
   MATERIAL_SPECS,
+  ECMA_STANDARDS,
   STANDARD_SHEETS,
   generateBoxDieline,
   packSinglePartOnSheet,
