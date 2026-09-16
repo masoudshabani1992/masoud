@@ -23,6 +23,7 @@ import AiAssistantView from './components/AiAssistantView';
 import MarketingLeadsView from './components/MarketingLeadsView';
 import DielineGeneratorView from './components/DielineGeneratorView';
 import Packaging3DStudioView from './components/Packaging3DStudioView';
+import ErrorBoundary from './components/ErrorBoundary';
 import { playNotificationSound } from './utils/helpers';
 
 export default function App() {
@@ -186,6 +187,16 @@ export default function App() {
   // Handle opening lead from notification
   const handleOpenLeadFromNotification = async (leadId, leadCode) => {
     try {
+      setShowNotificationModal(false);
+      if (leadId) {
+        try {
+          const res = await api.getMarketingLeads();
+          const found = res?.leads?.find(l => l.id === leadId || l.lead_code === leadCode);
+          if (found) {
+            setSelectedLeadSpecs(found);
+          }
+        } catch (e) {}
+      }
       if (role === 'sales' || role === 'estimation' || role === 'accounting' || role === 'ceo') {
         navigateTab('calculator');
       } else {
@@ -193,6 +204,7 @@ export default function App() {
       }
     } catch (err) {
       console.error(err);
+      navigateTab('calculator');
     }
   };
 
@@ -267,147 +279,149 @@ export default function App() {
         licenseInfo={licenseState.license}
       />
 
-      {/* Main Content Area */}
+      {/* Main Content Area Wrapped with Error Boundary */}
       <main className="flex-1 w-full max-w-[2200px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        
-        {/* Department Hub (Landing Screen) */}
-        {activeTab === 'hub' && (
-          <DepartmentHubView
-            projects={projects}
-            onNavigateDepartment={(tabKey) => navigateTab(tabKey)}
-            onOpenNewOrder={() => navigateTab('new_order')}
-            onOpenArchive={() => navigateTab('archive')}
-          />
-        )}
-
-        {/* Full-Page New Order View */}
-        {activeTab === 'new_order' && (
-          <IndustrialOrderForm
-            initialData={reorderData}
-            onCancel={() => {
-              setReorderData(null);
-              navigateTab('hub');
-            }}
-            onOrderSaved={() => {
-              setReorderData(null);
-              fetchProjects();
-              navigateTab('hub');
-            }}
-          />
-        )}
-
-        {/* Products & Orders Archive */}
-        {activeTab === 'archive' && (
-          <ProductsArchiveView
-            projects={projects}
-            onSelectProject={(p) => setSelectedProjectId(p.id)}
-            onPrintTicket={(p) => setPrintProject(p)}
-            onReorderProject={handleStartReorder}
-            onRefresh={fetchProjects}
-          />
-        )}
-
-        {/* 9-Stage Kanban Board */}
-        {activeTab === 'kanban' && (
-          <KanbanBoard
-            projects={projects}
-            onSelectProject={(p) => setSelectedProjectId(p.id)}
-            onPrintTicket={(p) => setPrintProject(p)}
-            currentRole={role}
-          />
-        )}
-
-        {/* My Tasks Inbox */}
-        {activeTab === 'my_tasks' && (
-          <MyTasksInbox
-            projects={projects}
-            onSelectProject={(p) => setSelectedProjectId(p.id)}
-            onPrintTicket={(p) => setPrintProject(p)}
-          />
-        )}
-
-        {/* Dashboard Analytics */}
-        {activeTab === 'dashboard' && <DashboardView />}
-
-        {/* Raw Materials Prices */}
-        {activeTab === 'materials' && <MaterialPricesView />}
-
-        {/* User Management Panel */}
-        {activeTab === 'users' && <UserManagementView />}
-
-        {/* Data Migration & Import Center */}
-        {activeTab === 'migration' && <DataMigrationView onRefreshData={fetchProjects} />}
-
-        {/* Amiran Design Studio & Dieline Generator */}
-        {activeTab === 'dieline_generator' && (
-          <DielineGeneratorView
-            onTransferToOrder={(boxSpecs) => {
-              setReorderData({
-                ...boxSpecs,
-                order_code: String(Math.floor(1000 + Math.random() * 9000)),
-                archive_code: String(Math.floor(1000 + Math.random() * 9000))
-              });
-              navigateTab('new_order');
-            }}
-          />
-        )}
-
-        {/* Fullscreen Amiran 3D Studio */}
-        {activeTab === '3d_studio' && (
-          <Packaging3DStudioView
-            onSwitchTo2DDieline={() => navigateTab('dieline_generator')}
-            onTransferToOrder={(boxSpecs) => {
-              setReorderData({
-                ...boxSpecs,
-                order_code: String(Math.floor(1000 + Math.random() * 9000)),
-                archive_code: String(Math.floor(1000 + Math.random() * 9000))
-              });
-              navigateTab('new_order');
-            }}
-          />
-        )}
-
-        {/* AI Packaging Assistant & Preflight Inspection */}
-        {activeTab === 'ai_assistant' && (
-          <AiAssistantView
-            onTransferToOrderForm={(extractedData) => {
-              setReorderData({
-                ...extractedData,
-                order_code: String(Math.floor(1000 + Math.random() * 9000)),
-                archive_code: String(Math.floor(1000 + Math.random() * 9000))
-              });
-              navigateTab('new_order');
-            }}
-          />
-        )}
-
-        {/* Full-Page Industrial Price Calculator with Marketer Inquiries */}
-        {activeTab === 'calculator' && (
-          <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-            <div className="border-b border-slate-100 pb-4 flex items-center justify-between">
-              <h2 className="text-xl font-black text-slate-800">ماشین حساب برآورد صنعتی قیمت جعبه و استعلام بازاریابی</h2>
-              <span className="text-xs font-bold text-slate-500">برآورد قیمت روز استعلام‌های بازاریاب و فرمول‌های صنعتی</span>
-            </div>
-            <CalculatorView
-              initialSpecs={selectedLeadSpecs}
-              onLeadEstimated={() => fetchNotificationsCount()}
+        <ErrorBoundary onReset={() => navigateTab('hub')}>
+          
+          {/* Department Hub (Landing Screen) */}
+          {activeTab === 'hub' && (
+            <DepartmentHubView
+              projects={projects}
+              onNavigateDepartment={(tabKey) => navigateTab(tabKey)}
+              onOpenNewOrder={() => navigateTab('new_order')}
+              onOpenArchive={() => navigateTab('archive')}
             />
-          </div>
-        )}
+          )}
 
-        {/* Marketing Leads & Field Sales Hub */}
-        {activeTab === 'marketing' && (
-          <MarketingLeadsView
-            onNavigateToKanban={() => {
-              if (role !== 'marketer') {
-                navigateTab('kanban');
-              }
-            }}
-          />
-        )}
+          {/* Full-Page New Order View */}
+          {activeTab === 'new_order' && (
+            <IndustrialOrderForm
+              initialData={reorderData}
+              onCancel={() => {
+                setReorderData(null);
+                navigateTab('hub');
+              }}
+              onOrderSaved={() => {
+                setReorderData(null);
+                fetchProjects();
+                navigateTab('hub');
+              }}
+            />
+          )}
 
-        {/* Subdomain Guide */}
-        {activeTab === 'subdomain_guide' && <SubdomainGuideView />}
+          {/* Products & Orders Archive */}
+          {activeTab === 'archive' && (
+            <ProductsArchiveView
+              projects={projects}
+              onSelectProject={(p) => setSelectedProjectId(p.id)}
+              onPrintTicket={(p) => setPrintProject(p)}
+              onReorderProject={handleStartReorder}
+              onRefresh={fetchProjects}
+            />
+          )}
+
+          {/* 9-Stage Kanban Board */}
+          {activeTab === 'kanban' && (
+            <KanbanBoard
+              projects={projects}
+              onSelectProject={(p) => setSelectedProjectId(p.id)}
+              onPrintTicket={(p) => setPrintProject(p)}
+              currentRole={role}
+            />
+          )}
+
+          {/* My Tasks Inbox */}
+          {activeTab === 'my_tasks' && (
+            <MyTasksInbox
+              projects={projects}
+              onSelectProject={(p) => setSelectedProjectId(p.id)}
+              onPrintTicket={(p) => setPrintProject(p)}
+            />
+          )}
+
+          {/* Dashboard Analytics */}
+          {activeTab === 'dashboard' && <DashboardView />}
+
+          {/* Raw Materials Prices */}
+          {activeTab === 'materials' && <MaterialPricesView />}
+
+          {/* User Management Panel */}
+          {activeTab === 'users' && <UserManagementView />}
+
+          {/* Data Migration & Import Center */}
+          {activeTab === 'migration' && <DataMigrationView onRefreshData={fetchProjects} />}
+
+          {/* Amiran Design Studio & Dieline Generator */}
+          {activeTab === 'dieline_generator' && (
+            <DielineGeneratorView
+              onTransferToOrder={(boxSpecs) => {
+                setReorderData({
+                  ...boxSpecs,
+                  order_code: String(Math.floor(1000 + Math.random() * 9000)),
+                  archive_code: String(Math.floor(1000 + Math.random() * 9000))
+                });
+                navigateTab('new_order');
+              }}
+            />
+          )}
+
+          {/* Fullscreen Amiran 3D Studio */}
+          {activeTab === '3d_studio' && (
+            <Packaging3DStudioView
+              onSwitchTo2DDieline={() => navigateTab('dieline_generator')}
+              onTransferToOrder={(boxSpecs) => {
+                setReorderData({
+                  ...boxSpecs,
+                  order_code: String(Math.floor(1000 + Math.random() * 9000)),
+                  archive_code: String(Math.floor(1000 + Math.random() * 9000))
+                });
+                navigateTab('new_order');
+              }}
+            />
+          )}
+
+          {/* AI Packaging Assistant & Preflight Inspection */}
+          {activeTab === 'ai_assistant' && (
+            <AiAssistantView
+              onTransferToOrderForm={(extractedData) => {
+                setReorderData({
+                  ...extractedData,
+                  order_code: String(Math.floor(1000 + Math.random() * 9000)),
+                  archive_code: String(Math.floor(1000 + Math.random() * 9000))
+                });
+                navigateTab('new_order');
+              }}
+            />
+          )}
+
+          {/* Full-Page Industrial Price Calculator with Marketer Inquiries */}
+          {activeTab === 'calculator' && (
+            <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+              <div className="border-b border-slate-100 pb-4 flex items-center justify-between">
+                <h2 className="text-xl font-black text-slate-800">ماشین حساب برآورد صنعتی قیمت جعبه و استعلام بازاریابی</h2>
+                <span className="text-xs font-bold text-slate-500">برآورد قیمت روز استعلام‌های بازاریاب و فرمول‌های صنعتی</span>
+              </div>
+              <CalculatorView
+                initialSpecs={selectedLeadSpecs}
+                onLeadEstimated={() => fetchNotificationsCount()}
+              />
+            </div>
+          )}
+
+          {/* Marketing Leads & Field Sales Hub */}
+          {activeTab === 'marketing' && (
+            <MarketingLeadsView
+              onNavigateToKanban={() => {
+                if (role !== 'marketer') {
+                  navigateTab('kanban');
+                }
+              }}
+            />
+          )}
+
+          {/* Subdomain Guide */}
+          {activeTab === 'subdomain_guide' && <SubdomainGuideView />}
+        </ErrorBoundary>
       </main>
 
       {/* Project Details Modal */}
