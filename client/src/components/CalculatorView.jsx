@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { api } from '../api/client';
 import { formatToman, formatNumber } from '../utils/helpers';
 import { useAuth } from '../context/AuthContext';
@@ -22,6 +22,133 @@ import {
   AlertCircle
 } from 'lucide-react';
 
+/**
+ * Pure Synchronous Cost Calculation Engine (Instant 60fps Client-side Math)
+ */
+function computeInstantPricing(s) {
+  const qty = Math.max(1, parseInt(s.quantity) || 5000);
+  const l = (parseFloat(s.lengthMm) || 220) / 10; // cm
+  const w = (parseFloat(s.widthMm) || 150) / 10;  // cm
+  const h = (parseFloat(s.heightMm) || 70) / 10;   // cm
+
+  // Blank flat dimension approximation
+  const flatW_cm = Math.max(20, (l * 2) + (w * 2) + 2.0);
+  const flatH_cm = Math.max(15, h + (w * 2) + 4.0);
+
+  // Standard sheet fit (70x100 cm)
+  const sheetW_cm = 100;
+  const sheetH_cm = 70;
+  const upsCols = Math.floor(sheetW_cm / flatW_cm) || 1;
+  const upsRows = Math.floor(sheetH_cm / flatH_cm) || 1;
+  const upPerSheet = Math.max(1, upsCols * upsRows);
+
+  const netSheets = Math.ceil(qty / upPerSheet);
+  const wastePercent = parseFloat(s.wastagePercent) || 5;
+  const wasteSheets = Math.ceil(netSheets * (wastePercent / 100));
+  const totalSheetsRequired = netSheets + wasteSheets;
+
+  const sheetAreaM2 = (sheetW_cm * sheetH_cm) / 10000;
+  const grammage = parseFloat(s.grammage) || 300;
+  const totalPaperWeightKg = Math.round(((totalSheetsRequired * sheetAreaM2 * grammage) / 1000) * 10) / 10;
+
+  // 1. Paper / Cardboard Cost
+  const paperPricePerKg = parseFloat(s.paperPricePerKg) || 72000;
+  const paperCost = Math.round(totalPaperWeightKg * paperPricePerKg);
+
+  // 2. Flute / Single Cost
+  let fluteCost = 0;
+  let laminationCost = 0;
+  if (s.hasFlute) {
+    const totalFluteAreaM2 = totalSheetsRequired * sheetAreaM2;
+    const flutePrice = parseFloat(s.flutePricePerSqm) || 14500;
+    fluteCost = Math.round(totalFluteAreaM2 * flutePrice);
+    laminationCost = Math.round(totalFluteAreaM2 * (parseFloat(s.laminationCostPerSqm) || 5500));
+  }
+
+  // 3. Printing & Plates
+  const colors = parseInt(s.printColorsCount) || 4;
+  const plateCost = colors * (parseFloat(s.plateCostPerUnit) || 160000);
+  const printThousand = Math.ceil(totalSheetsRequired / 1000);
+  const printRate = parseFloat(s.printCostPerThousand) || 750000;
+  const printCost = Math.max(1, printThousand) * printRate;
+
+  // 4. Cellophane
+  let cellophaneCost = 0;
+  if (s.cellophaneType && s.cellophaneType !== 'none') {
+    const celloRate = parseFloat(s.cellophanePricePerSqm) || 4200;
+    cellophaneCost = Math.round(totalSheetsRequired * sheetAreaM2 * celloRate);
+  }
+
+  // 5. UV
+  let uvCost = 0;
+  if (s.hasUv) {
+    uvCost = 350000 + Math.ceil(totalSheetsRequired / 1000) * (parseFloat(s.uvCostPerThousand) || 650000);
+  }
+
+  // 6. Foil / Stamping
+  let foilCost = 0;
+  if (s.hasFoil) {
+    foilCost = (parseFloat(s.foilClicheCost) || 850000) + Math.ceil(totalSheetsRequired / 1000) * (parseFloat(s.foilCostPerThousand) || 750000);
+  }
+
+  // 7. Emboss
+  let embossCost = 0;
+  if (s.hasEmboss) {
+    embossCost = 450000 + Math.ceil(totalSheetsRequired / 1000) * (parseFloat(s.embossCostPerThousand) || 380000);
+  }
+
+  // 8. Die Cut & Mould
+  const dieCutMouldCost = parseFloat(s.dieCutMouldCost) || 1200000;
+  const dieCutRate = parseFloat(s.dieCutCostPerThousand) || 420000;
+  const dieCutCost = dieCutMouldCost + Math.ceil(totalSheetsRequired / 1000) * dieCutRate;
+
+  // 9. Gluing
+  let gluingCost = 0;
+  if (s.gluingType && s.gluingType !== 'none') {
+    const glueRate = parseFloat(s.gluingCostPerThousand) || 190000;
+    gluingCost = Math.ceil(qty / 1000) * glueRate;
+  }
+
+  // Total Raw Cost
+  const totalRawCost = paperCost + fluteCost + laminationCost + plateCost + printCost +
+                       cellophaneCost + uvCost + foilCost + embossCost + dieCutCost + gluingCost;
+
+  // Margin & Final Prices (Instant calculation)
+  const marginPercent = parseFloat(s.profitMarginPercent) ?? 20;
+  const profitAmount = Math.round(totalRawCost * (marginPercent / 100));
+  const finalPrice = totalRawCost + profitAmount;
+  const unitPrice = Math.round(finalPrice / qty);
+
+  return {
+    quantity: qty,
+    imposition: {
+      netSheets,
+      wasteSheets,
+      totalSheetsRequired,
+      upPerSheet,
+      totalPaperWeightKg,
+      sheetAreaM2: Math.round(sheetAreaM2 * 100) / 100
+    },
+    costBreakdown: {
+      paperCost,
+      fluteCost,
+      laminationCost,
+      plateCost,
+      printCost,
+      cellophaneCost,
+      uvCost,
+      foilCost,
+      embossCost,
+      dieCutCost,
+      gluingCost
+    },
+    totalRawCost,
+    profitMarginPercent: marginPercent,
+    finalPrice,
+    unitPrice
+  };
+}
+
 export default function CalculatorView({ onApplyToProject, initialSpecs, onLeadEstimated }) {
   const { role, currentUser } = useAuth();
 
@@ -29,11 +156,11 @@ export default function CalculatorView({ onApplyToProject, initialSpecs, onLeadE
     lengthMm: initialSpecs?.lengthMm || initialSpecs?.box_length || 220,
     widthMm: initialSpecs?.widthMm || initialSpecs?.box_width || 150,
     heightMm: initialSpecs?.heightMm || initialSpecs?.box_height || 70,
-    quantity: initialSpecs?.quantity || 5000,
+    quantity: initialSpecs?.quantity || 8000,
     boxType: initialSpecs?.boxType || 'carton_e_flute',
-    paperType: initialSpecs?.cardboard_type || 'مقوای ایندربرد ۳۰۰ گرم',
+    paperType: initialSpecs?.cardboard_type || 'مقوای ایندربرد ۲۵۰ گرم (دارویی/بهداشتی)',
     paperPricePerKg: 72000,
-    grammage: initialSpecs?.cardboard_grammage || 300,
+    grammage: initialSpecs?.cardboard_grammage || 250,
     hasFlute: true,
     fluteType: 'e_flute',
     flutePricePerSqm: 14500,
@@ -58,7 +185,8 @@ export default function CalculatorView({ onApplyToProject, initialSpecs, onLeadE
     wastagePercent: 5
   });
 
-  const [calcResult, setCalcResult] = useState(null);
+  // Initialize with instant local calculation so there is 0 latency
+  const [calcResult, setCalcResult] = useState(() => computeInstantPricing(specs));
   const [loading, setLoading] = useState(false);
 
   // Marketing Leads waiting for price estimation
@@ -73,7 +201,6 @@ export default function CalculatorView({ onApplyToProject, initialSpecs, onLeadE
       setLoadingLeads(true);
       const res = await api.getMarketingLeads();
       if (res.success) {
-        // filter leads that are pending commercial estimation
         const pending = (res.leads || []).filter(l => l.status === 'pending_commercial' || !l.estimated_unit_price);
         setPendingLeads(pending);
       }
@@ -92,18 +219,20 @@ export default function CalculatorView({ onApplyToProject, initialSpecs, onLeadE
     setActiveLead(lead);
     setEstimateNotes(`برآورد قیمت استعلام ${lead.lead_code} - مشتری: ${lead.customer_name}`);
 
-    // Map lead parameters into calculator
-    setSpecs((prev) => ({
-      ...prev,
+    const updatedSpecs = {
+      ...specs,
       quantity: Number(lead.quantity) || 5000,
-      lengthMm: Number(lead.box_length) || prev.lengthMm,
-      widthMm: Number(lead.box_width) || prev.widthMm,
-      heightMm: Number(lead.box_height) || prev.heightMm,
+      lengthMm: Number(lead.box_length) || specs.lengthMm,
+      widthMm: Number(lead.box_width) || specs.widthMm,
+      heightMm: Number(lead.box_height) || specs.heightMm,
       grammage: Number(lead.cardboard_grammage) || 300,
       hasFlute: lead.material_construction?.includes('سینگل') || lead.material_construction?.includes('ای فلوت') || false,
       fluteType: lead.material_construction?.includes('بی فلوت') ? 'b_flute' : 'e_flute',
       cellophaneType: lead.cellophane_type?.includes('براق') ? 'gloss' : lead.cellophane_type?.includes('بدون') ? 'none' : 'matte'
-    }));
+    };
+
+    setSpecs(updatedSpecs);
+    setCalcResult(computeInstantPricing(updatedSpecs));
   };
 
   const handleSubmitLeadEstimation = async () => {
@@ -193,31 +322,46 @@ export default function CalculatorView({ onApplyToProject, initialSpecs, onLeadE
   ];
 
   const applyPreset = (preset) => {
-    setSpecs((prev) => ({ ...prev, ...preset.config }));
+    const updated = { ...specs, ...preset.config };
+    setSpecs(updated);
+    setCalcResult(computeInstantPricing(updated));
   };
 
-  const calculate = async () => {
-    setLoading(true);
-    try {
-      const res = await api.calculatePrice(specs);
-      setCalcResult(res);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    calculate();
-  }, [specs]);
-
+  // Instant Real-time Field Updater
   const updateField = (field, value) => {
-    setSpecs((prev) => ({ ...prev, [field]: value }));
+    setSpecs((prev) => {
+      const updated = { ...prev, [field]: value };
+      // Compute immediately synchronously so slider & fields update at 60 FPS
+      const instantRes = computeInstantPricing(updated);
+      setCalcResult(instantRes);
+      return updated;
+    });
+  };
+
+  // Immediate Profit Margin Slider Handler (Guarantees instant price recalculation)
+  const handleProfitMarginChange = (val) => {
+    const margin = parseInt(val) || 0;
+    setSpecs((prev) => {
+      const updated = { ...prev, profitMarginPercent: margin };
+      if (calcResult && calcResult.totalRawCost) {
+        const profitAmount = Math.round(calcResult.totalRawCost * (margin / 100));
+        const finalPrice = calcResult.totalRawCost + profitAmount;
+        const unitPrice = Math.round(finalPrice / (updated.quantity || 1));
+        setCalcResult((prevRes) => ({
+          ...prevRes,
+          profitMarginPercent: margin,
+          finalPrice,
+          unitPrice
+        }));
+      } else {
+        setCalcResult(computeInstantPricing(updated));
+      }
+      return updated;
+    });
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 select-none font-sans" dir="rtl">
       
       {/* PENDING MARKETING INQUIRIES NOTIFICATION BANNER & CARDS */}
       {pendingLeads.length > 0 && (
@@ -347,95 +491,84 @@ export default function CalculatorView({ onApplyToProject, initialSpecs, onLeadE
         </div>
       )}
 
-      {/* Top Header Card */}
-      <div className="bg-gradient-to-r from-amber-600 via-amber-700 to-amber-900 text-white p-6 rounded-2xl shadow-md flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center text-white">
-            <Calculator className="w-7 h-7" />
-          </div>
-          <div>
-            <h2 className="text-base font-bold text-white flex items-center gap-2">
-              <span>ماشین حساب صنعتی برآورد قیمت جعبه و کارتن</span>
-              <span className="bg-amber-400 text-amber-950 text-xs px-2.5 py-0.5 rounded-full font-bold">
-                فرمول استعلام روز
-              </span>
-            </h2>
-            <p className="text-xs text-amber-100 mt-1">
-              محاسبه خودکار وزن مقوا بر اساس گرماژ، شیت‌بندی، زینک، چاپ افست، فلوت، خدمات تکمیلی، پرت تولید و سود کارخانه
-            </p>
-          </div>
-        </div>
-
-        {/* Quick Presets */}
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-xs text-amber-200 font-medium">الگوهای سریع:</span>
-          {presets.map((p, idx) => (
-            <button
-              key={idx}
-              onClick={() => applyPreset(p)}
-              className="text-[11px] bg-white/20 hover:bg-white/30 text-white px-2.5 py-1 rounded-lg font-medium transition-all"
-            >
-              {p.name}
-            </button>
-          ))}
-        </div>
-      </div>
-
+      {/* Main 2-Column Responsive Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left 2 Columns: Input Controls */}
-        <div className="lg:col-span-2 space-y-5">
-          {/* Section 1: Dimensions & Quantity */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-            <h3 className="text-xs font-bold text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-2">
-              <Sliders className="w-4 h-4 text-indigo-600" />
-              <span>۱. ابعاد جعبه و تیراژ سفارش</span>
+        
+        {/* Left 2 Columns: Input Controls & Sliders */}
+        <div className="lg:col-span-2 space-y-6">
+          
+          {/* Presets Selector */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-2">
+            <span className="text-xs font-bold text-slate-500">پریست‌های سریع استعلام صنعتی:</span>
+            <div className="flex flex-wrap gap-2">
+              {presets.map((p, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => applyPreset(p)}
+                  className="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 border border-slate-200 text-slate-700 transition"
+                >
+                  {p.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* SECTION 1: ابعاد و تیراژ */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+            <h3 className="font-bold text-sm text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-2">
+              <Box className="w-4 h-4 text-indigo-600" />
+              <span>۱. مشخصات ابعاد و تیراژ سفارش</span>
             </h3>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">طول (L) میلی‌متر</label>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">طول (mm)</label>
                 <input
                   type="number"
                   value={specs.lengthMm}
-                  onChange={(e) => updateField('lengthMm', e.target.value)}
-                  className="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500/20 font-mono font-bold"
+                  onChange={(e) => updateField('lengthMm', parseInt(e.target.value) || 0)}
+                  className="w-full px-3 py-2 text-xs font-mono font-bold rounded-lg border border-slate-200 bg-slate-50 text-center"
                 />
               </div>
+
               <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">عرض (W) میلی‌متر</label>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">عرض (mm)</label>
                 <input
                   type="number"
                   value={specs.widthMm}
-                  onChange={(e) => updateField('widthMm', e.target.value)}
-                  className="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500/20 font-mono font-bold"
+                  onChange={(e) => updateField('widthMm', parseInt(e.target.value) || 0)}
+                  className="w-full px-3 py-2 text-xs font-mono font-bold rounded-lg border border-slate-200 bg-slate-50 text-center"
                 />
               </div>
+
               <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">ارتفاع (H) میلی‌متر</label>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">ارتفاع (mm)</label>
                 <input
                   type="number"
                   value={specs.heightMm}
-                  onChange={(e) => updateField('heightMm', e.target.value)}
-                  className="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500/20 font-mono font-bold"
+                  onChange={(e) => updateField('heightMm', parseInt(e.target.value) || 0)}
+                  className="w-full px-3 py-2 text-xs font-mono font-bold rounded-lg border border-slate-200 bg-slate-50 text-center"
                 />
               </div>
+
               <div>
-                <label className="block text-[11px] font-bold text-indigo-700 mb-1">تیراژ (تعداد)</label>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">تیراژ سفارش (عدد)</label>
                 <input
                   type="number"
                   step="500"
                   value={specs.quantity}
-                  onChange={(e) => updateField('quantity', e.target.value)}
-                  className="w-full px-3 py-2 text-xs rounded-lg border-2 border-indigo-300 focus:ring-2 focus:ring-indigo-500/20 font-mono font-bold text-indigo-800"
+                  onChange={(e) => updateField('quantity', parseInt(e.target.value) || 0)}
+                  className="w-full px-3 py-2 text-xs font-mono font-bold rounded-lg border border-indigo-300 bg-indigo-50/50 text-indigo-900 text-center"
                 />
               </div>
             </div>
           </div>
 
-          {/* Section 2: Material & Flute */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-            <h3 className="text-xs font-bold text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-2">
-              <Layers className="w-4 h-4 text-emerald-600" />
+          {/* SECTION 2: متریال مقوا و سینگل */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+            <h3 className="font-bold text-sm text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-2">
+              <Layers className="w-4 h-4 text-indigo-600" />
               <span>۲. متریال مقوا، سینگل و فلوتینگ</span>
             </h3>
 
@@ -443,24 +576,25 @@ export default function CalculatorView({ onApplyToProject, initialSpecs, onLeadE
               <div>
                 <label className="block text-[11px] font-bold text-slate-600 mb-1">نوع و گرماژ مقوا</label>
                 <select
-                  value={specs.grammage}
+                  value={specs.paperType}
                   onChange={(e) => {
-                    const g = parseInt(e.target.value);
-                    let p = 68000;
-                    if (g === 300) p = 72000;
-                    if (g === 350) p = 76000;
-                    if (g === 230) p = 48000;
-                    setSpecs((prev) => ({ ...prev, grammage: g, paperPricePerKg: p }));
+                    const val = e.target.value;
+                    let g = 300;
+                    if (val.includes('۲۵۰')) g = 250;
+                    if (val.includes('۳۰۰')) g = 300;
+                    if (val.includes('۳۵۰')) g = 350;
+                    if (val.includes('۴۰۰')) g = 400;
+                    updateField('paperType', val);
+                    updateField('grammage', g);
                   }}
-                  className="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 bg-white focus:ring-2 focus:ring-indigo-500/20"
+                  className="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 bg-white"
                 >
-                  <option value="250">ایندربرد ۲۵۰ گرم (دارویی/بهداشتی)</option>
-                  <option value="300">ایندربرد ۳۰۰ گرم (صادراتی لوکس)</option>
-                  <option value="350">ایندربرد ۳۵۰ گرم (سنگین/مقاوم)</option>
-                  <option value="230">کرافت سنگین ۲۳۰ گرم (طبیعی/فودگرید)</option>
-                  <option value="280">کرافت فودگرید ۲۸۰ گرم</option>
-                  <option value="250">پشت طوسی ۲۵۰ گرم (صنعتی)</option>
-                  <option value="300">پشت طوسی ۳۰۰ گرم (قطعات خودرو)</option>
+                  <option value="ایندربرد ۲۵۰ گرم (دارویی/بهداشتی)">ایندربرد ۲۵۰ گرم (دارویی/بهداشتی)</option>
+                  <option value="ایندربرد ۳۰۰ گرم (صادراتی)">ایندربرد ۳۰۰ گرم (صادراتی)</option>
+                  <option value="ایندربرد ۳۵۰ گرم (جعبه سنگین)">ایندربرد ۳۵۰ گرم (جعبه سنگین)</option>
+                  <option value="پشت طوسی ۲۵۰ گرم">پشت طوسی ۲۵۰ گرم</option>
+                  <option value="پشت طوسی ۳۰۰ گرم">پشت طوسی ۳۰۰ گرم</option>
+                  <option value="کرافت سنگین ۲۸۰ گرم">کرافت سنگین ۲۸۰ گرم</option>
                 </select>
               </div>
 
@@ -468,9 +602,10 @@ export default function CalculatorView({ onApplyToProject, initialSpecs, onLeadE
                 <label className="block text-[11px] font-bold text-slate-600 mb-1">قیمت هر کیلو مقوا (تومان)</label>
                 <input
                   type="number"
+                  step="1000"
                   value={specs.paperPricePerKg}
-                  onChange={(e) => updateField('paperPricePerKg', parseFloat(e.target.value) || 0)}
-                  className="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 font-mono"
+                  onChange={(e) => updateField('paperPricePerKg', parseInt(e.target.value) || 0)}
+                  className="w-full px-3 py-2 text-xs font-mono font-bold rounded-lg border border-slate-200 bg-white text-center"
                 />
               </div>
 
@@ -481,30 +616,27 @@ export default function CalculatorView({ onApplyToProject, initialSpecs, onLeadE
                   onChange={(e) => {
                     const v = e.target.value;
                     if (v === 'none') {
-                      setSpecs((prev) => ({ ...prev, hasFlute: false, flutePricePerSqm: 0 }));
-                    } else if (v === 'e_flute') {
-                      setSpecs((prev) => ({ ...prev, hasFlute: true, fluteType: 'e_flute', flutePricePerSqm: 14500 }));
-                    } else if (v === 'b_flute') {
-                      setSpecs((prev) => ({ ...prev, hasFlute: true, fluteType: 'b_flute', flutePricePerSqm: 16500 }));
-                    } else if (v === '3ply') {
-                      setSpecs((prev) => ({ ...prev, hasFlute: true, fluteType: '3ply', flutePricePerSqm: 24000 }));
+                      updateField('hasFlute', false);
+                    } else {
+                      updateField('hasFlute', true);
+                      updateField('fluteType', v);
+                      updateField('flutePricePerSqm', v === 'b_flute' ? 16500 : 14500);
                     }
                   }}
                   className="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 bg-white"
                 >
-                  <option value="none">بدون فلوت (صرفاً مقوایی)</option>
-                  <option value="e_flute">سینگل فیس E فلوت (کنگره ریز ۱.۵ میلی‌متر)</option>
-                  <option value="b_flute">سینگل فیس B فلوت (کنگره متوسط ۳ میلی‌متر)</option>
-                  <option value="3ply">ورق ۳ لایه کارتن آماده</option>
+                  <option value="none">بدون سینگل (جعبه مقوایی ساده)</option>
+                  <option value="e_flute">سینگل فیس E فلوت (کنگره ریز)</option>
+                  <option value="b_flute">سینگل فیس B فلوت (کنگره درشت)</option>
                 </select>
               </div>
             </div>
           </div>
 
-          {/* Section 3: Printing & Pre-Press */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-            <h3 className="text-xs font-bold text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-2">
-              <Printer className="w-4 h-4 text-cyan-600" />
+          {/* SECTION 3: چاپ و لیتوگرافی */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+            <h3 className="font-bold text-sm text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-2">
+              <Printer className="w-4 h-4 text-indigo-600" />
               <span>۳. چاپ افست، زینک و لیتوگرافی</span>
             </h3>
 
@@ -516,11 +648,11 @@ export default function CalculatorView({ onApplyToProject, initialSpecs, onLeadE
                   onChange={(e) => updateField('printColorsCount', parseInt(e.target.value))}
                   className="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 bg-white"
                 >
-                  <option value="1">تک رنگ (سیاه / پنتون)</option>
-                  <option value="2">دو رنگ</option>
-                  <option value="4">چهار رنگ کامل (CMYK)</option>
-                  <option value="5">پنج رنگ (CMYK + رنگ پنتون طلایی/نقره‌ای)</option>
-                  <option value="6">شش رنگ (CMYK + 2 پنتون)</option>
+                  <option value={1}>تک رنگ (سیاه و سفید یا ساختگی)</option>
+                  <option value={2}>دو رنگ تفکیکی</option>
+                  <option value={4}>چهار رنگ کامل (CMYK)</option>
+                  <option value={5}>پنج رنگ (CMYK + رنگ پنتون)</option>
+                  <option value={6}>شش رنگ کامل</option>
                 </select>
               </div>
 
@@ -528,9 +660,10 @@ export default function CalculatorView({ onApplyToProject, initialSpecs, onLeadE
                 <label className="block text-[11px] font-bold text-slate-600 mb-1">هزینه هر زینک CTP (تومان)</label>
                 <input
                   type="number"
+                  step="10000"
                   value={specs.plateCostPerUnit}
-                  onChange={(e) => updateField('plateCostPerUnit', parseFloat(e.target.value) || 0)}
-                  className="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 font-mono"
+                  onChange={(e) => updateField('plateCostPerUnit', parseInt(e.target.value) || 0)}
+                  className="w-full px-3 py-2 text-xs font-mono font-bold rounded-lg border border-slate-200 bg-white text-center"
                 />
               </div>
 
@@ -538,18 +671,19 @@ export default function CalculatorView({ onApplyToProject, initialSpecs, onLeadE
                 <label className="block text-[11px] font-bold text-slate-600 mb-1">نرخ هر ۱۰۰۰ دور چاپ (تومان)</label>
                 <input
                   type="number"
+                  step="50000"
                   value={specs.printCostPerThousand}
-                  onChange={(e) => updateField('printCostPerThousand', parseFloat(e.target.value) || 0)}
-                  className="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 font-mono"
+                  onChange={(e) => updateField('printCostPerThousand', parseInt(e.target.value) || 0)}
+                  className="w-full px-3 py-2 text-xs font-mono font-bold rounded-lg border border-slate-200 bg-white text-center"
                 />
               </div>
             </div>
           </div>
 
-          {/* Section 4: Finishing & Die-Cutting */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-            <h3 className="text-xs font-bold text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-2">
-              <Sparkles className="w-4 h-4 text-amber-500" />
+          {/* SECTION 4: خدمات تکمیلی و درصد سود کارخانه */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+            <h3 className="font-bold text-sm text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-2">
+              <Sparkles className="w-4 h-4 text-indigo-600" />
               <span>۴. خدمات تکمیلی، دایکات و جعبه‌چسبانی</span>
             </h3>
 
@@ -558,18 +692,13 @@ export default function CalculatorView({ onApplyToProject, initialSpecs, onLeadE
                 <label className="block text-[11px] font-bold text-slate-600 mb-1">نوع سلفون</label>
                 <select
                   value={specs.cellophaneType}
-                  onChange={(e) => {
-                    const t = e.target.value;
-                    let p = 0;
-                    if (t === 'matte') p = 4200;
-                    if (t === 'gloss') p = 3800;
-                    setSpecs((prev) => ({ ...prev, cellophaneType: t, cellophanePricePerSqm: p }));
-                  }}
+                  onChange={(e) => updateField('cellophaneType', e.target.value)}
                   className="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 bg-white"
                 >
                   <option value="none">بدون سلفون</option>
-                  <option value="matte">سلفون حرارتی مات</option>
                   <option value="gloss">سلفون حرارتی براق</option>
+                  <option value="matte">سلفون حرارتی مات</option>
+                  <option value="velvet">سلفون مخملی لوکس</option>
                 </select>
               </div>
 
@@ -581,7 +710,7 @@ export default function CalculatorView({ onApplyToProject, initialSpecs, onLeadE
                   className="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 bg-white"
                 >
                   <option value="no">ندارد</option>
-                  <option value="yes">یووی موضعی شابلونی دارد</option>
+                  <option value="yes">یووی موضعی شابلون</option>
                 </select>
               </div>
 
@@ -593,7 +722,7 @@ export default function CalculatorView({ onApplyToProject, initialSpecs, onLeadE
                   className="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 bg-white"
                 >
                   <option value="no">ندارد</option>
-                  <option value="yes">طلاکوب / نقره‌کوب دارد</option>
+                  <option value="yes">طلاکوب / نقره‌کوب</option>
                 </select>
               </div>
 
@@ -612,24 +741,31 @@ export default function CalculatorView({ onApplyToProject, initialSpecs, onLeadE
               </div>
             </div>
 
-            {/* Profit Margin Slider */}
-            <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-4">
+            {/* Profit Margin Slider (Real-time Live Calculation) */}
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-4">
               <div className="flex-1">
-                <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
-                  <span>درصد حاشیه سود کارخانه:</span>
-                  <span className="text-indigo-600 font-mono font-bold text-sm">
+                <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1.5">
+                  <span className="text-slate-800 font-black">درصد حاشیه سود کارخانه:</span>
+                  <span className="text-indigo-600 font-mono font-black text-base bg-indigo-50 px-3 py-0.5 rounded-lg border border-indigo-200">
                     %{specs.profitMarginPercent}
                   </span>
                 </div>
                 <input
                   type="range"
                   min="5"
-                  max="40"
+                  max="50"
                   step="1"
                   value={specs.profitMarginPercent}
-                  onChange={(e) => updateField('profitMarginPercent', parseInt(e.target.value))}
-                  className="w-full accent-indigo-600"
+                  onChange={(e) => handleProfitMarginChange(e.target.value)}
+                  onInput={(e) => handleProfitMarginChange(e.target.value)}
+                  className="w-full accent-indigo-600 cursor-pointer h-2 bg-slate-200 rounded-lg"
                 />
+                <div className="flex justify-between text-[10px] text-slate-400 font-mono pt-1">
+                  <span>۵٪</span>
+                  <span>۲۰٪</span>
+                  <span>۳۵٪</span>
+                  <span>۵۰٪</span>
+                </div>
               </div>
             </div>
           </div>
@@ -644,11 +780,12 @@ export default function CalculatorView({ onApplyToProject, initialSpecs, onLeadE
                 <h3 className="font-bold text-sm text-slate-800">خلاصه برآورد و قیمت تمام شده</h3>
               </div>
               <button
-                onClick={calculate}
+                type="button"
+                onClick={() => setCalcResult(computeInstantPricing(specs))}
                 className="text-slate-400 hover:text-indigo-600 transition-colors p-1"
                 title="محاسبه مجدد"
               >
-                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-indigo-600' : ''}`} />
+                <RefreshCw className="w-4 h-4 text-indigo-600" />
               </button>
             </div>
 
@@ -657,34 +794,34 @@ export default function CalculatorView({ onApplyToProject, initialSpecs, onLeadE
                 {/* Highlight Boxes: Total & Unit Price */}
                 <div className="bg-gradient-to-br from-indigo-50 to-blue-50 p-4 rounded-xl border border-indigo-200 text-center space-y-1">
                   <span className="text-xs text-indigo-700 font-medium">قیمت نهایی هر عدد جعبه:</span>
-                  <div className="text-2xl font-black text-indigo-900">
+                  <div className="text-2xl font-black text-indigo-900 font-mono">
                     {formatToman(calcResult.unitPrice)}
                   </div>
                   <div className="text-[11px] text-slate-500">
-                    برای تیراژ <strong className="text-slate-700">{formatNumber(specs.quantity)}</strong> عدد
+                    برای تیراژ <strong className="text-slate-700 font-mono">{formatNumber(specs.quantity)}</strong> عدد
                   </div>
                 </div>
 
                 <div className="bg-emerald-50 p-3.5 rounded-xl border border-emerald-200 flex items-center justify-between">
                   <span className="text-xs text-emerald-800 font-bold">مبلغ کل فاکتور:</span>
-                  <strong className="text-emerald-900 font-black text-base">
+                  <strong className="text-emerald-900 font-black text-base font-mono">
                     {formatToman(calcResult.finalPrice)}
                   </strong>
                 </div>
 
                 {/* Technical Imposition Data */}
-                <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-xs space-y-1.5 text-slate-600">
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-xs space-y-1.5 text-slate-600 font-sans">
                   <div className="flex items-center justify-between">
                     <span>تعداد در هر شیت چاپی:</span>
-                    <strong className="text-slate-800 font-bold">{calcResult.imposition.upPerSheet} عدد</strong>
+                    <strong className="text-slate-800 font-bold font-mono">{calcResult.imposition.upPerSheet} عدد</strong>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>تعداد کل شیت مصرفی:</span>
-                    <strong className="text-slate-800 font-bold">{formatNumber(calcResult.imposition.totalSheetsRequired)} برگ</strong>
+                    <strong className="text-slate-800 font-bold font-mono">{formatNumber(calcResult.imposition.totalSheetsRequired)} برگ</strong>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>وزن کل مقوای مصرفی:</span>
-                    <strong className="text-slate-800 font-bold">{formatNumber(calcResult.imposition.totalPaperWeightKg)} کیلوگرم</strong>
+                    <strong className="text-slate-800 font-bold font-mono">{formatNumber(calcResult.imposition.totalPaperWeightKg)} کیلوگرم</strong>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>بهای تمام شده خام:</span>
@@ -692,7 +829,7 @@ export default function CalculatorView({ onApplyToProject, initialSpecs, onLeadE
                   </div>
                   <div className="flex items-center justify-between">
                     <span>سود کارخانه (%{calcResult.profitMarginPercent}):</span>
-                    <strong className="text-indigo-700 font-mono">
+                    <strong className="text-indigo-700 font-mono font-black">
                       {formatToman(calcResult.finalPrice - calcResult.totalRawCost)}
                     </strong>
                   </div>
@@ -701,24 +838,24 @@ export default function CalculatorView({ onApplyToProject, initialSpecs, onLeadE
                 {/* Detailed Breakdown */}
                 <div className="space-y-1.5 text-[11px] text-slate-600 border-t border-slate-100 pt-3">
                   <div className="font-bold text-slate-700 mb-1">ریز هزینه‌های تولید:</div>
-                  <div className="flex justify-between"><span>مقوا:</span><span>{formatToman(calcResult.costBreakdown.paperCost)}</span></div>
+                  <div className="flex justify-between"><span>مقوا:</span><span className="font-mono">{formatToman(calcResult.costBreakdown.paperCost)}</span></div>
                   {calcResult.costBreakdown.fluteCost > 0 && (
-                    <div className="flex justify-between"><span>فلوت و لامینت:</span><span>{formatToman(calcResult.costBreakdown.fluteCost + calcResult.costBreakdown.laminationCost)}</span></div>
+                    <div className="flex justify-between"><span>فلوت و لامینت:</span><span className="font-mono">{formatToman(calcResult.costBreakdown.fluteCost + calcResult.costBreakdown.laminationCost)}</span></div>
                   )}
-                  <div className="flex justify-between"><span>زینک و لیتوگرافی:</span><span>{formatToman(calcResult.costBreakdown.plateCost)}</span></div>
-                  <div className="flex justify-between"><span>چاپ افست:</span><span>{formatToman(calcResult.costBreakdown.printCost)}</span></div>
+                  <div className="flex justify-between"><span>زینک و لیتوگرافی:</span><span className="font-mono">{formatToman(calcResult.costBreakdown.plateCost)}</span></div>
+                  <div className="flex justify-between"><span>چاپ افست:</span><span className="font-mono">{formatToman(calcResult.costBreakdown.printCost)}</span></div>
                   {calcResult.costBreakdown.cellophaneCost > 0 && (
-                    <div className="flex justify-between"><span>سلفون‌کشی:</span><span>{formatToman(calcResult.costBreakdown.cellophaneCost)}</span></div>
+                    <div className="flex justify-between"><span>سلفون‌کشی:</span><span className="font-mono">{formatToman(calcResult.costBreakdown.cellophaneCost)}</span></div>
                   )}
                   {calcResult.costBreakdown.uvCost > 0 && (
-                    <div className="flex justify-between"><span>یووی موضعی:</span><span>{formatToman(calcResult.costBreakdown.uvCost)}</span></div>
+                    <div className="flex justify-between"><span>یووی موضعی:</span><span className="font-mono">{formatToman(calcResult.costBreakdown.uvCost)}</span></div>
                   )}
                   {calcResult.costBreakdown.foilCost > 0 && (
-                    <div className="flex justify-between"><span>طلاکوب:</span><span>{formatToman(calcResult.costBreakdown.foilCost)}</span></div>
+                    <div className="flex justify-between"><span>طلاکوب:</span><span className="font-mono">{formatToman(calcResult.costBreakdown.foilCost)}</span></div>
                   )}
-                  <div className="flex justify-between"><span>قالب و دایکات:</span><span>{formatToman(calcResult.costBreakdown.dieCutCost)}</span></div>
+                  <div className="flex justify-between"><span>قالب و دایکات:</span><span className="font-mono">{formatToman(calcResult.costBreakdown.dieCutCost)}</span></div>
                   {calcResult.costBreakdown.gluingCost > 0 && (
-                    <div className="flex justify-between"><span>جعبه‌چسبانی:</span><span>{formatToman(calcResult.costBreakdown.gluingCost)}</span></div>
+                    <div className="flex justify-between"><span>جعبه‌چسبانی:</span><span className="font-mono">{formatToman(calcResult.costBreakdown.gluingCost)}</span></div>
                   )}
                 </div>
 
@@ -750,6 +887,7 @@ export default function CalculatorView({ onApplyToProject, initialSpecs, onLeadE
             )}
           </div>
         </div>
+
       </div>
     </div>
   );
