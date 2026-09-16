@@ -21,10 +21,12 @@ import {
   Crown,
   Layers,
   FileType,
-  RotateCw
+  RotateCw,
+  Maximize2
 } from 'lucide-react';
 import { api } from '../api/client';
 import Packaging3DMockup from './Packaging3DMockup';
+import Packaging3DStudioView from './Packaging3DStudioView';
 import { exportDielineToPdf } from '../utils/pdfExport';
 import { exportDielineToDxf } from '../utils/dxfExport';
 
@@ -45,7 +47,10 @@ const MATERIALS = [
 ];
 
 export default function DielineGeneratorView({ onTransferToOrder }) {
-  // Navigation & Tabs
+  // Mode: '2d_dieline' or '3d_studio'
+  const [studioMode, setStudioMode] = useState('2d_dieline');
+
+  // Navigation & Tabs in 2D Mode
   const [activeNavTab, setActiveNavTab] = useState('basic'); // 'models', 'basic', 'advanced', 'more'
   const [unitMode, setUnitMode] = useState('mm'); // 'mm' or 'in'
 
@@ -68,343 +73,360 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
   // Canvas interaction
   const [zoomScale, setZoomScale] = useState(1);
   const [activeCanvasTool, setActiveCanvasTool] = useState('select'); // 'select', 'pan'
+
+  // Server Dieline CAD Data
   const [dielineData, setDielineData] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
+  const [loadingDieline, setLoadingDieline] = useState(false);
 
-  // Format Selection for Download
-  const [activeFormat, setActiveFormat] = useState('pdf'); // 'ai', 'pdf', 'dxf', '3d'
+  // If in 3D Studio mode, render full 3D Modeling Studio directly
+  if (studioMode === '3d_studio') {
+    return (
+      <Packaging3DStudioView
+        initialBoxSpecs={{
+          modelId: selectedModel === 'tuck_end' ? 'tuck_end' : selectedModel === 'keyboard' ? 'mailer' : 'auto_bottom',
+          length: lengthMm,
+          width: widthMm,
+          height: heightMm,
+          thickness: thicknessMm
+        }}
+        onSwitchTo2DDieline={() => setStudioMode('2d_dieline')}
+        onTransferToOrder={onTransferToOrder}
+      />
+    );
+  }
 
-  // Fetch / Generate Parametric Dieline
-  const handleGenerateDieline = async () => {
-    setLoading(true);
+  // Unit conversion helpers
+  const toDisplay = (valMm) => {
+    if (unitMode === 'in') return (valMm / 25.4).toFixed(2);
+    return Math.round(valMm);
+  };
+
+  const fromDisplay = (val) => {
+    const num = parseFloat(val) || 0;
+    if (unitMode === 'in') return num * 25.4;
+    return num;
+  };
+
+  // Fetch / Compute Dieline from Backend Vector Engine
+  const fetchDieline = async () => {
     try {
-      const payload = {
-        boxType: selectedModel,
-        length: Number(lengthMm),
-        width: Number(widthMm),
-        height: Number(heightMm),
-        materialId: selectedMaterial,
-        customThickness: Number(thicknessMm),
-        sizeMode: sizeMode
-      };
-
-      const res = await api.generateDielineMontage(payload);
+      setLoadingDieline(true);
+      const res = await api.generateDieline({
+        type: selectedModel,
+        length: lengthMm,
+        width: widthMm,
+        height: heightMm,
+        thickness: thicknessMm,
+        size_mode: sizeMode,
+        material_type: selectedMaterial
+      });
       if (res.success) {
-        setDielineData(res.dieline);
+        setDielineData(res);
       }
     } catch (err) {
       console.error('Error generating dieline:', err);
     } finally {
-      setLoading(false);
+      setLoadingDieline(false);
     }
   };
 
   useEffect(() => {
-    handleGenerateDieline();
-  }, [selectedModel, lengthMm, widthMm, heightMm, selectedMaterial, thicknessMm, sizeMode]);
+    fetchDieline();
+  }, [selectedModel, lengthMm, widthMm, heightMm, thicknessMm, sizeMode, selectedMaterial]);
 
-  // Handle Stepper Thickness (+ / -)
-  const handleStepThickness = (delta) => {
-    setThicknessMm((prev) => {
-      const nextVal = Math.max(0.1, Math.min(6.0, Math.round((prev + delta) * 100) / 100));
-      return nextVal;
+  // Dimension Triad Calculations (Exact Pacdora Formula)
+  const mfg = {
+    l: lengthMm,
+    w: widthMm,
+    h: heightMm
+  };
+  const inner = {
+    l: (lengthMm - thicknessMm * 1.2).toFixed(1),
+    w: (widthMm - thicknessMm * 1.2).toFixed(1),
+    h: (heightMm - thicknessMm * 2.2).toFixed(1)
+  };
+  const outer = {
+    l: (lengthMm + thicknessMm * 0.8).toFixed(1),
+    w: (widthMm + thicknessMm * 0.8).toFixed(1),
+    h: (heightMm + thicknessMm * 1.8).toFixed(1)
+  };
+
+  // Export Direct Functions
+  const handleDownloadPdf = () => {
+    const activeMatObj = MATERIALS.find((m) => m.id === selectedMaterial) || MATERIALS[0];
+    exportDielineToPdf(dielineData, {
+      modelName: MODELS.find((m) => m.id === selectedModel)?.name || 'Custom Dieline',
+      length: lengthMm,
+      width: widthMm,
+      height: heightMm,
+      thickness: thicknessMm,
+      material: activeMatObj.farsiName,
+      unit: unitMode
     });
   };
 
-  // Switch Model
-  const handleSelectModel = (modelId) => {
-    setSelectedModel(modelId);
-    const m = MODELS.find((item) => item.id === modelId);
-    if (m) {
-      setLengthMm(m.defaultDim.l);
-      setWidthMm(m.defaultDim.w);
-      setHeightMm(m.defaultDim.h);
-    }
-    setActiveNavTab('basic');
+  const handleDownloadDxf = () => {
+    const activeMatObj = MATERIALS.find((m) => m.id === selectedMaterial) || MATERIALS[0];
+    exportDielineToDxf(dielineData, {
+      modelName: MODELS.find((m) => m.id === selectedModel)?.name || 'Custom Dieline',
+      length: lengthMm,
+      width: widthMm,
+      height: heightMm,
+      thickness: thicknessMm,
+      material: activeMatObj.name
+    });
   };
 
-  // Downloads
-  const handleDownloadFile = async (format = activeFormat) => {
-    if (!dielineData?.svg) return;
-    setIsExporting(true);
-
-    try {
-      const currentModelObj = MODELS.find((m) => m.id === selectedModel) || MODELS[0];
-      const currentMatObj = MATERIALS.find((m) => m.id === selectedMaterial) || MATERIALS[0];
-
-      if (format === 'pdf') {
-        await exportDielineToPdf({
-          svgString: dielineData.svg,
-          boxName: currentModelObj.name,
-          boxCode: currentModelObj.pacdoraId,
-          pacdoraId: currentModelObj.pacdoraId,
-          dimensions: { l: lengthMm, w: widthMm, h: heightMm },
-          thicknessMm: thicknessMm,
-          materialName: currentMatObj.name,
-          ruleCutMeters: dielineData.ruleLengthMeters?.cutRuleMeters || 1.6,
-          ruleCreaseMeters: dielineData.ruleLengthMeters?.creaseRuleMeters || 1.8,
-          flatWidthMm: dielineData.flatDimensions.flatWidthMm,
-          flatHeightMm: dielineData.flatDimensions.flatHeightMm,
-          filename: `Pacdora-Dieline-${selectedModel}-${lengthMm}x${widthMm}x${heightMm}mm.pdf`
-        });
-      } else if (format === 'dxf') {
-        exportDielineToDxf({
-          boxType: selectedModel,
-          length: lengthMm,
-          width: widthMm,
-          height: heightMm,
-          filename: `Pacdora-Dieline-${selectedModel}-${lengthMm}x${widthMm}x${heightMm}mm.dxf`
-        });
-      } else if (format === 'ai' || format === 'svg') {
-        const blob = new Blob([dielineData.svg], { type: 'image/svg+xml;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Pacdora-Dieline-${selectedModel}-${lengthMm}x${widthMm}x${heightMm}mm.svg`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      } else if (format === '3d') {
-        alert('موکاپ ۳ بعدی با ابعاد دقیق آماده است. جهت دانلود فایل سه‌بعدی از دکمه PDF یا SVG استفاده فرمایید.');
-      }
-    } catch (err) {
-      alert('خطا در صدور فایل: ' + err.message);
-    } finally {
-      setIsExporting(false);
-    }
+  const handleDownloadAi = () => {
+    if (!dielineData?.svg_content) return;
+    const blob = new Blob([dielineData.svg_content], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Pacdora-Dieline-${selectedModel}-${lengthMm}x${widthMm}x${heightMm}mm.ai`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
-  const currentModelObj = MODELS.find((m) => m.id === selectedModel) || MODELS[0];
-  const currentMatObj = MATERIALS.find((m) => m.id === selectedMaterial) || MATERIALS[0];
-  const triad = dielineData?.triadDimensions || {
-    mfg: { l: lengthMm, w: widthMm, h: heightMm },
-    inner: { l: lengthMm - 0.6, w: widthMm - 0.6, h: heightMm - 1.1 },
-    outer: { l: lengthMm + 0.4, w: widthMm + 0.4, h: heightMm + 0.9 }
-  };
+  const activeMat = MATERIALS.find((m) => m.id === selectedMaterial) || MATERIALS[0];
 
   return (
-    <div className="flex flex-col h-[calc(100vh-95px)] min-h-[700px] w-full bg-[#f1f3f6] rounded-3xl overflow-hidden border border-slate-200 shadow-2xl select-none font-sans" dir="ltr">
+    <div className="w-full flex flex-col h-[calc(100vh-140px)] min-h-[750px] bg-[#111827] text-slate-100 rounded-3xl overflow-hidden border border-slate-800 shadow-2xl select-none font-sans" dir="ltr">
       
-      {/* 1. TOP HEADER BAR (Exact Match to Image-1) */}
-      <header className="h-14 bg-white border-b border-slate-200 px-4 flex items-center justify-between shrink-0 z-20">
-        {/* Left: Pacdora Logo + Title */}
+      {/* ========================================================
+          1. PACDORA TOP HEADER BAR (Exact Match with Image-1)
+         ======================================================== */}
+      <header className="h-14 px-4 bg-[#1f2937] border-b border-slate-700/80 flex items-center justify-between gap-4 z-20 flex-shrink-0">
+        
+        {/* Left: Pacdora Logo & Title */}
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-slate-950 flex items-center justify-center text-white font-black text-sm shadow-md">
-            P
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-black text-sm shadow-md">
+              P
+            </div>
+            <span className="font-extrabold text-white text-base tracking-tight">pacdora</span>
           </div>
-          <span className="font-bold text-sm text-slate-800 tracking-tight">Dieline generator</span>
-          
-          <div className="h-4 w-[1px] bg-slate-200 mx-1" />
-          
-          <button className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition" title="Menu">
-            <Sliders className="w-4 h-4" />
-          </button>
+          <span className="text-slate-500 text-sm">/</span>
+          <span className="text-slate-300 font-bold text-sm">Dieline generator</span>
+        </div>
+
+        {/* Center: Model Name and Breadcrumb */}
+        <div className="hidden md:flex items-center gap-2 text-xs text-slate-400 font-medium">
+          <span className="bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-700 text-slate-200 font-mono">
+            Model #{MODELS.find((m) => m.id === selectedModel)?.pacdoraId || '100010'}
+          </span>
+          <span>{MODELS.find((m) => m.id === selectedModel)?.name}</span>
         </div>
 
         {/* Right: Design Online + Share + Download the Dieline (Yellow Crown Button) */}
         <div className="flex items-center gap-2.5">
-          {onTransferToOrder && dielineData && (
-            <button
-              type="button"
-              onClick={() => onTransferToOrder({
-                box_type: currentModelObj.name,
-                box_structure: currentModelObj.pacdoraId,
-                cardboard_length: dielineData.flatDimensions.flatWidthMm,
-                cardboard_width: dielineData.flatDimensions.flatHeightMm,
-                length: lengthMm / 10,
-                width: widthMm / 10,
-                height: heightMm / 10
-              })}
-              className="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 flex items-center gap-1.5 transition"
-            >
-              <span>ثبت سفارش در کارخانه</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          )}
-
+          
+          {/* Share Button */}
           <button
             type="button"
-            className="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 border border-slate-200 flex items-center gap-1.5 transition"
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition border border-slate-700/60"
+            title="اشتراک‌گذاری قالب"
           >
+            <Share2 className="w-3.5 h-3.5" />
+            <span>Share</span>
+          </button>
+
+          {/* Design Online Button -> Launches Full 3D Modeling Studio */}
+          <button
+            type="button"
+            onClick={() => setStudioMode('3d_studio')}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 transition shadow-sm border border-indigo-500"
+            title="طراحی و رندرینگ سه‌بعدی آنلاین در استودیو Pacdora 3D"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
             <span>Design Online</span>
-            <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
+            <ExternalLink className="w-3 h-3 text-indigo-200" />
           </button>
 
+          {/* Yellow Crown Download Dieline Button (Exact Match) */}
           <button
             type="button"
-            className="p-2 rounded-xl text-slate-600 hover:bg-slate-100 border border-slate-200 transition"
-            title="Share"
+            onClick={handleDownloadPdf}
+            className="flex items-center gap-2 px-4 py-1.5 rounded-xl text-xs font-black bg-[#f59e0b] hover:bg-[#d97706] text-slate-950 transition shadow-md shadow-amber-500/20 active:scale-95"
           >
-            <Share2 className="w-4 h-4" />
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleDownloadFile('pdf')}
-            disabled={isExporting}
-            className="px-4 py-2 rounded-xl text-xs font-black text-white bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 hover:from-amber-600 hover:to-amber-800 shadow-md shadow-amber-200 flex items-center gap-2 transition active:scale-95"
-          >
-            <Crown className="w-4 h-4 fill-amber-300 text-amber-300" />
-            <span>{isExporting ? 'Generating...' : 'Download the dieline (PDF)'}</span>
+            <Crown className="w-4 h-4 fill-slate-950" />
+            <span>Download the dieline</span>
           </button>
         </div>
       </header>
 
-      {/* 2. MAIN 3-PANEL STUDIO BODY */}
-      <div className="flex-1 flex overflow-hidden">
-        
-        {/* LEFTMOST ICON DOCK + PARAMETER SIDEBAR (Exact Match to Image-4) */}
-        <div className="w-80 bg-white border-r border-slate-200 flex shrink-0 shadow-sm z-10">
+      {/* ========================================================
+          2. MAIN WORKSPACE (3-PANEL LAYOUT)
+         ======================================================== */}
+      <div className="flex-1 flex overflow-hidden relative">
+
+        {/* ====================================================
+            LEFT PANEL: ICON DOCK + PARAMETERS SIDEBAR
+           ==================================================== */}
+        <div className="w-80 lg:w-88 bg-[#1e293b] border-r border-slate-800 flex z-10 shadow-xl flex-shrink-0">
           
-          {/* Vertical Icon Strip (Leftmost) */}
-          <div className="w-16 border-r border-slate-100 flex flex-col items-center py-4 space-y-5 bg-slate-50/50 shrink-0">
-            <button
-              type="button"
-              onClick={() => setActiveNavTab('models')}
-              className={`flex flex-col items-center gap-1 text-[10px] font-bold transition w-full py-2 ${
-                activeNavTab === 'models' ? 'text-indigo-600 border-r-2 border-indigo-600 bg-white' : 'text-slate-400 hover:text-slate-700'
-              }`}
-            >
-              <Box className="w-5 h-5" />
-              <span>Models</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveNavTab('basic')}
-              className={`flex flex-col items-center gap-1 text-[10px] font-bold transition w-full py-2 ${
-                activeNavTab === 'basic' ? 'text-blue-600 border-r-2 border-blue-600 bg-white font-black' : 'text-slate-400 hover:text-slate-700'
-              }`}
-            >
-              <Sliders className="w-5 h-5 text-blue-600" />
-              <span>Basic</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveNavTab('advanced')}
-              className={`flex flex-col items-center gap-1 text-[10px] font-bold transition w-full py-2 ${
-                activeNavTab === 'advanced' ? 'text-indigo-600 border-r-2 border-indigo-600 bg-white' : 'text-slate-400 hover:text-slate-700'
-              }`}
-            >
-              <Layers className="w-5 h-5" />
-              <span>Advanced</span>
-            </button>
-
-            <div className="w-8 h-[1px] bg-slate-200 my-1" />
-
-            <button
-              type="button"
-              onClick={() => setActiveNavTab('more')}
-              className={`flex flex-col items-center gap-1 text-[10px] font-bold transition w-full py-2 ${
-                activeNavTab === 'more' ? 'text-indigo-600 border-r-2 border-indigo-600 bg-white' : 'text-slate-400 hover:text-slate-700'
-              }`}
-            >
-              <div className="w-5 h-5 rounded-full border border-slate-400 flex items-center justify-center text-xs">⋯</div>
-              <span>More</span>
-            </button>
+          {/* Vertical Icon Dock (Models / Basic / Advanced / More) */}
+          <div className="w-16 bg-[#0f172a] border-r border-slate-800/80 flex flex-col items-center py-4 gap-4 flex-shrink-0">
+            {[
+              { id: 'models', label: 'Models', icon: Box },
+              { id: 'basic', label: 'Basic', icon: Sliders },
+              { id: 'advanced', label: 'Advanced', icon: Layers },
+              { id: 'more', label: 'More', icon: Info }
+            ].map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveNavTab(tab.id)}
+                  className={`flex flex-col items-center justify-center w-12 h-12 rounded-xl transition ${
+                    activeNavTab === tab.id
+                      ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-900/50'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                  }`}
+                  title={tab.label}
+                >
+                  <Icon className="w-5 h-5 mb-0.5" />
+                  <span className="text-[10px] font-medium">{tab.label}</span>
+                </button>
+              );
+            })}
           </div>
 
-          {/* Parameter Panel Body */}
-          <div className="flex-1 p-5 overflow-y-auto space-y-6 text-slate-800">
+          {/* Left Sub-sidebar (Parameters Form matching Image-4) */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-5 text-left text-slate-200">
             
-            {/* TAB: BASIC (Exact Match to Image-4) */}
+            {/* TAB: MODELS SELECTOR */}
+            {activeNavTab === 'models' && (
+              <div className="space-y-3 animate-in fade-in duration-150">
+                <h3 className="text-xs font-black uppercase tracking-wider text-slate-400">Select Box Model</h3>
+                <div className="space-y-2">
+                  {MODELS.map((m) => (
+                    <div
+                      key={m.id}
+                      onClick={() => {
+                        setSelectedModel(m.id);
+                        setLengthMm(m.defaultDim.l);
+                        setWidthMm(m.defaultDim.w);
+                        setHeightMm(m.defaultDim.h);
+                        setActiveNavTab('basic');
+                      }}
+                      className={`p-3 rounded-2xl border text-left cursor-pointer transition ${
+                        selectedModel === m.id
+                          ? 'bg-indigo-950/60 border-amber-400 ring-2 ring-amber-400/20'
+                          : 'bg-slate-900/60 border-slate-800 hover:border-slate-700 hover:bg-slate-800/40'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-base">{m.icon}</span>
+                        <span className="text-[10px] font-mono text-slate-400">#{m.pacdoraId}</span>
+                      </div>
+                      <div className="text-xs font-black text-white">{m.name}</div>
+                      <div className="text-[11px] text-slate-400 mt-0.5" dir="rtl">{m.desc}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* TAB: BASIC PARAMETERS (Exact Match with Image-4) */}
             {activeNavTab === 'basic' && (
-              <div className="space-y-5">
+              <div className="space-y-5 animate-in fade-in duration-150">
                 
-                {/* 1. Custom Size Header + mm/in toggle */}
+                {/* Custom Size Header with mm / in Unit Switch */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5">
-                      <h3 className="font-bold text-sm text-slate-900">Custom size</h3>
-                      <Info className="w-3.5 h-3.5 text-slate-400 cursor-pointer" />
-                    </div>
-
-                    {/* mm / in Pill Toggle */}
-                    <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs font-bold">
+                    <span className="text-xs font-bold text-slate-300">Custom size</span>
+                    {/* [ mm | in ] pill toggle */}
+                    <div className="flex bg-slate-900 p-0.5 rounded-lg border border-slate-700">
                       <button
                         type="button"
                         onClick={() => setUnitMode('mm')}
-                        className={`px-2.5 py-0.5 rounded-md transition ${unitMode === 'mm' ? 'bg-blue-600 text-white font-black' : 'text-slate-600'}`}
+                        className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition ${
+                          unitMode === 'mm' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-400 hover:text-white'
+                        }`}
                       >
                         mm
                       </button>
                       <button
                         type="button"
                         onClick={() => setUnitMode('in')}
-                        className={`px-2.5 py-0.5 rounded-md transition ${unitMode === 'in' ? 'bg-blue-600 text-white font-black' : 'text-slate-600'}`}
+                        className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition ${
+                          unitMode === 'in' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-400 hover:text-white'
+                        }`}
                       >
                         in
                       </button>
                     </div>
                   </div>
 
-                  {/* Length & Width Inputs */}
-                  <div className="grid grid-cols-2 gap-3 text-xs">
-                    <div>
-                      <span className="text-slate-500 font-medium block mb-1">Length</span>
-                      <div className="relative">
+                  {/* Length / Width / Height Inputs */}
+                  <div className="space-y-2.5">
+                    {/* Length */}
+                    <div className="flex items-center justify-between bg-slate-900/90 border border-slate-700/80 rounded-xl px-3 py-2">
+                      <span className="text-xs font-semibold text-slate-400">Length</span>
+                      <div className="flex items-center gap-1.5">
                         <input
                           type="number"
-                          value={lengthMm}
-                          onChange={(e) => setLengthMm(Number(e.target.value))}
-                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-blue-500 shadow-xs"
+                          step={unitMode === 'in' ? '0.1' : '1'}
+                          value={toDisplay(lengthMm)}
+                          onChange={(e) => setLengthMm(Math.max(10, fromDisplay(e.target.value)))}
+                          className="w-20 bg-transparent text-right font-mono font-black text-sm text-amber-300 focus:outline-none"
                         />
-                        <span className="absolute right-3 top-2 text-[11px] text-slate-400">{unitMode}</span>
+                        <span className="text-xs text-slate-500 font-mono">{unitMode}</span>
                       </div>
                     </div>
 
-                    <div>
-                      <span className="text-slate-500 font-medium block mb-1">Width</span>
-                      <div className="relative">
+                    {/* Width */}
+                    <div className="flex items-center justify-between bg-slate-900/90 border border-slate-700/80 rounded-xl px-3 py-2">
+                      <span className="text-xs font-semibold text-slate-400">Width</span>
+                      <div className="flex items-center gap-1.5">
                         <input
                           type="number"
-                          value={widthMm}
-                          onChange={(e) => setWidthMm(Number(e.target.value))}
-                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-blue-500 shadow-xs"
+                          step={unitMode === 'in' ? '0.1' : '1'}
+                          value={toDisplay(widthMm)}
+                          onChange={(e) => setWidthMm(Math.max(10, fromDisplay(e.target.value)))}
+                          className="w-20 bg-transparent text-right font-mono font-black text-sm text-amber-300 focus:outline-none"
                         />
-                        <span className="absolute right-3 top-2 text-[11px] text-slate-400">{unitMode}</span>
+                        <span className="text-xs text-slate-500 font-mono">{unitMode}</span>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Height Input */}
-                  <div className="text-xs">
-                    <span className="text-slate-500 font-medium block mb-1">Height</span>
-                    <div className="relative w-1/2 pr-1.5">
-                      <input
-                        type="number"
-                        value={heightMm}
-                        onChange={(e) => setHeightMm(Number(e.target.value))}
-                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-blue-500 shadow-xs"
-                      />
-                      <span className="absolute right-4 top-2 text-[11px] text-slate-400">{unitMode}</span>
+                    {/* Height */}
+                    <div className="flex items-center justify-between bg-slate-900/90 border border-slate-700/80 rounded-xl px-3 py-2">
+                      <span className="text-xs font-semibold text-slate-400">Height</span>
+                      <div className="flex items-center gap-1.5">
+                        <input
+                          type="number"
+                          step={unitMode === 'in' ? '0.1' : '1'}
+                          value={toDisplay(heightMm)}
+                          onChange={(e) => setHeightMm(Math.max(10, fromDisplay(e.target.value)))}
+                          className="w-20 bg-transparent text-right font-mono font-black text-sm text-amber-300 focus:outline-none"
+                        />
+                        <span className="text-xs text-slate-500 font-mono">{unitMode}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {/* 2. Choose Material */}
-                <div className="space-y-2 pt-1">
-                  <div className="flex items-center gap-1.5">
-                    <h3 className="font-bold text-sm text-slate-900">Choose material</h3>
-                    <Info className="w-3.5 h-3.5 text-slate-400 cursor-pointer" />
-                  </div>
-
+                {/* Choose Material Section */}
+                <div className="space-y-2">
+                  <span className="text-xs font-bold text-slate-300">Choose material</span>
+                  
+                  {/* Material Dropdown */}
                   <div className="relative">
                     <select
                       value={selectedMaterial}
                       onChange={(e) => {
-                        setSelectedMaterial(e.target.value);
-                        const m = MATERIALS.find((mat) => mat.id === e.target.value);
-                        if (m) setThicknessMm(m.defaultThickness);
+                        const val = e.target.value;
+                        setSelectedMaterial(val);
+                        const mat = MATERIALS.find((m) => m.id === val);
+                        if (mat) setThicknessMm(mat.defaultThickness);
                       }}
-                      className="w-full appearance-none bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 pr-8 focus:outline-none focus:border-blue-500 shadow-xs cursor-pointer"
+                      className="w-full appearance-none bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 font-semibold focus:outline-none focus:border-indigo-500"
                     >
-                      {MATERIALS.map((mat) => (
-                        <option key={mat.id} value={mat.id}>
-                          {mat.name}
+                      {MATERIALS.map((m) => (
+                        <option key={m.id} value={m.id} className="bg-slate-900 text-slate-200">
+                          {m.name} ({m.farsiName})
                         </option>
                       ))}
                     </select>
@@ -412,359 +434,342 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
                   </div>
                 </div>
 
-                {/* 3. Thickness Stepper */}
-                <div className="space-y-2 pt-1">
-                  <h3 className="font-bold text-sm text-slate-900">Thickness</h3>
-
-                  <div className="flex items-center justify-between border border-slate-200 rounded-xl p-1 bg-white shadow-xs">
+                {/* Thickness Stepper: [-] 0.5 [+] */}
+                <div className="space-y-2">
+                  <span className="text-xs font-bold text-slate-300">Thickness</span>
+                  <div className="flex items-center justify-between bg-slate-900 border border-slate-700 rounded-xl p-1">
                     <button
                       type="button"
-                      onClick={() => handleStepThickness(-0.05)}
-                      className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition"
+                      onClick={() => setThicknessMm((t) => Math.max(0.2, parseFloat((t - 0.1).toFixed(2))))}
+                      className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-300 font-black transition"
                     >
                       <Minus className="w-3.5 h-3.5" />
                     </button>
-
-                    <span className="font-bold text-xs text-slate-900 font-mono">
-                      {thicknessMm.toFixed(2)} mm
-                    </span>
-
+                    <div className="flex items-center gap-1">
+                      <span className="font-mono text-sm font-black text-white">{thicknessMm}</span>
+                      <span className="text-xs text-slate-500 font-mono">{unitMode}</span>
+                    </div>
                     <button
                       type="button"
-                      onClick={() => handleStepThickness(+0.05)}
-                      className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition"
+                      onClick={() => setThicknessMm((t) => parseFloat((t + 0.1).toFixed(2)))}
+                      className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-300 font-black transition"
                     >
                       <Plus className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>
 
-                {/* 4. Size Mode Selector (Manufacture / Inner / Outer) */}
-                <div className="space-y-2 pt-1">
-                  <div className="flex items-center gap-1.5">
-                    <h3 className="font-bold text-sm text-slate-900">Size mode</h3>
-                    <Info className="w-3.5 h-3.5 text-slate-400 cursor-pointer" />
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="grid grid-cols-2 gap-2 text-xs">
+                {/* Size Mode Selector (Manufacture, Inner, Outer) */}
+                <div className="space-y-2 pt-2">
+                  <span className="text-xs font-bold text-slate-300">Size mode</span>
+                  <div className="space-y-1.5">
+                    {[
+                      { id: 'mfg', label: 'Manufacture dimensions', desc: 'ابعاد خط تیغ ساخت' },
+                      { id: 'inner', label: 'Inner dimensions', desc: 'ابعاد مفید داخل جعبه' },
+                      { id: 'outer', label: 'Outer dimensions', desc: 'ابعاد فضای بیرونی' }
+                    ].map((mode) => (
                       <button
+                        key={mode.id}
                         type="button"
-                        onClick={() => setSizeMode('mfg')}
-                        className={`p-2.5 rounded-xl text-center transition border font-bold ${
-                          sizeMode === 'mfg'
-                            ? 'border-blue-600 text-blue-700 bg-blue-50/50 shadow-xs'
-                            : 'border-slate-200 text-slate-700 bg-white hover:bg-slate-50'
+                        onClick={() => setSizeMode(mode.id)}
+                        className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition border flex items-center justify-between ${
+                          sizeMode === mode.id
+                            ? 'bg-indigo-600/30 text-white border-indigo-500 shadow-xs'
+                            : 'bg-slate-900/60 text-slate-400 border-slate-800 hover:border-slate-700'
                         }`}
                       >
-                        Manufacture dimensions
+                        <span>{mode.label}</span>
+                        {sizeMode === mode.id && <Check className="w-3.5 h-3.5 text-indigo-400" />}
                       </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setSizeMode('inner')}
-                        className={`p-2.5 rounded-xl text-center transition border font-bold ${
-                          sizeMode === 'inner'
-                            ? 'border-blue-600 text-blue-700 bg-blue-50/50 shadow-xs'
-                            : 'border-slate-200 text-slate-700 bg-white hover:bg-slate-50'
-                        }`}
-                      >
-                        Inner dimensions
-                      </button>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => setSizeMode('outer')}
-                      className={`w-1/2 p-2.5 rounded-xl text-center transition border font-bold text-xs ${
-                        sizeMode === 'outer'
-                          ? 'border-blue-600 text-blue-700 bg-blue-50/50 shadow-xs'
-                          : 'border-slate-200 text-slate-700 bg-white hover:bg-slate-50'
-                      }`}
-                    >
-                      Outer dimensions
-                    </button>
+                    ))}
                   </div>
                 </div>
 
               </div>
             )}
 
-            {/* TAB: MODELS */}
-            {activeNavTab === 'models' && (
-              <div className="space-y-3">
-                <h3 className="font-bold text-sm text-slate-900">Pacdora Standard Models</h3>
-                <div className="space-y-2">
-                  {MODELS.map((m) => (
-                    <button
-                      key={m.id}
-                      type="button"
-                      onClick={() => handleSelectModel(m.id)}
-                      className={`w-full p-3 rounded-xl border text-left flex items-center justify-between transition ${
-                        selectedModel === m.id ? 'border-blue-600 bg-blue-50 text-blue-900 font-bold' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <span className="text-xl">{m.icon}</span>
-                        <div>
-                          <div className="text-xs font-bold leading-tight">{m.name}</div>
-                          <div className="text-[10px] text-slate-400">{m.desc}</div>
-                        </div>
-                      </div>
-                      <span className="text-[10px] font-mono text-slate-400">#{m.pacdoraId}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* TAB: ADVANCED */}
-            {activeNavTab === 'advanced' && (
-              <div className="space-y-4 text-xs">
-                <h3 className="font-bold text-sm text-slate-900">Advanced Geometry Parameters</h3>
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-slate-600 font-medium mb-1">Glue flap width (لب‌چسب)</label>
-                    <input type="number" defaultValue={15} className="w-full p-2 border rounded-lg bg-white" />
-                  </div>
-                  <div>
-                    <label className="block text-slate-600 font-medium mb-1">Bleed margin (مارجین بلید)</label>
-                    <input type="number" defaultValue={3} className="w-full p-2 border rounded-lg bg-white" />
-                  </div>
-                  <div>
-                    <label className="block text-slate-600 font-medium mb-1">Crease compensation (ضریب خمش K)</label>
-                    <input type="number" step="0.1" defaultValue={0.4} className="w-full p-2 border rounded-lg bg-white" />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* TAB: MORE */}
-            {activeNavTab === 'more' && (
-              <div className="space-y-3 text-xs text-slate-600">
-                <h3 className="font-bold text-sm text-slate-900">About Pacdora Dieline Studio</h3>
-                <p>
-                  این استودیو با استفاده از دقیق‌ترین فرمول‌های هندسی و استانداردهای بین‌المللی ECMA و FEFCO، نقشه‌های خط تیغ مقیاس ۱:۱ جهت برش لیزر و لیتوگرافی تولید می‌کند.
+            {/* TAB: ADVANCED / MORE */}
+            {(activeNavTab === 'advanced' || activeNavTab === 'more') && (
+              <div className="space-y-4 text-xs animate-in fade-in duration-150">
+                <h3 className="font-bold text-slate-300">FEFCO / ECMA Standards</h3>
+                <p className="text-slate-400 text-[11px] leading-relaxed">
+                  Generated dieline conforms to ISO 12647 prepress standards and AutoCAD R12 DXF specifications with dedicated CUT and CREASE laser layers.
                 </p>
+                <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 font-mono text-[11px] text-amber-300">
+                  Cut Length: {dielineData?.technical_matrix?.cut_perimeter_mm || 0} mm<br />
+                  Crease Length: {dielineData?.technical_matrix?.crease_perimeter_mm || 0} mm<br />
+                  Sheet Weight: ~{Math.round(dielineData?.technical_matrix?.blank_weight_g || 0)} g
+                </div>
               </div>
             )}
 
           </div>
         </div>
 
-        {/* CENTER: 2D INTERACTIVE CAD CANVAS (Exact Match to Image-1 & Image-3) */}
-        <div className="flex-1 bg-[#f8fafc] flex flex-col relative overflow-hidden">
+        {/* ====================================================
+            CENTER 2D VECTOR CAD CANVAS (Exact Match with Image-3)
+           ==================================================== */}
+        <div className="flex-1 relative bg-[#0b0f19] flex flex-col items-center justify-center overflow-hidden">
           
-          {/* Main SVG Vector Canvas */}
-          <div className="flex-1 flex items-center justify-center p-8 overflow-auto">
-            {dielineData ? (
-              <div
-                className="transition-transform duration-150 drop-shadow-sm"
-                style={{ transform: `scale(${zoomScale})` }}
-                dangerouslySetInnerHTML={{ __html: dielineData.svg }}
-              />
-            ) : (
-              <div className="flex items-center gap-2 text-slate-400 text-xs">
-                <RefreshCw className="w-4 h-4 animate-spin" />
-                <span>Generating CAD dieline...</span>
-              </div>
-            )}
+          {/* Top Center Legend (Bleed, Trim, Crease - Exact Match) */}
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-slate-900/90 border border-slate-800/90 px-4 py-1.5 rounded-2xl flex items-center gap-5 text-xs text-slate-300 backdrop-blur-md shadow-lg z-10">
+            <div className="flex items-center gap-1.5">
+              <span className="w-4 h-0.5 bg-[#10b981]" />
+              <span className="text-[11px] font-semibold text-emerald-400">Bleed</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-4 h-0.5 bg-[#3b82f6]" />
+              <span className="text-[11px] font-semibold text-blue-400">Trim</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-4 h-0.5 border-t border-dashed border-[#ef4444]" />
+              <span className="text-[11px] font-semibold text-rose-400">Crease</span>
+            </div>
           </div>
 
-          {/* BOTTOM FLOATING CANVAS TOOLBAR (Exact Match to Image-1 & Image-3) */}
-          <div className="absolute bottom-5 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur-md border border-slate-200/80 rounded-2xl px-3 py-1.5 shadow-xl flex items-center gap-2 z-10">
+          {/* Top Left Dimension Triad Overlay (Exact Match with Image-3) */}
+          <div className="absolute top-4 left-4 bg-slate-900/95 border border-slate-800 p-3 rounded-2xl text-[11px] space-y-1 backdrop-blur-md shadow-xl z-10 font-mono">
+            <div className="text-slate-200">
+              <span className="text-slate-400 font-sans">Manufacture dimensions: </span>
+              <strong className="text-white font-bold">{mfg.l} * {mfg.w} * {mfg.h} {unitMode}</strong>
+            </div>
+            <div className="text-slate-300">
+              <span className="text-slate-400 font-sans">Inner dimensions: </span>
+              <strong>{inner.l} * {inner.w} * {inner.h} {unitMode}</strong>
+            </div>
+            <div className="text-slate-300">
+              <span className="text-slate-400 font-sans">Outer dimensions: </span>
+              <strong>{outer.l} * {outer.w} * {outer.h} {unitMode}</strong>
+            </div>
+          </div>
+
+          {/* SVG Vector Dieline Display Area */}
+          <div
+            className="w-full h-full flex items-center justify-center p-8 transition-transform duration-150 overflow-hidden cursor-crosshair"
+            style={{ transform: `scale(${zoomScale})` }}
+          >
+            {loadingDieline ? (
+              <div className="flex flex-col items-center gap-3 text-slate-400">
+                <div className="w-10 h-10 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin" />
+                <span className="text-xs">Generating parametric dieline vector...</span>
+              </div>
+            ) : dielineData?.svg_content ? (
+              <div
+                className="w-full max-w-[90%] max-h-[85%] flex items-center justify-center drop-shadow-[0_10px_25px_rgba(0,0,0,0.6)]"
+                dangerouslySetInnerHTML={{ __html: dielineData.svg_content }}
+              />
+            ) : null}
+          </div>
+
+          {/* Bottom Floating Canvas Toolbar (Cursor, Hand, Zoom, Reset - Exact Match) */}
+          <div className="absolute bottom-5 left-1/2 -translate-x-1/2 bg-slate-900/95 border border-slate-800 px-3 py-1.5 rounded-2xl flex items-center gap-2 backdrop-blur-md shadow-2xl z-10">
             <button
               type="button"
               onClick={() => setActiveCanvasTool('select')}
-              className={`p-1.5 rounded-xl transition ${activeCanvasTool === 'select' ? 'bg-slate-100 text-slate-900 font-bold' : 'text-slate-400 hover:text-slate-700'}`}
-              title="Select"
+              className={`p-2 rounded-xl text-xs transition ${
+                activeCanvasTool === 'select' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-400 hover:text-white hover:bg-slate-800'
+              }`}
+              title="Select / Cursor"
             >
               <MousePointer className="w-4 h-4" />
             </button>
-
             <button
               type="button"
               onClick={() => setActiveCanvasTool('pan')}
-              className={`p-1.5 rounded-xl transition ${activeCanvasTool === 'pan' ? 'bg-slate-100 text-slate-900 font-bold' : 'text-slate-400 hover:text-slate-700'}`}
-              title="Pan"
+              className={`p-2 rounded-xl text-xs transition ${
+                activeCanvasTool === 'pan' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-400 hover:text-white hover:bg-slate-800'
+              }`}
+              title="Pan / Hand"
             >
               <Hand className="w-4 h-4" />
             </button>
 
-            <div className="h-4 w-[1px] bg-slate-200 mx-0.5" />
+            <div className="w-px h-5 bg-slate-800 my-auto mx-1" />
 
             <button
               type="button"
               onClick={() => setZoomScale((z) => Math.min(2.5, z + 0.15))}
-              className="p-1.5 text-slate-500 hover:text-slate-900 transition"
+              className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition"
               title="Zoom In"
             >
-              <Plus className="w-4 h-4" />
+              <ZoomIn className="w-4 h-4" />
             </button>
-
+            <span className="text-xs font-mono font-bold text-slate-300 w-12 text-center">
+              {Math.round(zoomScale * 100)}%
+            </span>
             <button
               type="button"
               onClick={() => setZoomScale((z) => Math.max(0.4, z - 0.15))}
-              className="p-1.5 text-slate-500 hover:text-slate-900 transition"
+              className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition"
               title="Zoom Out"
             >
-              <Minus className="w-4 h-4" />
+              <ZoomOut className="w-4 h-4" />
             </button>
-
-            <div className="h-4 w-[1px] bg-slate-200 mx-0.5" />
-
             <button
               type="button"
-              className="p-1.5 text-slate-500 hover:text-slate-900 transition"
-              title="Measure"
-            >
-              <PenTool className="w-4 h-4" />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setZoomScale(1)}
-              className="p-1.5 text-slate-500 hover:text-slate-900 transition text-[10px] font-mono font-bold"
+              onClick={() => setZoomScale(1.0)}
+              className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition"
               title="Reset Zoom"
             >
-              {Math.round(zoomScale * 100)}%
+              <RotateCw className="w-4 h-4" />
             </button>
           </div>
+
         </div>
 
-        {/* RIGHT SIDEBAR: 3D MINI MOCKUP + FILE FORMATS (Exact Match to Image-1 & Image-2) */}
-        <div className="w-72 bg-white border-l border-slate-200 p-4 flex flex-col justify-between shrink-0 overflow-y-auto space-y-4 shadow-sm z-10">
+        {/* ====================================================
+            RIGHT PANEL: 3D MINI MOCKUP + DOWNLOADS (Image-2)
+           ==================================================== */}
+        <div className="w-80 lg:w-92 bg-[#1e293b] border-l border-slate-800 flex flex-col p-4 overflow-y-auto space-y-5 z-10 text-left shadow-xl flex-shrink-0">
           
-          <div className="space-y-4">
-            {/* 1. 3D Mini Mockup Widget (Exact Match to Image-2) */}
-            <div className="relative rounded-3xl overflow-hidden bg-slate-100 border border-slate-200/80 shadow-inner h-56 flex flex-col justify-between p-2.5">
-              
-              {/* 3D Watermark Tag */}
-              <div className="absolute top-2.5 right-2.5 bg-white/80 backdrop-blur-xs p-1 rounded-lg border border-slate-200 shadow-xs text-[10px] font-black text-slate-700 flex items-center gap-1 z-10">
-                <span>3D</span>
-                <RotateCw className="w-2.5 h-2.5" />
-              </div>
-
-              {/* Real-time 3D WebGL Canvas */}
-              <div className="w-full flex-1">
-                <Packaging3DMockup
-                  boxType={selectedModel}
-                  length={lengthMm}
-                  width={widthMm}
-                  height={heightMm}
-                  thickness={thicknessMm}
-                  materialColor={currentMatObj.colorHex}
-                  foldAngle={mockupFold}
-                />
-              </div>
-
-              {/* Open -------O------- Close Slider (Exact Match to Image-2) */}
-              <div className="bg-white/95 backdrop-blur-md rounded-2xl px-3 py-1.5 shadow-md flex items-center justify-between gap-2 z-10">
-                <span className="text-[11px] font-bold text-slate-700">Open</span>
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.01"
-                  value={mockupFold}
-                  onChange={(e) => setMockupFold(parseFloat(e.target.value))}
-                  className="w-24 accent-slate-900 cursor-pointer h-1 bg-slate-200 rounded-lg"
-                />
-                <span className="text-[11px] font-bold text-slate-400">Close</span>
-              </div>
+          {/* 3D Mini Mockup Widget Box */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3 space-y-3 relative overflow-hidden shadow-inner">
+            {/* Top Widget Bar */}
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-300">3D mockup preview</span>
+              <button
+                type="button"
+                onClick={() => setStudioMode('3d_studio')}
+                className="flex items-center gap-1 text-[10px] font-bold text-indigo-400 hover:text-indigo-300 transition"
+              >
+                <span>Full 3D Studio</span>
+                <Maximize2 className="w-3 h-3" />
+              </button>
             </div>
 
-            {/* 2. File Formats Section (Exact Match to Image-1) */}
-            <div className="space-y-2.5">
-              <h4 className="font-bold text-xs text-slate-800">File formats</h4>
-
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                {/* AI */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveFormat('ai');
-                    handleDownloadFile('ai');
-                  }}
-                  className={`p-2.5 rounded-xl border flex items-center gap-2 transition ${
-                    activeFormat === 'ai' ? 'border-blue-600 bg-blue-50/40 text-blue-900 font-bold' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
-                  }`}
-                >
-                  <span className="w-6 h-6 rounded-md bg-amber-800 text-amber-200 font-black text-[10px] flex items-center justify-center">Ai</span>
-                  <span className="text-[11px]">AI dieline</span>
-                </button>
-
-                {/* PDF (Selected Red Badge) */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveFormat('pdf');
-                    handleDownloadFile('pdf');
-                  }}
-                  className={`p-2.5 rounded-xl border flex items-center gap-2 transition ${
-                    activeFormat === 'pdf' ? 'border-blue-600 bg-blue-50/40 text-blue-900 font-black shadow-xs ring-1 ring-blue-500/20' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
-                  }`}
-                >
-                  <span className="w-6 h-6 rounded-md bg-rose-600 text-white font-black text-[10px] flex items-center justify-center">PDF</span>
-                  <span className="text-[11px]">PDF dieline</span>
-                </button>
-
-                {/* DXF */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveFormat('dxf');
-                    handleDownloadFile('dxf');
-                  }}
-                  className={`p-2.5 rounded-xl border flex items-center gap-2 transition ${
-                    activeFormat === 'dxf' ? 'border-blue-600 bg-blue-50/40 text-blue-900 font-bold' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
-                  }`}
-                >
-                  <span className="w-6 h-6 rounded-md bg-slate-800 text-slate-200 font-black text-[9px] flex items-center justify-center">DXF</span>
-                  <span className="text-[11px]">DXF dieline</span>
-                </button>
-
-                {/* 3D mockup */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveFormat('3d');
-                    handleDownloadFile('3d');
-                  }}
-                  className={`p-2.5 rounded-xl border flex items-center gap-2 transition ${
-                    activeFormat === '3d' ? 'border-blue-600 bg-blue-50/40 text-blue-900 font-bold' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
-                  }`}
-                >
-                  <span className="w-6 h-6 rounded-md bg-emerald-600 text-white font-black text-[9px] flex items-center justify-center">JPG</span>
-                  <span className="text-[11px]">3D mockup</span>
-                </button>
-              </div>
+            {/* Three.js Interactive Folding Box */}
+            <div className="w-full h-44 rounded-xl overflow-hidden border border-slate-800 bg-slate-950">
+              <Packaging3DMockup
+                boxType={selectedModel}
+                length={lengthMm}
+                width={widthMm}
+                height={heightMm}
+                thickness={thicknessMm}
+                materialColor={activeMat.colorHex}
+                foldAngle={mockupFold}
+              />
             </div>
 
-            {/* 3. You will get Section (Exact Match to Image-1) */}
-            <div className="space-y-2 pt-2 border-t border-slate-100 text-[11px] text-slate-600">
-              <h4 className="font-bold text-xs text-slate-800">You will get</h4>
-              <ul className="space-y-1.5 list-disc list-inside leading-relaxed text-slate-500">
-                <li>All dieline files can be generated and downloaded within a few minutes.</li>
-                <li>All dieline files are rigorously structurally inspected. Dimensions, thickness, and material descriptions are included. Ready for printing.</li>
-                <li>All dieline files are without watermarks and can be locally edited using Adobe Illustrator.</li>
-              </ul>
+            {/* Folding Slider: Open ---O--- Close (Exact Match with Image-2) */}
+            <div className="space-y-1.5 pt-1">
+              <div className="flex justify-between text-[11px] text-slate-400 font-semibold">
+                <span>Open</span>
+                <span className="font-mono text-amber-400">{Math.round(mockupFold * 100)}%</span>
+                <span>Close</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={mockupFold}
+                onChange={(e) => setMockupFold(parseFloat(e.target.value))}
+                className="w-full accent-indigo-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+              />
             </div>
           </div>
 
-          {/* Quick PDF Direct Action */}
-          <button
-            type="button"
-            onClick={() => handleDownloadFile('pdf')}
-            disabled={isExporting}
-            className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs rounded-xl shadow-md transition flex items-center justify-center gap-2 active:scale-95"
-          >
-            {isExporting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-            <span>دانلود فوری PDF خط تیغ</span>
-          </button>
+          {/* File Formats Download Options (Image-2 Grid) */}
+          <div className="space-y-2.5">
+            <span className="text-xs font-bold text-slate-300">File formats</span>
+            <div className="grid grid-cols-2 gap-2">
+              
+              {/* AI Format */}
+              <button
+                type="button"
+                onClick={handleDownloadAi}
+                className="p-3 bg-slate-900 hover:bg-slate-800/80 border border-slate-700/80 rounded-xl flex items-center gap-2.5 transition text-left group"
+              >
+                <div className="w-8 h-8 rounded-lg bg-orange-500/20 text-orange-400 flex items-center justify-center font-black text-xs">
+                  Ai
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-white group-hover:text-amber-300">Ai dieline</div>
+                  <div className="text-[10px] text-slate-400">Vector CAD</div>
+                </div>
+              </button>
+
+              {/* PDF Format */}
+              <button
+                type="button"
+                onClick={handleDownloadPdf}
+                className="p-3 bg-slate-900 hover:bg-slate-800/80 border border-slate-700/80 rounded-xl flex items-center gap-2.5 transition text-left group"
+              >
+                <div className="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center font-black text-xs">
+                  PDF
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-white group-hover:text-amber-300">PDF dieline</div>
+                  <div className="text-[10px] text-slate-400">Print Ready</div>
+                </div>
+              </button>
+
+              {/* DXF Format (Laser Cutting) */}
+              <button
+                type="button"
+                onClick={handleDownloadDxf}
+                className="p-3 bg-slate-900 hover:bg-slate-800/80 border border-slate-700/80 rounded-xl flex items-center gap-2.5 transition text-left group"
+              >
+                <div className="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center font-black text-xs">
+                  DXF
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-white group-hover:text-amber-300">DXF dieline</div>
+                  <div className="text-[10px] text-slate-400">AutoCAD R12</div>
+                </div>
+              </button>
+
+              {/* 3D Mockup Launch */}
+              <button
+                type="button"
+                onClick={() => setStudioMode('3d_studio')}
+                className="p-3 bg-slate-900 hover:bg-slate-800/80 border border-slate-700/80 rounded-xl flex items-center gap-2.5 transition text-left group"
+              >
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-black text-xs">
+                  3D
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-white group-hover:text-amber-300">3D mockup</div>
+                  <div className="text-[10px] text-slate-400">4K Studio</div>
+                </div>
+              </button>
+
+            </div>
+          </div>
+
+          {/* You Will Get Bullet Points (Exact Match with Image-2) */}
+          <div className="p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800/80 space-y-2">
+            <span className="text-xs font-bold text-slate-300">You will get:</span>
+            <ul className="text-[11px] text-slate-400 space-y-1.5 list-disc list-inside">
+              <li>Generates within seconds for immediate download</li>
+              <li>Fully customizable with precise 1:1 scale specifications</li>
+              <li>Exported vectors are watermark-free and editable in Adobe Illustrator</li>
+              <li>Integrated technical matrix for die-making and sheet imposition</li>
+            </ul>
+          </div>
+
+          {/* Transfer to Order Button */}
+          {onTransferToOrder && (
+            <button
+              type="button"
+              onClick={() => onTransferToOrder({
+                box_type: selectedModel,
+                length: lengthMm,
+                width: widthMm,
+                height: heightMm,
+                sheet_thickness: thicknessMm,
+                material_name: activeMat.farsiName
+              })}
+              className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs transition shadow-md shadow-indigo-900/40 text-center"
+            >
+              انتقال ابعاد به فرم ثبت سفارش کارخانه
+            </button>
+          )}
+
         </div>
 
       </div>
+
     </div>
   );
 }

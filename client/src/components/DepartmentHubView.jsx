@@ -201,6 +201,14 @@ export default function DepartmentHubView({
 
         <div className="flex items-center gap-3 flex-wrap">
           <button
+            onClick={() => onNavigateDepartment('dieline_generator')}
+            className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black rounded-xl text-xs sm:text-sm shadow-md transition-all flex items-center gap-2"
+          >
+            <Boxes className="w-4 h-4 text-slate-950" />
+            <span>استودیو Pacdora 3D و خط تیغ</span>
+          </button>
+
+          <button
             onClick={() => onNavigateDepartment('ai_assistant')}
             className="px-4 py-2 bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-600 hover:to-indigo-600 text-white font-black rounded-xl text-xs sm:text-sm shadow-md transition-all flex items-center gap-2"
           >

@@ -20,7 +20,9 @@ import {
   ShieldCheck,
   LayoutGrid,
   ArrowRightLeft,
-  Sparkles
+  Sparkles,
+  Box,
+  Crown
 } from 'lucide-react';
 
 export default function Header({
@@ -121,6 +123,20 @@ export default function Header({
             <span className="hidden sm:inline">لایسنس معتبر</span>
           </button>
 
+          {/* Pacdora 3D Studio Fast Access Button */}
+          <button
+            onClick={() => setActiveTab('dieline_generator')}
+            className={`flex items-center gap-1.5 px-3.5 py-2 text-xs font-black rounded-xl transition-all shadow-xs border ${
+              activeTab === 'dieline_generator' || activeTab === '3d_studio'
+                ? 'bg-gradient-to-r from-amber-500 to-indigo-600 text-white border-amber-600 shadow-md ring-2 ring-amber-400'
+                : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300'
+            }`}
+            title="استودیو مدلسازی سه‌بعدی و مولد خط تیغ Pacdora"
+          >
+            <Box className="w-4 h-4 text-amber-600 animate-pulse" />
+            <span>استودیو Pacdora 3D</span>
+          </button>
+
           {/* AI Assistant Fast Access Button */}
           <button
             onClick={() => setActiveTab('ai_assistant')}
@@ -131,7 +147,7 @@ export default function Header({
             }`}
             title="دستیار هوش مصنوعی و بهینه‌ساز فرم‌بندی مقوا"
           >
-            <Sparkles className="w-4 h-4 text-purple-600 animate-pulse" />
+            <Sparkles className="w-4 h-4 text-purple-600" />
             <span>هوش مصنوعی (AI)</span>
           </button>
 
@@ -201,7 +217,7 @@ export default function Header({
 
       {/* Grid Tabs Navigation Bar - 100% No Horizontal Scroll */}
       <div className="border-t border-slate-200 bg-slate-100/90 px-4 sm:px-6 lg:px-8 py-2.5">
-        <div className="w-full max-w-[2200px] mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-9 gap-2">
+        <div className="w-full max-w-[2200px] mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-10 gap-2">
           
           {/* Marketer ONLY view */}
           {isMarketer && (
@@ -285,7 +301,20 @@ export default function Header({
                 </button>
               )}
 
-              {/* 6. My Tasks Inbox */}
+              {/* 6. Pacdora 3D Modeling & Dielines Studio */}
+              <button
+                onClick={() => setActiveTab('dieline_generator')}
+                className={`flex items-center justify-center gap-2 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
+                  activeTab === 'dieline_generator' || activeTab === '3d_studio'
+                    ? 'bg-amber-500 text-slate-950 border-amber-600 shadow-md ring-2 ring-amber-400'
+                    : 'bg-white text-slate-700 hover:text-amber-700 hover:bg-amber-50 border-slate-200 shadow-xs'
+                }`}
+              >
+                <Box className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                <span className="truncate">استودیو Pacdora 3D</span>
+              </button>
+
+              {/* 7. My Tasks Inbox */}
               <button
                 onClick={() => setActiveTab('my_tasks')}
                 className={`relative flex items-center justify-center gap-2 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
@@ -303,7 +332,7 @@ export default function Header({
                 )}
               </button>
 
-              {/* 7. Dashboard (CEO / Production) */}
+              {/* 8. Dashboard (CEO / Production) */}
               {(isCeo || isProduction) && (
                 <button
                   onClick={() => setActiveTab('dashboard')}
@@ -318,7 +347,7 @@ export default function Header({
                 </button>
               )}
 
-              {/* 8. Raw Materials Prices */}
+              {/* 9. Raw Materials Prices */}
               {(isEstimator || isProcurement || isCeo) && (
                 <button
                   onClick={() => setActiveTab('materials')}
@@ -333,7 +362,7 @@ export default function Header({
                 </button>
               )}
 
-              {/* 9. AI Packaging Copilot */}
+              {/* 10. AI Packaging Copilot */}
               <button
                 onClick={() => setActiveTab('ai_assistant')}
                 className={`flex items-center justify-center gap-2 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
@@ -342,13 +371,13 @@ export default function Header({
                     : 'bg-purple-50 text-purple-900 hover:text-purple-950 hover:bg-purple-100 border-purple-200 shadow-xs'
                 }`}
               >
-                <Sparkles className="w-4 h-4 text-purple-600 flex-shrink-0 animate-pulse" />
+                <Sparkles className="w-4 h-4 text-purple-600 flex-shrink-0" />
                 <span className="truncate">هوش مصنوعی</span>
               </button>
             </>
           )}
 
-          {/* 10. User Management (CEO only) */}
+          {/* User Management (CEO only) */}
           {isCeo && (
             <button
               onClick={() => setActiveTab('users')}
@@ -362,19 +391,6 @@ export default function Header({
               <span className="truncate">مدیریت پرسنل</span>
             </button>
           )}
-
-          {/* 11. Subdomain Deployment Guide */}
-          <button
-            onClick={() => setActiveTab('subdomain_guide')}
-            className={`flex items-center justify-center gap-2 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
-              activeTab === 'subdomain_guide'
-                ? 'bg-indigo-50 text-indigo-800 border-indigo-300 shadow-sm'
-                : 'bg-white text-slate-600 hover:text-indigo-600 border-slate-200 shadow-xs'
-            }`}
-          >
-            <Globe className="w-4 h-4 text-indigo-500 flex-shrink-0" />
-            <span className="truncate">استقرار ساب‌دامین</span>
-          </button>
 
         </div>
       </div>

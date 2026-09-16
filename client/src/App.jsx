@@ -22,6 +22,7 @@ import LicenseStatusModal from './components/LicenseStatusModal';
 import AiAssistantView from './components/AiAssistantView';
 import MarketingLeadsView from './components/MarketingLeadsView';
 import DielineGeneratorView from './components/DielineGeneratorView';
+import Packaging3DStudioView from './components/Packaging3DStudioView';
 import { playNotificationSound } from './utils/helpers';
 
 export default function App() {
@@ -292,6 +293,21 @@ export default function App() {
         {/* Pacdora & ArtiosCAD 3D Packaging Studio & Dieline Generator */}
         {activeTab === 'dieline_generator' && (
           <DielineGeneratorView
+            onTransferToOrder={(boxSpecs) => {
+              setReorderData({
+                ...boxSpecs,
+                order_code: String(Math.floor(1000 + Math.random() * 9000)),
+                archive_code: String(Math.floor(1000 + Math.random() * 9000))
+              });
+              setActiveTab('new_order');
+            }}
+          />
+        )}
+
+        {/* Dedicated Fullscreen Pacdora 3D Modeling Studio */}
+        {activeTab === '3d_studio' && (
+          <Packaging3DStudioView
+            onSwitchTo2DDieline={() => setActiveTab('dieline_generator')}
             onTransferToOrder={(boxSpecs) => {
               setReorderData({
                 ...boxSpecs,
