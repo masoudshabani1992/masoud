@@ -2,8 +2,8 @@
  * ESKO ArtiosCAD 23.07 Build 3268 Parametric Packaging CAD & Sheet Imposition Engine
  * Developed for Arman Amiran Packaging ERP by Masoud Shabani (مسعود شعبانی)
  *
- * Supported ECMA & FEFCO Packaging Standards:
- * 1. tuck_end          -> ECMA A20.20.03.01 (Straight Tuck End) / ECMA A20.21.01.01 (Reverse Tuck End)
+ * Supported ECMA & FEFCO Packaging Standards with 100% CAD Dimensioning per Edge:
+ * 1. tuck_end          -> ECMA A20.20.03.01 (Straight Tuck End)
  * 2. sleeve_drawer     -> ECMA F10.02.01 (Matchbox Style Sleeve & Drawer Tray)
  * 3. snap_lock_bottom  -> ECMA A20.40.01 (Auto-Locking 1-2-3 Snap Lock Bottom Box)
  * 4. keyboard          -> FEFCO 0427 / ECMA C20.20.01 (Mailer Box with Dust Flaps & Self-Lock)
@@ -37,7 +37,84 @@ const STANDARD_SHEETS = [
 ];
 
 /**
- * Generate Parametric SVG & Measurements matching ESKO ArtiosCAD 23.07
+ * Helper to generate CAD Dimension Line with witness marks, arrows, and badge
+ */
+function createCADDimensionH({ x1, x2, y, text, offset = -14, color = '#2563eb', bg = '#eff6ff', fontSize = 7.5 }) {
+  const dimY = y + offset;
+  const minX = Math.min(x1, x2);
+  const maxX = Math.max(x1, x2);
+  const midX = (minX + maxX) / 2;
+  const dist = Math.abs(maxX - minX);
+
+  if (dist < 2) return '';
+
+  // Witness lines from geometry to dimension line
+  const witness1 = `M ${minX} ${y} L ${minX} ${dimY - (offset < 0 ? 3 : -3)}`;
+  const witness2 = `M ${maxX} ${y} L ${maxX} ${dimY - (offset < 0 ? 3 : -3)}`;
+  const dimLine = `M ${minX} ${dimY} L ${maxX} ${dimY}`;
+
+  // Arrow markers / ticks at both ends (ArtiosCAD style 45° ticks or filled arrowheads)
+  const tick1 = `M ${minX - 2.5} ${dimY - 2.5} L ${minX + 2.5} ${dimY + 2.5}`;
+  const tick2 = `M ${maxX - 2.5} ${dimY - 2.5} L ${maxX + 2.5} ${dimY + 2.5}`;
+
+  const textWidth = Math.min(dist * 0.9, text.length * 5.2 + 8);
+  const textHeight = 11;
+
+  return `
+    <!-- CAD Dimension H: ${text} -->
+    <g class="cad-dim">
+      <path d="${witness1}" stroke="#94a3b8" stroke-width="0.4" stroke-dasharray="1.5,1.5" />
+      <path d="${witness2}" stroke="#94a3b8" stroke-width="0.4" stroke-dasharray="1.5,1.5" />
+      <path d="${dimLine}" stroke="${color}" stroke-width="0.7" />
+      <path d="${tick1}" stroke="${color}" stroke-width="1.2" stroke-linecap="round" />
+      <path d="${tick2}" stroke="${color}" stroke-width="1.2" stroke-linecap="round" />
+      <rect x="${midX - textWidth / 2}" y="${dimY - textHeight / 2}" width="${textWidth}" height="${textHeight}" rx="2" fill="${bg}" stroke="${color}" stroke-width="0.5" />
+      <text x="${midX}" y="${dimY + 3}" font-family="'Vazirmatn', sans-serif" font-size="${fontSize}px" font-weight="bold" fill="${color}" text-anchor="middle">
+        ${text}
+      </text>
+    </g>
+  `;
+}
+
+function createCADDimensionV({ x, y1, y2, text, offset = -14, color = '#2563eb', bg = '#eff6ff', fontSize = 7.5 }) {
+  const dimX = x + offset;
+  const minY = Math.min(y1, y2);
+  const maxY = Math.max(y1, y2);
+  const midY = (minY + maxY) / 2;
+  const dist = Math.abs(maxY - minY);
+
+  if (dist < 2) return '';
+
+  const witness1 = `M ${x} ${minY} L ${dimX - (offset < 0 ? 3 : -3)} ${minY}`;
+  const witness2 = `M ${x} ${maxY} L ${dimX - (offset < 0 ? 3 : -3)} ${maxY}`;
+  const dimLine = `M ${dimX} ${minY} L ${dimX} ${maxY}`;
+
+  const tick1 = `M ${dimX - 2.5} ${minY - 2.5} L ${dimX + 2.5} ${minY + 2.5}`;
+  const tick2 = `M ${dimX - 2.5} ${maxY - 2.5} L ${dimX + 2.5} ${maxY + 2.5}`;
+
+  const textWidth = Math.min(dist * 0.9, text.length * 5.2 + 8);
+  const textHeight = 11;
+
+  return `
+    <!-- CAD Dimension V: ${text} -->
+    <g class="cad-dim">
+      <path d="${witness1}" stroke="#94a3b8" stroke-width="0.4" stroke-dasharray="1.5,1.5" />
+      <path d="${witness2}" stroke="#94a3b8" stroke-width="0.4" stroke-dasharray="1.5,1.5" />
+      <path d="${dimLine}" stroke="${color}" stroke-width="0.7" />
+      <path d="${tick1}" stroke="${color}" stroke-width="1.2" stroke-linecap="round" />
+      <path d="${tick2}" stroke="${color}" stroke-width="1.2" stroke-linecap="round" />
+      <g transform="translate(${dimX}, ${midY}) rotate(-90)">
+        <rect x="${-textWidth / 2}" y="${-textHeight / 2}" width="${textWidth}" height="${textHeight}" rx="2" fill="${bg}" stroke="${color}" stroke-width="0.5" />
+        <text x="0" y="3" font-family="'Vazirmatn', sans-serif" font-size="${fontSize}px" font-weight="bold" fill="${color}" text-anchor="middle">
+          ${text}
+        </text>
+      </g>
+    </g>
+  `;
+}
+
+/**
+ * Generate Parametric SVG & Full Edge Measurements matching ESKO ArtiosCAD 23.07
  */
 function generateBoxDieline({
   boxType = 'tuck_end',
@@ -57,27 +134,31 @@ function generateBoxDieline({
   let flatH = 0;
   let cutPaths = [];
   let creasePaths = [];
-  let perfPaths = [];
   let bleedPaths = [];
-  let dimensionPaths = [];
-  let labels = [];
+  let cadDimensions = [];
+  let faceBadges = [];
   let parts = [];
   let totalCutLengthMm = 0;
   let totalCreaseLengthMm = 0;
 
   const standardInfo = ECMA_STANDARDS[boxType] || ECMA_STANDARDS.tuck_end;
 
+  // Margin for outer CAD dimensions and title
+  const padX = 65;
+  const padY = 65;
+
   switch (boxType) {
     // ================= 1. ECMA A20.20.03 (Tuck End / دو طرف درب دارویی) =================
     case 'tuck_end': {
-      const tuck = Math.max(12, Math.min(22, W * 0.75 + 3));
+      const tuck = Math.max(12, Math.min(24, W * 0.75 + 3));
       const flapH = W;
+      const dustH = Math.min(flapH * 0.85, 14);
+
       flatW = (L * 2) + (W * 2) + glueW;
       flatH = H + (flapH * 2) + (tuck * 2);
 
-      const margin = 20;
-      const ox = margin;
-      const oy = margin + flapH + tuck;
+      const ox = padX;
+      const oy = padY + flapH + tuck;
 
       const x0 = ox;
       const x1 = ox + glueW;
@@ -93,7 +174,7 @@ function generateBoxDieline({
       const yBotFlap = yBotBody + flapH;
       const yBotTuck = yBotFlap + tuck;
 
-      // Crease lines (خطوط تا - ArtiosCAD Line Type 2)
+      // Crease lines (خطوط تا)
       creasePaths.push(`M ${x1} ${yTopBody} L ${x1} ${yBotBody}`);
       creasePaths.push(`M ${x2} ${yTopBody} L ${x2} ${yBotBody}`);
       creasePaths.push(`M ${x3} ${yTopBody} L ${x3} ${yBotBody}`);
@@ -105,10 +186,7 @@ function generateBoxDieline({
 
       totalCreaseLengthMm = (4 * H) + (2 * (flatW - glueW)) + (2 * L);
 
-      // Dust flaps side creases & cutouts
-      const dustH = Math.min(flapH * 0.8, 14);
-
-      // Cut lines (تیغ برش اصلی با گوشواره‌های قفل اصطکاکی ArtiosCAD Friction Lock)
+      // Cut lines (تیغ برش خارجی با گوشواره‌های اصطکاکی)
       cutPaths.push(`
         M ${x0} ${yTopBody + 4}
         L ${x1} ${yTopBody}
@@ -151,17 +229,43 @@ function generateBoxDieline({
 
       totalCutLengthMm = (2 * flatW) + (2 * flatH) + 80;
 
-      // Bleed Line (حاشیه بلید چاپ ۳ میلی‌متر ArtiosCAD)
+      // Bleed Line (حاشیه بلید ۳ میلی‌متری)
       bleedPaths.push(`M ${x0 - 3} ${yTopTuck - 3} L ${x5 + 3} ${yTopTuck - 3} L ${x5 + 3} ${yBotTuck + 3} L ${x0 - 3} ${yBotTuck + 3} Z`);
 
-      // CAD Dimension lines (خطوط اندازه‌گذاری استاندارد ArtiosCAD)
-      labels.push({ text: `لب‌چسب: ${glueW}mm`, x: x0 + glueW / 2, y: yTopBody + H / 2 });
-      labels.push({ text: `L: ${L}mm`, x: x1 + L / 2, y: yTopBody + H / 2 });
-      labels.push({ text: `W: ${W}mm`, x: x2 + W / 2, y: yTopBody + H / 2 });
-      labels.push({ text: `L: ${L}mm`, x: x3 + L / 2, y: yTopBody + H / 2 });
-      labels.push({ text: `W: ${W}mm`, x: x4 + W / 2, y: yTopBody + H / 2 });
-      labels.push({ text: `H: ${H}mm`, x: x1 + L / 2, y: yTopBody + 25 });
-      labels.push({ text: `زبانه درب: ${Math.round(tuck)}mm`, x: x1 + L / 2, y: yTopTuck + 6 });
+      // ======== EXACT CAD DIMENSIONS ON EVERY SINGLE EDGE ========
+      // 1. Horizontal panel widths along top/middle
+      cadDimensions.push(createCADDimensionH({ x1: x0, x2: x1, y: yTopBody, text: `لب‌چسب: ${glueW}mm`, offset: -12, color: '#0284c7', bg: '#f0f9ff' }));
+      cadDimensions.push(createCADDimensionH({ x1: x1, x2: x2, y: yTopBody, text: `طول (L): ${L}mm`, offset: -12, color: '#2563eb', bg: '#eff6ff' }));
+      cadDimensions.push(createCADDimensionH({ x1: x2, x2: x3, y: yTopBody, text: `عرض (W): ${W}mm`, offset: -12, color: '#7c3aed', bg: '#faf5ff' }));
+      cadDimensions.push(createCADDimensionH({ x1: x3, x2: x4, y: yTopBody, text: `طول (L): ${L}mm`, offset: -12, color: '#2563eb', bg: '#eff6ff' }));
+      cadDimensions.push(createCADDimensionH({ x1: x4, x2: x5, y: yTopBody, text: `عرض (W): ${W}mm`, offset: -12, color: '#7c3aed', bg: '#faf5ff' }));
+
+      // 2. Top flaps dimensions
+      cadDimensions.push(createCADDimensionH({ x1: x1, x2: x2, y: yTopTuck, text: `لبه درب بالا: ${L}mm`, offset: -8, color: '#e11d48', bg: '#fff1f2' }));
+      cadDimensions.push(createCADDimensionV({ x: x1, y1: yTopBody, y2: yTopFlap, text: `ارتفاع درب: ${W}mm`, offset: -10, color: '#e11d48', bg: '#fff1f2' }));
+      cadDimensions.push(createCADDimensionV({ x: x1, y1: yTopFlap, y2: yTopTuck, text: `زبانه: ${Math.round(tuck)}mm`, offset: -10, color: '#e11d48', bg: '#fff1f2' }));
+      cadDimensions.push(createCADDimensionV({ x: x2, y1: yTopBody, y2: yTopBody - dustH, text: `گردگیر: ${Math.round(dustH)}mm`, offset: 8, color: '#d97706', bg: '#fffbeb' }));
+
+      // 3. Bottom flaps dimensions
+      cadDimensions.push(createCADDimensionH({ x1: x3, x2: x4, y: yBotTuck, text: `لبه درب پایین: ${L}mm`, offset: 8, color: '#e11d48', bg: '#fff1f2' }));
+      cadDimensions.push(createCADDimensionV({ x: x4, y1: yBotBody, y2: yBotFlap, text: `ارتفاع درب: ${W}mm`, offset: 10, color: '#e11d48', bg: '#fff1f2' }));
+      cadDimensions.push(createCADDimensionV({ x: x4, y1: yBotFlap, y2: yBotTuck, text: `زبانه: ${Math.round(tuck)}mm`, offset: 10, color: '#e11d48', bg: '#fff1f2' }));
+      cadDimensions.push(createCADDimensionV({ x: x5, y1: yBotBody, y2: yBotBody + dustH, text: `گردگیر: ${Math.round(dustH)}mm`, offset: 8, color: '#d97706', bg: '#fffbeb' }));
+
+      // 4. Vertical Body Heights
+      cadDimensions.push(createCADDimensionV({ x: x0, y1: yTopBody, y2: yBotBody, text: `ارتفاع بدنه (H): ${H}mm`, offset: -18, color: '#0f172a', bg: '#f8fafc', fontSize: 8.5 }));
+      cadDimensions.push(createCADDimensionV({ x: x5, y1: yTopBody, y2: yBotBody, text: `ارتفاع: ${H}mm`, offset: 18, color: '#0f172a', bg: '#f8fafc' }));
+
+      // 5. Total Bounding Box Outer Dimensions
+      cadDimensions.push(createCADDimensionH({ x1: x0, x2: x5, y: yTopTuck, text: `کل عرض گسترده: ${flatW} mm (${(flatW / 10).toFixed(1)} cm)`, offset: -24, color: '#047857', bg: '#ecfdf5', fontSize: 9 }));
+      cadDimensions.push(createCADDimensionV({ x: x0, y1: yTopTuck, y2: yBotTuck, text: `کل ارتفاع گسترده: ${flatH} mm (${(flatH / 10).toFixed(1)} cm)`, offset: -38, color: '#047857', bg: '#ecfdf5', fontSize: 9 }));
+
+      // Face Center Badges
+      faceBadges.push({ title: 'وجه ۱ (رو / جلو)', sub: `${L} × ${H} mm`, x: x1 + L / 2, y: yTopBody + H / 2 });
+      faceBadges.push({ title: 'وجه ۲ (عطف راست)', sub: `${W} × ${H} mm`, x: x2 + W / 2, y: yTopBody + H / 2 });
+      faceBadges.push({ title: 'وجه ۳ (پشت)', sub: `${L} × ${H} mm`, x: x3 + L / 2, y: yTopBody + H / 2 });
+      faceBadges.push({ title: 'وجه ۴ (عطف چپ)', sub: `${W} × ${H} mm`, x: x4 + W / 2, y: yTopBody + H / 2 });
+      faceBadges.push({ title: 'لبه چسب', sub: `${glueW} mm`, x: x0 + glueW / 2, y: yTopBody + H / 2 });
 
       parts.push({
         id: 'box',
@@ -188,12 +292,12 @@ function generateBoxDieline({
       const drawerFlatW = W + (wallH * 2) + (rollH * 2);
       const drawerFlatH = L + (wallH * 2) + (rollH * 2);
 
-      flatW = Math.max(sleeveFlatW, drawerFlatW) + 40;
-      flatH = sleeveFlatH + drawerFlatH + 80;
+      flatW = Math.max(sleeveFlatW, drawerFlatW);
+      flatH = sleeveFlatH + drawerFlatH + 60;
 
       // Part 1: Drawer Tray (کشوی داخلی)
-      const dx = 30 + wallH + rollH;
-      const dy = 30 + wallH + rollH;
+      const dx = padX + (flatW - drawerFlatW) / 2 + wallH + rollH;
+      const dy = padY + wallH + rollH;
 
       creasePaths.push(`M ${dx} ${dy} L ${dx + W} ${dy} L ${dx + W} ${dy + L} L ${dx} ${dy + L} Z`);
       creasePaths.push(`M ${dx - wallH} ${dy} L ${dx - wallH} ${dy + L}`);
@@ -221,11 +325,18 @@ function generateBoxDieline({
         Z
       `);
 
-      labels.push({ text: `قطعه ۱: کشوی داخلی (${W}×${L}×${H}mm)`, x: dx + W / 2, y: dy + L / 2 });
+      // Dimensions for Drawer
+      cadDimensions.push(createCADDimensionH({ x1: dx, x2: dx + W, y: dy, text: `عرض کف: ${W}mm`, offset: -10, color: '#2563eb' }));
+      cadDimensions.push(createCADDimensionV({ x: dx, y1: dy, y2: dy + L, text: `طول کف: ${L}mm`, offset: -10, color: '#2563eb' }));
+      cadDimensions.push(createCADDimensionV({ x: dx, y1: dy - wallH, y2: dy, text: `دیواره: ${wallH}mm`, offset: 8, color: '#7c3aed' }));
+      cadDimensions.push(createCADDimensionV({ x: dx, y1: dy - wallH - rollH, y2: dy - wallH, text: `دوبل: ${rollH}mm`, offset: 8, color: '#d97706' }));
+      cadDimensions.push(createCADDimensionH({ x1: dx - wallH - rollH, x2: dx + W + wallH + rollH, y: dy - wallH - rollH, text: `گسترده کشو: ${drawerFlatW}mm`, offset: -18, color: '#047857' }));
+
+      faceBadges.push({ title: 'کف کشو', sub: `${W} × ${L} mm`, x: dx + W / 2, y: dy + L / 2 });
 
       // Part 2: Outer Sleeve (کاور دورپیچ بیرونی)
       const sy = dy + L + wallH + rollH + 50;
-      const sx = 30;
+      const sx = padX + (flatW - sleeveFlatW) / 2;
 
       const sx0 = sx;
       const sx1 = sx0 + glueW;
@@ -254,7 +365,16 @@ function generateBoxDieline({
         Z
       `);
 
-      labels.push({ text: `قطعه ۲: کاور دورپیچ کشویی (${sL}mm | بادخور: +${clearance}mm)`, x: sx1 + sW, y: sy - 15 });
+      // Dimensions for Sleeve
+      cadDimensions.push(createCADDimensionH({ x1: sx0, x2: sx1, y: sy, text: `لب‌چسب: ${glueW}mm`, offset: -10, color: '#0284c7' }));
+      cadDimensions.push(createCADDimensionH({ x1: sx1, x2: sx2, y: sy, text: `عرض رو: ${sW}mm`, offset: -10, color: '#2563eb' }));
+      cadDimensions.push(createCADDimensionH({ x1: sx2, x2: sx3, y: sy, text: `عطف: ${sH}mm`, offset: -10, color: '#7c3aed' }));
+      cadDimensions.push(createCADDimensionH({ x1: sx3, x2: sx4, y: sy, text: `عرض زیر: ${sW}mm`, offset: -10, color: '#2563eb' }));
+      cadDimensions.push(createCADDimensionH({ x1: sx4, x2: sx5, y: sy, text: `عطف: ${sH}mm`, offset: -10, color: '#7c3aed' }));
+      cadDimensions.push(createCADDimensionV({ x: sx0, y1: sy, y2: sy + sL, text: `طول کاور: ${sL}mm`, offset: -14, color: '#0f172a' }));
+      cadDimensions.push(createCADDimensionH({ x1: sx0, x2: sx5, y: sy + sL, text: `گسترده کاور: ${sleeveFlatW}mm (بادخور +${clearance}mm)`, offset: 16, color: '#047857' }));
+
+      faceBadges.push({ title: 'کاور دورپیچ کشویی', sub: `${sW} × ${sL} mm`, x: sx1 + sW, y: sy + sL / 2 });
 
       totalCutLengthMm = (drawerFlatW * 2 + drawerFlatH * 2) + (sleeveFlatW * 2 + sleeveFlatH * 2);
       totalCreaseLengthMm = (4 * W + 4 * L) + (4 * sL);
@@ -284,8 +404,8 @@ function generateBoxDieline({
       flatW = L + (H * 4) + 20;
       flatH = (H * 2) + (W * 2) + frontFlap + 20;
 
-      const ox = 20 + H * 2;
-      const oy = 20 + frontFlap;
+      const ox = padX + H * 2 + 10;
+      const oy = padY + frontFlap + 10;
 
       creasePaths.push(`M ${ox} ${oy} L ${ox + L} ${oy}`);
       creasePaths.push(`M ${ox} ${oy + W} L ${ox + L} ${oy + W}`);
@@ -313,8 +433,19 @@ function generateBoxDieline({
         Z
       `);
 
-      labels.push({ text: `کف جعبه: ${L} × ${W} mm`, x: ox + L / 2, y: oy + W / 2 });
-      labels.push({ text: `درب بالایی: ${L} × ${W} mm`, x: ox + L / 2, y: oy + W + H + W / 2 });
+      // Dimensions on every side
+      cadDimensions.push(createCADDimensionH({ x1: ox, x2: ox + L, y: oy, text: `طول کف (L): ${L}mm`, offset: -10, color: '#2563eb' }));
+      cadDimensions.push(createCADDimensionV({ x: ox, y1: oy, y2: oy + W, text: `عرض کف (W): ${W}mm`, offset: -12, color: '#2563eb' }));
+      cadDimensions.push(createCADDimensionH({ x1: ox - H * 2, x2: ox - H, y: oy, text: `دوبل: ${H}mm`, offset: -10, color: '#d97706' }));
+      cadDimensions.push(createCADDimensionH({ x1: ox - H, x2: ox, y: oy, text: `دیواره: ${H}mm`, offset: -10, color: '#7c3aed' }));
+      cadDimensions.push(createCADDimensionV({ x: ox, y1: oy - frontFlap, y2: oy, text: `زبانه درب: ${frontFlap}mm`, offset: -12, color: '#e11d48' }));
+      cadDimensions.push(createCADDimensionV({ x: ox, y1: oy + W, y2: oy + W + H, text: `دیواره پشت: ${H}mm`, offset: -12, color: '#7c3aed' }));
+      cadDimensions.push(createCADDimensionV({ x: ox, y1: oy + W + H, y2: oy + W + H + W, text: `درب بالا: ${W}mm`, offset: -12, color: '#2563eb' }));
+      cadDimensions.push(createCADDimensionH({ x1: padX, x2: padX + flatW, y: oy - frontFlap, text: `کل عرض گسترده: ${flatW}mm`, offset: -22, color: '#047857' }));
+      cadDimensions.push(createCADDimensionV({ x: padX, y1: oy - frontFlap, y2: oy + W + H + W, text: `کل ارتفاع گسترده: ${flatH}mm`, offset: -34, color: '#047857' }));
+
+      faceBadges.push({ title: 'کف کارتن کیبوردی', sub: `${L} × ${W} mm`, x: ox + L / 2, y: oy + W / 2 });
+      faceBadges.push({ title: 'درب روی کارتن', sub: `${L} × ${W} mm`, x: ox + L / 2, y: oy + W + H + W / 2 });
 
       totalCutLengthMm = flatW * 2 + flatH * 2 + 60;
       totalCreaseLengthMm = (3 * L) + (4 * W);
@@ -329,8 +460,8 @@ function generateBoxDieline({
       flatW = (L * 2) + (W * 2) + glueW;
       flatH = H + (flapH * 2);
 
-      const ox = 20;
-      const oy = 20 + flapH;
+      const ox = padX;
+      const oy = padY + flapH;
 
       const x0 = ox;
       const x1 = ox + glueW;
@@ -365,7 +496,22 @@ function generateBoxDieline({
         Z
       `);
 
-      labels.push({ text: `کارتن آمریکایی: ${L} × ${W} × ${H} mm`, x: x1 + L / 2, y: oy + H / 2 });
+      // Dimensions on every edge
+      cadDimensions.push(createCADDimensionH({ x1: x0, x2: x1, y: oy, text: `لب‌چسب: ${glueW}mm`, offset: -10, color: '#0284c7' }));
+      cadDimensions.push(createCADDimensionH({ x1: x1, x2: x2, y: oy, text: `طول (L): ${L}mm`, offset: -10, color: '#2563eb' }));
+      cadDimensions.push(createCADDimensionH({ x1: x2, x2: x3, y: oy, text: `عرض (W): ${W}mm`, offset: -10, color: '#7c3aed' }));
+      cadDimensions.push(createCADDimensionH({ x1: x3, x2: x4, y: oy, text: `طول (L): ${L}mm`, offset: -10, color: '#2563eb' }));
+      cadDimensions.push(createCADDimensionH({ x1: x4, x2: x5, y: oy, text: `عرض (W): ${W}mm`, offset: -10, color: '#7c3aed' }));
+      cadDimensions.push(createCADDimensionV({ x: x0, y1: oy, y2: oy + H, text: `ارتفاع بدنه (H): ${H}mm`, offset: -14, color: '#0f172a' }));
+      cadDimensions.push(createCADDimensionV({ x: x1, y1: oy - flapH, y2: oy, text: `درب بالا: ${Math.round(flapH)}mm (W/2)`, offset: -10, color: '#e11d48' }));
+      cadDimensions.push(createCADDimensionV({ x: x1, y1: oy + H, y2: oy + H + flapH, text: `درب پایین: ${Math.round(flapH)}mm (W/2)`, offset: -10, color: '#e11d48' }));
+      cadDimensions.push(createCADDimensionH({ x1: x0, x2: x5, y: oy - flapH, text: `کل عرض گسترده: ${flatW}mm`, offset: -20, color: '#047857' }));
+      cadDimensions.push(createCADDimensionV({ x: x0, y1: oy - flapH, y2: oy + H + flapH, text: `کل ارتفاع گسترده: ${flatH}mm`, offset: -30, color: '#047857' }));
+
+      faceBadges.push({ title: 'رو (Front)', sub: `${L} × ${H} mm`, x: x1 + L / 2, y: oy + H / 2 });
+      faceBadges.push({ title: 'عطف (Side)', sub: `${W} × ${H} mm`, x: x2 + W / 2, y: oy + H / 2 });
+      faceBadges.push({ title: 'پشت (Back)', sub: `${L} × ${H} mm`, x: x3 + L / 2, y: oy + H / 2 });
+      faceBadges.push({ title: 'عطف (Side)', sub: `${W} × ${H} mm`, x: x4 + W / 2, y: oy + H / 2 });
 
       totalCutLengthMm = flatW * 2 + flatH * 2 + (6 * flapH);
       totalCreaseLengthMm = (4 * H) + (2 * (flatW - glueW));
@@ -383,8 +529,8 @@ function generateBoxDieline({
       flatW = (L * 2) + (W * 2) + glueW;
       flatH = H + topFlap + topTuck + lockBottomH;
 
-      const ox = 20;
-      const oy = 20 + topFlap + topTuck;
+      const ox = padX;
+      const oy = padY + topFlap + topTuck;
 
       const x0 = ox;
       const x1 = ox + glueW;
@@ -418,7 +564,21 @@ function generateBoxDieline({
         Z
       `);
 
-      labels.push({ text: 'سر دارویی ته قفلی (Lock-Bottom)', x: x1 + L / 2, y: oy + H / 2 });
+      // Dimensions on every side
+      cadDimensions.push(createCADDimensionH({ x1: x0, x2: x1, y: oy, text: `لب‌چسب: ${glueW}mm`, offset: -10, color: '#0284c7' }));
+      cadDimensions.push(createCADDimensionH({ x1: x1, x2: x2, y: oy, text: `طول (L): ${L}mm`, offset: -10, color: '#2563eb' }));
+      cadDimensions.push(createCADDimensionH({ x1: x2, x2: x3, y: oy, text: `عرض (W): ${W}mm`, offset: -10, color: '#7c3aed' }));
+      cadDimensions.push(createCADDimensionH({ x1: x3, x2: x4, y: oy, text: `طول (L): ${L}mm`, offset: -10, color: '#2563eb' }));
+      cadDimensions.push(createCADDimensionH({ x1: x4, x2: x5, y: oy, text: `عرض (W): ${W}mm`, offset: -10, color: '#7c3aed' }));
+      cadDimensions.push(createCADDimensionV({ x: x0, y1: oy, y2: oy + H, text: `ارتفاع بدنه (H): ${H}mm`, offset: -14, color: '#0f172a' }));
+      cadDimensions.push(createCADDimensionV({ x: x1, y1: oy - topFlap, y2: oy, text: `درب بالا: ${Math.round(topFlap)}mm`, offset: -10, color: '#e11d48' }));
+      cadDimensions.push(createCADDimensionV({ x: x1, y1: oy - topFlap - topTuck, y2: oy - topFlap, text: `زبانه: ${Math.round(topTuck)}mm`, offset: -10, color: '#e11d48' }));
+      cadDimensions.push(createCADDimensionV({ x: x1, y1: oy + H, y2: oy + H + lockBottomH, text: `قفل کف: ${Math.round(lockBottomH)}mm`, offset: -10, color: '#059669' }));
+      cadDimensions.push(createCADDimensionH({ x1: x0, x2: x5, y: oy - topFlap - topTuck, text: `کل عرض گسترده: ${flatW}mm`, offset: -22, color: '#047857' }));
+      cadDimensions.push(createCADDimensionV({ x: x0, y1: oy - topFlap - topTuck, y2: oy + H + lockBottomH, text: `کل ارتفاع گسترده: ${flatH}mm`, offset: -32, color: '#047857' }));
+
+      faceBadges.push({ title: 'بدنه رو', sub: `${L} × ${H} mm`, x: x1 + L / 2, y: oy + H / 2 });
+      faceBadges.push({ title: 'قفل کف خودکار (Lock-Bottom)', sub: 'تحمل بار بالا', x: x1 + L, y: oy + H + lockBottomH / 2 });
 
       totalCutLengthMm = flatW * 2 + flatH * 2 + 70;
       totalCreaseLengthMm = (4 * H) + (2 * (flatW - glueW)) + L;
@@ -432,8 +592,8 @@ function generateBoxDieline({
       flatW = L + (H * 2) + 20;
       flatH = W + (H * 2) + 20;
 
-      const ox = 20 + H;
-      const oy = 20 + H;
+      const ox = padX + H + 10;
+      const oy = padY + H + 10;
 
       creasePaths.push(`M ${ox} ${oy} L ${ox + L} ${oy} L ${ox + L} ${oy + W} L ${ox} ${oy + W} Z`);
       cutPaths.push(`
@@ -442,7 +602,16 @@ function generateBoxDieline({
         L ${ox} ${oy + W + H} L ${ox} ${oy + W + 5} L ${ox - H} ${oy + W + 5} L ${ox - H} ${oy - 5} L ${ox} ${oy - 5} Z
       `);
 
-      labels.push({ text: `کف سینی: ${L} × ${W} mm`, x: ox + L / 2, y: oy + W / 2 });
+      cadDimensions.push(createCADDimensionH({ x1: ox, x2: ox + L, y: oy, text: `طول کف سینی (L): ${L}mm`, offset: -10, color: '#2563eb' }));
+      cadDimensions.push(createCADDimensionV({ x: ox, y1: oy, y2: oy + W, text: `عرض کف سینی (W): ${W}mm`, offset: -10, color: '#2563eb' }));
+      cadDimensions.push(createCADDimensionV({ x: ox, y1: oy - H, y2: oy, text: `دیواره بالا: ${H}mm`, offset: 8, color: '#7c3aed' }));
+      cadDimensions.push(createCADDimensionV({ x: ox, y1: oy + W, y2: oy + W + H, text: `دیواره پایین: ${H}mm`, offset: 8, color: '#7c3aed' }));
+      cadDimensions.push(createCADDimensionH({ x1: ox - H, x2: ox, y: oy, text: `دیواره چپ: ${H}mm`, offset: 8, color: '#7c3aed' }));
+      cadDimensions.push(createCADDimensionH({ x1: ox + L, x2: ox + L + H, y: oy, text: `دیواره راست: ${H}mm`, offset: 8, color: '#7c3aed' }));
+      cadDimensions.push(createCADDimensionH({ x1: padX, x2: padX + flatW, y: oy - H, text: `کل عرض گسترده: ${flatW}mm`, offset: -20, color: '#047857' }));
+      cadDimensions.push(createCADDimensionV({ x: padX, y1: oy - H, y2: oy + W + H, text: `کل ارتفاع گسترده: ${flatH}mm`, offset: -30, color: '#047857' }));
+
+      faceBadges.push({ title: 'کف سینی مقوایی', sub: `${L} × ${W} mm`, x: ox + L / 2, y: oy + W / 2 });
 
       totalCutLengthMm = flatW * 2 + flatH * 2;
       totalCreaseLengthMm = (2 * L) + (2 * W);
@@ -458,16 +627,17 @@ function generateBoxDieline({
       const lidW = W + lidClearance;
       const lidH = Math.min(H, Math.max(20, H * 0.85));
 
-      const baseFlatW = L + (H * 2) + 10;
-      const baseFlatH = W + (H * 2) + 10;
-      const lidFlatW = lidL + (lidH * 2) + 10;
-      const lidFlatH = lidW + (lidH * 2) + 10;
+      const baseFlatW = L + (H * 2) + 20;
+      const baseFlatH = W + (H * 2) + 20;
+      const lidFlatW = lidL + (lidH * 2) + 20;
+      const lidFlatH = lidW + (lidH * 2) + 20;
 
       flatW = Math.max(baseFlatW, lidFlatW);
-      flatH = baseFlatH + lidFlatH + 30;
+      flatH = baseFlatH + lidFlatH + 40;
 
-      const bx = 20 + H;
-      const by = 20 + H;
+      // Base (زیره)
+      const bx = padX + (flatW - baseFlatW) / 2 + H + 10;
+      const by = padY + H + 10;
       creasePaths.push(`M ${bx} ${by} L ${bx + L} ${by} L ${bx + L} ${by + W} L ${bx} ${by + W} Z`);
       cutPaths.push(`
         M ${bx} ${by - H} L ${bx + L} ${by - H} L ${bx + L} ${by} L ${bx + L + H} ${by}
@@ -475,8 +645,16 @@ function generateBoxDieline({
         L ${bx} ${by + W + H} L ${bx} ${by + W} L ${bx - H} ${by + W} L ${bx - H} ${by} L ${bx} ${by} Z
       `);
 
-      const ly = by + W + H + 30 + lidH;
-      const lx = 20 + lidH;
+      cadDimensions.push(createCADDimensionH({ x1: bx, x2: bx + L, y: by, text: `طول زیره: ${L}mm`, offset: -10, color: '#2563eb' }));
+      cadDimensions.push(createCADDimensionV({ x: bx, y1: by, y2: by + W, text: `عرض زیره: ${W}mm`, offset: -10, color: '#2563eb' }));
+      cadDimensions.push(createCADDimensionV({ x: bx, y1: by - H, y2: by, text: `دیواره: ${H}mm`, offset: 8, color: '#7c3aed' }));
+      cadDimensions.push(createCADDimensionH({ x1: bx - H, x2: bx + L + H, y: by - H, text: `گسترده زیره: ${baseFlatW}mm`, offset: -18, color: '#047857' }));
+
+      faceBadges.push({ title: 'قطعه ۱: زیره (Base)', sub: `${L} × ${W} × ${H} mm`, x: bx + L / 2, y: by + W / 2 });
+
+      // Lid (رویه)
+      const ly = by + W + H + 40 + lidH;
+      const lx = padX + (flatW - lidFlatW) / 2 + lidH + 10;
       creasePaths.push(`M ${lx} ${ly} L ${lx + lidL} ${ly} L ${lx + lidL} ${ly + lidW} L ${lx} ${ly + lidW} Z`);
       cutPaths.push(`
         M ${lx} ${ly - lidH} L ${lx + lidL} ${ly - lidH} L ${lx + lidL} ${ly} L ${lx + lidL + lidH} ${ly}
@@ -484,8 +662,12 @@ function generateBoxDieline({
         L ${lx} ${ly + lidW + lidH} L ${lx} ${ly + lidW} L ${lx - lidH} ${ly + lidW} L ${lx - lidH} ${ly} L ${lx} ${ly} Z
       `);
 
-      labels.push({ text: `قطعه ۱: زیره (Base) - ${L}×${W}×${H}mm`, x: bx + L / 2, y: by + W / 2 });
-      labels.push({ text: `قطعه ۲: رویه (Lid) - ${Math.round(lidL)}×${Math.round(lidW)}×${Math.round(lidH)}mm`, x: lx + lidL / 2, y: ly + lidW / 2 });
+      cadDimensions.push(createCADDimensionH({ x1: lx, x2: lx + lidL, y: ly, text: `طول رویه: ${Math.round(lidL)}mm`, offset: -10, color: '#2563eb' }));
+      cadDimensions.push(createCADDimensionV({ x: lx, y1: ly, y2: ly + lidW, text: `عرض رویه: ${Math.round(lidW)}mm`, offset: -10, color: '#2563eb' }));
+      cadDimensions.push(createCADDimensionV({ x: lx, y1: ly - lidH, y2: ly, text: `دیواره: ${Math.round(lidH)}mm`, offset: 8, color: '#7c3aed' }));
+      cadDimensions.push(createCADDimensionH({ x1: lx - lidH, x2: lx + lidL + lidH, y: ly - lidH, text: `گسترده رویه: ${lidFlatW}mm (بادخور +${lidClearance.toFixed(1)}mm)`, offset: -18, color: '#047857' }));
+
+      faceBadges.push({ title: 'قطعه ۲: رویه (Lid)', sub: `${Math.round(lidL)} × ${Math.round(lidW)} × ${Math.round(lidH)} mm`, x: lx + lidL / 2, y: ly + lidW / 2 });
 
       totalCutLengthMm = (baseFlatW * 2 + baseFlatH * 2) + (lidFlatW * 2 + lidFlatH * 2);
       totalCreaseLengthMm = (2 * L + 2 * W) + (2 * lidL + 2 * lidW);
@@ -496,22 +678,28 @@ function generateBoxDieline({
     }
   }
 
-  // Construct Standard ESKO ArtiosCAD Vector SVG
-  const svgViewBox = `0 0 ${flatW + 40} ${flatH + 40}`;
+  // Construct Standard ESKO ArtiosCAD Vector SVG with Full Per-Edge Dimensions
+  const totalViewW = flatW + (padX * 2);
+  const totalViewH = flatH + (padY * 2);
+  const svgViewBox = `0 0 ${totalViewW} ${totalViewH}`;
+
   const svgContent = `<?xml version="1.0" encoding="utf-8"?>
-<svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="${svgViewBox}" width="${flatW + 40}mm" height="${flatH + 40}mm">
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="${svgViewBox}" width="${totalViewW}mm" height="${totalViewH}mm">
   <defs>
     <style>
       .artios-cut { stroke: #e11d48; stroke-width: 1.2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
       .artios-crease { stroke: #2563eb; stroke-width: 1.0; stroke-dasharray: 4, 3; fill: none; }
       .artios-bleed { stroke: #9333ea; stroke-width: 0.6; stroke-dasharray: 2, 4; fill: none; }
-      .artios-dimension { stroke: #64748b; stroke-width: 0.5; fill: none; }
-      .artios-label { font-family: 'Vazirmatn', sans-serif; font-size: 8px; fill: #1e293b; text-anchor: middle; font-weight: bold; }
-      .artios-title { font-family: 'Vazirmatn', sans-serif; font-size: 10px; fill: #0f172a; font-weight: 900; }
+      .artios-face-title { font-family: 'Vazirmatn', sans-serif; font-size: 8.5px; fill: #0f172a; text-anchor: middle; font-weight: 900; }
+      .artios-face-sub { font-family: 'Vazirmatn', sans-serif; font-size: 7px; fill: #475569; text-anchor: middle; font-weight: bold; }
+      .artios-header-text { font-family: 'Vazirmatn', sans-serif; font-size: 10px; fill: #1e1b4b; font-weight: 900; }
     </style>
   </defs>
+
+  <!-- Background Grid & Canvas Border -->
+  <rect x="0" y="0" width="${totalViewW}" height="${totalViewH}" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" />
   
-  <!-- Bleed Layer (بلید و اضافه رنگ چاپ ۳ میلی‌متر) -->
+  <!-- Bleed Layer (بلید و اضافه رنگ ۳ میلی‌متری) -->
   <g id="Layer_Bleed">
     ${bleedPaths.map(d => `<path d="${d}" class="artios-bleed" />`).join('\n    ')}
   </g>
@@ -526,13 +714,25 @@ function generateBoxDieline({
     ${cutPaths.map(d => `<path d="${d.trim()}" class="artios-cut" />`).join('\n    ')}
   </g>
 
-  <!-- Dimension & Technical Annotations -->
-  <g id="Layer_Dimensions">
-    ${labels.map(l => `<text x="${l.x}" y="${l.y}" class="artios-label">${l.text}</text>`).join('\n    ')}
+  <!-- Face Center Annotations -->
+  <g id="Layer_FaceBadges">
+    ${faceBadges.map(b => `
+      <g transform="translate(${b.x}, ${b.y})">
+        <text x="0" y="-2" class="artios-face-title">${b.title}</text>
+        <text x="0" y="8" class="artios-face-sub">${b.sub}</text>
+      </g>
+    `).join('\n    ')}
   </g>
 
-  <!-- ESKO ArtiosCAD Header Tag -->
-  <text x="20" y="14" class="artios-title">ESKO ArtiosCAD 23.07 | Standard: ${standardInfo.code} | Scale 1:1</text>
+  <!-- CAD Edge-by-Edge Dimensions Layer (ابعاد دقیق هر ضلع و لبه) -->
+  <g id="Layer_CAD_Dimensions">
+    ${cadDimensions.join('\n    ')}
+  </g>
+
+  <!-- ESKO ArtiosCAD Technical Header Bar -->
+  <g id="Header_Bar" transform="translate(20, 20)">
+    <text x="0" y="0" class="artios-header-text">📐 ESKO ArtiosCAD 23.07 | نقشه مهندسی خط تیغ با اندازه‌گذاری کامل تمام اضلاع | استاندارد: ${standardInfo.code}</text>
+  </g>
 </svg>`;
 
   return {
@@ -645,8 +845,8 @@ function packSinglePartOnSheet({
         items.push({
           id: itemIdx++,
           name: itemName,
-          x: Math.round(startX + c * (itemH + gutter)),
-          y: Math.round(startY + r * (itemW + gutter)),
+          x: Math.round(startX + c * (itemW + gutter)),
+          y: Math.round(startY + r * (itemH + gutter)),
           width: itemH,
           height: itemW,
           rotated: true,
@@ -880,19 +1080,31 @@ function generateSheetMontageSvg({
         <path d="${innerCrease1}" stroke="${creaseColor}" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
         <path d="${innerCrease2}" stroke="${creaseColor}" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
         <path d="${innerCrease3}" stroke="${creaseColor}" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
-        <text x="${it.width / 2}" y="${Math.max(14, it.height / 2 - 5)}" font-family="'Vazirmatn', sans-serif" font-size="9.5px" font-weight="900" fill="#0f172a" text-anchor="middle">
-          #${it.id} (${it.width}×${it.height}mm)
+        
+        <!-- Center Box ID and Edge Dimension Labels -->
+        <rect x="${it.width / 2 - 45}" y="${it.height / 2 - 14}" width="90" height="28" rx="4" fill="#ffffff" stroke="#94a3b8" stroke-width="0.5" />
+        <text x="${it.width / 2}" y="${it.height / 2 - 2}" font-family="'Vazirmatn', sans-serif" font-size="9px" font-weight="900" fill="#0f172a" text-anchor="middle">
+          #${it.id} | ${it.width} × ${it.height} mm
         </text>
-        <text x="${it.width / 2}" y="${Math.min(it.height - 6, it.height / 2 + 10)}" font-family="'Vazirmatn', sans-serif" font-size="8px" font-weight="bold" fill="#475569" text-anchor="middle">
+        <text x="${it.width / 2}" y="${it.height / 2 + 10}" font-family="'Vazirmatn', sans-serif" font-size="7.5px" font-weight="bold" fill="#475569" text-anchor="middle">
           ${it.name || 'قالب'}
+        </text>
+
+        <!-- Top Edge Dimension -->
+        <text x="${it.width / 2}" y="10" font-family="'Vazirmatn', sans-serif" font-size="7px" font-weight="bold" fill="#0284c7" text-anchor="middle">
+          عرض: ${it.width}mm
+        </text>
+        <!-- Side Edge Dimension -->
+        <text x="${it.width - 6}" y="${it.height / 2}" font-family="'Vazirmatn', sans-serif" font-size="7px" font-weight="bold" fill="#0284c7" text-anchor="middle" transform="rotate(90, ${it.width - 6}, ${it.height / 2})">
+          طول: ${it.height}mm
         </text>
       </g>
     `;
   }).join('\n');
 
   // Title Block Dimensions
-  const tbW = Math.min(420, sheetW - 40);
-  const tbH = 50;
+  const tbW = Math.min(430, sheetW - 40);
+  const tbH = 52;
   const tbX = sheetW - tbW - 15;
   const tbY = sheetH - tbH - 15;
 
@@ -923,6 +1135,11 @@ function generateSheetMontageSvg({
     حاشیه لب‌پنجه ماشین چاپ (${gripperMargin}mm Gripper Margin - Heidelberg / KBA Offset)
   </text>
 
+  <!-- Sheet Outer Dimension Arrows -->
+  <text x="${sheetW / 2}" y="${sheetH - 5}" font-family="'Vazirmatn', sans-serif" font-size="9px" font-weight="900" fill="#0f172a" text-anchor="middle">
+    📐 ابعاد کل شیت مقوا: ${sheetW} میلی‌متر (طول) × ${sheetH} میلی‌متر (عرض) | ${sheetW / 10} × ${sheetH / 10} سانتی‌متر
+  </text>
+
   <!-- Prepress Registration Crosses (علائم رجیستر لیتوگرافی ۴ گوشه) -->
   <g class="artios-reg">
     <circle cx="5" cy="5" r="3" /><line x1="1" y1="5" x2="9" y2="5" /><line x1="5" y1="1" x2="5" y2="9" />
@@ -939,21 +1156,21 @@ function generateSheetMontageSvg({
   <!-- ESKO ArtiosCAD 23.07 Prepress Title Block -->
   <g id="ArtiosCADTitleBlock" transform="translate(${tbX}, ${tbY})">
     <rect width="${tbW}" height="${tbH}" class="artios-tb-bg" rx="2" />
-    <line x1="0" y1="16" x2="${tbW}" y2="16" stroke="#cbd5e1" stroke-width="1" />
-    <line x1="0" y1="33" x2="${tbW}" y2="33" stroke="#cbd5e1" stroke-width="1" />
+    <line x1="0" y1="17" x2="${tbW}" y2="17" stroke="#cbd5e1" stroke-width="1" />
+    <line x1="0" y1="35" x2="${tbW}" y2="35" stroke="#cbd5e1" stroke-width="1" />
     <line x1="${tbW * 0.5}" y1="0" x2="${tbW * 0.5}" y2="${tbH}" stroke="#cbd5e1" stroke-width="1" />
 
     <!-- Row 1: Software & Standard -->
-    <text x="${tbW - 8}" y="11" text-anchor="end" class="tb-header">ESKO ArtiosCAD 23.07 Build 3268</text>
-    <text x="${tbW * 0.5 - 8}" y="11" text-anchor="end" class="tb-bold">استاندارد: ${standardCode}</text>
+    <text x="${tbW - 8}" y="12" text-anchor="end" class="tb-header">ESKO ArtiosCAD 23.07 Build 3268</text>
+    <text x="${tbW * 0.5 - 8}" y="12" text-anchor="end" class="tb-bold">استاندارد: ${standardCode}</text>
 
     <!-- Row 2: Company & Specs -->
-    <text x="${tbW - 8}" y="26" text-anchor="end" class="tb-text">صنایع چاپ و بسته‌بندی آرمان امیران</text>
-    <text x="${tbW * 0.5 - 8}" y="26" text-anchor="end" class="tb-text">شیت: ${sheetW}×${sheetH}mm (${items.length} Ups)</text>
+    <text x="${tbW - 8}" y="28" text-anchor="end" class="tb-text">صنایع چاپ و بسته‌بندی آرمان امیران</text>
+    <text x="${tbW * 0.5 - 8}" y="28" text-anchor="end" class="tb-text">شیت: ${sheetW}×${sheetH}mm (${items.length} Ups)</text>
 
     <!-- Row 3: Efficiency & Rule Length -->
-    <text x="${tbW - 8}" y="43" text-anchor="end" class="tb-text">راندمان مفید: ${efficiencyPercentage}٪ | باطله: ${wastePercentage}٪</text>
-    <text x="${tbW * 0.5 - 8}" y="43" text-anchor="end" class="tb-text">متراژ کل تیغ: ${totalRuleCut}m برش / ${totalRuleCrease}m تا</text>
+    <text x="${tbW - 8}" y="46" text-anchor="end" class="tb-text">راندمان مفید: ${efficiencyPercentage}٪ | باطله: ${wastePercentage}٪</text>
+    <text x="${tbW * 0.5 - 8}" y="46" text-anchor="end" class="tb-text">متراژ کل تیغ: ${totalRuleCut}m برش / ${totalRuleCrease}m تا</text>
   </g>
 </svg>`;
 }

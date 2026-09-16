@@ -26,7 +26,8 @@ import {
   EyeOff,
   Sun,
   Moon,
-  Ruler
+  Ruler,
+  Maximize
 } from 'lucide-react';
 import { api } from '../api/client';
 
@@ -124,17 +125,11 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
   const [loading, setLoading] = useState(false);
   const [dielineData, setDielineData] = useState(null);
   const [montageResult, setMontageResult] = useState(null);
-  const [activeSubTab, setActiveSubTab] = useState('montage'); // 'dieline' | 'montage'
+  const [activeSubTab, setActiveSubTab] = useState('dieline'); // Default to dieline view to clearly show all side dimensions
   const [montageMode, setMontageMode] = useState('auto');
   const [selectedSheetId, setSelectedSheetId] = useState('sheet_70x100');
   const [zoomScale, setZoomScale] = useState(1);
-  const [cadTheme, setCadTheme] = useState('dark'); // 'dark' | 'light'
-
-  // Layer Toggles
-  const [showCutLines, setShowCutLines] = useState(true);
-  const [showCreaseLines, setShowCreaseLines] = useState(true);
-  const [showDimensions, setShowDimensions] = useState(true);
-  const [showTitleBlock, setShowTitleBlock] = useState(true);
+  const [cadTheme, setCadTheme] = useState('light'); // 'light' or 'dark'
 
   // Apply Sample: Tuck End 8 x 1.5 x 16.5 cm
   const handleApplyTuckEndSample = () => {
@@ -203,7 +198,7 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `ArtiosCAD-${selectedBoxType}-${lengthMm}x${widthMm}x${heightMm}mm.svg`;
+    a.download = `ArtiosCAD-Dieline-${selectedBoxType}-${lengthMm}x${widthMm}x${heightMm}mm-Dimensions.svg`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -228,9 +223,17 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
   const currentBox = BOX_TYPES.find((b) => b.id === selectedBoxType);
   const activeSheet = montageResult?.allSheets?.find(s => s.sheetId === selectedSheetId) || montageResult?.bestChoice;
 
+  // Compute Edge Breakdown Details for Table
+  const L = Number(lengthMm);
+  const W = Number(widthMm);
+  const H = Number(heightMm);
+  const glueW = dielineData?.material?.glueWidth || 15;
+  const flapH = W;
+  const tuckH = Math.max(12, Math.min(24, Math.round(W * 0.75 + 3)));
+
   return (
     <div className="space-y-6" dir="rtl">
-      {/* ESKO ArtiosCAD Compatibility Banner */}
+      {/* Top Banner */}
       <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-5 text-white shadow-xl flex items-center justify-between flex-wrap gap-4 border border-indigo-500/30">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-2xl bg-indigo-600/30 border border-indigo-400/40 flex items-center justify-center text-amber-300 shadow-inner font-black text-sm">
@@ -239,14 +242,14 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-sm sm:text-base font-black text-white">
-                موتور محاسبات خط تیغ و مونتاژ منطبق بر ESKO ArtiosCAD 23.07 Build 3268
+                موتور خط تیغ و مونتاژ ESKO ArtiosCAD با اندازه‌گذاری کامل تمام اضلاع
               </h2>
-              <span className="text-[11px] bg-amber-400 text-slate-950 px-2.5 py-0.5 rounded-full font-black">
-                استاندارد ECMA & FEFCO
+              <span className="text-[11px] bg-emerald-400 text-slate-950 px-2.5 py-0.5 rounded-full font-black">
+                ابعاد روی تک‌تک اضلاع و لبه‌ها
               </span>
             </div>
             <p className="text-xs text-indigo-200 mt-1">
-              تفکیک لایه‌های تیغ برش (Cut)، خط‌تا (Crease)، گوشواره‌های اصطکاکی، بلید و مونتاژ بهینه شیت با حداقل پرتی
+              درج فلش‌های اندازه‌گذاری فنی (CAD Dimensions)، ابعاد هر وجه، لبه چسب، زبانه درب، گردگیرها و ابعاد کلی گسترده
             </p>
           </div>
         </div>
@@ -270,7 +273,7 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
             </div>
             <div>
               <h2 className="text-sm sm:text-base font-black text-slate-800">
-                ۱. انتخاب استاندارد ساختار هندسی جعبه در ArtiosCAD
+                ۱. انتخاب ساختار جعبه و استاندارد ArtiosCAD
               </h2>
               <span className="text-xs text-slate-500">
                 کدهای استاندارد بین‌المللی کارتن تاشو (ECMA) و مقوای فلوتینگ (FEFCO)
@@ -317,7 +320,7 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
             <div className="border-b border-slate-100 pb-3">
               <h3 className="text-xs font-black text-slate-800 flex items-center gap-1.5">
                 <Sliders className="w-4 h-4 text-indigo-600" />
-                ۲. ابعاد نهایی، کالیپر و متریال در ArtiosCAD
+                ۲. ابعاد نهایی، کالیپر و متریال
               </h3>
               <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">{currentBox?.desc}</p>
             </div>
@@ -426,29 +429,6 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
               </div>
             </div>
 
-            {/* Custom Sheet (Optional) */}
-            <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 text-xs space-y-2">
-              <span className="font-bold text-slate-700 block text-[11px]">
-                شیت اختصاصی / رول بازکنی سفارشی (بر حسب سانتی‌متر):
-              </span>
-              <div className="grid grid-cols-2 gap-2">
-                <input
-                  type="number"
-                  placeholder="طول شیت (مثلاً ۷۰)"
-                  value={customSheetW}
-                  onChange={(e) => setCustomSheetW(e.target.value)}
-                  className="bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-bold"
-                />
-                <input
-                  type="number"
-                  placeholder="عرض شیت (مثلاً ۱۰۰)"
-                  value={customSheetH}
-                  onChange={(e) => setCustomSheetH(e.target.value)}
-                  className="bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-bold"
-                />
-              </div>
-            </div>
-
             <button
               type="button"
               onClick={() => handleGenerate()}
@@ -456,16 +436,55 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
               className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs py-3 px-4 rounded-xl shadow-md shadow-indigo-100 transition flex items-center justify-center gap-2 active:scale-[0.99]"
             >
               {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-              <span>محاسبه مجدد خط تیغ و مونتاژ شیت در ArtiosCAD</span>
+              <span>محاسبه و رسم ابعاد اضلاع در ArtiosCAD</span>
             </button>
           </div>
 
-          {/* CAD Meterage & Die Specs Card */}
+          {/* Edge Dimensions Breakdown Table */}
           {dielineData && (
             <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-3 text-xs">
               <h4 className="font-black text-slate-800 flex items-center gap-1.5 border-b border-slate-100 pb-2">
-                <Ruler className="w-4 h-4 text-emerald-600" />
-                متراژ تیغ و مشخصات فنی قالب‌سازی (ArtiosCAD Rule Length)
+                <Ruler className="w-4 h-4 text-indigo-600" />
+                جدول ابعاد دقیق تمام اضلاع و لبه‌ها (CAD Spec)
+              </h4>
+
+              <div className="space-y-1.5 font-mono text-[11px]">
+                <div className="flex items-center justify-between p-2 bg-blue-50/60 rounded-xl border border-blue-100">
+                  <span className="text-slate-700 font-sans font-bold">طول بدنه رو و پشت (L):</span>
+                  <strong className="text-blue-700 font-black">{L} mm ({L / 10} cm)</strong>
+                </div>
+                <div className="flex items-center justify-between p-2 bg-purple-50/60 rounded-xl border border-purple-100">
+                  <span className="text-slate-700 font-sans font-bold">عرض عطف‌های چپ و راست (W):</span>
+                  <strong className="text-purple-700 font-black">{W} mm ({W / 10} cm)</strong>
+                </div>
+                <div className="flex items-center justify-between p-2 bg-slate-50 rounded-xl border border-slate-200">
+                  <span className="text-slate-700 font-sans font-bold">ارتفاع کامل بدنه (H):</span>
+                  <strong className="text-slate-900 font-black">{H} mm ({H / 10} cm)</strong>
+                </div>
+                <div className="flex items-center justify-between p-2 bg-sky-50/60 rounded-xl border border-sky-100">
+                  <span className="text-slate-700 font-sans font-bold">عرض زبانه لب‌چسب:</span>
+                  <strong className="text-sky-700 font-black">{glueW} mm</strong>
+                </div>
+                <div className="flex items-center justify-between p-2 bg-rose-50/60 rounded-xl border border-rose-100">
+                  <span className="text-slate-700 font-sans font-bold">ارتفاع درب‌های بالا و پایین:</span>
+                  <strong className="text-rose-700 font-black">{flapH} mm (درب) + {tuckH} mm (زبانه)</strong>
+                </div>
+                <div className="flex items-center justify-between p-2 bg-emerald-50 rounded-xl border border-emerald-200 font-sans">
+                  <span className="text-emerald-950 font-bold">کل ابعاد گسترده (شیت):</span>
+                  <strong className="text-emerald-700 font-mono font-black">
+                    {dielineData.flatDimensions.flatWidthMm} × {dielineData.flatDimensions.flatHeightMm} mm
+                  </strong>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Rule Length Specs */}
+          {dielineData && (
+            <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-3 text-xs">
+              <h4 className="font-black text-slate-800 flex items-center gap-1.5 border-b border-slate-100 pb-2">
+                <Scissors className="w-4 h-4 text-emerald-600" />
+                متراژ تیغ و خط‌تا برای قالب‌سازی
               </h4>
 
               <div className="grid grid-cols-3 gap-2 text-center">
@@ -488,77 +507,63 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
                   </strong>
                 </div>
               </div>
-
-              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 text-[11px] text-slate-700 space-y-1">
-                <div className="flex justify-between">
-                  <span className="text-slate-500">کد استاندارد:</span>
-                  <strong className="font-mono text-indigo-700">{dielineData.ecmaStandard?.code}</strong>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">ابعاد گسترده بازشده:</span>
-                  <strong className="font-mono text-slate-900">
-                    {dielineData.flatDimensions.flatWidthMm} × {dielineData.flatDimensions.flatHeightMm} mm
-                  </strong>
-                </div>
-              </div>
             </div>
           )}
         </div>
 
-        {/* Right Side: Interactive CAD Visual Montage & Dieline Canvas */}
+        {/* Right Side: Visual Canvas with Edge Dimensions */}
         <div className="lg:col-span-8 space-y-4">
           
-          {/* Top Control Bar: Mode Switcher & Download Actions */}
+          {/* Top Control Bar: View Switcher & Download */}
           <div className="bg-white rounded-3xl p-3 border border-slate-200 shadow-sm flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2 flex-wrap">
-              <button
-                type="button"
-                onClick={() => setActiveSubTab('montage')}
-                className={`px-4 py-2 rounded-xl text-xs font-black transition flex items-center gap-1.5 ${
-                  activeSubTab === 'montage'
-                    ? 'bg-indigo-600 text-white shadow-md'
-                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                }`}
-              >
-                <Layers className="w-3.5 h-3.5 text-amber-300" />
-                <span>مونتاژ فرم شیت ArtiosCAD</span>
-              </button>
-
               <button
                 type="button"
                 onClick={() => setActiveSubTab('dieline')}
                 className={`px-4 py-2 rounded-xl text-xs font-black transition flex items-center gap-1.5 ${
                   activeSubTab === 'dieline'
+                    ? 'bg-indigo-600 text-white shadow-md'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                }`}
+              >
+                <Ruler className="w-3.5 h-3.5 text-amber-300" />
+                <span>نقشه خط تیغ با اندازه‌گذاری تمام اضلاع (CAD Dieline)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveSubTab('montage')}
+                className={`px-4 py-2 rounded-xl text-xs font-black transition flex items-center gap-1.5 ${
+                  activeSubTab === 'montage'
                     ? 'bg-slate-900 text-white shadow-md'
                     : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                 }`}
               >
-                <Scissors className="w-3.5 h-3.5 text-rose-400" />
-                <span>خط تیغ تک ۲ بعدی (ECMA Dieline)</span>
+                <Layers className="w-3.5 h-3.5 text-indigo-400" />
+                <span>چیدمان و مونتاژ شیت چاپ</span>
               </button>
             </div>
 
             {/* Action Buttons */}
             <div className="flex items-center gap-2">
-              {activeSubTab === 'montage' ? (
-                <button
-                  type="button"
-                  onClick={handleDownloadSheetMontageSvg}
-                  className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition shadow-sm flex items-center gap-1.5"
-                  title="دانلود وکتور SVG کامل نقشه چیدمان شیت جهت لیتوگرافی و لیزر قالب‌سازی"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>دانلود وکتور شیت ArtiosCAD</span>
-                </button>
-              ) : (
+              {activeSubTab === 'dieline' ? (
                 <button
                   type="button"
                   onClick={handleDownloadDielineSvg}
                   className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition shadow-sm flex items-center gap-1.5"
-                  title="دانلود وکتور SVG خط تیغ تک استاندارد ArtiosCAD"
+                  title="دانلود وکتور SVG خط تیغ با تمام خطوط و مقادیر اندازه‌گذاری"
                 >
                   <Download className="w-3.5 h-3.5" />
-                  <span>دانلود خط تیغ SVG</span>
+                  <span>دانلود SVG با ابعاد اضلاع</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleDownloadSheetMontageSvg}
+                  className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition shadow-sm flex items-center gap-1.5"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>دانلود وکتور شیت مونتاژ</span>
                 </button>
               )}
 
@@ -583,7 +588,71 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
             </div>
           </div>
 
-          {/* VIEW 1: INTERACTIVE ARTIOSCAD MULTI-UP SHEET MONTAGE */}
+          {/* VIEW 1: SINGLE DIELINE VECTOR VIEWER WITH EDGE DIMENSIONS */}
+          {activeSubTab === 'dieline' && dielineData && (
+            <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xl relative overflow-hidden flex flex-col items-center justify-center min-h-[560px]">
+              {/* Legend Bar */}
+              <div className="w-full flex items-center justify-between text-[11px] text-slate-700 bg-slate-50 border border-slate-200 px-4 py-2.5 rounded-2xl mb-4 flex-wrap gap-2 shadow-xs">
+                <div className="flex items-center gap-4 flex-wrap">
+                  <span className="flex items-center gap-1.5 font-bold text-rose-600">
+                    <span className="w-3 h-0.5 bg-rose-600 rounded-full" />
+                    تیغ برش (Cut: قرمز)
+                  </span>
+                  <span className="flex items-center gap-1.5 font-bold text-blue-600">
+                    <span className="w-3 h-0.5 border-b-2 border-dashed border-blue-600" />
+                    خط‌تا (Crease: آبی خط‌چین)
+                  </span>
+                  <span className="flex items-center gap-1.5 font-bold text-emerald-700">
+                    <span className="w-3 h-0.5 bg-emerald-600 rounded-full" />
+                    خطوط اندازه‌گذاری اضلاع (CAD)
+                  </span>
+                  <span className="text-slate-500">
+                    ابعاد بسته: <strong className="text-slate-900 font-mono font-black">{lengthMm} × {widthMm} × {heightMm} mm</strong>
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setZoomScale((z) => Math.min(2.5, z + 0.2))}
+                    className="p-1 hover:bg-slate-200 rounded text-slate-700 transition"
+                    title="بزرگنمایی"
+                  >
+                    <ZoomIn className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setZoomScale((z) => Math.max(0.4, z - 0.2))}
+                    className="p-1 hover:bg-slate-200 rounded text-slate-700 transition"
+                    title="کوچک‌نمایی"
+                  >
+                    <ZoomOut className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setZoomScale(1)}
+                    className="text-[10px] font-mono px-2 py-0.5 bg-slate-200 rounded hover:bg-slate-300 text-slate-800 font-bold"
+                  >
+                    {Math.round(zoomScale * 100)}%
+                  </button>
+                </div>
+              </div>
+
+              {/* Rendered SVG Vector Container */}
+              <div
+                className="w-full flex items-center justify-center overflow-auto p-4 transition-transform duration-200 bg-white rounded-2xl border border-slate-100 shadow-inner"
+                style={{ transform: `scale(${zoomScale})` }}
+                dangerouslySetInnerHTML={{ __html: dielineData.svg }}
+              />
+
+              <div className="w-full flex items-center justify-between text-[10px] text-slate-400 font-mono mt-3 px-2">
+                <span>ESKO ArtiosCAD 23.07 Edge Dimensioning Engine</span>
+                <span>Scale 1:1 Vector Drawing</span>
+              </div>
+            </div>
+          )}
+
+          {/* VIEW 2: INTERACTIVE SHEET MONTAGE */}
           {activeSubTab === 'montage' && montageResult && (
             <div className="space-y-4">
               
@@ -616,53 +685,35 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
                 })}
               </div>
 
-              {/* Sheet Montage Visual Canvas */}
+              {/* Sheet Montage Canvas */}
               {activeSheet && (
-                <div className={`rounded-3xl p-6 border shadow-2xl flex flex-col items-center justify-center relative overflow-hidden min-h-[460px] ${
-                  cadTheme === 'dark' ? 'bg-slate-950 border-slate-800 text-white' : 'bg-white border-slate-300 text-slate-900'
-                }`}>
+                <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xl flex flex-col items-center justify-center relative overflow-hidden min-h-[460px]">
                   
-                  {/* Top Canvas Bar */}
-                  <div className={`w-full flex items-center justify-between text-xs border-b pb-3 mb-4 ${
-                    cadTheme === 'dark' ? 'border-slate-800 text-slate-300' : 'border-slate-200 text-slate-700'
-                  }`}>
+                  <div className="w-full flex items-center justify-between text-xs border-b border-slate-200 pb-3 mb-4 text-slate-700">
                     <div className="flex items-center gap-2">
-                      <span className="font-black text-sm">
-                        نقشه مونتاژ شیت {activeSheet.sheetLength} × {activeSheet.sheetWidth} cm (ESKO ArtiosCAD)
+                      <span className="font-black text-sm text-slate-900">
+                        نقشه مونتاژ شیت {activeSheet.sheetLength} × {activeSheet.sheetWidth} cm
                       </span>
-                      <span className="bg-indigo-900/80 text-indigo-300 border border-indigo-700 px-2.5 py-0.5 rounded-full font-bold text-[11px]">
+                      <span className="bg-indigo-50 text-indigo-700 border border-indigo-200 px-2.5 py-0.5 rounded-full font-bold text-[11px]">
                         {activeSheet.boxesPerSheet} قالب در فرم
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-3">
-                      <div className="text-emerald-400 font-bold flex items-center gap-1.5 text-xs">
-                        <span>راندمان: {activeSheet.efficiencyPercentage}٪</span>
-                        <span className="text-slate-500">|</span>
-                        <span className="text-rose-400">باطله: {activeSheet.wastePercentage}٪</span>
-                      </div>
-
-                      {/* Theme Toggle */}
-                      <button
-                        type="button"
-                        onClick={() => setCadTheme(t => t === 'dark' ? 'light' : 'dark')}
-                        className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition"
-                        title="تغییر تم دیداری CAD"
-                      >
-                        {cadTheme === 'dark' ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-indigo-300" />}
-                      </button>
+                    <div className="text-emerald-600 font-bold flex items-center gap-1.5 text-xs">
+                      <span>راندمان: {activeSheet.efficiencyPercentage}٪</span>
+                      <span className="text-slate-300">|</span>
+                      <span className="text-rose-600">باطله: {activeSheet.wastePercentage}٪</span>
                     </div>
                   </div>
 
-                  {/* Rendered Interactive SVG Sheet */}
                   <div
-                    className="w-full flex items-center justify-center overflow-auto p-4 transition-transform duration-200"
+                    className="w-full flex items-center justify-center overflow-auto p-4 transition-transform duration-200 bg-white rounded-2xl border border-slate-100"
                     style={{ transform: `scale(${zoomScale})` }}
                     dangerouslySetInnerHTML={{ __html: activeSheet.montageSvg }}
                   />
 
                   {/* Zoom Controls */}
-                  <div className="absolute bottom-4 left-4 flex items-center gap-2 bg-slate-900/90 border border-slate-800 px-3 py-1.5 rounded-2xl z-10 backdrop-blur-sm">
+                  <div className="absolute bottom-4 left-4 flex items-center gap-2 bg-slate-900/90 border border-slate-800 px-3 py-1.5 rounded-2xl z-10 backdrop-blur-sm text-white">
                     <button
                       type="button"
                       onClick={() => setZoomScale((z) => Math.min(2.0, z + 0.15))}
@@ -686,10 +737,6 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
                     >
                       {Math.round(zoomScale * 100)}%
                     </button>
-                  </div>
-
-                  <div className="absolute bottom-4 right-4 text-[10px] text-slate-400 font-mono">
-                    ArtiosCAD Imposition Engine | {activeSheet.orientation}
                   </div>
                 </div>
               )}
@@ -732,69 +779,6 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
                   </div>
                 </div>
               )}
-            </div>
-          )}
-
-          {/* VIEW 2: SINGLE DIELINE VECTOR VIEWER */}
-          {activeSubTab === 'dieline' && dielineData && (
-            <div className="bg-slate-950 rounded-3xl p-6 border border-slate-800 shadow-2xl relative overflow-hidden flex flex-col items-center justify-center min-h-[500px]">
-              {/* Legend & Help Bar */}
-              <div className="absolute top-4 right-4 left-4 flex items-center justify-between text-[11px] text-slate-400 bg-slate-900/95 border border-slate-800 px-4 py-2 rounded-2xl z-10 backdrop-blur-sm shadow-md">
-                <div className="flex items-center gap-4 flex-wrap">
-                  <span className="flex items-center gap-1.5 font-bold text-rose-400">
-                    <span className="w-3 h-0.5 bg-rose-500 rounded-full" />
-                    تیغ برش (Cut: قرمز)
-                  </span>
-                  <span className="flex items-center gap-1.5 font-bold text-blue-400">
-                    <span className="w-3 h-0.5 border-b-2 border-dashed border-blue-400" />
-                    خط‌تا (Crease: آبی خط‌چین)
-                  </span>
-                  <span className="flex items-center gap-1.5 font-bold text-purple-400">
-                    <span className="w-3 h-0.5 border-b border-dotted border-purple-400" />
-                    بلید (Bleed: بنفش ۳mm)
-                  </span>
-                  <span className="text-slate-400">
-                    ابعاد: <strong className="text-amber-300 font-mono">{lengthMm} × {widthMm} × {heightMm} mm</strong>
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setZoomScale((z) => Math.min(2.5, z + 0.2))}
-                    className="p-1 hover:text-white transition"
-                    title="بزرگنمایی"
-                  >
-                    <ZoomIn className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setZoomScale((z) => Math.max(0.4, z - 0.2))}
-                    className="p-1 hover:text-white transition"
-                    title="کوچک‌نمایی"
-                  >
-                    <ZoomOut className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setZoomScale(1)}
-                    className="text-[10px] font-mono px-2 py-0.5 bg-slate-800 rounded hover:text-white"
-                  >
-                    {Math.round(zoomScale * 100)}%
-                  </button>
-                </div>
-              </div>
-
-              {/* Rendered SVG Vector Container */}
-              <div
-                className="w-full flex items-center justify-center overflow-auto p-8 transition-transform duration-200 mt-6"
-                style={{ transform: `scale(${zoomScale})` }}
-                dangerouslySetInnerHTML={{ __html: dielineData.svg }}
-              />
-
-              <div className="absolute bottom-3 right-4 text-[10px] text-slate-500 font-mono">
-                ESKO ArtiosCAD 23.07 Build 3268 Engine | Real Scale 1:1 Vector
-              </div>
             </div>
           )}
         </div>
