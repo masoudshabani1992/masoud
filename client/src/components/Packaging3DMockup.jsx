@@ -3,11 +3,10 @@ import * as THREE from 'three';
 
 /**
  * High-Performance Interactive 3D Packaging Mockup Engine
- * Features:
- * - Spherical Orbit Controls (centered on box target, no clipping/disappearing)
- * - Articulated Multi-Panel Folding (0.0 Flat Sheet -> 0.5 Half-Assembled -> 1.0 Closed Box)
+ * - Mathematically Perfect Articulated Multi-Panel Folding
+ * - Spherical Orbit Controls with Singularity-Safe Polar Clamping (Never Disappears)
  * - Raw Natural Cardboard & Kraft Material Shaders
- * - Crisp Red (Cut) and Green (Crease) CAD Vectors
+ * - High-Contrast CAD Dieline Edges (Red Cut & Green Crease)
  */
 export default function Packaging3DMockup({
   boxType = 'tuck_end',
@@ -16,7 +15,7 @@ export default function Packaging3DMockup({
   height = 160,
   thickness = 0.5,
   materialColor = '#ffffff',
-  foldAngle = 1.0, // 0.0 (Flat) to 1.0 (Closed)
+  foldAngle = 1.0, // 0.0 (Flat) -> 0.5 (Half Assembled) -> 1.0 (Closed Box)
   isRotating = true
 }) {
   const mountRef = useRef(null);
@@ -28,28 +27,30 @@ export default function Packaging3DMockup({
     const widthPx = container.clientWidth || 300;
     const heightPx = container.clientHeight || 200;
 
-    // 1. Three.js Scene
+    // 1. Scene Setup
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x0a0f1d);
 
     const L = Math.max(20, parseFloat(length) || 120);
     const W = Math.max(20, parseFloat(width) || 60);
     const H = Math.max(15, parseFloat(height) || 160);
-    const T = Math.max(0.5, parseFloat(thickness) || 0.8);
+    const T = Math.max(0.4, parseFloat(thickness) || 0.8);
 
     const maxDim = Math.max(L, W, H, 100);
-    const target = new THREE.Vector3(0, H * 0.45, 0);
+    const target = new THREE.Vector3(0, H * 0.4, 0);
 
-    // 2. Camera Setup with Wide Frustum & High Clipping Margin
-    const camera = new THREE.PerspectiveCamera(38, widthPx / heightPx, 1, 10000);
+    // 2. Camera Setup (Singularity-Safe Spherical Coordinates)
+    const camera = new THREE.PerspectiveCamera(36, widthPx / heightPx, 1, 10000);
     let orbitRadius = maxDim * 2.5;
-    let orbitTheta = 0.6; // azimuth (around Y)
-    let orbitPhi = 1.1;   // polar (from top down, ~63 deg)
+    let orbitTheta = 0.7; // Azimuth
+    let orbitPhi = 1.1;   // Polar elevation (Clamped safely between 0.15 and PI/2 - 0.02)
 
     const updateCameraPos = () => {
-      const x = target.x + orbitRadius * Math.sin(orbitPhi) * Math.sin(orbitTheta);
-      const y = target.y + orbitRadius * Math.cos(orbitPhi);
-      const z = target.z + orbitRadius * Math.sin(orbitPhi) * Math.cos(orbitTheta);
+      // Safe Polar angle prevents collinear lookAt degeneration
+      const safePhi = Math.max(0.15, Math.min(Math.PI / 2 - 0.02, orbitPhi));
+      const x = target.x + orbitRadius * Math.sin(safePhi) * Math.sin(orbitTheta);
+      const y = target.y + orbitRadius * Math.cos(safePhi);
+      const z = target.z + orbitRadius * Math.sin(safePhi) * Math.cos(orbitTheta);
       camera.position.set(x, y, z);
       camera.lookAt(target);
     };
@@ -67,8 +68,8 @@ export default function Packaging3DMockup({
     }
     container.appendChild(renderer.domElement);
 
-    // 4. Lighting Rig
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.3);
+    // 4. Lighting Setup
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.4);
     scene.add(ambientLight);
 
     const keyLight = new THREE.DirectionalLight(0xffffff, 1.8);
@@ -84,8 +85,8 @@ export default function Packaging3DMockup({
     botLight.position.set(0, -200, 100);
     scene.add(botLight);
 
-    // 5. Floor Shadow Plane (placed below y=0 to prevent Z-fighting with flat sheet)
-    const groundGeo = new THREE.PlaneGeometry(2000, 2000);
+    // 5. Floor Shadow Plane (placed at y = -2 to prevent Z-fighting with flat sheet)
+    const groundGeo = new THREE.PlaneGeometry(2500, 2500);
     const groundMat = new THREE.ShadowMaterial({ opacity: 0.25, depthWrite: false });
     const ground = new THREE.Mesh(groundGeo, groundMat);
     ground.rotation.x = -Math.PI / 2;
@@ -97,16 +98,16 @@ export default function Packaging3DMockup({
     const boxGroup = new THREE.Group();
     scene.add(boxGroup);
 
-    // Realistic Cardboard Material
+    // Cardboard Material
     const baseColor = new THREE.Color(materialColor || 0xffffff);
     const boxMat = new THREE.MeshStandardMaterial({
       color: baseColor,
-      roughness: 0.4,
+      roughness: 0.45,
       metalness: 0.05,
       side: THREE.DoubleSide
     });
 
-    const cutEdgeMat = new THREE.LineBasicMaterial({ color: 0x3b82f6, linewidth: 1.5 });
+    const cutEdgeMat = new THREE.LineBasicMaterial({ color: 0xef4444, linewidth: 1.5 });
     const creaseEdgeMat = new THREE.LineDashedMaterial({ color: 0x22c55e, linewidth: 1.5, dashSize: 4, gapSize: 2 });
 
     const makeBoxPanel = (w, h, d = T, isCrease = false) => {
@@ -122,20 +123,19 @@ export default function Packaging3DMockup({
       return mesh;
     };
 
-    // Fold Progress & Radian Angle: 0 = Flat Sheet (0 rad), 1 = Closed Box (PI/2 rad)
+    // Fold factor: 0.0 = Flat Sheet, 0.5 = 50% Assembly, 1.0 = Closed Box
     const f = Math.max(0, Math.min(1, parseFloat(foldAngle) ?? 1.0));
     const angle = (Math.PI / 2) * f;
     const bType = (boxType || 'tuck_end').toLowerCase();
 
     // ================= ARTICULATED KINEMATICS BUILDER =================
     if (bType.includes('rigid') || bType.includes('two_piece') || bType.includes('base_lid')) {
-      // Two-Piece Rigid Base & Lid Box
-      // Base Bottom
+      // 1. Two-Piece Rigid Base & Lid Box
       const baseMesh = makeBoxPanel(L, W);
       baseMesh.position.set(0, 0, 0);
       boxGroup.add(baseMesh);
 
-      // 4 Base Walls (articulate with f from flat to 90 deg)
+      // Base 4 Walls
       const bFrontPivot = new THREE.Group();
       bFrontPivot.position.set(0, 0, W / 2);
       boxGroup.add(bFrontPivot);
@@ -168,7 +168,7 @@ export default function Packaging3DMockup({
       bRightPivot.add(bRight);
       bRightPivot.rotation.z = +angle;
 
-      // Elevated Lid (Floats higher when f < 1)
+      // Lid Tray (Elevates with fold slider)
       const lidGroup = new THREE.Group();
       const lidH = Math.max(15, H * 0.5);
       const lidElevation = (H + 4) * f + (1 - f) * (H * 1.5 + 40);
@@ -178,7 +178,6 @@ export default function Packaging3DMockup({
       lidTop.position.set(0, 0, 0);
       lidGroup.add(lidTop);
 
-      // Lid Walls
       const lFrontPivot = new THREE.Group();
       lFrontPivot.position.set(0, 0, (W + 3) / 2);
       lidGroup.add(lFrontPivot);
@@ -198,8 +197,7 @@ export default function Packaging3DMockup({
       boxGroup.add(lidGroup);
 
     } else if (bType.includes('sleeve') || bType.includes('drawer')) {
-      // Sleeve & Drawer Box
-      // Outer Sleeve
+      // 2. Sleeve & Drawer Box
       const sleeveMesh = makeBoxPanel(L + 4, W + 4);
       sleeveMesh.position.set(0, 0, 0);
       boxGroup.add(sleeveMesh);
@@ -220,7 +218,7 @@ export default function Packaging3DMockup({
       sRightPivot.add(sRight);
       sRightPivot.rotation.z = +angle;
 
-      // Inner Drawer (Slides horizontally out as f decreases)
+      // Drawer (Slides horizontally out as f decreases)
       const slideDist = (1 - f) * (L * 0.9);
       const drawerGroup = new THREE.Group();
       drawerGroup.position.set(slideDist, 1, 0);
@@ -240,7 +238,7 @@ export default function Packaging3DMockup({
       boxGroup.add(drawerGroup);
 
     } else if (bType.includes('hexagon')) {
-      // Hexagonal Box
+      // 3. Hexagonal Box
       const radius = L / 2;
       const hexGeo = new THREE.CylinderGeometry(radius, radius, H * Math.max(0.1, f), 6, 1, false);
       const hexMesh = new THREE.Mesh(hexGeo, boxMat);
@@ -252,7 +250,7 @@ export default function Packaging3DMockup({
       hexMesh.add(hexEdge);
 
     } else if (bType.includes('triangle') || bType.includes('triangular')) {
-      // Triangular Box
+      // 4. Triangular Box
       const radius = L * 0.6;
       const triGeo = new THREE.CylinderGeometry(radius, radius, H * Math.max(0.1, f), 3, 1, false);
       const triMesh = new THREE.Mesh(triGeo, boxMat);
@@ -264,7 +262,7 @@ export default function Packaging3DMockup({
       triMesh.add(triEdge);
 
     } else if (bType.includes('pillow')) {
-      // Pillow Box
+      // 5. Pillow Box
       const pGeo = new THREE.SphereGeometry(L * 0.6, 32, 16, 0, Math.PI, 0, Math.PI / 2);
       const pMesh = new THREE.Mesh(pGeo, boxMat);
       pMesh.scale.set(1, Math.max(0.1, f) * (H / (L * 0.6)), (W * 0.8) / (L * 0.6));
@@ -276,7 +274,7 @@ export default function Packaging3DMockup({
       pMesh.add(pEdge);
 
     } else {
-      // Standard Master Folding Carton (Tuck End STE, RTE, Mailer 0427, RSC 0201, Snap Lock, Auto Bottom)
+      // 6. Master Folding Carton (STE, RTE, Mailer 0427, RSC 0201, Snap Lock, Auto Bottom)
       // 1. Bottom Panel (Base)
       const bottom = makeBoxPanel(L, W);
       bottom.position.set(0, 0, 0);
@@ -287,8 +285,9 @@ export default function Packaging3DMockup({
       rearPivot.position.set(0, 0, -W / 2);
       boxGroup.add(rearPivot);
 
-      const rearPanel = makeBoxPanel(L, H);
-      rearPanel.position.set(0, 0, -H / 2);
+      const rearWallH = bType.includes('hanging') ? H + 35 : bType.includes('counter') ? H + 60 : H;
+      const rearPanel = makeBoxPanel(L, rearWallH);
+      rearPanel.position.set(0, 0, -rearWallH / 2);
       rearPivot.add(rearPanel);
       rearPivot.rotation.x = +angle;
 
@@ -318,8 +317,9 @@ export default function Packaging3DMockup({
       frontPivot.position.set(0, 0, W / 2);
       boxGroup.add(frontPivot);
 
-      const frontPanel = makeBoxPanel(L, H);
-      frontPanel.position.set(0, 0, H / 2);
+      const frontWallH = bType.includes('counter') ? H * 0.4 : H;
+      const frontPanel = makeBoxPanel(L, frontWallH);
+      frontPanel.position.set(0, 0, frontWallH / 2);
       frontPivot.add(frontPanel);
       frontPivot.rotation.x = -angle;
 
@@ -333,6 +333,15 @@ export default function Packaging3DMockup({
       leftPivot.add(leftPanel);
       leftPivot.rotation.z = -angle;
 
+      // Left Dust Flaps
+      const lFlapTop = makeBoxPanel(H * 0.5, W * 0.4);
+      lFlapTop.position.set(-H * 0.25, 0, -W * 0.3);
+      leftPivot.add(lFlapTop);
+
+      const lFlapBot = makeBoxPanel(H * 0.5, W * 0.4);
+      lFlapBot.position.set(-H * 0.25, 0, W * 0.3);
+      leftPivot.add(lFlapBot);
+
       // 7. Right Wall (Hinged at x = +L/2)
       const rightPivot = new THREE.Group();
       rightPivot.position.set(L / 2, 0, 0);
@@ -342,9 +351,18 @@ export default function Packaging3DMockup({
       rightPanel.position.set(H / 2, 0, 0);
       rightPivot.add(rightPanel);
       rightPivot.rotation.z = +angle;
+
+      // Right Dust Flaps
+      const rFlapTop = makeBoxPanel(H * 0.5, W * 0.4);
+      rFlapTop.position.set(H * 0.25, 0, -W * 0.3);
+      rightPivot.add(rFlapTop);
+
+      const rFlapBot = makeBoxPanel(H * 0.5, W * 0.4);
+      rFlapBot.position.set(H * 0.25, 0, W * 0.3);
+      rightPivot.add(rFlapBot);
     }
 
-    // 7. Spherical Orbit Controls (centered on box target)
+    // 7. Mouse Orbit Drag Controls
     let isDragging = false;
     let prevMousePos = { x: 0, y: 0 };
     const domEl = renderer.domElement;
@@ -359,11 +377,8 @@ export default function Packaging3DMockup({
       const dx = e.clientX - prevMousePos.x;
       const dy = e.clientY - prevMousePos.y;
 
-      // Azimuth (Y rotation)
-      orbitTheta -= dx * 0.01;
-
-      // Polar (Elevation) - Clamped strictly between top and above-ground horizon
-      orbitPhi = Math.max(0.12, Math.min(Math.PI / 2 + 0.1, orbitPhi - dy * 0.01));
+      orbitTheta -= dx * 0.008;
+      orbitPhi = Math.max(0.15, Math.min(Math.PI / 2 - 0.02, orbitPhi - dy * 0.008));
 
       updateCameraPos();
       prevMousePos = { x: e.clientX, y: e.clientY };
@@ -375,7 +390,6 @@ export default function Packaging3DMockup({
 
     const onWheel = (e) => {
       e.preventDefault();
-      // Smooth Distance Zoom
       const zoomFactor = 1 + e.deltaY * 0.0015;
       orbitRadius = Math.max(maxDim * 1.2, Math.min(maxDim * 6.0, orbitRadius * zoomFactor));
       updateCameraPos();

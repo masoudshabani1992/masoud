@@ -96,7 +96,7 @@ const MODELS_DATA = [
   { id: 'cosmetic_jar', category: 'cans', name: 'جار شیشه‌ای کرم با درب طلایی', farsiName: 'جار شیشه‌ای لوکس', defaultDim: { l: 65, w: 65, h: 55, t: 3.0 }, icon: '🧴' }
 ];
 
-// 2. Pure Raw Packaging Materials & Board Types (No Forced Colored Designs)
+// 2. Pure Raw Packaging Materials & Board Types
 const RAW_MATERIALS = [
   { id: 'white_cardboard', name: 'مقوای ایندربرد سفید بهداشتی (White Board)', desc: 'مقوای سفید مات بهداشتی با الیاف سلولزی خالص بدون طرح اضافه', color: '#ffffff', type: 'paperboard' },
   { id: 'kraft_brown', name: 'مقوای کرافت طبیعی قهوه‌ای (Brown Kraft)', desc: 'بافت طبیعی ارگانیک کرافت با الیاف چوب و ظاهر کلاسیک کارتن', color: '#c89d6c', type: 'kraft' },
@@ -119,7 +119,7 @@ export default function Packaging3DStudioView({ onSwitchTo2DDieline, onTransferT
   const mountRef = useRef(null);
 
   // Active Left Dock Tab
-  const [activeDockTab, setActiveDockTab] = useState('materials'); // 'models', 'materials', 'upload', 'scene', 'light', 'export'
+  const [activeDockTab, setActiveDockTab] = useState('materials');
   const [selectedCategory, setSelectedCategory] = useState('all');
 
   // Selected Packaging Model & Parameters
@@ -132,7 +132,7 @@ export default function Packaging3DStudioView({ onSwitchTo2DDieline, onTransferT
   // Materials & PBR Craft Finish
   const [selectedCraft, setSelectedCraft] = useState('white_cardboard');
 
-  // Artwork / Texture Upload (null by default for clean paperboard)
+  // Artwork / Texture Upload
   const [uploadedArtworkUrl, setUploadedArtworkUrl] = useState(null);
 
   // Scene & Environment
@@ -144,7 +144,7 @@ export default function Packaging3DStudioView({ onSwitchTo2DDieline, onTransferT
   const [lightAngle, setLightAngle] = useState(45);
 
   // Animation & Folding
-  const [foldAngle, setFoldAngle] = useState(1.0); // 0.0 (Flat) to 1.0 (Closed)
+  const [foldAngle, setFoldAngle] = useState(1.0); // 0.0 (Flat) -> 0.5 (Half Assembled) -> 1.0 (Closed Box)
   const [isAutoRotating, setIsAutoRotating] = useState(true);
   const [rotationSpeed, setRotationSpeed] = useState(1.0);
 
@@ -210,7 +210,6 @@ export default function Packaging3DStudioView({ onSwitchTo2DDieline, onTransferT
 
     const dataUrl = renderer.domElement.toDataURL('image/png', 1.0);
 
-    // Restore viewport size
     renderer.setSize(oldW, oldH, false);
     camera.aspect = oldAspect;
     camera.updateProjectionMatrix();
@@ -230,16 +229,16 @@ export default function Packaging3DStudioView({ onSwitchTo2DDieline, onTransferT
     if (threeRef.current.setOrbitFn) {
       switch (view) {
         case 'front':
-          threeRef.current.setOrbitFn(0, Math.PI / 2);
+          threeRef.current.setOrbitFn(0, Math.PI / 2 - 0.04);
           break;
         case 'top':
-          threeRef.current.setOrbitFn(0, 0.08);
+          threeRef.current.setOrbitFn(0, 0.16);
           break;
         case 'right':
-          threeRef.current.setOrbitFn(Math.PI / 2, Math.PI / 2);
+          threeRef.current.setOrbitFn(Math.PI / 2, Math.PI / 2 - 0.04);
           break;
         case 'isometric':
-          threeRef.current.setOrbitFn(0.785, 0.955);
+          threeRef.current.setOrbitFn(0.785, 0.95);
           break;
         case 'perspective':
         default:
@@ -270,19 +269,19 @@ export default function Packaging3DStudioView({ onSwitchTo2DDieline, onTransferT
     const T = Math.max(0.4, thicknessMm);
     const maxDim = Math.max(L, W, H, 120);
 
-    // Target box center point
     const target = new THREE.Vector3(0, H * 0.45, 0);
 
-    // 2. Camera Setup with Wide Frustum (Near: 1, Far: 10000)
-    const camera = new THREE.PerspectiveCamera(38, width / height, 1, 10000);
+    // 2. Camera Setup (Singularity-Safe Clamping)
+    const camera = new THREE.PerspectiveCamera(36, width / height, 1, 10000);
     let orbitRadius = maxDim * 2.4;
-    let orbitTheta = 0.65; // azimuth angle
-    let orbitPhi = 1.1;    // polar elevation angle
+    let orbitTheta = 0.65;
+    let orbitPhi = 1.1;
 
     const updateCameraPos = () => {
-      const x = target.x + orbitRadius * Math.sin(orbitPhi) * Math.sin(orbitTheta);
-      const y = target.y + orbitRadius * Math.cos(orbitPhi);
-      const z = target.z + orbitRadius * Math.sin(orbitPhi) * Math.cos(orbitTheta);
+      const safePhi = Math.max(0.15, Math.min(Math.PI / 2 - 0.02, orbitPhi));
+      const x = target.x + orbitRadius * Math.sin(safePhi) * Math.sin(orbitTheta);
+      const y = target.y + orbitRadius * Math.cos(safePhi);
+      const z = target.z + orbitRadius * Math.sin(safePhi) * Math.cos(orbitTheta);
       camera.position.set(x, y, z);
       camera.lookAt(target);
     };
@@ -296,7 +295,7 @@ export default function Packaging3DStudioView({ onSwitchTo2DDieline, onTransferT
       updateCameraPos();
     };
 
-    // 3. WebGL Renderer with ACES Tone Mapping
+    // 3. WebGL Renderer
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
       alpha: true,
@@ -339,7 +338,7 @@ export default function Packaging3DStudioView({ onSwitchTo2DDieline, onTransferT
     rimLight.position.set(0, -300, 300);
     scene.add(rimLight);
 
-    // 5. Studio Floor Grid / Plane (placed at y = -1.5 with depthWrite: false to prevent Z-fighting)
+    // 5. Studio Floor Grid (depthWrite: false to prevent Z-fighting)
     const floorGeo = new THREE.PlaneGeometry(3500, 3500);
     let floorMat;
 
@@ -379,11 +378,11 @@ export default function Packaging3DStudioView({ onSwitchTo2DDieline, onTransferT
 
     const floorMesh = new THREE.Mesh(floorGeo, floorMat);
     floorMesh.rotation.x = -Math.PI / 2;
-    floorMesh.position.y = hasPodium ? -30 : -1.5;
+    floorMesh.position.y = hasPodium ? -30 : -2;
     floorMesh.receiveShadow = true;
     scene.add(floorMesh);
 
-    // 6. Optional Exhibition Podium
+    // 6. Optional Podium
     if (hasPodium) {
       const podiumGroup = new THREE.Group();
       const podiumRadius = Math.max(L, W) * 1.1;
@@ -419,9 +418,7 @@ export default function Packaging3DStudioView({ onSwitchTo2DDieline, onTransferT
     const modelGroup = new THREE.Group();
     scene.add(modelGroup);
 
-    // ===============================================
-    // PURE RAW PACKAGING MATERIAL TEXTURE PIPELINE
-    // ===============================================
+    // Materials Pipeline
     let artworkTex = null;
     let foilMetalness = 0.04;
     let foilRoughness = 0.38;
@@ -486,10 +483,9 @@ export default function Packaging3DStudioView({ onSwitchTo2DDieline, onTransferT
       side: THREE.DoubleSide
     });
 
-    // High-visibility CAD Dieline Materials (Red Cut lines + Green Crease lines)
     const cutEdgeMat = new THREE.LineBasicMaterial({
-      color: showWireframe ? 0xef4444 : 0x3b82f6,
-      linewidth: showWireframe ? 2.5 : 1.2,
+      color: 0xef4444,
+      linewidth: 2.0,
       transparent: true,
       opacity: showWireframe ? 1.0 : 0.4
     });
@@ -501,12 +497,10 @@ export default function Packaging3DStudioView({ onSwitchTo2DDieline, onTransferT
       dashSize: 4,
       gapSize: 2,
       transparent: true,
-      opacity: showWireframe ? 1.0 : 0.3
+      opacity: showWireframe ? 1.0 : 0.35
     });
 
-    // ===============================================
-    // UNIVERSAL ARTICULATED KINEMATICS BUILDER
-    // ===============================================
+    // Articulated Geometry Builder
     const makeBoxPanel = (w, h, d = T, isCrease = false) => {
       const geo = new THREE.BoxGeometry(w, d, h);
       const mesh = new THREE.Mesh(geo, boxMat);
@@ -563,7 +557,7 @@ export default function Packaging3DStudioView({ onSwitchTo2DDieline, onTransferT
       bRightPivot.add(bRight);
       bRightPivot.rotation.z = +angle;
 
-      // Elevated Lid (Floats higher when f < 1)
+      // Elevated Lid
       const lidGroup = new THREE.Group();
       const lidH = Math.max(15, H * 0.5);
       const lidElevation = (H + 4) * f + (1 - f) * (H * 1.5 + 40);
@@ -592,7 +586,7 @@ export default function Packaging3DStudioView({ onSwitchTo2DDieline, onTransferT
       modelGroup.add(lidGroup);
 
     } else if (mId.includes('sleeve') || mId.includes('drawer')) {
-      // 2. Sleeve & Drawer Matchbox
+      // 2. Sleeve & Drawer Box
       const sleeveMesh = makeBoxPanel(L + 4, W + 4);
       sleeveMesh.position.set(0, 0, 0);
       modelGroup.add(sleeveMesh);
@@ -613,7 +607,7 @@ export default function Packaging3DStudioView({ onSwitchTo2DDieline, onTransferT
       sRightPivot.add(sRight);
       sRightPivot.rotation.z = +angle;
 
-      // Inner Drawer
+      // Drawer (Slides horizontally out as f decreases)
       const slideDist = (1 - f) * (L * 0.9);
       const drawerGroup = new THREE.Group();
       drawerGroup.position.set(slideDist, 1, 0);
@@ -633,7 +627,7 @@ export default function Packaging3DStudioView({ onSwitchTo2DDieline, onTransferT
       modelGroup.add(drawerGroup);
 
     } else if (mId.includes('hexagon')) {
-      // 3. Hexagonal 6-Sided Box
+      // 3. Hexagonal Box
       const radius = L / 2;
       const hexGeo = new THREE.CylinderGeometry(radius, radius, H * Math.max(0.1, f), 6, 1, false);
       const hexMesh = new THREE.Mesh(hexGeo, boxMat);
@@ -645,7 +639,7 @@ export default function Packaging3DStudioView({ onSwitchTo2DDieline, onTransferT
       hexMesh.add(hexEdge);
 
     } else if (mId.includes('triangle') || mId.includes('triangular')) {
-      // 4. Triangular 3-Sided Prism Box
+      // 4. Triangular Box
       const radius = L * 0.6;
       const triGeo = new THREE.CylinderGeometry(radius, radius, H * Math.max(0.1, f), 3, 1, false);
       const triMesh = new THREE.Mesh(triGeo, boxMat);
@@ -669,7 +663,6 @@ export default function Packaging3DStudioView({ onSwitchTo2DDieline, onTransferT
       pillowMesh.add(pEdge);
 
     } else if (mId === 'dropper_bottle' || mId === 'wine_bottle') {
-      // Bottles
       const bottleRadius = L / 2;
       const bodyHeight = H * 0.7;
       const bottleGeo = new THREE.CylinderGeometry(bottleRadius, bottleRadius, bodyHeight, 32);
@@ -686,7 +679,6 @@ export default function Packaging3DStudioView({ onSwitchTo2DDieline, onTransferT
       modelGroup.add(capMesh);
 
     } else if (mId === 'beverage_can') {
-      // Cans
       const canGeo = new THREE.CylinderGeometry(L / 2, L / 2, H, 36);
       const canMesh = new THREE.Mesh(canGeo, boxMat);
       canMesh.position.y = H / 2;
@@ -694,7 +686,6 @@ export default function Packaging3DStudioView({ onSwitchTo2DDieline, onTransferT
       modelGroup.add(canMesh);
 
     } else if (mId === 'cosmetic_jar') {
-      // Jars
       const jarGeo = new THREE.CylinderGeometry(L / 2, L / 2, H * 0.65, 36);
       const jarMesh = new THREE.Mesh(jarGeo, boxMat);
       jarMesh.position.y = (H * 0.65) / 2;
@@ -709,7 +700,7 @@ export default function Packaging3DStudioView({ onSwitchTo2DDieline, onTransferT
       modelGroup.add(lidMesh);
 
     } else {
-      // 6. Master Articulated Folding Carton (STE, RTE, Mailer 0427, RSC 0201, Snap Lock, Auto Bottom, Pizza, Hanging Tab, Cake, Counter Display)
+      // 6. Master Folding Carton
       // Bottom Panel (Base)
       const bottom = makeBoxPanel(L, W);
       bottom.position.set(0, 0, 0);
@@ -726,7 +717,7 @@ export default function Packaging3DStudioView({ onSwitchTo2DDieline, onTransferT
       rearPivot.add(rearPanel);
       rearPivot.rotation.x = +angle;
 
-      // Top Lid (Hinged at top of rear wall at local z = -H)
+      // Top Lid
       const lidPivot = new THREE.Group();
       lidPivot.position.set(0, 0, -H);
       rearPivot.add(lidPivot);
@@ -736,7 +727,7 @@ export default function Packaging3DStudioView({ onSwitchTo2DDieline, onTransferT
       lidPivot.add(lidPanel);
       lidPivot.rotation.x = +angle;
 
-      // Top Tuck Flap (Hinged at front of lid at local z = -W)
+      // Top Tuck Flap
       const flapPivot = new THREE.Group();
       flapPivot.position.set(0, 0, -W);
       lidPivot.add(flapPivot);
@@ -747,7 +738,7 @@ export default function Packaging3DStudioView({ onSwitchTo2DDieline, onTransferT
       flapPivot.add(flapPanel);
       flapPivot.rotation.x = +angle;
 
-      // Front Wall (Hinged at z = +W/2)
+      // Front Wall
       const frontPivot = new THREE.Group();
       frontPivot.position.set(0, 0, W / 2);
       modelGroup.add(frontPivot);
@@ -758,7 +749,7 @@ export default function Packaging3DStudioView({ onSwitchTo2DDieline, onTransferT
       frontPivot.add(frontPanel);
       frontPivot.rotation.x = -angle;
 
-      // Left Wall (Hinged at x = -L/2)
+      // Left Wall
       const leftPivot = new THREE.Group();
       leftPivot.position.set(-L / 2, 0, 0);
       modelGroup.add(leftPivot);
@@ -768,7 +759,15 @@ export default function Packaging3DStudioView({ onSwitchTo2DDieline, onTransferT
       leftPivot.add(leftPanel);
       leftPivot.rotation.z = -angle;
 
-      // Right Wall (Hinged at x = +L/2)
+      const lFlapTop = makeBoxPanel(H * 0.5, W * 0.4);
+      lFlapTop.position.set(-H * 0.25, 0, -W * 0.3);
+      leftPivot.add(lFlapTop);
+
+      const lFlapBot = makeBoxPanel(H * 0.5, W * 0.4);
+      lFlapBot.position.set(-H * 0.25, 0, W * 0.3);
+      leftPivot.add(lFlapBot);
+
+      // Right Wall
       const rightPivot = new THREE.Group();
       rightPivot.position.set(L / 2, 0, 0);
       modelGroup.add(rightPivot);
@@ -777,9 +776,17 @@ export default function Packaging3DStudioView({ onSwitchTo2DDieline, onTransferT
       rightPanel.position.set(H / 2, 0, 0);
       rightPivot.add(rightPanel);
       rightPivot.rotation.z = +angle;
+
+      const rFlapTop = makeBoxPanel(H * 0.5, W * 0.4);
+      rFlapTop.position.set(H * 0.25, 0, -W * 0.3);
+      rightPivot.add(rFlapTop);
+
+      const rFlapBot = makeBoxPanel(H * 0.5, W * 0.4);
+      rFlapBot.position.set(H * 0.25, 0, W * 0.3);
+      rightPivot.add(rFlapBot);
     }
 
-    // 8. Spherical Orbit Drag Controls (centered on box target)
+    // 8. Mouse Orbit Drag Controls
     let isDragging = false;
     let prevMousePos = { x: 0, y: 0 };
     const domEl = renderer.domElement;
@@ -795,7 +802,7 @@ export default function Packaging3DStudioView({ onSwitchTo2DDieline, onTransferT
       const dy = e.clientY - prevMousePos.y;
 
       orbitTheta -= dx * 0.008;
-      orbitPhi = Math.max(0.08, Math.min(Math.PI / 2 + 0.1, orbitPhi - dy * 0.008));
+      orbitPhi = Math.max(0.15, Math.min(Math.PI / 2 - 0.02, orbitPhi - dy * 0.008));
 
       updateCameraPos();
       prevMousePos = { x: e.clientX, y: e.clientY };
@@ -831,7 +838,7 @@ export default function Packaging3DStudioView({ onSwitchTo2DDieline, onTransferT
     };
     animate();
 
-    // 10. Window Resize Handler
+    // 10. Resize Handler
     const handleResize = () => {
       if (!container) return;
       const newW = container.clientWidth;
@@ -1138,7 +1145,6 @@ export default function Packaging3DStudioView({ onSwitchTo2DDieline, onTransferT
                 <p className="text-[11px] text-slate-400">کف‌پوش‌های استودیویی، مرمر، چوب و سکوی نمایش</p>
               </div>
 
-              {/* Podium Toggle */}
               <div className="flex items-center justify-between p-3 rounded-xl bg-slate-800/80 border border-slate-700">
                 <span className="text-xs font-bold text-slate-200">سکوی مدور نمایشگاهی (Podium)</span>
                 <input
@@ -1180,7 +1186,6 @@ export default function Packaging3DStudioView({ onSwitchTo2DDieline, onTransferT
                 <p className="text-[11px] text-slate-400">شدت و زاویه تابش نورهای ۳ نقطه‌ای صنعتی</p>
               </div>
 
-              {/* Intensity Slider */}
               <div className="space-y-1.5 bg-slate-800/80 p-3 rounded-2xl border border-slate-700">
                 <div className="flex items-center justify-between">
                   <span className="text-slate-300 font-bold">شدت نور اصلی:</span>
@@ -1197,7 +1202,6 @@ export default function Packaging3DStudioView({ onSwitchTo2DDieline, onTransferT
                 />
               </div>
 
-              {/* Light Angle Slider */}
               <div className="space-y-1.5 bg-slate-800/80 p-3 rounded-2xl border border-slate-700">
                 <div className="flex items-center justify-between">
                   <span className="text-slate-300 font-bold">زاویه چرخش نور:</span>
