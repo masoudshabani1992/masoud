@@ -190,14 +190,7 @@ app.get('/api/ai/knowledge-base', authMiddleware, (req, res) => {
 // ================= DIELINE GENERATOR & MONTAGE ROUTES =================
 app.post('/api/dieline/generate', authMiddleware, (req, res) => {
   try {
-    const { boxType, length, width, height, material } = req.body;
-    const dieline = generateBoxDieline({
-      boxType,
-      length,
-      width,
-      height,
-      material
-    });
+    const dieline = generateBoxDieline(req.body);
     res.json(dieline);
   } catch (err) {
     res.status(500).json({ error: 'خطا در تولید خط تیغ: ' + err.message });

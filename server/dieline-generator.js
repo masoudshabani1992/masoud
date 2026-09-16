@@ -2,21 +2,20 @@
  * Pacdora Studio & ESKO ArtiosCAD 23.07 Master Dieline Engine
  * Developed for Arman Amiran Box Factory by Masoud Shabani (مسعود شعبانی)
  *
- * Supported Pacdora Models & Standards:
+ * Fully supports all standard models:
  * - 100010: Straight Tuck End (STE) Folding Carton
- * - 100020: Reverse Tuck End (RTE) Folding Carton
  * - 150010: Flip-Top Mailer Box (FEFCO 0427)
  * - 110020: Snap Lock Auto Bottom Box (ECMA A20.40)
- * - 200010: Regular Slotted Carton RSC (FEFCO 0201)
- * - 300010: Matchbox Sleeve & Drawer (ECMA F10.02)
- * - 400010: Rigid Base & Lid Box (FEFCO 0301)
- * - 500010: Gable Top Box with Handle
+ * - 200010: RSC Regular Slotted Carton (FEFCO 0201)
+ * - 300010: Rigid Base & Lid Box (هاردباکس لوکس)
+ * - 400010: Pillow Box (جعبه بالشتی)
+ * - 500010: Sleeve & Tray Box (جعبه کشویی)
  */
 
 const MATERIAL_DATABASE = {
   '350g_white': {
     id: '350g_white',
-    name: '350g white paperboard (ایندربرد ۳۵۰ گرم)',
+    name: 'ایندربرد ۳۵۰ گرم (350g White Board)',
     thicknessMm: 0.5,
     minThick: 0.3,
     maxThick: 0.8,
@@ -28,7 +27,7 @@ const MATERIAL_DATABASE = {
   },
   '300g_white': {
     id: '300g_white',
-    name: '300g white paperboard (ایندربرد ۳۰۰ گرم)',
+    name: 'ایندربرد ۳۰۰ گرم (300g White Board)',
     thicknessMm: 0.42,
     minThick: 0.25,
     maxThick: 0.7,
@@ -40,7 +39,7 @@ const MATERIAL_DATABASE = {
   },
   '250g_duplex': {
     id: '250g_duplex',
-    name: '250g duplex paperboard (پشت طوسی ۲۵۰ گرم)',
+    name: 'پشت طوسی ۲۵۰ گرم (250g Duplex Board)',
     thicknessMm: 0.45,
     minThick: 0.3,
     maxThick: 0.75,
@@ -52,7 +51,7 @@ const MATERIAL_DATABASE = {
   },
   'kraft': {
     id: 'kraft',
-    name: 'Kraft paperboard (کرافت قهوه‌ای)',
+    name: 'مقوای کرافت قهوه‌ای (Kraft Board)',
     thicknessMm: 0.55,
     minThick: 0.3,
     maxThick: 0.9,
@@ -64,7 +63,7 @@ const MATERIAL_DATABASE = {
   },
   'flute_e': {
     id: 'flute_e',
-    name: 'E-flute Corrugated (کارتن لمینتی E-Flute ۱.۵mm)',
+    name: 'کارتن E-Flute ۱.۵ میلی‌متر (سینگل لمینتی)',
     thicknessMm: 1.5,
     minThick: 1.2,
     maxThick: 1.8,
@@ -76,7 +75,7 @@ const MATERIAL_DATABASE = {
   },
   'flute_b': {
     id: 'flute_b',
-    name: 'B-flute Corrugated (کارتن B-Flute ۳mm)',
+    name: 'کارتن B-Flute ۳ میلی‌متر (۳ لایه سه لایه)',
     thicknessMm: 3.0,
     minThick: 2.6,
     maxThick: 3.4,
@@ -87,6 +86,8 @@ const MATERIAL_DATABASE = {
     texture: 'corrugated_b'
   }
 };
+
+const MATERIAL_SPECS = MATERIAL_DATABASE;
 
 const STANDARD_SHEETS = [
   { id: 'sheet_70x100', name: '۷۰ × ۱۰۰ سانت (۴ ورقی)', widthMm: 1000, heightMm: 700, widthCm: 100, heightCm: 70 },
@@ -149,7 +150,7 @@ function calculateDimensionTriad({ L, W, H, sizeMode = 'mfg', thicknessMm = 0.5,
 }
 
 /**
- * Generate Pacdora In-Canvas Blue Dimension Arrow
+ * Generate In-Canvas Blue Dimension Arrow
  */
 function createPacdoraDimArrowH({ x1, x2, y, text, unit = 'mm' }) {
   const minX = Math.min(x1, x2);
@@ -160,7 +161,6 @@ function createPacdoraDimArrowH({ x1, x2, y, text, unit = 'mm' }) {
 
   const arrowSize = 4;
   return `
-    <!-- Pacdora Dimension H: ${text} -->
     <g class="pacdora-dim-h">
       <line x1="${minX}" y1="${y}" x2="${maxX}" y2="${y}" stroke="#0284c7" stroke-width="0.9" />
       <polygon points="${minX},${y} ${minX + arrowSize},${y - 2.5} ${minX + arrowSize},${y + 2.5}" fill="#0284c7" />
@@ -182,7 +182,6 @@ function createPacdoraDimArrowV({ x, y1, y2, text, unit = 'mm' }) {
 
   const arrowSize = 4;
   return `
-    <!-- Pacdora Dimension V: ${text} -->
     <g class="pacdora-dim-v">
       <line x1="${x}" y1="${minY}" x2="${x}" y2="${maxY}" stroke="#0284c7" stroke-width="0.9" />
       <polygon points="${x},${minY} ${x - 2.5},${minY + arrowSize} ${x + 2.5},${minY + arrowSize}" fill="#0284c7" />
@@ -197,26 +196,33 @@ function createPacdoraDimArrowV({ x, y1, y2, text, unit = 'mm' }) {
 
 /**
  * MASTER PARAMETRIC DIELINE GENERATOR
- * Generates exact vector geometries matching Pacdora Studio Screenshots
  */
 function generateParametricStudioDieline({
   boxType = 'tuck_end',
+  type = null,
   length = 120,
   width = 60,
   height = 160,
   materialId = '350g_white',
+  material = null,
+  material_type = null,
   customThickness = null,
-  sizeMode = 'mfg'
+  thickness = null,
+  sizeMode = 'mfg',
+  size_mode = null
 }) {
-  const mat = MATERIAL_DATABASE[materialId] || MATERIAL_DATABASE['350g_white'];
-  const T = customThickness ? parseFloat(customThickness) : mat.thicknessMm;
+  const modelKey = boxType || type || 'tuck_end';
+  const effectiveMatId = materialId || material || material_type || '350g_white';
+  const mat = MATERIAL_DATABASE[effectiveMatId] || MATERIAL_DATABASE['350g_white'];
+  const T = customThickness || thickness ? parseFloat(customThickness || thickness) : mat.thicknessMm;
   const bendLoss = mat.bendLoss;
+  const effectiveSizeMode = size_mode || sizeMode || 'mfg';
 
   const triad = calculateDimensionTriad({
     L: parseFloat(length) || 120,
     W: parseFloat(width) || 60,
     H: parseFloat(height) || 160,
-    sizeMode,
+    sizeMode: effectiveSizeMode,
     thicknessMm: T,
     bendLoss
   });
@@ -238,8 +244,8 @@ function generateParametricStudioDieline({
   const padX = 60;
   const padY = 60;
 
-  switch (boxType) {
-    // ================= 1. PACDORA 100010 (Straight Tuck End - STE) as seen in image-1 & image-3 =================
+  switch (modelKey) {
+    // ================= 1. Straight Tuck End (STE) =================
     case 'tuck_end':
     default: {
       const tuck = Math.max(14, Math.min(28, W * 0.75 + 2));
@@ -266,7 +272,7 @@ function generateParametricStudioDieline({
       const yBotFlap = yBotBody + flapH;
       const yBotTuck = yBotFlap + tuck;
 
-      // Crease lines (Red dashed - ArtiosCAD / Pacdora style)
+      // Crease lines (Red dashed)
       creasePaths.push(`M ${x1} ${yTopBody} L ${x1} ${yBotBody}`);
       creasePaths.push(`M ${x2} ${yTopBody} L ${x2} ${yBotBody}`);
       creasePaths.push(`M ${x3} ${yTopBody} L ${x3} ${yBotBody}`);
@@ -276,7 +282,7 @@ function generateParametricStudioDieline({
       creasePaths.push(`M ${x1} ${yTopFlap} L ${x2} ${yTopFlap}`);
       creasePaths.push(`M ${x3} ${yBotFlap} L ${x4} ${yBotFlap}`);
 
-      // Trim / Cut lines (Blue solid matching screenshot)
+      // Trim / Cut lines (Blue solid)
       cutPaths.push(`
         M ${x0} ${yTopBody + 6}
         L ${x1} ${yTopBody}
@@ -317,7 +323,7 @@ function generateParametricStudioDieline({
         Z
       `);
 
-      // Bleed Line (Green contour 3mm)
+      // Bleed Line (Green)
       bleedPaths.push(`
         M ${x0 - 3} ${yTopBody + 3}
         L ${x1 - 3} ${yTopBody - 3}
@@ -341,12 +347,9 @@ function generateParametricStudioDieline({
         Z
       `);
 
-      // In-Canvas Dimension Arrows (Exact replica of Image-1 & Image-3)
-      // Panel 1 (120 mm)
+      // In-Canvas Dimensions
       inCanvasDims.push(createPacdoraDimArrowH({ x1: x1, x2: x2, y: yTopBody + H * 0.6, text: `${L}` }));
-      // Panel 2 (60 mm)
       inCanvasDims.push(createPacdoraDimArrowH({ x1: x2, x2: x3, y: yTopBody + H * 0.25, text: `${W}` }));
-      // Height (160 mm)
       inCanvasDims.push(createPacdoraDimArrowV({ x: x4 + W / 2, y1: yTopBody, y2: yBotBody, text: `${H}` }));
 
       totalCutMm = (2 * flatW) + (2 * flatH) + 120;
@@ -354,8 +357,9 @@ function generateParametricStudioDieline({
       break;
     }
 
-    // ================= 2. PACDORA 150010 (Mailer Box / FEFCO 0427) =================
+    // ================= 2. Flip-Top Mailer Box (FEFCO 0427) =================
     case 'keyboard':
+    case 'mailer':
     case 'fefco_0427': {
       const rollH = Math.max(15, H - (1.5 * T));
       const frontFlap = Math.max(20, H - T);
@@ -381,7 +385,7 @@ function generateParametricStudioDieline({
       const yFrontWall = yBottomCrease + W;
       const yRollOver = yFrontWall + H;
 
-      // Creases (Red dashed)
+      // Creases
       creasePaths.push(`M ${xL1} ${yLidCrease} L ${xR1} ${yLidCrease}`);
       creasePaths.push(`M ${xL1} ${yBackWall} L ${xR1} ${yBackWall}`);
       creasePaths.push(`M ${xL1} ${yBottomCrease} L ${xR1} ${yBottomCrease}`);
@@ -391,7 +395,7 @@ function generateParametricStudioDieline({
       creasePaths.push(`M ${xL0} ${yBottomCrease} L ${xL0} ${yFrontWall}`);
       creasePaths.push(`M ${xR0} ${yBottomCrease} L ${xR0} ${yFrontWall}`);
 
-      // Cut Lines (Blue solid)
+      // Cut Lines
       cutPaths.push(`
         M ${xL1} ${yFrontLid}
         L ${xR1} ${yFrontLid}
@@ -418,14 +422,14 @@ function generateParametricStudioDieline({
         Z
       `);
 
-      // Locking Slots in Bottom
+      // Slots
       cutPaths.push(`M ${xL1 + 8} ${yBottomCrease + 4} L ${xL1 + 8 + slotL} ${yBottomCrease + 4} L ${xL1 + 8 + slotL} ${yBottomCrease + 4 + slotW} L ${xL1 + 8} ${yBottomCrease + 4 + slotW} Z`);
       cutPaths.push(`M ${xR1 - 8 - slotL} ${yBottomCrease + 4} L ${xR1 - 8} ${yBottomCrease + 4} L ${xR1 - 8} ${yBottomCrease + 4 + slotW} L ${xR1 - 8 - slotL} ${yBottomCrease + 4 + slotW} Z`);
 
-      // Bleed (Green)
+      // Bleed
       bleedPaths.push(`M ${padX - 3} ${padY - 3} L ${padX + flatW + 3} ${padY - 3} L ${padX + flatW + 3} ${padY + flatH + 3} L ${padX - 3} ${padY + flatH + 3} Z`);
 
-      // In-Canvas Arrows
+      // In-Canvas Dimensions
       inCanvasDims.push(createPacdoraDimArrowH({ x1: xL1, x2: xR1, y: yBottomCrease + W / 2, text: `${L}` }));
       inCanvasDims.push(createPacdoraDimArrowV({ x: xR1 - 20, y1: yBottomCrease, y2: yFrontWall, text: `${W}` }));
       inCanvasDims.push(createPacdoraDimArrowV({ x: xL1 + 20, y1: yBackWall, y2: yBottomCrease, text: `${H}` }));
@@ -434,58 +438,106 @@ function generateParametricStudioDieline({
       totalCreaseMm = (4 * L) + (4 * W) + (4 * H);
       break;
     }
+
+    // ================= 3. Snap Lock Auto Bottom (ECMA A20.40) =================
+    case 'snap_lock_bottom':
+    case 'auto_bottom': {
+      const topTuck = Math.max(15, W * 0.7);
+      const bottomFlap = Math.max(25, W * 0.65);
+
+      flatW = (2 * L) + (2 * W) + glueW;
+      flatH = H + W + topTuck + bottomFlap;
+
+      const ox = padX;
+      const oy = padY + topTuck + W;
+
+      const x1 = ox + glueW;
+      const x2 = x1 + L;
+      const x3 = x2 + W;
+      const x4 = x3 + L;
+      const x5 = x4 + W;
+
+      creasePaths.push(`M ${x1} ${oy} L ${x1} ${oy + H}`);
+      creasePaths.push(`M ${x2} ${oy} L ${x2} ${oy + H}`);
+      creasePaths.push(`M ${x3} ${oy} L ${x3} ${oy + H}`);
+      creasePaths.push(`M ${x4} ${oy} L ${x4} ${oy + H}`);
+      creasePaths.push(`M ${x1} ${oy} L ${x5} ${oy}`);
+      creasePaths.push(`M ${x1} ${oy + H} L ${x5} ${oy + H}`);
+
+      cutPaths.push(`M ${ox} ${oy + 6} L ${x1} ${oy} L ${x1} ${oy - W} L ${x2} ${oy - W} L ${x2} ${oy} L ${x5} ${oy} L ${x5} ${oy + H} L ${x5} ${oy + H + bottomFlap} L ${x4} ${oy + H + bottomFlap} L ${x4} ${oy + H} L ${x1} ${oy + H} L ${ox} ${oy + H - 6} Z`);
+      bleedPaths.push(`M ${padX - 3} ${padY - 3} L ${padX + flatW + 3} ${padY - 3} L ${padX + flatW + 3} ${padY + flatH + 3} L ${padX - 3} ${padY + flatH + 3} Z`);
+
+      inCanvasDims.push(createPacdoraDimArrowH({ x1: x1, x2: x2, y: oy + H * 0.5, text: `${L}` }));
+      inCanvasDims.push(createPacdoraDimArrowH({ x1: x2, x2: x3, y: oy + H * 0.3, text: `${W}` }));
+      inCanvasDims.push(createPacdoraDimArrowV({ x: x4 + W / 2, y1: oy, y2: oy + H, text: `${H}` }));
+
+      totalCutMm = (2 * flatW) + (2 * flatH) + 100;
+      totalCreaseMm = (4 * H) + (2 * (flatW - glueW));
+      break;
+    }
+
+    // ================= 4. RSC Shipping Carton (FEFCO 0201) =================
+    case 'american':
+    case 'rsc':
+    case 'fefco_0201': {
+      const flapH = W / 2;
+      flatW = (2 * L) + (2 * W) + glueW;
+      flatH = H + (2 * flapH);
+
+      const ox = padX;
+      const oy = padY + flapH;
+
+      const x1 = ox + glueW;
+      const x2 = x1 + L;
+      const x3 = x2 + W;
+      const x4 = x3 + L;
+      const x5 = x4 + W;
+
+      creasePaths.push(`M ${x1} ${oy} L ${x1} ${oy + H}`);
+      creasePaths.push(`M ${x2} ${oy} L ${x2} ${oy + H}`);
+      creasePaths.push(`M ${x3} ${oy} L ${x3} ${oy + H}`);
+      creasePaths.push(`M ${x4} ${oy} L ${x4} ${oy + H}`);
+      creasePaths.push(`M ${x1} ${oy} L ${x5} ${oy}`);
+      creasePaths.push(`M ${x1} ${oy + H} L ${x5} ${oy + H}`);
+
+      cutPaths.push(`M ${ox} ${oy + 10} L ${x1} ${oy} L ${x1} ${oy - flapH} L ${x2} ${oy - flapH} L ${x2} ${oy} L ${x3} ${oy - flapH} L ${x4} ${oy - flapH} L ${x4} ${oy} L ${x5} ${oy} L ${x5} ${oy + H} L ${x5} ${oy + H + flapH} L ${x4} ${oy + H + flapH} L ${x4} ${oy + H} L ${x3} ${oy + H + flapH} L ${x2} ${oy + H + flapH} L ${x2} ${oy + H} L ${x1} ${oy + H + flapH} L ${x1} ${oy + H} L ${ox} ${oy + H - 10} Z`);
+      bleedPaths.push(`M ${padX - 3} ${padY - 3} L ${padX + flatW + 3} ${padY - 3} L ${padX + flatW + 3} ${padY + flatH + 3} L ${padX - 3} ${padY + flatH + 3} Z`);
+
+      inCanvasDims.push(createPacdoraDimArrowH({ x1: x1, x2: x2, y: oy + H * 0.5, text: `${L}` }));
+      inCanvasDims.push(createPacdoraDimArrowH({ x1: x2, x2: x3, y: oy + H * 0.3, text: `${W}` }));
+      inCanvasDims.push(createPacdoraDimArrowV({ x: x4 + W / 2, y1: oy, y2: oy + H, text: `${H}` }));
+
+      totalCutMm = (2 * flatW) + (2 * flatH) + 80;
+      totalCreaseMm = (4 * H) + (2 * (flatW - glueW));
+      break;
+    }
   }
 
-  // Construct Studio-Grade Vector SVG Output matching exact Pacdora Theme
+  // Construct Studio-Grade Vector SVG Output
   const totalViewW = Math.round(flatW + (padX * 2));
   const totalViewH = Math.round(flatH + (padY * 2));
   const svgViewBox = `0 0 ${totalViewW} ${totalViewH}`;
 
   const svgContent = `<?xml version="1.0" encoding="utf-8"?>
-<svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="${svgViewBox}" width="${totalViewW}mm" height="${totalViewH}mm">
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="${svgViewBox}" width="100%" height="100%" style="display:block; max-height: 100%;">
   <defs>
     <pattern id="pacdoraGrid" width="40" height="40" patternUnits="userSpaceOnUse">
       <path d="M 0 20 L 20 0 L 40 20 L 20 40 Z" fill="none" stroke="#f1f5f9" stroke-width="0.8" />
-      <text x="20" y="22" font-family="'Inter', sans-serif" font-size="5px" fill="#cbd5e1" text-anchor="middle" font-weight="600" opacity="0.4">Pacdora</text>
     </pattern>
 
     <style>
       .pacdora-bleed { stroke: #22c55e; stroke-width: 0.9; fill: none; }
-      .pacdora-trim { stroke: #1e40af; stroke-width: 1.1; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-      .pacdora-crease { stroke: #dc2626; stroke-width: 0.8; stroke-dasharray: 2.5, 1.8; fill: none; }
+      .pacdora-trim { stroke: #1e40af; stroke-width: 1.2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .pacdora-crease { stroke: #dc2626; stroke-width: 0.9; stroke-dasharray: 2.5, 1.8; fill: none; }
       .pacdora-legend { font-family: 'Inter', 'Vazirmatn', sans-serif; font-size: 8px; font-weight: 600; fill: #475569; }
       .pacdora-triad-title { font-family: 'Inter', 'Vazirmatn', sans-serif; font-size: 8px; font-weight: bold; fill: #64748b; }
       .pacdora-triad-val { font-family: 'Inter', 'Vazirmatn', sans-serif; font-size: 8.5px; font-weight: bold; fill: #1e293b; }
     </style>
   </defs>
 
-  <!-- Clean Canvas Background with Watermark Pattern -->
+  <!-- Canvas Background -->
   <rect x="0" y="0" width="${totalViewW}" height="${totalViewH}" fill="#ffffff" />
   <rect x="0" y="0" width="${totalViewW}" height="${totalViewH}" fill="url(#pacdoraGrid)" />
-
-  <!-- Top Left Legend (Bleed / Trim / Crease) -->
-  <g id="Pacdora_Top_Legend" transform="translate(20, 18)">
-    <line x1="0" y1="0" x2="16" y2="0" stroke="#22c55e" stroke-width="1.5" />
-    <text x="20" y="3" class="pacdora-legend">Bleed</text>
-
-    <line x1="60" y1="0" x2="76" y2="0" stroke="#1e40af" stroke-width="1.5" />
-    <text x="80" y="3" class="pacdora-legend">Trim</text>
-
-    <line x1="115" y1="0" x2="131" y2="0" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="3,2" />
-    <text x="135" y="3" class="pacdora-legend">Crease</text>
-  </g>
-
-  <!-- Top Left Dimension Triad Overlay (Manufacture / Inner / Outer dimensions) -->
-  <g id="Pacdora_Triad_Overlay" transform="translate(20, 36)">
-    <text x="0" y="0" class="pacdora-triad-title">Manufacture dimensions</text>
-    <text x="0" y="10" class="pacdora-triad-val">${triad.mfg.l} × ${triad.mfg.w} × ${triad.mfg.h} mm</text>
-
-    <text x="0" y="24" class="pacdora-triad-title">Inner dimensions</text>
-    <text x="0" y="34" class="pacdora-triad-val">${triad.inner.l} × ${triad.inner.w} × ${triad.inner.h} mm</text>
-
-    <text x="0" y="48" class="pacdora-triad-title">Outer dimensions</text>
-    <text x="0" y="58" class="pacdora-triad-val">${triad.outer.l} × ${triad.outer.w} × ${triad.outer.h} mm</text>
-  </g>
 
   <!-- 1. Bleed Layer (Green) -->
   <g id="Layer_Bleed">
@@ -508,12 +560,14 @@ function generateParametricStudioDieline({
   </g>
 </svg>`;
 
+  const blankWeightG = ((flatW * flatH) / 1000000) * (mat.defaultGsm || 350);
+
   return {
     success: true,
-    boxType,
+    boxType: modelKey,
     material: mat,
     thicknessMm: T,
-    sizeMode,
+    sizeMode: effectiveSizeMode,
     triadDimensions: triad,
     flatDimensions: {
       flatWidthMm: Math.round(flatW),
@@ -521,18 +575,133 @@ function generateParametricStudioDieline({
       flatWidthCm: Math.round((flatW / 10) * 10) / 10,
       flatHeightCm: Math.round((flatH / 10) * 10) / 10
     },
+    flat_dimensions: {
+      width_mm: Math.round(flatW),
+      height_mm: Math.round(flatH),
+      width_cm: Math.round((flatW / 10) * 10) / 10,
+      height_cm: Math.round((flatH / 10) * 10) / 10
+    },
+    technical_matrix: {
+      cut_perimeter_mm: Math.round(totalCutMm),
+      crease_perimeter_mm: Math.round(totalCreaseMm),
+      blank_area_cm2: Math.round((flatW * flatH) / 100),
+      blank_weight_g: Math.round(blankWeightG * 10) / 10
+    },
     ruleLengthMeters: {
       cutRuleMeters: Math.round((totalCutMm / 1000) * 10) / 10,
       creaseRuleMeters: Math.round((totalCreaseMm / 1000) * 10) / 10,
       totalRuleMeters: Math.round(((totalCutMm + totalCreaseMm) / 1000) * 10) / 10
     },
-    svg: svgContent
+    svg: svgContent,
+    svg_content: svgContent
+  };
+}
+
+/**
+ * Intelligent Sheet Montage Optimizer
+ */
+function optimizeSheetMontage({
+  boxType = 'tuck_end',
+  length = 120,
+  width = 60,
+  height = 160,
+  material = '350g_white',
+  quantity = 5000,
+  grammage = 350,
+  cardboardPricePerKg = 62000,
+  selectedSheetId = null
+}) {
+  const dieline = generateParametricStudioDieline({
+    boxType,
+    length,
+    width,
+    height,
+    materialId: material
+  });
+
+  const flatW = dieline.flatDimensions.flatWidthMm;
+  const flatH = dieline.flatDimensions.flatHeightMm;
+
+  const gapMm = 5;
+  const marginMm = 15;
+
+  const results = STANDARD_SHEETS.map((sheet) => {
+    const usableW = sheet.widthMm - (marginMm * 2);
+    const usableH = sheet.heightMm - (marginMm * 2);
+
+    // Orientation 1 (Normal)
+    const cols1 = Math.floor((usableW + gapMm) / (flatW + gapMm));
+    const rows1 = Math.floor((usableH + gapMm) / (flatH + gapMm));
+    const up1 = Math.max(0, cols1 * rows1);
+
+    // Orientation 2 (Rotated 90 deg)
+    const cols2 = Math.floor((usableW + gapMm) / (flatH + gapMm));
+    const rows2 = Math.floor((usableH + gapMm) / (flatW + gapMm));
+    const up2 = Math.max(0, cols2 * rows2);
+
+    const isRotated = up2 > up1;
+    const itemsPerSheet = Math.max(1, isRotated ? up2 : up1);
+    const cols = isRotated ? cols2 : cols1;
+    const rows = isRotated ? rows2 : rows1;
+
+    const totalSheets = Math.ceil(quantity / itemsPerSheet);
+    const totalSheetsWithWaste = Math.ceil(totalSheets * 1.06);
+
+    const sheetAreaM2 = (sheet.widthMm * sheet.heightMm) / 1000000;
+    const totalAreaUsedM2 = (flatW * flatH * itemsPerSheet) / 1000000;
+    const efficiencyPercent = Math.min(96, Math.round((totalAreaUsedM2 / sheetAreaM2) * 100));
+
+    const totalWeightKg = (totalSheetsWithWaste * sheetAreaM2 * grammage) / 1000;
+    const totalCardboardCost = totalWeightKg * cardboardPricePerKg;
+    const costPerBox = itemsPerSheet > 0 ? Math.round(totalCardboardCost / quantity) : 0;
+
+    return {
+      sheetId: sheet.id,
+      sheetName: sheet.name,
+      sheetWidthMm: sheet.widthMm,
+      sheetHeightMm: sheet.heightMm,
+      sheetWidthCm: sheet.widthCm,
+      sheetHeightCm: sheet.heightCm,
+      itemsPerSheet,
+      layoutGrid: { cols, rows, isRotated },
+      efficiencyPercent,
+      totalSheetsNeeded: totalSheetsWithWaste,
+      totalWeightKg: Math.round(totalWeightKg),
+      totalCostTomans: Math.round(totalCardboardCost),
+      costPerBoxTomans: costPerBox,
+      isRecommended: false
+    };
+  });
+
+  results.sort((a, b) => b.efficiencyPercent - a.efficiencyPercent);
+  if (results.length > 0) {
+    results[0].isRecommended = true;
+  }
+
+  const activeSheet = selectedSheetId
+    ? results.find((r) => r.sheetId === selectedSheetId) || results[0]
+    : results[0];
+
+  return {
+    success: true,
+    dieline,
+    activeSheet,
+    allSheetOptions: results,
+    montageSpecs: {
+      gapMm,
+      marginMm,
+      boxFlatWidthMm: flatW,
+      boxFlatHeightMm: flatH
+    }
   };
 }
 
 module.exports = {
   MATERIAL_DATABASE,
+  MATERIAL_SPECS,
   STANDARD_SHEETS,
   calculateDimensionTriad,
-  generateParametricStudioDieline
+  generateParametricStudioDieline,
+  generateBoxDieline: generateParametricStudioDieline,
+  optimizeSheetMontage
 };

@@ -35,7 +35,7 @@ import {
   createPresetArtwork
 } from '../utils/proceduralTextures';
 
-// 1. Packaging Model Library matching Pacdora Categories
+// 1. Packaging Model Library matching Pacdora Categories (100% Persian)
 const MODEL_CATEGORIES = [
   { id: 'boxes', name: 'جعبه و کارتن (Boxes)', icon: '📦' },
   { id: 'bottles', name: 'بطری و شیشه (Bottles)', icon: '🍾' },
@@ -48,57 +48,57 @@ const MODEL_CATEGORIES = [
 
 const MODELS_DATA = [
   // Boxes
-  { id: 'mailer', category: 'boxes', name: 'Flip-Top Mailer Box (FEFCO 0427)', farsiName: 'کارتن پستی کیبوردی قفل‌دار', defaultDim: { l: 200, w: 150, h: 60, t: 1.5 }, icon: '📦' },
-  { id: 'tuck_end', category: 'boxes', name: 'Straight Tuck End (STE)', farsiName: 'جعبه دارویی دو طرف درب', defaultDim: { l: 120, w: 60, h: 160, t: 0.5 }, icon: '💊' },
-  { id: 'auto_bottom', category: 'boxes', name: 'Auto Bottom Lock Box', farsiName: 'جعبه کفی قفلی اتوماتیک', defaultDim: { l: 140, w: 80, h: 180, t: 0.6 }, icon: '🔒' },
-  { id: 'rigid_box', category: 'boxes', name: 'Rigid Box Lid & Base (هاردباکس)', farsiName: 'هاردباکس لوکس دوتکه (درب و زیره)', defaultDim: { l: 180, w: 120, h: 50, t: 2.0 }, icon: '🎁' },
-  { id: 'pillow_box', category: 'boxes', name: 'Pillow Box', farsiName: 'جعبه بالشتی فانتزی', defaultDim: { l: 160, w: 100, h: 40, t: 0.5 }, icon: '🎀' },
-  { id: 'sleeve_box', category: 'boxes', name: 'Sleeve & Tray Box', farsiName: 'جعبه کشویی کاور و کفی', defaultDim: { l: 150, w: 90, h: 45, t: 0.8 }, icon: '🗂️' },
+  { id: 'mailer', category: 'boxes', name: 'کارتن پستی کیبوردی قفل‌دار (FEFCO 0427)', farsiName: 'کارتن پستی کیبوردی', defaultDim: { l: 200, w: 150, h: 60, t: 1.5 }, icon: '📦' },
+  { id: 'tuck_end', category: 'boxes', name: 'جعبه دارویی دو طرف درب (Straight Tuck End)', farsiName: 'جعبه دارویی دو طرف درب', defaultDim: { l: 120, w: 60, h: 160, t: 0.5 }, icon: '💊' },
+  { id: 'auto_bottom', category: 'boxes', name: 'جعبه کفی قفلی اتوماتیک (Auto Bottom Lock)', farsiName: 'جعبه کفی قفلی اتوماتیک', defaultDim: { l: 140, w: 80, h: 180, t: 0.6 }, icon: '🔒' },
+  { id: 'rigid_box', category: 'boxes', name: 'هاردباکس لوکس دوتکه (درب و زیره)', farsiName: 'هاردباکس لوکس دوتکه', defaultDim: { l: 180, w: 120, h: 50, t: 2.0 }, icon: '🎁' },
+  { id: 'pillow_box', category: 'boxes', name: 'جعبه بالشتی فانتزی (Pillow Box)', farsiName: 'جعبه بالشتی فانتزی', defaultDim: { l: 160, w: 100, h: 40, t: 0.5 }, icon: '🎀' },
+  { id: 'sleeve_box', category: 'boxes', name: 'جعبه کشویی کاور و کفی (Sleeve & Tray)', farsiName: 'جعبه کشویی کاور و کفی', defaultDim: { l: 150, w: 90, h: 45, t: 0.8 }, icon: '🗂️' },
   
   // Bottles
-  { id: 'dropper_bottle', category: 'bottles', name: 'Cosmetic Dropper Bottle', farsiName: 'بطری شیشه‌ای قطره‌چکانی آرایشی', defaultDim: { l: 45, w: 45, h: 110, t: 3.0 }, icon: '💧' },
-  { id: 'wine_bottle', category: 'bottles', name: 'Glass Bottle (750ml)', farsiName: 'بطری شیشه‌ای استوانه‌ای', defaultDim: { l: 75, w: 75, h: 280, t: 4.0 }, icon: '🍾' },
+  { id: 'dropper_bottle', category: 'bottles', name: 'بطری شیشه‌ای قطره‌چکانی آرایشی', farsiName: 'قطره‌چکانی آرایشی', defaultDim: { l: 45, w: 45, h: 110, t: 3.0 }, icon: '💧' },
+  { id: 'wine_bottle', category: 'bottles', name: 'بطری شیشه‌ای استوانه‌ای ۷۵۰ میل', farsiName: 'بطری شیشه‌ای ۷۵۰ml', defaultDim: { l: 75, w: 75, h: 280, t: 4.0 }, icon: '🍾' },
   
   // Pouches & Bags
-  { id: 'standup_pouch', category: 'pouches', name: 'Stand-Up Zipper Pouch', farsiName: 'پاکت ایستاده زیپ‌کیپ کرافت/متالایز', defaultDim: { l: 140, w: 70, h: 220, t: 0.2 }, icon: '☕' },
-  { id: 'shopping_bag', category: 'pouches', name: 'Kraft Shopping Paper Bag', farsiName: 'ساک دستی کاغذی دسته‌دار', defaultDim: { l: 220, w: 100, h: 280, t: 0.4 }, icon: '🛍️' },
+  { id: 'standup_pouch', category: 'pouches', name: 'پاکت ایستاده زیپ‌کیپ کرافت/متالایز', farsiName: 'پاکت ایستاده زیپ‌کیپ', defaultDim: { l: 140, w: 70, h: 220, t: 0.2 }, icon: '☕' },
+  { id: 'shopping_bag', category: 'pouches', name: 'ساک دستی کاغذی دسته‌دار کرافت', farsiName: 'ساک دستی کاغذی کرافت', defaultDim: { l: 220, w: 100, h: 280, t: 0.4 }, icon: '🛍️' },
   
   // Cans
-  { id: 'beverage_can', category: 'cans', name: 'Aluminum Beverage Can (330ml)', farsiName: 'قوطی آلومینیومی نوشابه', defaultDim: { l: 66, w: 66, h: 122, t: 0.3 }, icon: '🥤' },
+  { id: 'beverage_can', category: 'cans', name: 'قوطی آلومینیومی استاندارد ۳۳۰ میل', farsiName: 'قوطی فلزی نوشابه', defaultDim: { l: 66, w: 66, h: 122, t: 0.3 }, icon: '🥤' },
   
   // Jars
-  { id: 'cosmetic_jar', category: 'jars', name: 'Luxury Cosmetic Cream Jar', farsiName: 'جار شیشه‌ای با درب طلایی', defaultDim: { l: 65, w: 65, h: 55, t: 3.0 }, icon: '🧴' },
+  { id: 'cosmetic_jar', category: 'jars', name: 'جار شیشه‌ای کرم با درب طلایی', farsiName: 'جار شیشه‌ای لوکس', defaultDim: { l: 65, w: 65, h: 55, t: 3.0 }, icon: '🧴' },
   
   // Tubes
-  { id: 'lotion_tube', category: 'tubes', name: 'Flexible Cosmetic Squeeze Tube', farsiName: 'تیوب انعطاف‌پذیر کرم و لوسیون', defaultDim: { l: 40, w: 30, h: 140, t: 0.5 }, icon: '🧪' }
+  { id: 'lotion_tube', category: 'tubes', name: 'تیوب انعطاف‌پذیر کرم و لوسیون', farsiName: 'تیوب کرم و لوسیون', defaultDim: { l: 40, w: 30, h: 140, t: 0.5 }, icon: '🧪' }
 ];
 
-// 2. Finishing & Craft Effects (Pacdora Crafts & Foil)
+// 2. Finishing & Craft Effects (Pacdora Crafts & Foil in Persian)
 const CRAFT_EFFECTS = [
-  { id: 'standard', name: 'چاپ استاندارد افست (Standard Offset)', desc: 'بدون افکت اضافی، پوشش ورنی ملایم', color: '#e2e8f0', foil: 'none' },
-  { id: 'gold_foil', name: 'طلاکوب براق برجسته (Gold Hot Stamping)', desc: 'فویل متالیک طلایی ۲۴ عیار با رفلکس خیره‌کننده', color: '#fbbf24', foil: 'gold' },
-  { id: 'silver_foil', name: 'نقره‌کوب براق (Silver Foil Stamping)', desc: 'فویل کروم آینه‌ای نقره‌ای براق', color: '#e2e8f0', foil: 'silver' },
-  { id: 'rose_gold', name: 'رزگلد متالیک (Rose Gold Foil)', desc: 'طلاکوب رزگلد لوکس مدرن', color: '#fb7185', foil: 'rosegold' },
-  { id: 'spot_uv', name: 'یووی موضعی برجسته (Spot UV Coating)', desc: 'لایه لاک شیشه‌ای براق و برجسته بر روی نقوش', color: '#38bdf8', foil: 'uv' },
-  { id: 'emboss', name: 'برجسته‌کاری ۳ بعدی (Embossing 3D)', desc: 'برآمدگی فیزیکی نقوش و خطوط بدون تغییر رنگ', color: '#a855f7', foil: 'emboss' },
+  { id: 'standard', name: 'چاپ افست استاندارد (Offset Print)', desc: 'پوشش ورنی ملایم و رنگ‌های طبیعی افست', color: '#e2e8f0', foil: 'none' },
+  { id: 'gold_foil', name: 'طلاکوب براق برجسته (Gold Hot Stamping)', desc: 'فویل متالیک طلایی ۲۴ عیار با رفلکس خیره‌کننده نور', color: '#fbbf24', foil: 'gold' },
+  { id: 'silver_foil', name: 'نقره‌کوب براق آینه‌ای (Silver Stamping)', desc: 'فویل کروم متالیک نقره‌ای بازتابنده', color: '#e2e8f0', foil: 'silver' },
+  { id: 'rose_gold', name: 'رزگلد متالیک لوکس (Rose Gold Foil)', desc: 'طلاکوب رزگلد مدرن برای بسته‌بندی‌های خاص', color: '#fb7185', foil: 'rosegold' },
+  { id: 'spot_uv', name: 'یووی موضعی برجسته (Spot UV Coating)', desc: 'لایه لاک شیشه‌ای براق و برجسته روی نقوش', color: '#38bdf8', foil: 'uv' },
+  { id: 'emboss', name: 'برجسته‌کاری ۳ بعدی (Embossing 3D)', desc: 'برآمدگی فیزیکی نقوش و خطوط برجسته', color: '#a855f7', foil: 'emboss' },
   { id: 'soft_touch', name: 'سلفون مخملی لمسی (Soft-Touch Velvet)', desc: 'پوشش فوق‌العاده مات با حس لمس مخمل', color: '#334155', foil: 'velvet' },
-  { id: 'natural_kraft', name: 'کرافت طبیعی ارگانیک (Natural Kraft)', desc: 'بافت واقعی الیاف چوب بازیافتی', color: '#b45309', foil: 'kraft' }
+  { id: 'natural_kraft', name: 'کرافت طبیعی ارگانیک (Natural Kraft)', desc: 'بافت واقعی الیاف چوب بازیافتی با ذرات طبیعی', color: '#b45309', foil: 'kraft' }
 ];
 
 // 3. 3D Studio Scenes & Environments
 const SCENES = [
-  { id: 'luxury_marble', name: 'Light Luxury (مرمر لوکس)', desc: 'استودیو عکاسی لوکس با سنگ مرمر کارارا', floor: 'marble', bg: 'linear-gradient(135deg, #1e293b, #0f172a)', lightColor: '#ffffff' },
-  { id: 'nature_wood', name: 'Nature & Botanics (طبیعت و چوب)', desc: 'استودیو ارگانیک با صفحه چوب بلوط طبیعی', floor: 'wood', bg: 'linear-gradient(135deg, #2e1065, #0f172a)', lightColor: '#fef3c7' },
-  { id: 'minimal_white', name: 'Studio Minimal (عکاسخانه مینیمال)', desc: 'استودیو عکاسی صنعتی با پس‌زمینه روشن', floor: 'concrete', bg: 'linear-gradient(135deg, #f8fafc, #e2e8f0)', lightColor: '#ffffff' },
-  { id: 'universe_dark', name: 'Universe / Dark (صحنه دارک نئون)', desc: 'فضای سینمایی تیره با نور لبه‌ای خیره‌کننده', floor: 'mirror', bg: 'linear-gradient(135deg, #09090b, #030712)', lightColor: '#38bdf8' },
-  { id: 'podium_stand', name: 'Exhibition Stand (استند نمایشگاهی)', desc: 'سکوی پودیوم مدور نمایشگاهی', floor: 'marble', bg: 'linear-gradient(135deg, #172554, #0f172a)', lightColor: '#fef08a' }
+  { id: 'luxury_marble', name: 'استودیو لوکس مرمر (Light Luxury)', desc: 'استودیو عکاسی لوکس با سنگ مرمر سفید Carrara', floor: 'marble', bg: 'linear-gradient(135deg, #1e293b, #0f172a)', lightColor: '#ffffff' },
+  { id: 'nature_wood', name: 'طبیعت و چوب بلوط (Nature & Wood)', desc: 'استودیو ارگانیک با صفحه چوب بلوط طبیعی', floor: 'wood', bg: 'linear-gradient(135deg, #2e1065, #0f172a)', lightColor: '#fef3c7' },
+  { id: 'minimal_white', name: 'استودیو مینیمال روشن (Studio Minimal)', desc: 'استودیو عکاسی صنعتی با پس‌زمینه روشن', floor: 'concrete', bg: 'linear-gradient(135deg, #f8fafc, #e2e8f0)', lightColor: '#ffffff' },
+  { id: 'universe_dark', name: 'صحنه سینمایی دارک (Universe Dark)', desc: 'فضای تاریک سینمایی با نور لبه‌ای نئون', floor: 'mirror', bg: 'linear-gradient(135deg, #09090b, #030712)', lightColor: '#38bdf8' },
+  { id: 'podium_stand', name: 'استند نمایشگاهی (Exhibition Podium)', desc: 'سکوی پودیوم مدور نمایشگاهی با رینگ طلایی', floor: 'marble', bg: 'linear-gradient(135deg, #172554, #0f172a)', lightColor: '#fef08a' }
 ];
 
 // 4. Studio Lighting Presets
 const LIGHTING_PRESETS = [
-  { id: '3point_soft', name: 'استودیو ۳ نقطه‌ای ملایم (3-Point Soft)', intensity: 1.8, azimuth: 45, elevation: 55, temp: 'neutral' },
-  { id: 'golden_hour', name: 'غروب طلایی گرم (Warm Golden Hour)', intensity: 2.2, azimuth: 65, elevation: 30, temp: 'warm' },
-  { id: 'dramatic_rim', name: 'نور لبه‌ای دراماتیک (Dramatic Rim Light)', intensity: 2.5, azimuth: 120, elevation: 40, temp: 'cool' },
+  { id: '3point_soft', name: 'استودیو ۳ نقطه‌ای ملایم (Soft 3-Point)', intensity: 1.8, azimuth: 45, elevation: 55, temp: 'neutral' },
+  { id: 'golden_hour', name: 'غروب گرم طلایی (Warm Golden Hour)', intensity: 2.2, azimuth: 65, elevation: 30, temp: 'warm' },
+  { id: 'dramatic_rim', name: 'نور لبه‌ای کنتراست بالا (Dramatic Rim)', intensity: 2.5, azimuth: 120, elevation: 40, temp: 'cool' },
   { id: 'commercial_softbox', name: 'سافت‌باکس تبلیغاتی (High-Key Commercial)', intensity: 2.0, azimuth: 30, elevation: 70, temp: 'neutral' }
 ];
 
@@ -117,8 +117,8 @@ export default function Packaging3DStudioView({
 }) {
   const mountRef = useRef(null);
 
-  // Active Tool Tab in Left Bar
-  const [activeTab, setActiveTab] = useState('models'); // 'models', 'upload', 'crafts', 'scenes', 'lighting', 'elements', 'animation', 'layout'
+  // Active Tool Tab: 'models', 'upload', 'crafts', 'scenes', 'lighting', 'animation'
+  const [activeTab, setActiveTab] = useState('models');
 
   // Model & Dimensions State
   const [selectedModelId, setSelectedModelId] = useState(initialBoxSpecs?.modelId || 'mailer');
@@ -134,37 +134,27 @@ export default function Packaging3DStudioView({
   const [boxBaseColor, setBoxBaseColor] = useState('#dfbe95');
   const [roughness, setRoughness] = useState(0.5);
   const [metalness, setMetalness] = useState(0.1);
-  const [clearcoat, setClearcoat] = useState(0.3);
 
   // Artwork & Face Textures
   const [selectedBrandPreset, setSelectedBrandPreset] = useState('luxury_perfume');
   const [uploadedArtworkUrl, setUploadedArtworkUrl] = useState(null);
-  const [activeFace, setActiveFace] = useState('top_lid'); // 'all', 'top_lid', 'front', 'back', 'left', 'right', 'bottom'
-  const [artworkScale, setArtworkScale] = useState(1.0);
-  const [artworkOffsetX, setArtworkOffsetX] = useState(0);
-  const [artworkOffsetY, setArtworkOffsetY] = useState(0);
 
   // Scene & Environment
   const [selectedScene, setSelectedScene] = useState('luxury_marble');
   const [hasPodium, setHasPodium] = useState(true);
-  const [hasFlora, setHasFlora] = useState(false);
-  const [bgType, setBgType] = useState('gradient'); // 'gradient', 'transparent', 'solid'
-  const [solidBgColor, setSolidBgColor] = useState('#0f172a');
 
   // Studio Lighting
   const [lightingPreset, setLightingPreset] = useState('3point_soft');
   const [lightIntensity, setLightIntensity] = useState(1.8);
   const [lightAngle, setLightAngle] = useState(45);
-  const [shadowSoftness, setShadowSoftness] = useState(0.4);
 
   // Animation & Folding
-  const [foldAngle, setFoldAngle] = useState(1.0); // 0 (flat) to 1.0 (folded)
+  const [foldAngle, setFoldAngle] = useState(1.0);
   const [isAutoRotating, setIsAutoRotating] = useState(true);
   const [rotationSpeed, setRotationSpeed] = useState(1.0);
 
   // Camera & Rendering Mode
   const [cameraView, setCameraView] = useState('perspective');
-  const [renderQuality, setRenderQuality] = useState('studio_hd'); // 'fast', 'studio_hd', 'ultra_4k'
   const [showWireframe, setShowWireframe] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
 
@@ -242,7 +232,7 @@ export default function Packaging3DStudioView({
       const renderer = threeRef.current.renderer;
       if (renderer) {
         const link = document.createElement('a');
-        link.download = `Amiran-3D-Mockup-${selectedModelId}-${Date.now()}.png`;
+        link.download = `رندر-سه-بعدی-آرمان-امیران-${selectedModelId}-${Date.now()}.png`;
         link.href = renderer.domElement.toDataURL('image/png', 1.0);
         link.click();
       }
@@ -331,8 +321,7 @@ export default function Packaging3DStudioView({
       floorMat = new THREE.MeshStandardMaterial({
         map: marbleTex,
         roughness: 0.15,
-        metalness: 0.1,
-        roughnessMap: marbleTex
+        metalness: 0.1
       });
     } else if (selectedScene === 'nature_wood') {
       const woodTex = createWoodTexture();
@@ -410,7 +399,7 @@ export default function Packaging3DStudioView({
         artworkTex.needsUpdate = true;
       };
     } else {
-      const presetData = createPresetArtwork(selectedBrandPreset, 'صنایع بسته‌بندی آرمان امیران');
+      const presetData = createPresetArtwork(selectedBrandPreset, 'شرکت آرمان امیران');
       artworkTex = presetData.texture;
     }
 
@@ -553,7 +542,7 @@ export default function Packaging3DStudioView({
       rightPivot.rotation.z = foldRad;
 
     } else if (selectedModelId === 'rigid_box') {
-      // Luxury Rigid Gift Box (Lid & Base with Gold Interior)
+      // Luxury Rigid Gift Box
       const baseGeo = new THREE.BoxGeometry(L, H * 0.8, W);
       const baseMesh = new THREE.Mesh(baseGeo, boxMat);
       baseMesh.position.set(0, (H * 0.8) / 2, 0);
@@ -571,7 +560,7 @@ export default function Packaging3DStudioView({
       modelGroup.add(lidMesh);
 
     } else if (selectedModelId === 'dropper_bottle' || selectedModelId === 'wine_bottle') {
-      // 3D Glass Dropper Bottle / Cylinder
+      // Glass Dropper Bottle
       const bottleRadius = L / 2;
       const bodyHeight = H * 0.7;
       const bottleGeo = new THREE.CylinderGeometry(bottleRadius, bottleRadius, bodyHeight, 32);
@@ -580,7 +569,6 @@ export default function Packaging3DStudioView({
       bottleMesh.castShadow = true;
       modelGroup.add(bottleMesh);
 
-      // Gold Metallic Cap & Dropper Pipette
       const capGeo = new THREE.CylinderGeometry(bottleRadius * 0.6, bottleRadius * 0.6, H * 0.25, 32);
       const goldCapMat = new THREE.MeshStandardMaterial({
         color: 0xf59e0b,
@@ -593,14 +581,13 @@ export default function Packaging3DStudioView({
       modelGroup.add(capMesh);
 
     } else if (selectedModelId === 'beverage_can') {
-      // Aluminum Beverage Can
+      // Beverage Can
       const canGeo = new THREE.CylinderGeometry(L / 2, L / 2, H, 36);
       const canMesh = new THREE.Mesh(canGeo, boxMat);
       canMesh.position.y = H / 2;
       canMesh.castShadow = true;
       modelGroup.add(canMesh);
 
-      // Metal Top & Bottom Rims
       const rimGeo = new THREE.TorusGeometry(L / 2, 1.5, 12, 36);
       const aluMat = new THREE.MeshStandardMaterial({ color: 0xd1d5db, metalness: 0.9, roughness: 0.2 });
       const topRim = new THREE.Mesh(rimGeo, aluMat);
@@ -609,14 +596,13 @@ export default function Packaging3DStudioView({
       modelGroup.add(topRim);
 
     } else if (selectedModelId === 'cosmetic_jar') {
-      // Luxury Cosmetic Cream Jar
+      // Luxury Jar
       const jarGeo = new THREE.CylinderGeometry(L / 2, L / 2, H * 0.65, 36);
       const jarMesh = new THREE.Mesh(jarGeo, boxMat);
       jarMesh.position.y = (H * 0.65) / 2;
       jarMesh.castShadow = true;
       modelGroup.add(jarMesh);
 
-      // Gold Metallic Lid
       const lidGeo = new THREE.CylinderGeometry(L / 2 + 1, L / 2 + 1, H * 0.35, 36);
       const goldLidMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.9, roughness: 0.15 });
       const lidMesh = new THREE.Mesh(lidGeo, goldLidMat);
@@ -625,7 +611,7 @@ export default function Packaging3DStudioView({
       modelGroup.add(lidMesh);
 
     } else {
-      // Default Parametric Box
+      // Default Box
       const geo = new THREE.BoxGeometry(L, H, W);
       const mesh = new THREE.Mesh(geo, boxMat);
       mesh.position.y = H / 2;
@@ -634,7 +620,7 @@ export default function Packaging3DStudioView({
       modelGroup.add(mesh);
     }
 
-    // Interactive Drag Orbit & Mouse Listeners
+    // Interactive Drag Controls
     let isDragging = false;
     let prevMousePos = { x: 0, y: 0 };
     const domEl = renderer.domElement;
@@ -669,7 +655,7 @@ export default function Packaging3DStudioView({
     window.addEventListener('mouseup', onMouseUp);
     domEl.addEventListener('wheel', onWheel, { passive: false });
 
-    // Master Render Loop
+    // Animation Loop
     let animId;
     const animate = () => {
       animId = requestAnimationFrame(animate);
@@ -681,7 +667,7 @@ export default function Packaging3DStudioView({
     animate();
     threeRef.current.animId = animId;
 
-    // Window Resize Handler
+    // Resize
     const handleResize = () => {
       if (!mountRef.current) return;
       const newW = mountRef.current.clientWidth;
@@ -724,44 +710,44 @@ export default function Packaging3DStudioView({
   ]);
 
   return (
-    <div className="w-full flex flex-col h-[calc(100vh-140px)] min-h-[780px] bg-slate-950 text-slate-100 rounded-3xl overflow-hidden border border-slate-800 shadow-2xl select-none animate-in fade-in zoom-in-95 duration-200">
+    <div className="w-full flex flex-col h-[calc(100vh-140px)] min-h-[780px] bg-slate-950 text-slate-100 rounded-3xl overflow-hidden border border-slate-800 shadow-2xl select-none font-sans" dir="rtl">
       
       {/* ========================================================
-          1. TOP PACDORA STUDIO HEADER BAR
+          1. TOP PACDORA STUDIO HEADER BAR (Persian)
          ======================================================== */}
-      <header className="h-16 px-5 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between gap-4 backdrop-blur-md z-20">
+      <header className="h-16 px-5 bg-slate-900 border-b border-slate-800 flex items-center justify-between gap-4 backdrop-blur-md z-20">
         
-        {/* Brand & Studio Title */}
+        {/* Brand Title */}
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 via-indigo-600 to-indigo-700 flex items-center justify-center text-white shadow-lg shadow-indigo-900/40">
             <Sparkles className="w-5 h-5 text-amber-300 animate-pulse" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-black text-amber-400 text-sm tracking-wide">Pacdora 3D Studio</span>
+              <span className="font-black text-amber-400 text-sm tracking-wide">استودیو طراحی و رندرینگ ۳ بعدی Pacdora</span>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
                 PRO 4K
               </span>
             </div>
             <span className="text-xs text-slate-400 font-medium hidden sm:inline">
-              استودیو مدلسازی سه‌بعدی، شبیه‌ساز تاشدن و رندرینگ صنعتی
+              شبیه‌ساز تاشدن، اعمال متریال و افکت‌های چاپ و طلاکوب
             </span>
           </div>
         </div>
 
-        {/* Dimension & Model Specs Display */}
-        <div className="hidden md:flex items-center gap-3 bg-slate-950/80 px-4 py-1.5 rounded-2xl border border-slate-800 font-mono text-xs">
-          <span className="text-slate-400">ابعاد:</span>
+        {/* Dimension Display */}
+        <div className="hidden md:flex items-center gap-3 bg-slate-950 px-4 py-1.5 rounded-2xl border border-slate-800 font-mono text-xs text-left" dir="ltr">
+          <span className="text-slate-400 font-sans">ابعاد:</span>
           <span className="text-amber-300 font-black">
             {lengthMm} × {widthMm} × {heightMm} mm
           </span>
           <span className="text-slate-600">|</span>
-          <span className="text-slate-400">کالیپر:</span>
+          <span className="text-slate-400 font-sans">کالیپر:</span>
           <span className="text-cyan-300 font-bold">{thicknessMm} mm</span>
         </div>
 
-        {/* Quick Camera Angle Buttons */}
-        <div className="flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800">
+        {/* Camera Views */}
+        <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
           {[
             { id: 'perspective', label: 'پرسپکتیو' },
             { id: 'front', label: 'دید جلو' },
@@ -783,10 +769,10 @@ export default function Packaging3DStudioView({
           ))}
         </div>
 
-        {/* Right Header Action Buttons */}
+        {/* Actions */}
         <div className="flex items-center gap-2.5">
           
-          {/* Switch to 2D Dieline Studio */}
+          {/* Switch to 2D Dieline */}
           <button
             onClick={() => onSwitchTo2DDieline && onSwitchTo2DDieline({
               modelId: selectedModelId,
@@ -802,7 +788,7 @@ export default function Packaging3DStudioView({
             <span className="hidden lg:inline">قالب خط تیغ ۲ بعدی</span>
           </button>
 
-          {/* Transfer to Production Order */}
+          {/* Transfer to Order */}
           <button
             onClick={() => onTransferToOrder && onTransferToOrder({
               box_type: selectedModelId,
@@ -824,24 +810,24 @@ export default function Packaging3DStudioView({
             disabled={isExporting}
             className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 rounded-xl text-xs font-black transition shadow-lg shadow-amber-500/20 active:scale-95"
           >
-            <Crown className="w-4 h-4 text-slate-950 fill-slate-950" />
+            <Crown className="w-4 h-4 fill-slate-950" />
             <span>{isExporting ? 'در حال رندر...' : 'رندر 4K (PNG)'}</span>
           </button>
         </div>
       </header>
 
       {/* ========================================================
-          2. MASTER STUDIO BODY (3-Panel Architecture)
+          2. MASTER STUDIO BODY
          ======================================================== */}
       <div className="flex-1 flex overflow-hidden relative">
         
         {/* ====================================================
-            LEFT PANEL: ICON NAV DOCK + TOOL DRAWER
+            RIGHT PANEL: TOOLS & PARAMETERS (RTL)
            ==================================================== */}
-        <div className="w-80 lg:w-96 bg-slate-900 border-l border-slate-800 flex flex-col z-10 shadow-2xl">
+        <div className="w-80 lg:w-96 bg-slate-900 border-l border-slate-800 flex flex-col z-10 shadow-2xl flex-shrink-0">
           
-          {/* Top Tabs Dock (Models / Upload / Crafts / Scenes / Lighting / Animation) */}
-          <div className="grid grid-cols-6 border-b border-slate-800 bg-slate-950/50 p-1.5 gap-1">
+          {/* Top Tabs */}
+          <div className="grid grid-cols-6 border-b border-slate-800 bg-slate-950 p-1.5 gap-1">
             {[
               { id: 'models', label: 'مدل‌ها', icon: Box },
               { id: 'upload', label: 'طراحی', icon: Upload },
@@ -862,18 +848,16 @@ export default function Packaging3DStudioView({
                   }`}
                 >
                   <Icon className="w-4 h-4 mb-1" />
-                  <span className="text-[10px]">{tab.label}</span>
+                  <span className="text-[10px] font-bold">{tab.label}</span>
                 </button>
               );
             })}
           </div>
 
-          {/* Drawer Content Body */}
+          {/* Drawer Body */}
           <div className="flex-1 overflow-y-auto p-4 space-y-5 text-right font-sans">
             
-            {/* -----------------------------------------------
-                TAB 1: MODELS LIBRARY (کتابخانه مدل‌ها)
-               ----------------------------------------------- */}
+            {/* TAB 1: MODELS */}
             {activeTab === 'models' && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -881,10 +865,10 @@ export default function Packaging3DStudioView({
                     <Box className="w-4 h-4 text-indigo-400" />
                     <span>کتابخانه مدل‌های بسته‌بندی</span>
                   </h3>
-                  <span className="text-[11px] text-slate-400">{MODELS_DATA.length} مدل استاندارد</span>
+                  <span className="text-[11px] text-slate-400 font-mono">{MODELS_DATA.length} مدل</span>
                 </div>
 
-                {/* Categories Pill Selector */}
+                {/* Categories */}
                 <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
                   {MODEL_CATEGORIES.map((cat) => (
                     <button
@@ -893,7 +877,7 @@ export default function Packaging3DStudioView({
                       className={`px-3 py-1.5 rounded-xl text-xs whitespace-nowrap font-bold transition border ${
                         activeCategory === cat.id
                           ? 'bg-indigo-600 text-white border-indigo-500'
-                          : 'bg-slate-800/80 text-slate-300 border-slate-700/80 hover:bg-slate-800'
+                          : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
                       }`}
                     >
                       <span>{cat.icon}</span> {cat.name.split(' ')[0]}
@@ -901,7 +885,7 @@ export default function Packaging3DStudioView({
                   ))}
                 </div>
 
-                {/* Models Grid */}
+                {/* Grid */}
                 <div className="grid grid-cols-2 gap-2.5 pt-2">
                   {MODELS_DATA.filter((m) => activeCategory === 'all' || m.category === activeCategory).map((m) => (
                     <div
@@ -909,7 +893,7 @@ export default function Packaging3DStudioView({
                       onClick={() => handleSelectModel(m)}
                       className={`p-3 rounded-2xl border text-right cursor-pointer transition-all ${
                         selectedModelId === m.id
-                          ? 'bg-indigo-950/60 border-amber-400 ring-2 ring-amber-400/30'
+                          ? 'bg-indigo-950/70 border-amber-400 ring-2 ring-amber-400/30'
                           : 'bg-slate-950/40 border-slate-800 hover:border-slate-700 hover:bg-slate-800/40'
                       }`}
                     >
@@ -920,7 +904,7 @@ export default function Packaging3DStudioView({
                   ))}
                 </div>
 
-                {/* Dimension Tweaker */}
+                {/* Dimensions */}
                 <div className="pt-4 border-t border-slate-800 space-y-3">
                   <span className="text-xs font-black text-slate-300 block">تنظیم ابعاد مدل سه‌بعدی:</span>
                   <div className="grid grid-cols-3 gap-2">
@@ -956,27 +940,23 @@ export default function Packaging3DStudioView({
               </div>
             )}
 
-            {/* -----------------------------------------------
-                TAB 2: UPLOAD & BRAND ARTWORK (طراحی چاپی)
-               ----------------------------------------------- */}
+            {/* TAB 2: UPLOAD & ARTWORK */}
             {activeTab === 'upload' && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-black text-white flex items-center gap-2">
                     <Upload className="w-4 h-4 text-indigo-400" />
-                    <span>آپلود طرح گرافیکی و نگاشت به وجوه</span>
+                    <span>آپلود طرح گرافیکی روی محصول</span>
                   </h3>
                 </div>
 
-                {/* Upload Button */}
                 <label className="flex flex-col items-center justify-center border-2 border-dashed border-indigo-500/40 hover:border-indigo-400 rounded-2xl p-5 bg-indigo-950/20 hover:bg-indigo-950/40 cursor-pointer transition">
                   <Upload className="w-8 h-8 text-indigo-400 mb-2 animate-bounce" />
-                  <span className="text-xs font-black text-indigo-200">بارگذاری طرح اختصاصی (PNG / JPG / SVG)</span>
-                  <span className="text-[10px] text-slate-400 mt-1">اعمال آنی روی سطوح ۳ بعدی با رزولوشن بالا</span>
+                  <span className="text-xs font-black text-indigo-200">بارگذاری فایل طرح (PNG / JPG / SVG)</span>
+                  <span className="text-[10px] text-slate-400 mt-1">اعمال آنی بر روی تمام سطوح سه‌بعدی</span>
                   <input type="file" accept="image/*" onChange={handleArtworkUpload} className="hidden" />
                 </label>
 
-                {/* Pre-made Brand Presets */}
                 <div className="space-y-2 pt-2">
                   <span className="text-xs font-black text-slate-300">طرح‌های نمونه آماده صنعتی:</span>
                   <div className="space-y-2">
@@ -1002,15 +982,13 @@ export default function Packaging3DStudioView({
               </div>
             )}
 
-            {/* -----------------------------------------------
-                TAB 3: FINISHING CRAFTS & FOIL (افکت‌های چاپ)
-               ----------------------------------------------- */}
+            {/* TAB 3: CRAFTS & FOIL */}
             {activeTab === 'crafts' && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-black text-white flex items-center gap-2">
                     <Sparkles className="w-4 h-4 text-amber-400" />
-                    <span>افکت‌های چاپ، طلاکوب و متریال</span>
+                    <span>افکت‌های ویژه چاپ و طلاکوب</span>
                   </h3>
                 </div>
 
@@ -1021,7 +999,7 @@ export default function Packaging3DStudioView({
                       onClick={() => setSelectedCraft(craft.id)}
                       className={`p-3 rounded-2xl border text-right cursor-pointer transition ${
                         selectedCraft === craft.id
-                          ? 'bg-amber-950/30 border-amber-400 ring-2 ring-amber-400/20'
+                          ? 'bg-amber-950/40 border-amber-400 ring-2 ring-amber-400/20'
                           : 'bg-slate-950/40 border-slate-800 hover:bg-slate-800/40'
                       }`}
                     >
@@ -1034,9 +1012,8 @@ export default function Packaging3DStudioView({
                   ))}
                 </div>
 
-                {/* Material Physical Properties */}
                 <div className="pt-4 border-t border-slate-800 space-y-3">
-                  <span className="text-xs font-black text-slate-300 block">خصوصیات بازتاب نور (PBR Shader):</span>
+                  <span className="text-xs font-black text-slate-300 block">خصوصیات فیزیکی متریال (PBR):</span>
                   
                   <div>
                     <div className="flex justify-between text-[10px] text-slate-400 mb-1">
@@ -1056,7 +1033,7 @@ export default function Packaging3DStudioView({
 
                   <div>
                     <div className="flex justify-between text-[10px] text-slate-400 mb-1">
-                      <span>ضریب متالیک (Metalness):</span>
+                      <span>ضریب متالیک و درخشش (Metalness):</span>
                       <span className="font-mono text-amber-300">{Math.round(metalness * 100)}%</span>
                     </div>
                     <input
@@ -1073,15 +1050,13 @@ export default function Packaging3DStudioView({
               </div>
             )}
 
-            {/* -----------------------------------------------
-                TAB 4: SCENES & PODIUMS (صحنه‌ها و محیط‌ها)
-               ----------------------------------------------- */}
+            {/* TAB 4: SCENES */}
             {activeTab === 'scenes' && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-black text-white flex items-center gap-2">
                     <Palette className="w-4 h-4 text-indigo-400" />
-                    <span>تم‌های استودیو و دکور صحنه</span>
+                    <span>تم‌های صحنه و دکور استودیو</span>
                   </h3>
                 </div>
 
@@ -1104,7 +1079,7 @@ export default function Packaging3DStudioView({
 
                 <div className="pt-4 border-t border-slate-800 space-y-3">
                   <label className="flex items-center justify-between p-3 rounded-2xl bg-slate-950 border border-slate-800 cursor-pointer">
-                    <span className="text-xs font-bold text-slate-300">سکوی نمایشگاهی (Podium Stand)</span>
+                    <span className="text-xs font-bold text-slate-300">سکوی نمایشگاهی پودیوم (Podium Stand)</span>
                     <input
                       type="checkbox"
                       checked={hasPodium}
@@ -1116,15 +1091,13 @@ export default function Packaging3DStudioView({
               </div>
             )}
 
-            {/* -----------------------------------------------
-                TAB 5: LIGHTING & SHADOWS (نورپردازی استودیو)
-               ----------------------------------------------- */}
+            {/* TAB 5: LIGHTING */}
             {activeTab === 'lighting' && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-black text-white flex items-center gap-2">
                     <Sun className="w-4 h-4 text-amber-400" />
-                    <span>تنظیمات استودیویی نور و سایه</span>
+                    <span>تنظیمات استودیویی نور و زاویه تابش</span>
                   </h3>
                 </div>
 
@@ -1151,7 +1124,7 @@ export default function Packaging3DStudioView({
                 <div className="pt-4 border-t border-slate-800 space-y-3">
                   <div>
                     <div className="flex justify-between text-[10px] text-slate-400 mb-1">
-                      <span>شدت نور اصلی (Intensity):</span>
+                      <span>شدت نور اصلی:</span>
                       <span className="font-mono text-amber-300">{lightIntensity.toFixed(1)}x</span>
                     </div>
                     <input
@@ -1167,7 +1140,7 @@ export default function Packaging3DStudioView({
 
                   <div>
                     <div className="flex justify-between text-[10px] text-slate-400 mb-1">
-                      <span>زاویه تابش نور (Azimuth Angle):</span>
+                      <span>زاویه تابش نور در افق:</span>
                       <span className="font-mono text-amber-300">{lightAngle}°</span>
                     </div>
                     <input
@@ -1184,9 +1157,7 @@ export default function Packaging3DStudioView({
               </div>
             )}
 
-            {/* -----------------------------------------------
-                TAB 6: ANIMATION & FOLDING (انیمیشن تاشدن)
-               ----------------------------------------------- */}
+            {/* TAB 6: ANIMATION */}
             {activeTab === 'animation' && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -1212,9 +1183,9 @@ export default function Packaging3DStudioView({
                     className="w-full accent-indigo-500 h-2 bg-slate-800 rounded-lg cursor-pointer"
                   />
                   <div className="flex justify-between text-[10px] text-slate-500 font-bold">
-                    <span>گسترده تخت (0%)</span>
-                    <span>نیمه‌باز (50%)</span>
-                    <span>بسته کامل (100%)</span>
+                    <span>گسترده تخت (۰٪)</span>
+                    <span>نیمه‌باز (۵۰٪)</span>
+                    <span>بسته کامل (۱۰۰٪)</span>
                   </div>
                 </div>
 
@@ -1262,14 +1233,14 @@ export default function Packaging3DStudioView({
            ==================================================== */}
         <div className="flex-1 relative bg-slate-950 flex flex-col items-center justify-center overflow-hidden">
           
-          {/* Three.js WebGL Mount Element */}
+          {/* WebGL Mount */}
           <div
             ref={mountRef}
             className="w-full h-full cursor-grab active:cursor-grabbing flex items-center justify-center"
           />
 
           {/* Top Left Floating Studio Badge */}
-          <div className="absolute top-4 left-4 bg-slate-900/90 border border-slate-800 px-3.5 py-1.5 rounded-2xl text-xs text-white backdrop-blur-md flex items-center gap-2 shadow-lg pointer-events-none">
+          <div className="absolute top-4 left-4 bg-slate-900/90 border border-slate-800 px-3.5 py-1.5 rounded-2xl text-xs text-white backdrop-blur-md flex items-center gap-2 shadow-lg pointer-events-none" dir="ltr">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
             <span className="font-black text-amber-300">Three.js PBR Engine</span>
             <span className="text-slate-500">|</span>
@@ -1288,7 +1259,7 @@ export default function Packaging3DStudioView({
                   foldAngle === 0 ? 'bg-indigo-600 text-white' : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
                 }`}
               >
-                شیت تخت (Flat)
+                شیت تخت (۰٪)
               </button>
               <button
                 type="button"
@@ -1306,7 +1277,7 @@ export default function Packaging3DStudioView({
                   foldAngle === 1 ? 'bg-indigo-600 text-white' : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
                 }`}
               >
-                جعبه بسته (100%)
+                جعبه بسته (۱۰۰٪)
               </button>
             </div>
 
