@@ -51,6 +51,58 @@ export default function App() {
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [printProject, setPrintProject] = useState(null);
 
+  // Navigate with browser history support (Back Button handler)
+  const navigateTab = (newTab, addToHistory = true) => {
+    if (newTab !== 'new_order') setReorderData(null);
+    setActiveTab(newTab);
+    if (addToHistory && window.history) {
+      window.history.pushState({ tab: newTab }, '', `#${newTab}`);
+    }
+  };
+
+  // 1. Browser Back Button Listener (popstate)
+  useEffect(() => {
+    // Initial state
+    if (window.history && !window.history.state) {
+      window.history.replaceState({ tab: activeTab }, '', `#${activeTab}`);
+    }
+
+    const handlePopState = (event) => {
+      // If modal is open, close modal first
+      if (selectedProjectId) {
+        setSelectedProjectId(null);
+        return;
+      }
+      if (printProject) {
+        setPrintProject(null);
+        return;
+      }
+      if (showNotificationModal) {
+        setShowNotificationModal(false);
+        return;
+      }
+      if (showLicenseModal) {
+        setShowLicenseModal(false);
+        return;
+      }
+
+      // If state has tab, restore tab
+      if (event.state && event.state.tab) {
+        setActiveTab(event.state.tab);
+      } else {
+        // Default back goes to hub
+        if (role === 'marketer') {
+          setActiveTab('marketing');
+        } else {
+          setActiveTab('hub');
+        }
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [selectedProjectId, printProject, showNotificationModal, showLicenseModal, activeTab, role]);
+
   // Check License on Startup
   useEffect(() => {
     if (role === 'marketer' && activeTab !== 'marketing') {
@@ -134,18 +186,17 @@ export default function App() {
   // Handle opening lead from notification
   const handleOpenLeadFromNotification = async (leadId, leadCode) => {
     try {
-      // If user is sales or estimation or accounting or ceo, navigate to calculator with lead loaded
       if (role === 'sales' || role === 'estimation' || role === 'accounting' || role === 'ceo') {
-        setActiveTab('calculator');
+        navigateTab('calculator');
       } else {
-        setActiveTab('marketing');
+        navigateTab('marketing');
       }
     } catch (err) {
       console.error(err);
     }
   };
 
-  // If license is checking, display brief loader
+  // If license is checking, display loader
   if (!licenseState.checked) {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-slate-400 font-sans" dir="rtl">
@@ -155,7 +206,7 @@ export default function App() {
     );
   }
 
-  // If license is NOT active/valid, show License Lock Gate
+  // If license is NOT active/valid, show License Gate
   if (!licenseState.isActive) {
     return (
       <LicenseGate
@@ -200,18 +251,15 @@ export default function App() {
       order_code: String(Math.floor(1000 + Math.random() * 9000)),
       archive_code: String(Math.floor(1000 + Math.random() * 9000))
     });
-    setActiveTab('new_order');
+    navigateTab('new_order');
   };
 
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col font-sans w-full text-slate-800">
-      {/* Universal Full-Width Header */}
+      {/* Universal Header */}
       <Header
         activeTab={activeTab}
-        setActiveTab={(tab) => {
-          if (tab !== 'new_order') setReorderData(null);
-          setActiveTab(tab);
-        }}
+        setActiveTab={(tab) => navigateTab(tab)}
         myPendingCount={myPendingTasksCount}
         unreadNotificationsCount={unreadNotifCount}
         onOpenNotifications={() => setShowNotificationModal(true)}
@@ -219,36 +267,36 @@ export default function App() {
         licenseInfo={licenseState.license}
       />
 
-      {/* Main Content Area - Full-Width Responsive */}
+      {/* Main Content Area */}
       <main className="flex-1 w-full max-w-[2200px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         
-        {/* Department Hub (Landing Screen matching user's legacy MIS) */}
+        {/* Department Hub (Landing Screen) */}
         {activeTab === 'hub' && (
           <DepartmentHubView
             projects={projects}
-            onNavigateDepartment={(tabKey) => setActiveTab(tabKey)}
-            onOpenNewOrder={() => setActiveTab('new_order')}
-            onOpenArchive={() => setActiveTab('archive')}
+            onNavigateDepartment={(tabKey) => navigateTab(tabKey)}
+            onOpenNewOrder={() => navigateTab('new_order')}
+            onOpenArchive={() => navigateTab('archive')}
           />
         )}
 
-        {/* Full-Page New Order View (No Popup) */}
+        {/* Full-Page New Order View */}
         {activeTab === 'new_order' && (
           <IndustrialOrderForm
             initialData={reorderData}
             onCancel={() => {
               setReorderData(null);
-              setActiveTab('hub');
+              navigateTab('hub');
             }}
             onOrderSaved={() => {
               setReorderData(null);
               fetchProjects();
-              setActiveTab('hub');
+              navigateTab('hub');
             }}
           />
         )}
 
-        {/* Products & Orders Archive Search Table */}
+        {/* Products & Orders Archive */}
         {activeTab === 'archive' && (
           <ProductsArchiveView
             projects={projects}
@@ -284,13 +332,13 @@ export default function App() {
         {/* Raw Materials Prices */}
         {activeTab === 'materials' && <MaterialPricesView />}
 
-        {/* User Management & RBAC Panel */}
+        {/* User Management Panel */}
         {activeTab === 'users' && <UserManagementView />}
 
         {/* Data Migration & Import Center */}
         {activeTab === 'migration' && <DataMigrationView onRefreshData={fetchProjects} />}
 
-        {/* Pacdora & ArtiosCAD 3D Packaging Studio & Dieline Generator */}
+        {/* Amiran Design Studio & Dieline Generator */}
         {activeTab === 'dieline_generator' && (
           <DielineGeneratorView
             onTransferToOrder={(boxSpecs) => {
@@ -299,27 +347,27 @@ export default function App() {
                 order_code: String(Math.floor(1000 + Math.random() * 9000)),
                 archive_code: String(Math.floor(1000 + Math.random() * 9000))
               });
-              setActiveTab('new_order');
+              navigateTab('new_order');
             }}
           />
         )}
 
-        {/* Dedicated Fullscreen Pacdora 3D Modeling Studio */}
+        {/* Fullscreen Amiran 3D Studio */}
         {activeTab === '3d_studio' && (
           <Packaging3DStudioView
-            onSwitchTo2DDieline={() => setActiveTab('dieline_generator')}
+            onSwitchTo2DDieline={() => navigateTab('dieline_generator')}
             onTransferToOrder={(boxSpecs) => {
               setReorderData({
                 ...boxSpecs,
                 order_code: String(Math.floor(1000 + Math.random() * 9000)),
                 archive_code: String(Math.floor(1000 + Math.random() * 9000))
               });
-              setActiveTab('new_order');
+              navigateTab('new_order');
             }}
           />
         )}
 
-        {/* AI Packaging Assistant & Nesting Optimizer */}
+        {/* AI Packaging Assistant & Preflight Inspection */}
         {activeTab === 'ai_assistant' && (
           <AiAssistantView
             onTransferToOrderForm={(extractedData) => {
@@ -328,7 +376,7 @@ export default function App() {
                 order_code: String(Math.floor(1000 + Math.random() * 9000)),
                 archive_code: String(Math.floor(1000 + Math.random() * 9000))
               });
-              setActiveTab('new_order');
+              navigateTab('new_order');
             }}
           />
         )}
@@ -352,7 +400,7 @@ export default function App() {
           <MarketingLeadsView
             onNavigateToKanban={() => {
               if (role !== 'marketer') {
-                setActiveTab('kanban');
+                navigateTab('kanban');
               }
             }}
           />

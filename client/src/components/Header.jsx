@@ -123,7 +123,7 @@ export default function Header({
             <span className="hidden sm:inline">لایسنس معتبر</span>
           </button>
 
-          {/* Pacdora 3D Studio Fast Access Button */}
+          {/* Amiran Design Studio Fast Access Button */}
           <button
             onClick={() => setActiveTab('dieline_generator')}
             className={`flex items-center gap-1.5 px-3.5 py-2 text-xs font-black rounded-xl transition-all shadow-xs border ${
@@ -131,24 +131,24 @@ export default function Header({
                 ? 'bg-gradient-to-r from-amber-500 to-indigo-600 text-white border-amber-600 shadow-md ring-2 ring-amber-400'
                 : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300'
             }`}
-            title="استودیو مدلسازی سه‌بعدی و مولد خط تیغ Pacdora"
+            title="استودیو طراحی امیران: تولید نقشه خط تیغ و رندرینگ ۳ بعدی"
           >
-            <Box className="w-4 h-4 text-amber-600 animate-pulse" />
-            <span>استودیو Pacdora 3D</span>
+            <Box className="w-4 h-4 text-amber-600" />
+            <span>استودیو طراحی امیران</span>
           </button>
 
-          {/* AI Assistant Fast Access Button */}
+          {/* Calculator Button (Always Active and Clickable) */}
           <button
-            onClick={() => setActiveTab('ai_assistant')}
-            className={`flex items-center gap-1.5 px-3.5 py-2 text-xs font-black rounded-xl transition-all shadow-xs border ${
-              activeTab === 'ai_assistant'
-                ? 'bg-gradient-to-r from-purple-700 to-indigo-700 text-white border-purple-800 shadow-md ring-2 ring-purple-400'
-                : 'bg-purple-50 hover:bg-purple-100 text-purple-900 border-purple-200'
+            onClick={() => setActiveTab('calculator')}
+            className={`flex items-center gap-2 px-3.5 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-colors shadow-sm border ${
+              activeTab === 'calculator'
+                ? 'bg-amber-500 text-slate-900 border-amber-600 font-black ring-2 ring-amber-400'
+                : 'text-amber-800 bg-amber-50 hover:bg-amber-100 border-amber-200'
             }`}
-            title="دستیار هوش مصنوعی و بهینه‌ساز فرم‌بندی مقوا"
+            title="ماشین‌حساب برآورد صنعتی قیمت جعبه و استعلامات"
           >
-            <Sparkles className="w-4 h-4 text-purple-600" />
-            <span>هوش مصنوعی (AI)</span>
+            <Calculator className="w-4 h-4 text-amber-600" />
+            <span>ماشین‌حساب قیمت</span>
           </button>
 
           {/* Notification Bell with Badge */}
@@ -165,30 +165,7 @@ export default function Header({
             )}
           </button>
 
-          <a
-            href="/download-setup"
-            download="box-factory-windows-setup.zip"
-            className="flex items-center gap-2 px-3.5 py-2.5 text-xs sm:text-sm font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-xl transition-colors shadow-sm"
-            title="دانلود پکیج کامل ستاپ ویندوز سرور"
-          >
-            <Download className="w-4 h-4 text-emerald-600" />
-            <span className="hidden md:inline">دانلود ستاپ سرور</span>
-          </a>
-
-          {(isEstimator || isCeo) && (
-            <button
-              onClick={() => setActiveTab('calculator')}
-              className={`flex items-center gap-2 px-3.5 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-colors shadow-sm border ${
-                activeTab === 'calculator'
-                  ? 'bg-amber-500 text-slate-900 border-amber-600 font-black'
-                  : 'text-amber-800 bg-amber-50 hover:bg-amber-100 border-amber-200'
-              }`}
-            >
-              <Calculator className="w-4 h-4 text-amber-600" />
-              <span>ماشین‌حساب قیمت</span>
-            </button>
-          )}
-
+          {/* New Order Button */}
           {(isSales || isCeo) && (
             <button
               onClick={() => setActiveTab('new_order')}
@@ -301,7 +278,7 @@ export default function Header({
                 </button>
               )}
 
-              {/* 6. Pacdora 3D Modeling & Dielines Studio */}
+              {/* 6. Amiran 3D Modeling & Dieline Studio */}
               <button
                 onClick={() => setActiveTab('dieline_generator')}
                 className={`flex items-center justify-center gap-2 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
@@ -311,7 +288,7 @@ export default function Header({
                 }`}
               >
                 <Box className="w-4 h-4 text-amber-500 flex-shrink-0" />
-                <span className="truncate">استودیو Pacdora 3D</span>
+                <span className="truncate">استودیو طراحی امیران</span>
               </button>
 
               {/* 7. My Tasks Inbox */}
@@ -362,7 +339,7 @@ export default function Header({
                 </button>
               )}
 
-              {/* 10. AI Packaging Copilot */}
+              {/* 10. AI Packaging Copilot (Single Unified Button) */}
               <button
                 onClick={() => setActiveTab('ai_assistant')}
                 className={`flex items-center justify-center gap-2 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
@@ -371,8 +348,8 @@ export default function Header({
                     : 'bg-purple-50 text-purple-900 hover:text-purple-950 hover:bg-purple-100 border-purple-200 shadow-xs'
                 }`}
               >
-                <Sparkles className="w-4 h-4 text-purple-600 flex-shrink-0" />
-                <span className="truncate">هوش مصنوعی</span>
+                <Sparkles className="w-4 h-4 text-purple-600 flex-shrink-0 animate-pulse" />
+                <span className="truncate">هوش مصنوعی (AI)</span>
               </button>
             </>
           )}

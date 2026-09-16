@@ -31,6 +31,7 @@ import Packaging3DMockup from './Packaging3DMockup';
 import Packaging3DStudioView from './Packaging3DStudioView';
 import { exportDielineToPdf } from '../utils/pdfExport';
 import { exportDielineToDxf } from '../utils/dxfExport';
+import { exportDielineToAi } from '../utils/aiExport';
 
 const MODELS = [
   { id: 'tuck_end', pacdoraId: '100010', name: 'جعبه دارویی دو طرف درب (Straight Tuck End)', desc: 'درب و زبانه قفل استاندارد دارویی و بهداشتی', icon: '💊', defaultDim: { l: 120, w: 60, h: 160 } },
@@ -40,10 +41,10 @@ const MODELS = [
 ];
 
 const MATERIALS = [
-  { id: '350g_white', name: 'مقوای ایندربرد ۳۵۰ گرم (350g White)', farsiName: 'ایندربرد ۳۵۰ گرم', defaultThickness: 0.5, colorHex: '#ffffff', iconColor: '#ffffff' },
-  { id: '300g_white', name: 'مقوای ایندربرد ۳۰۰ گرم (300g White)', farsiName: 'ایندربرد ۳۰۰ گرم', defaultThickness: 0.42, colorHex: '#fafafa', iconColor: '#f1f5f9' },
-  { id: '250g_duplex', name: 'مقوای پشت طوسی ۲۵۰ گرم (250g Duplex)', farsiName: 'پشت طوسی ۲۵۰ گرم', defaultThickness: 0.45, colorHex: '#f1f1ed', iconColor: '#e2e8f0' },
-  { id: 'kraft', name: 'مقوای کرافت قهوه‌ای (Kraft Board)', farsiName: 'مقوای کرافت', defaultThickness: 0.55, colorHex: '#c89d6c', iconColor: '#b45309' },
+  { id: '350g_white', name: 'مقوای ایندربرد ۳۵۰ گرم', farsiName: 'ایندربرد ۳۵۰ گرم', defaultThickness: 0.5, colorHex: '#ffffff', iconColor: '#ffffff' },
+  { id: '300g_white', name: 'مقوای ایندربرد ۳۰۰ گرم', farsiName: 'ایندربرد ۳۰۰ گرم', defaultThickness: 0.42, colorHex: '#fafafa', iconColor: '#f1f5f9' },
+  { id: '250g_duplex', name: 'مقوای پشت طوسی ۲۵۰ گرم', farsiName: 'پشت طوسی ۲۵۰ گرم', defaultThickness: 0.45, colorHex: '#f1f1ed', iconColor: '#e2e8f0' },
+  { id: 'kraft', name: 'مقوای کرافت قهوه‌ای', farsiName: 'مقوای کرافت', defaultThickness: 0.55, colorHex: '#c89d6c', iconColor: '#b45309' },
   { id: 'flute_e', name: 'کارتن لمینتی E-Flute ۱.۵ میلی‌متر', farsiName: 'ای فلوت ۱.۵ میل', defaultThickness: 1.5, colorHex: '#dfbe95', iconColor: '#d97706' },
   { id: 'flute_b', name: 'کارتن ۳ لایه B-Flute ۳ میلی‌متر', farsiName: 'بی فلوت ۳ میل', defaultThickness: 3.0, colorHex: '#be9364', iconColor: '#92400e' }
 ];
@@ -52,15 +53,19 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
   // Navigation Mode: '2d_dieline' or '3d_studio'
   const [studioMode, setStudioMode] = useState('2d_dieline');
 
-  // Left dock tabs in 2D Mode: 'models', 'basic', 'advanced', 'more'
+  // Left dock tabs: 'models', 'basic', 'advanced' (Removed 'more' as requested)
   const [activeNavTab, setActiveNavTab] = useState('basic');
-  const [unitMode, setUnitMode] = useState('mm'); // 'mm' or 'in'
 
   // Model & Dimensions State
   const [selectedModel, setSelectedModel] = useState('tuck_end');
   const [lengthMm, setLengthMm] = useState(120);
   const [widthMm, setWidthMm] = useState(60);
   const [heightMm, setHeightMm] = useState(160);
+
+  // String input states for seamless typing
+  const [inputL, setInputL] = useState('120');
+  const [inputW, setInputW] = useState('60');
+  const [inputH, setInputH] = useState('160');
 
   // Material & Thickness
   const [selectedMaterial, setSelectedMaterial] = useState('350g_white');
@@ -72,24 +77,27 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
   // 3D Mockup Fold Slider (0 = Flat, 1 = Folded)
   const [mockupFold, setMockupFold] = useState(1);
 
-  // Canvas zoom and tools
+  // Canvas zoom, pan, and tools
   const [zoomScale, setZoomScale] = useState(1);
+  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = useState(false);
+  const [panStart, setPanStart] = useState({ x: 0, y: 0 });
   const [activeCanvasTool, setActiveCanvasTool] = useState('select'); // 'select', 'pan'
 
   // Server Dieline CAD Data
   const [dielineData, setDielineData] = useState(null);
   const [loadingDieline, setLoadingDieline] = useState(false);
 
-  // Unit conversion helpers
-  const toDisplay = (valMm) => {
-    if (unitMode === 'in') return (valMm / 25.4).toFixed(2);
-    return Math.round(valMm);
-  };
-
-  const fromDisplay = (val) => {
-    const num = parseFloat(val) || 0;
-    if (unitMode === 'in') return num * 25.4;
-    return num;
+  // Sync inputs when model changes
+  const handleSelectModel = (m) => {
+    setSelectedModel(m.id);
+    setLengthMm(m.defaultDim.l);
+    setWidthMm(m.defaultDim.w);
+    setHeightMm(m.defaultDim.h);
+    setInputL(String(m.defaultDim.l));
+    setInputW(String(m.defaultDim.w));
+    setInputH(String(m.defaultDim.h));
+    setActiveNavTab('basic');
   };
 
   // Fetch Dieline Vector & Calculations
@@ -143,7 +151,7 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
   const activeMat = MATERIALS.find((m) => m.id === selectedMaterial) || MATERIALS[0];
   const activeModel = MODELS.find((m) => m.id === selectedModel) || MODELS[0];
 
-  // Export Direct Handlers
+  // Export Handlers
   const handleDownloadPdf = () => {
     exportDielineToPdf(dielineData, {
       modelName: activeModel.name,
@@ -152,7 +160,7 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
       height: heightMm,
       thickness: thicknessMm,
       material: activeMat.farsiName,
-      unit: unitMode
+      unit: 'mm'
     });
   };
 
@@ -168,15 +176,40 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
   };
 
   const handleDownloadAi = () => {
-    const svgCode = dielineData?.svg_content || dielineData?.svg;
-    if (!svgCode) return;
-    const blob = new Blob([svgCode], { type: 'image/svg+xml;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `قالب-خط-تیغ-${selectedModel}-${lengthMm}x${widthMm}x${heightMm}mm.ai`;
-    link.click();
-    URL.revokeObjectURL(url);
+    exportDielineToAi(dielineData, {
+      modelName: activeModel.name,
+      length: lengthMm,
+      width: widthMm,
+      height: heightMm,
+      thickness: thicknessMm,
+      material: activeMat.farsiName
+    });
+  };
+
+  // Interactive Pan / Mouse Drag Handlers
+  const handleMouseDownCanvas = (e) => {
+    if (activeCanvasTool === 'pan') {
+      setIsPanning(true);
+      setPanStart({ x: e.clientX - panOffset.x, y: e.clientY - panOffset.y });
+    }
+  };
+
+  const handleMouseMoveCanvas = (e) => {
+    if (isPanning && activeCanvasTool === 'pan') {
+      setPanOffset({
+        x: e.clientX - panStart.x,
+        y: e.clientY - panStart.y
+      });
+    }
+  };
+
+  const handleMouseUpCanvas = () => {
+    setIsPanning(false);
+  };
+
+  const handleResetCanvas = () => {
+    setZoomScale(1.0);
+    setPanOffset({ x: 0, y: 0 });
   };
 
   // Render Full 3D Studio if active
@@ -200,7 +233,7 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
     <div className="w-full flex flex-col h-[calc(100vh-140px)] min-h-[750px] bg-slate-950 text-slate-100 rounded-3xl overflow-hidden border border-slate-800 shadow-2xl select-none font-sans" dir="rtl">
       
       {/* ========================================================
-          1. TOP HEADER (100% Persian Translated)
+          1. TOP HEADER (استودیو طراحی امیران)
          ======================================================== */}
       <header className="h-14 px-4 bg-slate-900 border-b border-slate-800 flex items-center justify-between gap-4 z-20 flex-shrink-0">
         
@@ -210,10 +243,10 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
             <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-500 to-indigo-600 flex items-center justify-center text-white font-black text-sm shadow-md">
               <Box className="w-5 h-5" />
             </div>
-            <span className="font-black text-white text-base tracking-tight">استودیو طراحی پاکدورا (Pacdora)</span>
+            <span className="font-black text-white text-base tracking-tight">استودیو طراحی امیران</span>
           </div>
           <span className="text-slate-600 text-sm">/</span>
-          <span className="text-amber-400 font-bold text-xs sm:text-sm">مولد خط تیغ و شبیه‌ساز سه‌بعدی</span>
+          <span className="text-amber-400 font-bold text-xs sm:text-sm">مولد نقشه خط تیغ و شبیه‌ساز سه‌بعدی</span>
         </div>
 
         {/* Center: Active Model Name & Code */}
@@ -261,13 +294,12 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
            ==================================================== */}
         <div className="w-80 lg:w-92 bg-slate-900 border-l border-slate-800 flex z-10 shadow-xl flex-shrink-0">
           
-          {/* Vertical Icon Dock (مدل‌ها / تنظیمات پایه / پیشرفته / مشخصات) */}
+          {/* Vertical Icon Dock (مدل‌ها / ابعاد / مشخصات فنی - Help tab removed) */}
           <div className="w-16 bg-slate-950 border-l border-slate-800 flex flex-col items-center py-4 gap-4 flex-shrink-0">
             {[
               { id: 'models', label: 'مدل‌ها', icon: Box },
               { id: 'basic', label: 'ابعاد', icon: Sliders },
-              { id: 'advanced', label: 'مشخصات', icon: Layers },
-              { id: 'more', label: 'راهنما', icon: Info }
+              { id: 'advanced', label: 'مشخصات', icon: Layers }
             ].map((tab) => {
               const Icon = tab.icon;
               return (
@@ -302,13 +334,7 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
                   {MODELS.map((m) => (
                     <div
                       key={m.id}
-                      onClick={() => {
-                        setSelectedModel(m.id);
-                        setLengthMm(m.defaultDim.l);
-                        setWidthMm(m.defaultDim.w);
-                        setHeightMm(m.defaultDim.h);
-                        setActiveNavTab('basic');
-                      }}
+                      onClick={() => handleSelectModel(m)}
                       className={`p-3 rounded-2xl border text-right cursor-pointer transition ${
                         selectedModel === m.id
                           ? 'bg-indigo-950/70 border-amber-400 ring-2 ring-amber-400/20'
@@ -327,81 +353,93 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
               </div>
             )}
 
-            {/* TAB: BASIC PARAMETERS (ابعاد سفارشی و متریال) */}
+            {/* TAB: BASIC PARAMETERS (ابعاد بر اساس میلی‌متر - اینچ حذف شد) */}
             {activeNavTab === 'basic' && (
               <div className="space-y-5 animate-in fade-in duration-150">
                 
-                {/* Custom Size Header with mm / in Unit Switch */}
+                {/* Custom Size Header */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-black text-slate-200">ابعاد سفارشی (Custom size)</span>
-                    {/* [ mm | in ] pill toggle */}
-                    <div className="flex bg-slate-950 p-0.5 rounded-lg border border-slate-700">
-                      <button
-                        type="button"
-                        onClick={() => setUnitMode('mm')}
-                        className={`px-2.5 py-0.5 rounded-md text-[11px] font-bold transition ${
-                          unitMode === 'mm' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-400 hover:text-white'
-                        }`}
-                      >
-                        میلی‌متر (mm)
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setUnitMode('in')}
-                        className={`px-2.5 py-0.5 rounded-md text-[11px] font-bold transition ${
-                          unitMode === 'in' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-400 hover:text-white'
-                        }`}
-                      >
-                        اینچ (in)
-                      </button>
-                    </div>
+                    <span className="text-xs font-black text-slate-200">ابعاد سفارشی جعبه</span>
+                    <span className="text-[10px] font-mono text-amber-400 font-bold bg-slate-950 px-2 py-0.5 rounded border border-slate-800">
+                      میلی‌متر (mm)
+                    </span>
                   </div>
 
-                  {/* Length / Width / Height Inputs */}
+                  {/* Length / Width / Height Inputs - Fluid Unrestricted Typing */}
                   <div className="space-y-2.5">
                     {/* Length */}
                     <div className="flex items-center justify-between bg-slate-950/80 border border-slate-800 rounded-xl px-3.5 py-2">
-                      <span className="text-xs font-bold text-slate-300">طول (Length)</span>
+                      <span className="text-xs font-bold text-slate-300">طول جعبه (Length)</span>
                       <div className="flex items-center gap-1.5">
                         <input
-                          type="number"
-                          step={unitMode === 'in' ? '0.1' : '1'}
-                          value={toDisplay(lengthMm)}
-                          onChange={(e) => setLengthMm(Math.max(10, fromDisplay(e.target.value)))}
-                          className="w-20 bg-transparent text-left font-mono font-black text-sm text-amber-300 focus:outline-none"
+                          type="text"
+                          inputMode="numeric"
+                          value={inputL}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setInputL(val);
+                            const n = parseInt(val);
+                            if (!isNaN(n) && n > 0) setLengthMm(n);
+                          }}
+                          onBlur={() => {
+                            const n = parseInt(inputL) || 120;
+                            setLengthMm(Math.max(10, n));
+                            setInputL(String(Math.max(10, n)));
+                          }}
+                          className="w-20 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-center font-mono font-black text-sm text-amber-300 focus:outline-none focus:border-amber-400"
                         />
-                        <span className="text-xs text-slate-500 font-mono">{unitMode}</span>
+                        <span className="text-xs text-slate-500 font-mono">mm</span>
                       </div>
                     </div>
 
                     {/* Width */}
                     <div className="flex items-center justify-between bg-slate-950/80 border border-slate-800 rounded-xl px-3.5 py-2">
-                      <span className="text-xs font-bold text-slate-300">عرض (Width)</span>
+                      <span className="text-xs font-bold text-slate-300">عرض / عطف (Width)</span>
                       <div className="flex items-center gap-1.5">
                         <input
-                          type="number"
-                          step={unitMode === 'in' ? '0.1' : '1'}
-                          value={toDisplay(widthMm)}
-                          onChange={(e) => setWidthMm(Math.max(10, fromDisplay(e.target.value)))}
-                          className="w-20 bg-transparent text-left font-mono font-black text-sm text-amber-300 focus:outline-none"
+                          type="text"
+                          inputMode="numeric"
+                          value={inputW}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setInputW(val);
+                            const n = parseInt(val);
+                            if (!isNaN(n) && n > 0) setWidthMm(n);
+                          }}
+                          onBlur={() => {
+                            const n = parseInt(inputW) || 60;
+                            setWidthMm(Math.max(10, n));
+                            setInputW(String(Math.max(10, n)));
+                          }}
+                          className="w-20 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-center font-mono font-black text-sm text-amber-300 focus:outline-none focus:border-amber-400"
                         />
-                        <span className="text-xs text-slate-500 font-mono">{unitMode}</span>
+                        <span className="text-xs text-slate-500 font-mono">mm</span>
                       </div>
                     </div>
 
                     {/* Height */}
                     <div className="flex items-center justify-between bg-slate-950/80 border border-slate-800 rounded-xl px-3.5 py-2">
-                      <span className="text-xs font-bold text-slate-300">ارتفاع (Height)</span>
+                      <span className="text-xs font-bold text-slate-300">ارتفاع جعبه (Height)</span>
                       <div className="flex items-center gap-1.5">
                         <input
-                          type="number"
-                          step={unitMode === 'in' ? '0.1' : '1'}
-                          value={toDisplay(heightMm)}
-                          onChange={(e) => setHeightMm(Math.max(10, fromDisplay(e.target.value)))}
-                          className="w-20 bg-transparent text-left font-mono font-black text-sm text-amber-300 focus:outline-none"
+                          type="text"
+                          inputMode="numeric"
+                          value={inputH}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setInputH(val);
+                            const n = parseInt(val);
+                            if (!isNaN(n) && n > 0) setHeightMm(n);
+                          }}
+                          onBlur={() => {
+                            const n = parseInt(inputH) || 160;
+                            setHeightMm(Math.max(10, n));
+                            setInputH(String(Math.max(10, n)));
+                          }}
+                          className="w-20 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-center font-mono font-black text-sm text-amber-300 focus:outline-none focus:border-amber-400"
                         />
-                        <span className="text-xs text-slate-500 font-mono">{unitMode}</span>
+                        <span className="text-xs text-slate-500 font-mono">mm</span>
                       </div>
                     </div>
                   </div>
@@ -409,9 +447,7 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
 
                 {/* Choose Material Section */}
                 <div className="space-y-2">
-                  <span className="text-xs font-black text-slate-200">انتخاب متریال (Choose material)</span>
-                  
-                  {/* Material Dropdown */}
+                  <span className="text-xs font-black text-slate-200">انتخاب متریال و نوع مقوا</span>
                   <div className="relative">
                     <select
                       value={selectedMaterial}
@@ -446,7 +482,7 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
                     </button>
                     <div className="flex items-center gap-1">
                       <span className="font-mono text-sm font-black text-white">{thicknessMm}</span>
-                      <span className="text-xs text-slate-500 font-mono">{unitMode}</span>
+                      <span className="text-xs text-slate-500 font-mono">mm</span>
                     </div>
                     <button
                       type="button"
@@ -488,7 +524,7 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
             )}
 
             {/* TAB: ADVANCED / TECHNICAL MATRIX */}
-            {(activeNavTab === 'advanced' || activeNavTab === 'more') && (
+            {activeNavTab === 'advanced' && (
               <div className="space-y-4 text-xs animate-in fade-in duration-150">
                 <h3 className="font-black text-amber-300">ماتریس مشخصات فنی قالب و شیت</h3>
                 <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2.5 font-mono text-[11px]">
@@ -516,12 +552,19 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
         </div>
 
         {/* ====================================================
-            CENTER 2D VECTOR CAD CANVAS
+            CENTER 2D VECTOR CAD CANVAS (Interactive Pan & Zoom)
            ==================================================== */}
-        <div className="flex-1 relative bg-slate-950 flex flex-col items-center justify-center overflow-hidden">
+        <div
+          className={`flex-1 relative bg-slate-950 flex flex-col items-center justify-center overflow-hidden ${
+            activeCanvasTool === 'pan' ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'
+          }`}
+          onMouseDown={handleMouseDownCanvas}
+          onMouseMove={handleMouseMoveCanvas}
+          onMouseUp={handleMouseUpCanvas}
+        >
           
           {/* Top Center Legend (اضافه رنگ / خط تیغ / خط تا) */}
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-slate-900/90 border border-slate-800 px-4 py-1.5 rounded-2xl flex items-center gap-5 text-xs text-slate-300 backdrop-blur-md shadow-lg z-10">
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-slate-900/90 border border-slate-800 px-4 py-1.5 rounded-2xl flex items-center gap-5 text-xs text-slate-300 backdrop-blur-md shadow-lg z-10 pointer-events-none">
             <div className="flex items-center gap-1.5">
               <span className="w-4 h-0.5 bg-[#10b981]" />
               <span className="text-[11px] font-bold text-emerald-400">اضافه رنگ (Bleed)</span>
@@ -537,25 +580,27 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
           </div>
 
           {/* Top Left Dimension Triad Overlay */}
-          <div className="absolute top-4 left-4 bg-slate-900/95 border border-slate-800 p-3 rounded-2xl text-[11px] space-y-1.5 backdrop-blur-md shadow-xl z-10 font-mono text-left" dir="ltr">
+          <div className="absolute top-4 left-4 bg-slate-900/95 border border-slate-800 p-3 rounded-2xl text-[11px] space-y-1.5 backdrop-blur-md shadow-xl z-10 font-mono text-left pointer-events-none" dir="ltr">
             <div className="text-slate-200">
               <span className="text-slate-400 font-sans">Manufacture: </span>
-              <strong className="text-amber-300 font-bold">{mfg.l} × {mfg.w} × {mfg.h} {unitMode}</strong>
+              <strong className="text-amber-300 font-bold">{mfg.l} × {mfg.w} × {mfg.h} mm</strong>
             </div>
             <div className="text-slate-300">
               <span className="text-slate-400 font-sans">Inner: </span>
-              <strong className="text-cyan-300">{inner.l} × {inner.w} × {inner.h} {unitMode}</strong>
+              <strong className="text-cyan-300">{inner.l} × {inner.w} × {inner.h} mm</strong>
             </div>
             <div className="text-slate-300">
               <span className="text-slate-400 font-sans">Outer: </span>
-              <strong className="text-emerald-300">{outer.l} × {outer.w} × {outer.h} {unitMode}</strong>
+              <strong className="text-emerald-300">{outer.l} × {outer.w} × {outer.h} mm</strong>
             </div>
           </div>
 
-          {/* SVG Vector Dieline Display Area */}
+          {/* SVG Vector Dieline Display Area with Pan & Zoom */}
           <div
-            className="w-full h-full flex items-center justify-center p-8 transition-transform duration-150 overflow-hidden"
-            style={{ transform: `scale(${zoomScale})` }}
+            className="w-full h-full flex items-center justify-center p-8 transition-transform duration-75 select-none"
+            style={{
+              transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoomScale})`
+            }}
           >
             {loadingDieline ? (
               <div className="flex flex-col items-center gap-3 text-slate-400">
@@ -572,7 +617,7 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
             )}
           </div>
 
-          {/* Bottom Floating Canvas Toolbar */}
+          {/* Bottom Floating Canvas Toolbar (Interactive Hand, Cursor, Zoom) */}
           <div className="absolute bottom-5 left-1/2 -translate-x-1/2 bg-slate-900/95 border border-slate-800 px-3 py-1.5 rounded-2xl flex items-center gap-2 backdrop-blur-md shadow-2xl z-10" dir="ltr">
             <button
               type="button"
@@ -580,7 +625,7 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
               className={`p-2 rounded-xl text-xs transition ${
                 activeCanvasTool === 'select' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-400 hover:text-white hover:bg-slate-800'
               }`}
-              title="نشانگر انتخاب"
+              title="نشانگر انتخاب (Cursor)"
             >
               <MousePointer className="w-4 h-4" />
             </button>
@@ -590,7 +635,7 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
               className={`p-2 rounded-xl text-xs transition ${
                 activeCanvasTool === 'pan' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-400 hover:text-white hover:bg-slate-800'
               }`}
-              title="ابزار دست (جابجایی نقشه)"
+              title="ابزار دست (جابجایی و درگ نقشه)"
             >
               <Hand className="w-4 h-4" />
             </button>
@@ -599,7 +644,7 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
 
             <button
               type="button"
-              onClick={() => setZoomScale((z) => Math.min(2.5, z + 0.15))}
+              onClick={() => setZoomScale((z) => Math.min(3.0, parseFloat((z + 0.15).toFixed(2))))}
               className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition"
               title="بزرگ‌نمایی"
             >
@@ -610,7 +655,7 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
             </span>
             <button
               type="button"
-              onClick={() => setZoomScale((z) => Math.max(0.4, z - 0.15))}
+              onClick={() => setZoomScale((z) => Math.max(0.3, parseFloat((z - 0.15).toFixed(2))))}
               className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition"
               title="کوچک‌نمایی"
             >
@@ -618,9 +663,9 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
             </button>
             <button
               type="button"
-              onClick={() => setZoomScale(1.0)}
+              onClick={handleResetCanvas}
               className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition"
-              title="بازنشانی زوم به ۱۰۰٪"
+              title="بازنشانی زوم و موقعیت به ۱۰۰٪"
             >
               <RotateCw className="w-4 h-4" />
             </button>
@@ -648,8 +693,8 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
               </button>
             </div>
 
-            {/* Three.js Interactive Folding Box */}
-            <div className="w-full h-44 rounded-xl overflow-hidden border border-slate-800 bg-slate-950">
+            {/* Three.js Interactive 3D Box Viewport */}
+            <div className="w-full h-44 rounded-xl overflow-hidden border border-slate-800 bg-slate-950 flex items-center justify-center">
               <Packaging3DMockup
                 boxType={selectedModel}
                 length={lengthMm}
@@ -685,7 +730,7 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
             <span className="text-xs font-black text-slate-200">فرمت‌های قابل دانلود (File formats)</span>
             <div className="grid grid-cols-2 gap-2">
               
-              {/* AI Format */}
+              {/* AI Format (Fixed) */}
               <button
                 type="button"
                 onClick={handleDownloadAi}
@@ -696,7 +741,7 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
                 </div>
                 <div>
                   <div className="text-xs font-bold text-white group-hover:text-amber-300">وکتور Illustrator</div>
-                  <div className="text-[10px] text-slate-400 font-mono">قالب .AI</div>
+                  <div className="text-[10px] text-slate-400 font-mono">قالب .AI لایه‌بندی</div>
                 </div>
               </button>
 
@@ -726,7 +771,7 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
                 </div>
                 <div>
                   <div className="text-xs font-bold text-white group-hover:text-amber-300">نقشه لیزر DXF</div>
-                  <div className="text-[10px] text-slate-400 font-mono">اتوکد لایه‌بندی</div>
+                  <div className="text-[10px] text-slate-400 font-mono">اتوکد R12 لایه‌ای</div>
                 </div>
               </button>
 
@@ -741,7 +786,7 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
                 </div>
                 <div>
                   <div className="text-xs font-bold text-white group-hover:text-amber-300">استودیو ۳ بعدی</div>
-                  <div className="text-[10px] text-slate-400 font-mono">رندر 4K</div>
+                  <div className="text-[10px] text-slate-400 font-mono">رندر 4K استودیو</div>
                 </div>
               </button>
 
@@ -750,12 +795,12 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
 
           {/* You Will Get Bullet Points */}
           <div className="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-2 text-right">
-            <span className="text-xs font-black text-amber-300">مزایای قالب‌های استودیو:</span>
+            <span className="text-xs font-black text-amber-300">مزایای قالب‌های استودیو امیران:</span>
             <ul className="text-[11px] text-slate-300 space-y-1.5 list-disc list-inside leading-relaxed">
               <li>تولید و دانلود آنی فایل‌های خط تیغ استاندارد</li>
               <li>مقیاس دقیق ۱:۱ صنعتی و کالیپر مهندسی</li>
-              <li>فایل‌های وکتور بدون واترمارک و قابل ویرایش</li>
-              <li>ماتریس فنی طول خط برش و خط تا جهت قالب‌سازی</li>
+              <li>فایل‌های وکتور بدون واترمارک و قابل ویرایش در Illustrator</li>
+              <li>ماتریس فنی طول خط برش و خط تا جهت قالب‌سازی لیزری</li>
             </ul>
           </div>
 
