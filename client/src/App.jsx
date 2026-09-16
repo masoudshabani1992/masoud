@@ -20,11 +20,12 @@ import NotificationCenterModal from './components/NotificationCenterModal';
 import LicenseGate from './components/LicenseGate';
 import LicenseStatusModal from './components/LicenseStatusModal';
 import AiAssistantView from './components/AiAssistantView';
+import MarketingLeadsView from './components/MarketingLeadsView';
 import { playNotificationSound } from './utils/helpers';
 
 export default function App() {
   const { currentUser, role } = useAuth();
-  const [activeTab, setActiveTab] = useState('hub');
+  const [activeTab, setActiveTab] = useState(role === 'marketer' ? 'marketing' : 'hub');
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [reorderData, setReorderData] = useState(null);
@@ -46,6 +47,12 @@ export default function App() {
   const [printProject, setPrintProject] = useState(null);
 
   // Check License on Startup
+  useEffect(() => {
+    if (role === 'marketer' && activeTab !== 'marketing') {
+      setActiveTab('marketing');
+    }
+  }, [role, activeTab]);
+
   const checkLicense = async () => {
     try {
       const res = await api.getLicenseStatus();
@@ -287,6 +294,17 @@ export default function App() {
             </div>
             <CalculatorView />
           </div>
+        )}
+
+        {/* Marketing Leads & Field Sales Hub */}
+        {activeTab === 'marketing' && (
+          <MarketingLeadsView
+            onNavigateToKanban={() => {
+              if (role !== 'marketer') {
+                setActiveTab('kanban');
+              }
+            }}
+          />
         )}
 
         {/* Subdomain Guide */}

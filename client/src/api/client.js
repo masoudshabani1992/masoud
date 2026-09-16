@@ -47,6 +47,13 @@ export const api = {
   generateDieline: (data) => apiRequest('/dieline/generate', { method: 'POST', body: JSON.stringify(data) }),
   generateDielineMontage: (data) => apiRequest('/dieline/montage', { method: 'POST', body: JSON.stringify(data) }),
 
+  // Marketing Leads (بخش بازاریاب و استعلامات)
+  getMarketingLeads: () => apiRequest('/marketing/leads'),
+  createMarketingLead: (data) => apiRequest('/marketing/leads', { method: 'POST', body: JSON.stringify(data) }),
+  estimateMarketingLead: (id, data) => apiRequest(`/marketing/leads/${id}/estimate`, { method: 'PUT', body: JSON.stringify(data) }),
+  updateMarketingLeadStatus: (id, status) => apiRequest(`/marketing/leads/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) }),
+  convertMarketingLeadToProject: (id) => apiRequest(`/marketing/leads/${id}/convert-to-project`, { method: 'POST' }),
+
   // License Management
   getLicenseStatus: () => apiRequest('/license/status'),
   activateLicense: (licenseKey) => apiRequest('/license/activate', { method: 'POST', body: JSON.stringify({ licenseKey }) }),

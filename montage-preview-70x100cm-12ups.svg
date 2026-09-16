@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 700" width="1000mm" height="700mm">
+  <defs>
+    <style>
+      .sheet-bg { fill: #ffffff; stroke: #0f172a; stroke-width: 2.5; }
+      .gripper-bar { fill: #fef3c7; stroke: #d97706; stroke-width: 1; }
+      .register-cross { stroke: #0f172a; stroke-width: 0.8; fill: none; }
+      .title-block-bg { fill: #f8fafc; stroke: #1e293b; stroke-width: 1.5; }
+      .tb-text-bold { font-family: 'Vazirmatn', sans-serif; font-size: 8.5px; font-weight: 900; fill: #0f172a; }
+      .tb-text-reg { font-family: 'Vazirmatn', sans-serif; font-size: 7.5px; fill: #334155; }
+    </style>
+  </defs>
+
+  <!-- Sheet Cardboard Paper Background -->
+  <rect x="0" y="0" width="1000" height="700" class="sheet-bg" />
+
+  <!-- Gripper Edge (حاشیه لب‌پنجه چاپ) -->
+  <rect x="0" y="0" width="1000" height="15" class="gripper-bar" />
+  <text x="500" y="11" font-family="'Vazirmatn', sans-serif" font-size="8.5px" font-weight="bold" fill="#92400e" text-anchor="middle">
+    حاشیه لب‌پنجه ماشین چاپ (15mm Gripper Margin)
+  </text>
+
+  <!-- Prepress Registration Marks (صلیب و علائم رجیستر لیتوگرافی در ۴ گوشه) -->
+  <g class="register-cross">
+    <circle cx="5" cy="5" r="3" />
+    <line x1="1" y1="5" x2="9" y2="5" />
+    <line x1="5" y1="1" x2="5" y2="9" />
+
+    <circle cx="995" cy="5" r="3" />
+    <line x1="991" y1="5" x2="999" y2="5" />
+    <line x1="995" y1="1" x2="995" y2="9" />
+
+    <circle cx="5" cy="695" r="3" />
+    <line x1="1" y1="695" x2="9" y2="695" />
+    <line x1="5" y1="691" x2="5" y2="699" />
+
+    <circle cx="995" cy="695" r="3" />
+    <line x1="991" y1="695" x2="999" y2="695" />
+    <line x1="995" y1="691" x2="995" y2="699" />
+  </g>
+
+  <!-- Placed Box Dieline Instances -->
+  <g id="SheetItems">
+    
+      <!-- Placed Dieline #1 -->
+      <g transform="translate(47, 42)">
+        <!-- Box Paper Blank -->
+        <rect width="224" height="205" rx="1" fill="#f8fafc" fill-opacity="0.8" stroke="#e11d48" stroke-width="1.2" />
+        
+        <!-- Crease lines (خطوط تا و خط‌کشی آبی) -->
+        <path d="M 15 15 L 209 15 L 209 190 L 15 190 Z" stroke="#2563eb" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
+        <path d="M 100 15 L 100 190" stroke="#2563eb" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
+        <path d="M 123 15 L 123 190" stroke="#2563eb" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
+
+        <!-- Dimension and Part Info -->
+        <text x="112" y="97.5" font-family="'Vazirmatn', sans-serif" font-size="10px" font-weight="900" fill="#0f172a" text-anchor="middle">
+          #1 (224×205mm)
+        </text>
+        <text x="112" y="112.5" font-family="'Vazirmatn', sans-serif" font-size="8px" font-weight="bold" fill="#475569" text-anchor="middle">
+          جعبه دارویی کامل (دو طرف درب مقوایی)
+        </text>
+      </g>
+    
+
+      <!-- Placed Dieline #2 -->
+      <g transform="translate(274, 42)">
+        <!-- Box Paper Blank -->
+        <rect width="224" height="205" rx="1" fill="#f8fafc" fill-opacity="0.8" stroke="#e11d48" stroke-width="1.2" />
+        
+        <!-- Crease lines (خطوط تا و خط‌کشی آبی) -->
+        <path d="M 15 15 L 209 15 L 209 190 L 15 190 Z" stroke="#2563eb" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
+        <path d="M 100 15 L 100 190" stroke="#2563eb" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
+        <path d="M 123 15 L 123 190" stroke="#2563eb" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
+
+        <!-- Dimension and Part Info -->
+        <text x="112" y="97.5" font-family="'Vazirmatn', sans-serif" font-size="10px" font-weight="900" fill="#0f172a" text-anchor="middle">
+          #2 (224×205mm)
+        </text>
+        <text x="112" y="112.5" font-family="'Vazirmatn', sans-serif" font-size="8px" font-weight="bold" fill="#475569" text-anchor="middle">
+          جعبه دارویی کامل (دو طرف درب مقوایی)
+        </text>
+      </g>
+    
+
+      <!-- Placed Dieline #3 -->
+      <g transform="translate(501, 42)">
+        <!-- Box Paper Blank -->
+        <rect width="224" height="205" rx="1" fill="#f8fafc" fill-opacity="0.8" stroke="#e11d48" stroke-width="1.2" />
+        
+        <!-- Crease lines (خطوط تا و خط‌کشی آبی) -->
+        <path d="M 15 15 L 209 15 L 209 190 L 15 190 Z" stroke="#2563eb" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
+        <path d="M 100 15 L 100 190" stroke="#2563eb" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
+        <path d="M 123 15 L 123 190" stroke="#2563eb" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
+
+        <!-- Dimension and Part Info -->
+        <text x="112" y="97.5" font-family="'Vazirmatn', sans-serif" font-size="10px" font-weight="900" fill="#0f172a" text-anchor="middle">
+          #3 (224×205mm)
+        </text>
+        <text x="112" y="112.5" font-family="'Vazirmatn', sans-serif" font-size="8px" font-weight="bold" fill="#475569" text-anchor="middle">
+          جعبه دارویی کامل (دو طرف درب مقوایی)
+        </text>
+      </g>
+    
+
+      <!-- Placed Dieline #4 -->
+      <g transform="translate(728, 42)">
+        <!-- Box Paper Blank -->
+        <rect width="224" height="205" rx="1" fill="#f8fafc" fill-opacity="0.8" stroke="#e11d48" stroke-width="1.2" />
+        
+        <!-- Crease lines (خطوط تا و خط‌کشی آبی) -->
+        <path d="M 15 15 L 209 15 L 209 190 L 15 190 Z" stroke="#2563eb" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
+        <path d="M 100 15 L 100 190" stroke="#2563eb" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
+        <path d="M 123 15 L 123 190" stroke="#2563eb" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
+
+        <!-- Dimension and Part Info -->
+        <text x="112" y="97.5" font-family="'Vazirmatn', sans-serif" font-size="10px" font-weight="900" fill="#0f172a" text-anchor="middle">
+          #4 (224×205mm)
+        </text>
+        <text x="112" y="112.5" font-family="'Vazirmatn', sans-serif" font-size="8px" font-weight="bold" fill="#475569" text-anchor="middle">
+          جعبه دارویی کامل (دو طرف درب مقوایی)
+        </text>
+      </g>
+    
+
+      <!-- Placed Dieline #5 -->
+      <g transform="translate(47, 250)">
+        <!-- Box Paper Blank -->
+        <rect width="224" height="205" rx="1" fill="#f8fafc" fill-opacity="0.8" stroke="#e11d48" stroke-width="1.2" />
+        
+        <!-- Crease lines (خطوط تا و خط‌کشی آبی) -->
+        <path d="M 15 15 L 209 15 L 209 190 L 15 190 Z" stroke="#2563eb" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
+        <path d="M 100 15 L 100 190" stroke="#2563eb" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
+        <path d="M 123 15 L 123 190" stroke="#2563eb" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
+
+        <!-- Dimension and Part Info -->
+        <text x="112" y="97.5" font-family="'Vazirmatn', sans-serif" font-size="10px" font-weight="900" fill="#0f172a" text-anchor="middle">
+          #5 (224×205mm)
+        </text>
+        <text x="112" y="112.5" font-family="'Vazirmatn', sans-serif" font-size="8px" font-weight="bold" fill="#475569" text-anchor="middle">
+          جعبه دارویی کامل (دو طرف درب مقوایی)
+        </text>
+      </g>
+    
+
+      <!-- Placed Dieline #6 -->
+      <g transform="translate(274, 250)">
+        <!-- Box Paper Blank -->
+        <rect width="224" height="205" rx="1" fill="#f8fafc" fill-opacity="0.8" stroke="#e11d48" stroke-width="1.2" />
+        
+        <!-- Crease lines (خطوط تا و خط‌کشی آبی) -->
+        <path d="M 15 15 L 209 15 L 209 190 L 15 190 Z" stroke="#2563eb" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
+        <path d="M 100 15 L 100 190" stroke="#2563eb" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
+        <path d="M 123 15 L 123 190" stroke="#2563eb" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
+
+        <!-- Dimension and Part Info -->
+        <text x="112" y="97.5" font-family="'Vazirmatn', sans-serif" font-size="10px" font-weight="900" fill="#0f172a" text-anchor="middle">
+          #6 (224×205mm)
+        </text>
+        <text x="112" y="112.5" font-family="'Vazirmatn', sans-serif" font-size="8px" font-weight="bold" fill="#475569" text-anchor="middle">
+          جعبه دارویی کامل (دو طرف درب مقوایی)
+        </text>
+      </g>
+    
+
+      <!-- Placed Dieline #7 -->
+      <g transform="translate(501, 250)">
+        <!-- Box Paper Blank -->
+        <rect width="224" height="205" rx="1" fill="#f8fafc" fill-opacity="0.8" stroke="#e11d48" stroke-width="1.2" />
+        
+        <!-- Crease lines (خطوط تا و خط‌کشی آبی) -->
+        <path d="M 15 15 L 209 15 L 209 190 L 15 190 Z" stroke="#2563eb" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
+        <path d="M 100 15 L 100 190" stroke="#2563eb" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
+        <path d="M 123 15 L 123 190" stroke="#2563eb" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
+
+        <!-- Dimension and Part Info -->
+        <text x="112" y="97.5" font-family="'Vazirmatn', sans-serif" font-size="10px" font-weight="900" fill="#0f172a" text-anchor="middle">
+          #7 (224×205mm)
+        </text>
+        <text x="112" y="112.5" font-family="'Vazirmatn', sans-serif" font-size="8px" font-weight="bold" fill="#475569" text-anchor="middle">
+          جعبه دارویی کامل (دو طرف درب مقوایی)
+        </text>
+      </g>
+    
+
+      <!-- Placed Dieline #8 -->
+      <g transform="translate(728, 250)">
+        <!-- Box Paper Blank -->
+        <rect width="224" height="205" rx="1" fill="#f8fafc" fill-opacity="0.8" stroke="#e11d48" stroke-width="1.2" />
+        
+        <!-- Crease lines (خطوط تا و خط‌کشی آبی) -->
+        <path d="M 15 15 L 209 15 L 209 190 L 15 190 Z" stroke="#2563eb" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
+        <path d="M 100 15 L 100 190" stroke="#2563eb" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
+        <path d="M 123 15 L 123 190" stroke="#2563eb" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
+
+        <!-- Dimension and Part Info -->
+        <text x="112" y="97.5" font-family="'Vazirmatn', sans-serif" font-size="10px" font-weight="900" fill="#0f172a" text-anchor="middle">
+          #8 (224×205mm)
+        </text>
+        <text x="112" y="112.5" font-family="'Vazirmatn', sans-serif" font-size="8px" font-weight="bold" fill="#475569" text-anchor="middle">
+          جعبه دارویی کامل (دو طرف درب مقوایی)
+        </text>
+      </g>
+    
+
+      <!-- Placed Dieline #9 -->
+      <g transform="translate(47, 458)">
+        <!-- Box Paper Blank -->
+        <rect width="224" height="205" rx="1" fill="#f8fafc" fill-opacity="0.8" stroke="#e11d48" stroke-width="1.2" />
+        
+        <!-- Crease lines (خطوط تا و خط‌کشی آبی) -->
+        <path d="M 15 15 L 209 15 L 209 190 L 15 190 Z" stroke="#2563eb" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
+        <path d="M 100 15 L 100 190" stroke="#2563eb" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
+        <path d="M 123 15 L 123 190" stroke="#2563eb" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
+
+        <!-- Dimension and Part Info -->
+        <text x="112" y="97.5" font-family="'Vazirmatn', sans-serif" font-size="10px" font-weight="900" fill="#0f172a" text-anchor="middle">
+          #9 (224×205mm)
+        </text>
+        <text x="112" y="112.5" font-family="'Vazirmatn', sans-serif" font-size="8px" font-weight="bold" fill="#475569" text-anchor="middle">
+          جعبه دارویی کامل (دو طرف درب مقوایی)
+        </text>
+      </g>
+    
+
+      <!-- Placed Dieline #10 -->
+      <g transform="translate(274, 458)">
+        <!-- Box Paper Blank -->
+        <rect width="224" height="205" rx="1" fill="#f8fafc" fill-opacity="0.8" stroke="#e11d48" stroke-width="1.2" />
+        
+        <!-- Crease lines (خطوط تا و خط‌کشی آبی) -->
+        <path d="M 15 15 L 209 15 L 209 190 L 15 190 Z" stroke="#2563eb" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
+        <path d="M 100 15 L 100 190" stroke="#2563eb" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
+        <path d="M 123 15 L 123 190" stroke="#2563eb" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
+
+        <!-- Dimension and Part Info -->
+        <text x="112" y="97.5" font-family="'Vazirmatn', sans-serif" font-size="10px" font-weight="900" fill="#0f172a" text-anchor="middle">
+          #10 (224×205mm)
+        </text>
+        <text x="112" y="112.5" font-family="'Vazirmatn', sans-serif" font-size="8px" font-weight="bold" fill="#475569" text-anchor="middle">
+          جعبه دارویی کامل (دو طرف درب مقوایی)
+        </text>
+      </g>
+    
+
+      <!-- Placed Dieline #11 -->
+      <g transform="translate(501, 458)">
+        <!-- Box Paper Blank -->
+        <rect width="224" height="205" rx="1" fill="#f8fafc" fill-opacity="0.8" stroke="#e11d48" stroke-width="1.2" />
+        
+        <!-- Crease lines (خطوط تا و خط‌کشی آبی) -->
+        <path d="M 15 15 L 209 15 L 209 190 L 15 190 Z" stroke="#2563eb" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
+        <path d="M 100 15 L 100 190" stroke="#2563eb" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
+        <path d="M 123 15 L 123 190" stroke="#2563eb" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
+
+        <!-- Dimension and Part Info -->
+        <text x="112" y="97.5" font-family="'Vazirmatn', sans-serif" font-size="10px" font-weight="900" fill="#0f172a" text-anchor="middle">
+          #11 (224×205mm)
+        </text>
+        <text x="112" y="112.5" font-family="'Vazirmatn', sans-serif" font-size="8px" font-weight="bold" fill="#475569" text-anchor="middle">
+          جعبه دارویی کامل (دو طرف درب مقوایی)
+        </text>
+      </g>
+    
+
+      <!-- Placed Dieline #12 -->
+      <g transform="translate(728, 458)">
+        <!-- Box Paper Blank -->
+        <rect width="224" height="205" rx="1" fill="#f8fafc" fill-opacity="0.8" stroke="#e11d48" stroke-width="1.2" />
+        
+        <!-- Crease lines (خطوط تا و خط‌کشی آبی) -->
+        <path d="M 15 15 L 209 15 L 209 190 L 15 190 Z" stroke="#2563eb" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
+        <path d="M 100 15 L 100 190" stroke="#2563eb" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
+        <path d="M 123 15 L 123 190" stroke="#2563eb" stroke-width="0.8" stroke-dasharray="3,2" fill="none" />
+
+        <!-- Dimension and Part Info -->
+        <text x="112" y="97.5" font-family="'Vazirmatn', sans-serif" font-size="10px" font-weight="900" fill="#0f172a" text-anchor="middle">
+          #12 (224×205mm)
+        </text>
+        <text x="112" y="112.5" font-family="'Vazirmatn', sans-serif" font-size="8px" font-weight="bold" fill="#475569" text-anchor="middle">
+          جعبه دارویی کامل (دو طرف درب مقوایی)
+        </text>
+      </g>
+    
+  </g>
+
+  <!-- Professional Prepress & Die-Maker Title Block (جدول مشخصات فنی قالب‌سازی) -->
+  <g id="DieMakerTitleBlock" transform="translate(605, 640)">
+    <rect width="380" height="45" class="title-block-bg" rx="2" />
+    <line x1="0" y1="22" x2="380" y2="22" stroke="#cbd5e1" stroke-width="1" />
+    <line x1="190" y1="0" x2="190" y2="45" stroke="#cbd5e1" stroke-width="1" />
+
+    <!-- Row 1: Factory & Box Specs -->
+    <text x="370" y="15" text-anchor="end" class="tb-text-bold">صنایع چاپ و بسته‌بندی آرمان امیران</text>
+    <text x="180" y="15" text-anchor="end" class="tb-text-reg">ساختار: tuck_end</text>
+
+    <!-- Row 2: Sheet Specs & Efficiency -->
+    <text x="370" y="36" text-anchor="end" class="tb-text-reg">
+      شیت: 1000×700mm | تعداد در فرم: 12 عدد
+    </text>
+    <text x="180" y="36" text-anchor="end" class="tb-text-reg">
+      سطح مفید: 78.7٪ | ضایعات: 21.3٪
+    </text>
+  </g>
+</svg>

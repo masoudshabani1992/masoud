@@ -216,6 +216,36 @@ function initDb() {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS marketing_leads (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      lead_code TEXT UNIQUE NOT NULL,
+      customer_name TEXT NOT NULL,
+      customer_phone TEXT NOT NULL,
+      product_name TEXT NOT NULL,
+      quantity INTEGER NOT NULL,
+      cardboard_type TEXT NOT NULL,
+      cardboard_grammage INTEGER,
+      material_construction TEXT NOT NULL,
+      cellophane_type TEXT,
+      box_length REAL,
+      box_width REAL,
+      box_height REAL,
+      notes TEXT,
+      status TEXT DEFAULT 'pending_commercial',
+      marketer_id INTEGER,
+      marketer_name TEXT,
+      commercial_reviewer_id INTEGER,
+      commercial_reviewer_name TEXT,
+      estimated_unit_price REAL,
+      estimated_total_price REAL,
+      commercial_notes TEXT,
+      reviewed_at DATETIME,
+      converted_project_id INTEGER,
+      converted_archive_code TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE TABLE IF NOT EXISTS settings (
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL
@@ -223,11 +253,11 @@ function initDb() {
   `);
 
   // Default Users
+  const salt = bcrypt.genSaltSync(10);
+  const hash = (p) => bcrypt.hashSync(p, salt);
+
   const checkUsers = db.prepare('SELECT COUNT(*) as count FROM users').get();
   if (checkUsers.count === 0) {
-    const salt = bcrypt.genSaltSync(10);
-    const hash = (p) => bcrypt.hashSync(p, salt);
-
     const insertUser = db.prepare(`
       INSERT INTO users (username, password_hash, full_name, role, department, phone)
       VALUES (?, ?, ?, ?, ?, ?)
@@ -241,6 +271,15 @@ function initDb() {
     insertUser.run('production', hash('123456'), 'سرپرست سالن چاپ و تولید', 'production', 'سالن تولید', '09127777777');
     insertUser.run('outsource', hash('123456'), 'واحد برونسپاری و ماکت', 'outsource', 'برونسپاری', '09126666666');
     insertUser.run('warehouse', hash('123456'), 'مسئول انبار و ورود مصرفی', 'warehouse', 'ورود انبار مصرفی', '09128888888');
+    insertUser.run('marketer', hash('123456'), 'کارشناس بازاریابی و فروش میدانی', 'marketer', 'بازاریابی', '09129999999');
+  } else {
+    const checkMarketer = db.prepare('SELECT * FROM users WHERE role = ? OR username = ?').get('marketer', 'marketer');
+    if (!checkMarketer) {
+      db.prepare(`
+        INSERT INTO users (username, password_hash, full_name, role, department, phone)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `).run('marketer', hash('123456'), 'کارشناس بازاریابی و فروش میدانی', 'marketer', 'بازاریابی', '09129999999');
+    }
   }
 
   // Seed sample projects matching the user's software

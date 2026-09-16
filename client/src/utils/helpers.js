@@ -130,13 +130,14 @@ export const ROLES = [
   { id: 'accounting', name: 'حسابداری', desc: 'استعلام قیمت، بهای تمام شده و نرخ متریال', color: 'bg-sky-700', allowedStages: [2] },
   { id: 'production', name: 'تولید', desc: 'مدیریت سالن چاپ، لامینت، دایکات و جعبه‌چسبانی', color: 'bg-emerald-700', allowedStages: [10] },
   { id: 'outsource', name: 'برونسپاری', desc: 'ماکت‌سازی با کاترپلاتر و خدمات برونسپاری', color: 'bg-pink-700', allowedStages: [7] },
-  { id: 'warehouse', name: 'ورود انبار مصرفی', desc: 'تدارکات، ورود مقوا و متریال به انبار', color: 'bg-slate-700', allowedStages: [9] }
+  { id: 'warehouse', name: 'ورود انبار مصرفی', desc: 'تدارکات، ورود مقوا و متریال به انبار', color: 'bg-slate-700', allowedStages: [9] },
+  { id: 'marketer', name: 'بازاریاب', desc: 'ثبت استعلام، مشخصات محصول و ارسال به بازرگانی', color: 'bg-teal-600', allowedStages: [] }
 ];
 
 export const DEPARTMENT_PERMISSIONS = {
   ceo: {
     name: 'مدیریت عامل',
-    allowedTabs: ['hub', 'kanban', 'archive', 'new_order', 'my_tasks', 'dashboard', 'materials', 'users', 'calculator', 'subdomain_guide'],
+    allowedTabs: ['hub', 'kanban', 'archive', 'new_order', 'my_tasks', 'dashboard', 'materials', 'users', 'calculator', 'subdomain_guide', 'marketing'],
     allowedStages: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
     canApproveCeo: true,
     canEditMaterials: true,
@@ -156,13 +157,23 @@ export const DEPARTMENT_PERMISSIONS = {
   },
   sales: {
     name: 'بازرگانی',
-    allowedTabs: ['hub', 'kanban', 'archive', 'new_order', 'my_tasks'],
+    allowedTabs: ['hub', 'kanban', 'archive', 'new_order', 'my_tasks', 'marketing'],
     allowedStages: [1, 3, 6, 8],
     canApproveCeo: false,
     canEditMaterials: false,
     canManageUsers: false,
     canCreateOrder: true,
     canViewFinancials: true
+  },
+  marketer: {
+    name: 'بازاریابی',
+    allowedTabs: ['marketing'],
+    allowedStages: [],
+    canApproveCeo: false,
+    canEditMaterials: false,
+    canManageUsers: false,
+    canCreateOrder: false,
+    canViewFinancials: false
   },
   secretary: {
     name: 'مسئول دفتر',

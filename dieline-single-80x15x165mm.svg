@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 245 263.5" width="245mm" height="263.5mm">
+  <defs>
+    <style>
+      .cut-line { stroke: #e11d48; stroke-width: 1.2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .crease-line { stroke: #2563eb; stroke-width: 1.0; stroke-dasharray: 4, 3; fill: none; }
+      .label-text { font-family: 'Vazirmatn', sans-serif; font-size: 8px; fill: #475569; text-anchor: middle; font-weight: bold; }
+    </style>
+  </defs>
+  
+  <g id="CreaseLines">
+    <path d="M 30 44.25 L 30 209.25" class="crease-line" />
+    <path d="M 110 44.25 L 110 209.25" class="crease-line" />
+    <path d="M 125 44.25 L 125 209.25" class="crease-line" />
+    <path d="M 205 44.25 L 205 209.25" class="crease-line" />
+    <path d="M 30 44.25 L 220 44.25" class="crease-line" />
+    <path d="M 30 209.25 L 220 209.25" class="crease-line" />
+    <path d="M 30 29.25 L 110 29.25" class="crease-line" />
+    <path d="M 125 224.25 L 205 224.25" class="crease-line" />
+  </g>
+
+  <g id="CutLines">
+    <path d="M 15 48.25
+        L 30 44.25
+        L 30 29.25
+        L 33 29.25
+        L 33 19
+        Q 33 15 37 15
+        L 103 15
+        Q 107 15 107 19
+        L 107 29.25
+        L 110 29.25
+        L 110 44.25
+        L 112 32.25
+        L 123 32.25
+        L 125 44.25
+        L 205 44.25
+        L 207 32.25
+        L 218 32.25
+        L 220 44.25
+        L 220 209.25
+        L 218 221.25
+        L 207 221.25
+        L 205 209.25
+        L 205 224.25
+        L 202 224.25
+        L 202 234.5
+        Q 202 238.5 198 238.5
+        L 132 238.5
+        Q 128 238.5 128 234.5
+        L 128 224.25
+        L 125 224.25
+        L 125 209.25
+        L 123 221.25
+        L 112 221.25
+        L 110 209.25
+        L 30 209.25
+        L 15 205.25
+        Z" class="cut-line" />
+  </g>
+
+  <g id="Labels">
+    <text x="22.5" y="126.75" class="label-text">لب‌چسب (15mm)</text>
+    <text x="70" y="126.75" class="label-text">طول اصلی: 80mm</text>
+    <text x="117.5" y="126.75" class="label-text">عرض: 15mm</text>
+    <text x="165" y="126.75" class="label-text">طول پشت: 80mm</text>
+    <text x="212.5" y="126.75" class="label-text">عرض: 15mm</text>
+    <text x="70" y="69.25" class="label-text">ارتفاع: 165mm</text>
+  </g>
+</svg>

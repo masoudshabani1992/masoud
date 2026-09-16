@@ -238,6 +238,260 @@ app.post('/api/dieline/montage', authMiddleware, (req, res) => {
   }
 });
 
+// ================= MARKETING LEADS ROUTES (بخش بازاریاب) =================
+// 1. Get leads list
+app.get('/api/marketing/leads', authMiddleware, (req, res) => {
+  try {
+    const user = req.user;
+    let leads;
+    if (user.role === 'marketer') {
+      leads = db.prepare('SELECT * FROM marketing_leads WHERE marketer_id = ? ORDER BY id DESC').all(user.id);
+    } else {
+      leads = db.prepare('SELECT * FROM marketing_leads ORDER BY id DESC').all();
+    }
+    res.json({ success: true, leads });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در دریافت لیست استعلام‌های بازاریابی: ' + err.message });
+  }
+});
+
+// 2. Submit new marketing lead (ثبت استعلام توسط بازاریاب)
+app.post('/api/marketing/leads', authMiddleware, (req, res) => {
+  try {
+    const user = req.user;
+    const {
+      customer_name,
+      customer_phone,
+      product_name,
+      quantity,
+      cardboard_type,
+      cardboard_grammage,
+      material_construction,
+      cellophane_type,
+      box_length,
+      box_width,
+      box_height,
+      notes
+    } = req.body;
+
+    if (!customer_name || !customer_phone || !product_name || !quantity) {
+      return res.status(400).json({ error: 'لطفاً نام مشتری، شماره تماس، نام محصول و تیراژ را وارد نمایید.' });
+    }
+
+    const leadCount = db.prepare('SELECT COUNT(*) as count FROM marketing_leads').get();
+    const leadCode = `MKT-${101 + (leadCount.count || 0)}`;
+
+    const insertStmt = db.prepare(`
+      INSERT INTO marketing_leads (
+        lead_code, customer_name, customer_phone, product_name, quantity,
+        cardboard_type, cardboard_grammage, material_construction, cellophane_type,
+        box_length, box_width, box_height, notes,
+        status, marketer_id, marketer_name
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending_commercial', ?, ?)
+    `);
+
+    const result = insertStmt.run(
+      leadCode,
+      customer_name,
+      customer_phone,
+      product_name,
+      Number(quantity),
+      cardboard_type || 'ایندربرد',
+      cardboard_grammage ? Number(cardboard_grammage) : 300,
+      material_construction || 'مقوا تک‌لا',
+      cellophane_type || 'سلفون مات',
+      box_length ? Number(box_length) : null,
+      box_width ? Number(box_width) : null,
+      box_height ? Number(box_height) : null,
+      notes || '',
+      user.id,
+      user.full_name || 'کارشناس بازاریابی'
+    );
+
+    // Send In-App & Multi-channel Notification to Commercial and CEO
+    sendNotification({
+      targetRole: 'sales',
+      title: 'استعلام جدید از بازاریاب',
+      message: `استعلام جدید برای «${customer_name}» (${product_name}) با تیراژ ${Number(quantity).toLocaleString('fa-IR')} توسط ${user.full_name || 'بازاریاب'} ثبت و جهت برآورد قیمت ارسال شد.`,
+      stageNumber: 1
+    });
+
+    sendNotification({
+      targetRole: 'ceo',
+      title: 'استعلام بازاریابی جدید',
+      message: `استعلام «${customer_name}» (${leadCode}) توسط بازاریاب ثبت شد.`,
+      stageNumber: 1
+    });
+
+    res.json({
+      success: true,
+      lead_id: result.lastInsertRowid,
+      lead_code: leadCode,
+      message: 'استعلام با موفقیت ثبت و جهت برآورد قیمت به مدیر بازرگانی ارسال گردید.'
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در ثبت استعلام بازاریابی: ' + err.message });
+  }
+});
+
+// 3. Commercial Manager Price Estimation (برآورد قیمت توسط مدیر بازرگانی)
+app.put('/api/marketing/leads/:id/estimate', authMiddleware, (req, res) => {
+  try {
+    const user = req.user;
+    if (user.role !== 'sales' && user.role !== 'ceo' && user.role !== 'accounting') {
+      return res.status(403).json({ error: 'تنها واحد بازرگانی و مدیر عامل مجاز به برآورد قیمت هستند.' });
+    }
+
+    const { id } = req.params;
+    const { estimated_unit_price, estimated_total_price, commercial_notes } = req.body;
+
+    const lead = db.prepare('SELECT * FROM marketing_leads WHERE id = ?').get(id);
+    if (!lead) {
+      return res.status(404).json({ error: 'استعلام مورد نظر یافت نشد.' });
+    }
+
+    const unitPrice = Number(estimated_unit_price) || 0;
+    const totalPrice = Number(estimated_total_price) || (unitPrice * lead.quantity);
+
+    db.prepare(`
+      UPDATE marketing_leads
+      SET estimated_unit_price = ?,
+          estimated_total_price = ?,
+          commercial_notes = ?,
+          commercial_reviewer_id = ?,
+          commercial_reviewer_name = ?,
+          reviewed_at = CURRENT_TIMESTAMP,
+          status = 'estimated',
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).run(
+      unitPrice,
+      totalPrice,
+      commercial_notes || '',
+      user.id,
+      user.fullName || user.full_name || 'مدیر بازرگانی',
+      id
+    );
+
+    // Notify Marketer
+    if (lead.marketer_id) {
+      sendNotification({
+        userId: lead.marketer_id,
+        targetRole: 'marketer',
+        title: 'برآورد قیمت استعلام بازاریابی',
+        message: `قیمت استعلام «${lead.customer_name}» (${lead.product_name}) توسط مدیر بازرگانی اعلام شد: فی ${unitPrice.toLocaleString('fa-IR')} تومان.`,
+        stageNumber: 2
+      });
+    }
+
+    res.json({ success: true, message: 'برآورد قیمت با موفقیت ثبت و به کارتابل بازاریاب اعلام گردید.' });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در ثبت برآورد قیمت: ' + err.message });
+  }
+});
+
+// 4. Update Lead Status (e.g. Customer Approved, Rejected)
+app.put('/api/marketing/leads/:id/status', authMiddleware, (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const lead = db.prepare('SELECT * FROM marketing_leads WHERE id = ?').get(id);
+    if (!lead) return res.status(404).json({ error: 'استعلام یافت نشد.' });
+
+    db.prepare('UPDATE marketing_leads SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(status, id);
+
+    res.json({ success: true, message: 'وضعیت استعلام به‌روزرسانی شد.' });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در تغییر وضعیت: ' + err.message });
+  }
+});
+
+// 5. Convert Lead to Factory ERP Project
+app.post('/api/marketing/leads/:id/convert-to-project', authMiddleware, (req, res) => {
+  try {
+    const user = req.user;
+    if (user.role !== 'sales' && user.role !== 'ceo' && user.role !== 'secretary') {
+      return res.status(403).json({ error: 'فقط واحد بازرگانی یا مدیریت عامل می‌توانند استعلام را به سفارش تبدیل کنند.' });
+    }
+
+    const { id } = req.params;
+    const lead = db.prepare('SELECT * FROM marketing_leads WHERE id = ?').get(id);
+    if (!lead) return res.status(404).json({ error: 'استعلام یافت نشد.' });
+
+    const projCount = db.prepare('SELECT COUNT(*) as count FROM projects').get();
+    const nextArchiveCode = String(8000 + (projCount.count || 0) + 1);
+    const nextOrderCode = String(7000 + (projCount.count || 0) + 1);
+
+    const insertProj = db.prepare(`
+      INSERT INTO projects (
+        archive_code, order_code, title, customer_name, customer_phone,
+        box_type, box_structure, quantity,
+        has_cardboard, cardboard_type, cardboard_grammage,
+        has_cellophane, cellophane_type,
+        general_notes,
+        estimated_unit_price, estimated_total_price,
+        current_stage, status, created_by
+      ) VALUES (
+        ?, ?, ?, ?, ?,
+        ?, ?, ?,
+        1, ?, ?,
+        ?, ?,
+        ?,
+        ?, ?,
+        1, 'active', ?
+      )
+    `);
+
+    const hasCello = lead.cellophane_type && !lead.cellophane_type.includes('بدون') ? 1 : 0;
+    const notes = `ثبت شده توسط بازاریاب (${lead.marketer_name || 'بازاریاب'}) - کد استعلام: ${lead.lead_code}\nنوع ساختار: ${lead.material_construction}\n${lead.notes || ''}`;
+
+    const projResult = insertProj.run(
+      nextArchiveCode,
+      nextOrderCode,
+      lead.product_name,
+      lead.customer_name,
+      lead.customer_phone,
+      lead.material_construction || 'جعبه مقوایی',
+      'درب دارویی ساده (Tuck End)',
+      lead.quantity,
+      lead.cardboard_type || 'ایندربرد',
+      lead.cardboard_grammage || 300,
+      hasCello,
+      lead.cellophane_type || '',
+      notes,
+      lead.estimated_unit_price || 0,
+      lead.estimated_total_price || 0,
+      user.id
+    );
+
+    const newProjectId = projResult.lastInsertRowid;
+
+    db.prepare(`
+      UPDATE marketing_leads
+      SET status = 'converted_to_order',
+          converted_project_id = ?,
+          converted_archive_code = ?,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).run(newProjectId, nextArchiveCode, id);
+
+    db.prepare(`
+      INSERT INTO workflow_logs (project_id, stage_number, stage_name, action, user_id, user_name, user_role, comment)
+      VALUES (?, 1, 'بازرگانی و تعریف سفارش', 'تبدیل استعلام بازاریاب به سفارش رسمی کارخانه', ?, ?, ?, ?)
+    `).run(newProjectId, user.id, user.fullName || user.full_name || 'مدیر بازرگانی', user.role, `سفارش از استعلام ${lead.lead_code} بازاریاب (${lead.marketer_name}) ایجاد شد.`);
+
+    res.json({
+      success: true,
+      project_id: newProjectId,
+      archive_code: nextArchiveCode,
+      message: `استعلام ${lead.lead_code} با موفقیت به سفارش رسمی کارخانه (کد پیگیری: ${nextArchiveCode}) تبدیل گردید.`
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در تبدیل استعلام به سفارش: ' + err.message });
+  }
+});
+
 function authMiddleware(req, res, next) {
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {

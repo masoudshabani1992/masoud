@@ -35,6 +35,7 @@ export default function Header({
   const { currentUser, role, switchRole, logout } = useAuth();
 
   const isCeo = role === 'ceo';
+  const isMarketer = role === 'marketer';
   const isSales = role === 'sales' || role === 'secretary' || isCeo;
   const isEstimator = role === 'estimation' || role === 'accounting' || isCeo;
   const isDesigner = role === 'design' || isCeo;
@@ -202,135 +203,150 @@ export default function Header({
       <div className="border-t border-slate-200 bg-slate-100/90 px-4 sm:px-6 lg:px-8 py-2.5">
         <div className="w-full max-w-[2200px] mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-9 gap-2">
           
-          {/* 1. Department Hub */}
-          <button
-            onClick={() => setActiveTab('hub')}
-            className={`flex items-center justify-center gap-2 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
-              activeTab === 'hub'
-                ? 'bg-slate-900 text-amber-300 border-slate-800 shadow-md ring-2 ring-slate-900/30'
-                : 'bg-white text-slate-700 hover:text-slate-950 hover:bg-slate-50 border-slate-200 shadow-xs'
-            }`}
-          >
-            <LayoutGrid className="w-4 h-4 text-amber-500 flex-shrink-0" />
-            <span className="truncate">صفحه اصلی</span>
-          </button>
-
-          {/* 2. Workflow Kanban Board */}
-          <button
-            onClick={() => setActiveTab('kanban')}
-            className={`flex items-center justify-center gap-2 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
-              activeTab === 'kanban'
-                ? 'bg-indigo-600 text-white border-indigo-700 shadow-md ring-2 ring-indigo-400'
-                : 'bg-white text-slate-700 hover:text-indigo-600 hover:bg-slate-50 border-slate-200 shadow-xs'
-            }`}
-          >
-            <Kanban className="w-4 h-4 text-indigo-500 flex-shrink-0" />
-            <span className="truncate">گردش کار تولید (۹ مرحله)</span>
-          </button>
-
-          {/* 3. Products & Orders Archive */}
-          <button
-            onClick={() => setActiveTab('archive')}
-            className={`flex items-center justify-center gap-2 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
-              activeTab === 'archive'
-                ? 'bg-indigo-600 text-white border-indigo-700 shadow-md ring-2 ring-indigo-400'
-                : 'bg-white text-slate-700 hover:text-indigo-600 hover:bg-slate-50 border-slate-200 shadow-xs'
-            }`}
-          >
-            <Boxes className="w-4 h-4 text-amber-500 flex-shrink-0" />
-            <span className="truncate">آرشیو و جستجوی کارها</span>
-          </button>
-
-          {/* 4. New Order (Sales / CEO) */}
-          {(isSales || isCeo) && (
+          {/* Marketer ONLY view */}
+          {isMarketer && (
             <button
-              onClick={() => setActiveTab('new_order')}
-              className={`flex items-center justify-center gap-2 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
-                activeTab === 'new_order'
-                  ? 'bg-indigo-600 text-white border-indigo-700 shadow-md ring-2 ring-indigo-400'
-                  : 'bg-white text-slate-700 hover:text-indigo-600 hover:bg-slate-50 border-slate-200 shadow-xs'
-              }`}
+              onClick={() => setActiveTab('marketing')}
+              className="col-span-full flex items-center justify-center gap-2 p-3 rounded-xl text-sm font-black transition-all border bg-teal-600 text-white border-teal-700 shadow-md ring-2 ring-teal-400"
             >
-              <FilePlus2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-              <span className="truncate">ثبت سفارش جدید</span>
+              <Users className="w-5 h-5 text-teal-200 flex-shrink-0" />
+              <span>کارتابل بازاریابی و ثبت استعلام قیمت</span>
             </button>
           )}
 
-          {/* 5. My Tasks Inbox */}
-          <button
-            onClick={() => setActiveTab('my_tasks')}
-            className={`relative flex items-center justify-center gap-2 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
-              activeTab === 'my_tasks'
-                ? 'bg-indigo-600 text-white border-indigo-700 shadow-md ring-2 ring-indigo-400'
-                : 'bg-white text-slate-700 hover:text-indigo-600 hover:bg-slate-50 border-slate-200 shadow-xs'
-            }`}
-          >
-            <Inbox className="w-4 h-4 text-cyan-500 flex-shrink-0" />
-            <span className="truncate">کارتابل وظایف من</span>
-            {myPendingCount > 0 && (
-              <span className="bg-rose-500 text-white text-[10px] px-1.5 py-0.2 rounded-full font-black animate-pulse shadow-xs">
-                {myPendingCount}
-              </span>
-            )}
-          </button>
+          {!isMarketer && (
+            <>
+              {/* 1. Department Hub */}
+              <button
+                onClick={() => setActiveTab('hub')}
+                className={`flex items-center justify-center gap-2 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
+                  activeTab === 'hub'
+                    ? 'bg-slate-900 text-amber-300 border-slate-800 shadow-md ring-2 ring-slate-900/30'
+                    : 'bg-white text-slate-700 hover:text-slate-950 hover:bg-slate-50 border-slate-200 shadow-xs'
+                }`}
+              >
+                <LayoutGrid className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                <span className="truncate">صفحه اصلی</span>
+              </button>
 
-          {/* 6. Dashboard (CEO / Production) */}
-          {(isCeo || isProduction) && (
-            <button
-              onClick={() => setActiveTab('dashboard')}
-              className={`flex items-center justify-center gap-2 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
-                activeTab === 'dashboard'
-                  ? 'bg-indigo-600 text-white border-indigo-700 shadow-md ring-2 ring-indigo-400'
-                  : 'bg-white text-slate-700 hover:text-indigo-600 hover:bg-slate-50 border-slate-200 shadow-xs'
-              }`}
-            >
-              <BarChart3 className="w-4 h-4 text-purple-500 flex-shrink-0" />
-              <span className="truncate">داشبورد و آمار</span>
-            </button>
+              {/* 2. Marketing Leads Tab (for Sales & CEO) */}
+              {(isSales || isCeo) && (
+                <button
+                  onClick={() => setActiveTab('marketing')}
+                  className={`flex items-center justify-center gap-2 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
+                    activeTab === 'marketing'
+                      ? 'bg-teal-600 text-white border-teal-700 shadow-md ring-2 ring-teal-400'
+                      : 'bg-teal-50 text-teal-900 hover:text-teal-950 hover:bg-teal-100 border-teal-300 shadow-xs'
+                  }`}
+                >
+                  <Users className="w-4 h-4 text-teal-600 flex-shrink-0" />
+                  <span className="truncate">استعلام‌های بازاریاب</span>
+                </button>
+              )}
+
+              {/* 3. Workflow Kanban Board */}
+              <button
+                onClick={() => setActiveTab('kanban')}
+                className={`flex items-center justify-center gap-2 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
+                  activeTab === 'kanban'
+                    ? 'bg-indigo-600 text-white border-indigo-700 shadow-md ring-2 ring-indigo-400'
+                    : 'bg-white text-slate-700 hover:text-indigo-600 hover:bg-slate-50 border-slate-200 shadow-xs'
+                }`}
+              >
+                <Kanban className="w-4 h-4 text-indigo-500 flex-shrink-0" />
+                <span className="truncate">گردش کار تولید (۹ مرحله)</span>
+              </button>
+
+              {/* 4. Products & Orders Archive */}
+              <button
+                onClick={() => setActiveTab('archive')}
+                className={`flex items-center justify-center gap-2 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
+                  activeTab === 'archive'
+                    ? 'bg-indigo-600 text-white border-indigo-700 shadow-md ring-2 ring-indigo-400'
+                    : 'bg-white text-slate-700 hover:text-indigo-600 hover:bg-slate-50 border-slate-200 shadow-xs'
+                }`}
+              >
+                <Boxes className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                <span className="truncate">آرشیو و جستجو</span>
+              </button>
+
+              {/* 5. New Order (Sales / CEO) */}
+              {(isSales || isCeo) && (
+                <button
+                  onClick={() => setActiveTab('new_order')}
+                  className={`flex items-center justify-center gap-2 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
+                    activeTab === 'new_order'
+                      ? 'bg-indigo-600 text-white border-indigo-700 shadow-md ring-2 ring-indigo-400'
+                      : 'bg-white text-slate-700 hover:text-indigo-600 hover:bg-slate-50 border-slate-200 shadow-xs'
+                  }`}
+                >
+                  <FilePlus2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                  <span className="truncate">ثبت سفارش</span>
+                </button>
+              )}
+
+              {/* 6. My Tasks Inbox */}
+              <button
+                onClick={() => setActiveTab('my_tasks')}
+                className={`relative flex items-center justify-center gap-2 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
+                  activeTab === 'my_tasks'
+                    ? 'bg-indigo-600 text-white border-indigo-700 shadow-md ring-2 ring-indigo-400'
+                    : 'bg-white text-slate-700 hover:text-indigo-600 hover:bg-slate-50 border-slate-200 shadow-xs'
+                }`}
+              >
+                <Inbox className="w-4 h-4 text-cyan-500 flex-shrink-0" />
+                <span className="truncate">وظایف من</span>
+                {myPendingCount > 0 && (
+                  <span className="bg-rose-500 text-white text-[10px] px-1.5 py-0.2 rounded-full font-black animate-pulse shadow-xs">
+                    {myPendingCount}
+                  </span>
+                )}
+              </button>
+
+              {/* 7. Dashboard (CEO / Production) */}
+              {(isCeo || isProduction) && (
+                <button
+                  onClick={() => setActiveTab('dashboard')}
+                  className={`flex items-center justify-center gap-2 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
+                    activeTab === 'dashboard'
+                      ? 'bg-indigo-600 text-white border-indigo-700 shadow-md ring-2 ring-indigo-400'
+                      : 'bg-white text-slate-700 hover:text-indigo-600 hover:bg-slate-50 border-slate-200 shadow-xs'
+                  }`}
+                >
+                  <BarChart3 className="w-4 h-4 text-purple-500 flex-shrink-0" />
+                  <span className="truncate">داشبورد</span>
+                </button>
+              )}
+
+              {/* 8. Raw Materials Prices */}
+              {(isEstimator || isProcurement || isCeo) && (
+                <button
+                  onClick={() => setActiveTab('materials')}
+                  className={`flex items-center justify-center gap-2 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
+                    activeTab === 'materials'
+                      ? 'bg-indigo-600 text-white border-indigo-700 shadow-md ring-2 ring-indigo-400'
+                      : 'bg-white text-slate-700 hover:text-indigo-600 hover:bg-slate-50 border-slate-200 shadow-xs'
+                  }`}
+                >
+                  <Layers className="w-4 h-4 text-teal-500 flex-shrink-0" />
+                  <span className="truncate">قیمت متریال</span>
+                </button>
+              )}
+
+              {/* 9. AI Packaging Copilot */}
+              <button
+                onClick={() => setActiveTab('ai_assistant')}
+                className={`flex items-center justify-center gap-2 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
+                  activeTab === 'ai_assistant'
+                    ? 'bg-gradient-to-r from-purple-700 to-indigo-700 text-amber-300 border-purple-800 shadow-md ring-2 ring-purple-400'
+                    : 'bg-purple-50 text-purple-900 hover:text-purple-950 hover:bg-purple-100 border-purple-200 shadow-xs'
+                }`}
+              >
+                <Sparkles className="w-4 h-4 text-purple-600 flex-shrink-0 animate-pulse" />
+                <span className="truncate">هوش مصنوعی</span>
+              </button>
+            </>
           )}
-
-          {/* 7. Raw Materials Prices */}
-          {(isEstimator || isProcurement || isCeo) && (
-            <button
-              onClick={() => setActiveTab('materials')}
-              className={`flex items-center justify-center gap-2 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
-                activeTab === 'materials'
-                  ? 'bg-indigo-600 text-white border-indigo-700 shadow-md ring-2 ring-indigo-400'
-                  : 'bg-white text-slate-700 hover:text-indigo-600 hover:bg-slate-50 border-slate-200 shadow-xs'
-              }`}
-            >
-              <Layers className="w-4 h-4 text-teal-500 flex-shrink-0" />
-              <span className="truncate">قیمت روز مقوا و متریال</span>
-            </button>
-          )}
-
-          {/* 8. Data Migration & Import */}
-          {(isCeo || isSales || isEstimator) && (
-            <button
-              onClick={() => setActiveTab('migration')}
-              className={`flex items-center justify-center gap-2 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
-                activeTab === 'migration'
-                  ? 'bg-amber-400 text-slate-950 border-amber-500 shadow-md ring-2 ring-amber-300'
-                  : 'bg-amber-50/90 text-amber-900 hover:bg-amber-100 hover:text-amber-950 border-amber-300 shadow-xs'
-              }`}
-            >
-              <ArrowRightLeft className="w-4 h-4 text-amber-700 flex-shrink-0" />
-              <span className="truncate">انتقال و ایمپورت اکسل</span>
-            </button>
-          )}
-
-          {/* 9. AI Packaging Copilot */}
-          <button
-            onClick={() => setActiveTab('ai_assistant')}
-            className={`flex items-center justify-center gap-2 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
-              activeTab === 'ai_assistant'
-                ? 'bg-gradient-to-r from-purple-700 to-indigo-700 text-amber-300 border-purple-800 shadow-md ring-2 ring-purple-400'
-                : 'bg-purple-50 text-purple-900 hover:text-purple-950 hover:bg-purple-100 border-purple-200 shadow-xs'
-            }`}
-          >
-            <Sparkles className="w-4 h-4 text-purple-600 flex-shrink-0 animate-pulse" />
-            <span className="truncate">دستیار هوش مصنوعی</span>
-          </button>
 
           {/* 10. User Management (CEO only) */}
           {isCeo && (

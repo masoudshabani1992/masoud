@@ -566,6 +566,58 @@ export default function DepartmentHubView({
           );
         })()}
 
+        {/* ================= ROW 3, COL 4: بازاریابی و استعلام (Marketing & Leads) ================= */}
+        {(() => {
+          const hasAccess = role === 'marketer' || role === 'sales' || role === 'ceo' || role === 'secretary';
+          return (
+            <div
+              onClick={() => {
+                if (!hasAccess) {
+                  setAccessDeniedModal({
+                    targetName: 'بازاریابی',
+                    userRoleName: currentUser?.department || role
+                  });
+                  return;
+                }
+                onNavigateDepartment('marketing');
+              }}
+              className={`relative h-48 sm:h-56 rounded-2xl p-5 text-white flex flex-col items-center justify-center cursor-pointer transition-all duration-200 hover:scale-[1.03] hover:shadow-2xl border-4 ${
+                hasAccess ? 'border-teal-400/70 ring-4 ring-teal-400/20 shadow-lg' : 'border-teal-900/40 opacity-85'
+              } group overflow-hidden md:col-span-2 lg:col-span-3`}
+              style={{
+                background: 'radial-gradient(circle at center, #0d9488 0%, #0f766e 50%, #115e59 100%)',
+                boxShadow: '0 10px 25px -5px rgba(13, 148, 136, 0.5), inset 0 0 20px rgba(0,0,0,0.3)'
+              }}
+            >
+              <div className="flex items-center justify-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center text-teal-200 group-hover:scale-110 transition-transform">
+                  <svg className="w-9 h-9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                  </svg>
+                </div>
+
+                <div className="text-right">
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-xl sm:text-2xl font-black text-white drop-shadow-sm">واحد بازاریابی و استعلام قیمت</h2>
+                    <span className="bg-amber-400 text-slate-950 px-2.5 py-0.5 rounded-full text-xs font-black">
+                      جدید
+                    </span>
+                  </div>
+                  <span className="text-sm font-serif italic font-bold text-teal-100 block mt-0.5">
+                    Marketing & Lead Quotations
+                  </span>
+                  <p className="text-xs text-teal-100/80 mt-1 hidden sm:block">
+                    ثبت اطلاعات مشتری، نوع مقوا، گرماژ، ساختار جعبه و سلفون جهت برآورد قیمت توسط مدیر بازرگانی
+                  </p>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
       </div>
 
       {/* Access Denied Modal Alert */}
