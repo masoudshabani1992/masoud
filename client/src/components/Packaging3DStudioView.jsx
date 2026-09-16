@@ -26,12 +26,15 @@ import {
   Share2,
   FileCode,
   ShoppingBag,
-  CircleDot
+  CircleDot,
+  Trash2
 } from 'lucide-react';
 import {
+  createPaperboardTexture,
+  createKraftTexture,
+  createDuplexTexture,
   createMarbleTexture,
   createWoodTexture,
-  createKraftTexture,
   createPresetArtwork
 } from '../utils/proceduralTextures';
 
@@ -95,23 +98,23 @@ const MODELS_DATA = [
   { id: 'lotion_tube', category: 'cans', name: 'تیوب انعطاف‌پذیر کرم و لوسیون', farsiName: 'تیوب کرم و لوسیون', defaultDim: { l: 40, w: 30, h: 140, t: 0.5 }, icon: '🧪' }
 ];
 
-// 2. Finishing & Craft Effects (Pacdora Crafts & Foil in Persian)
-const CRAFT_EFFECTS = [
-  { id: 'standard', name: 'چاپ افست استاندارد (Offset Print)', desc: 'پوشش ورنی ملایم و رنگ‌های طبیعی افست', color: '#e2e8f0', foil: 'none' },
-  { id: 'gold_foil', name: 'طلاکوب براق برجسته (Gold Hot Stamping)', desc: 'فویل متالیک طلایی ۲۴ عیار با رفلکس خیره‌کننده نور', color: '#fbbf24', foil: 'gold' },
-  { id: 'silver_foil', name: 'نقره‌کوب براق آینه‌ای (Silver Stamping)', desc: 'فویل کروم متالیک نقره‌ای بازتابنده', color: '#e2e8f0', foil: 'silver' },
-  { id: 'rose_gold', name: 'رزگلد متالیک لوکس (Rose Gold Foil)', desc: 'طلاکوب رزگلد مدرن برای بسته‌بندی‌های خاص', color: '#fb7185', foil: 'rosegold' },
-  { id: 'spot_uv', name: 'یووی موضعی برجسته (Spot UV Coating)', desc: 'لایه لاک شیشه‌ای براق و برجسته روی نقوش', color: '#38bdf8', foil: 'uv' },
-  { id: 'emboss', name: 'برجسته‌کاری ۳ بعدی (Embossing 3D)', desc: 'برآمدگی فیزیکی نقوش و خطوط برجسته', color: '#a855f7', foil: 'emboss' },
-  { id: 'soft_touch', name: 'سلفون مخملی لمسی (Soft-Touch Velvet)', desc: 'پوشش فوق‌العاده مات با حس لمس مخمل', color: '#334155', foil: 'velvet' },
-  { id: 'natural_kraft', name: 'کرافت طبیعی ارگانیک (Natural Kraft)', desc: 'بافت واقعی الیاف چوب بازیافتی با ذرات طبیعی', color: '#b45309', foil: 'kraft' }
+// 2. Pure Raw Packaging Materials & Board Types (No Forced Colored Designs)
+const RAW_MATERIALS = [
+  { id: 'white_cardboard', name: 'مقوای ایندربرد سفید بهداشتی (White Board)', desc: 'مقوای سفید مات بهداشتی با الیاف سلولزی خالص بدون طرح اضافه', color: '#ffffff', type: 'paperboard' },
+  { id: 'kraft_brown', name: 'مقوای کرافت طبیعی قهوه‌ای (Brown Kraft)', desc: 'بافت طبیعی ارگانیک کرافت با الیاف چوب و ظاهر کلاسیک کارتن', color: '#c89d6c', type: 'kraft' },
+  { id: 'duplex_gray', name: 'مقوای پشت طوسی صنعتی (Duplex Board)', desc: 'مقوای صنعتی خاکستری مناسب جعبه‌های عمومی و دارویی', color: '#e2e8f0', type: 'duplex' },
+  { id: 'gold_foil', name: 'مقوای سفید + فویل طلاکوب برجسته (Gold Foil)', desc: 'فویل متالیک طلایی ۲۴ عیار با رفلکس نور روی مقوای سفید', color: '#fbbf24', type: 'paperboard', foil: 'gold' },
+  { id: 'silver_foil', name: 'مقوای سفید + فویل نقره‌کوب (Silver Foil)', desc: 'فویل کروم متالیک نقره‌ای روی مقوای سفید', color: '#f1f5f9', type: 'paperboard', foil: 'silver' },
+  { id: 'kraft_gold', name: 'کرافت طبیعی + طلاکوب متالیک (Kraft & Gold)', desc: 'ترکیب لوکس و جذاب مقوای کرافت قهوه‌ای با طلاکوب براق', color: '#d97706', type: 'kraft', foil: 'gold' },
+  { id: 'spot_uv', name: 'یووی موضعی برجسته شیشه‌ای (Spot UV)', desc: 'لایه لاک شیشه‌ای براق و برجسته روی مقوای مات', color: '#38bdf8', type: 'paperboard', foil: 'uv' },
+  { id: 'soft_touch', name: 'سلفون مخملی مات (Soft-Touch Velvet)', desc: 'پوشش فوق‌العاده مات با حس لمس مخملین', color: '#334155', type: 'paperboard', foil: 'velvet' }
 ];
 
 // 3. 3D Studio Scenes & Environments
 const SCENES = [
-  { id: 'luxury_marble', name: 'استودیو لوکس مرمر (Light Luxury)', desc: 'استودیو عکاسی لوکس با سنگ مرمر سفید Carrara', floor: 'marble', bg: 'linear-gradient(135deg, #1e293b, #0f172a)', lightColor: '#ffffff' },
+  { id: 'minimal_white', name: 'استودیو مینیمال صنعتی (Studio Minimal)', desc: 'استودیو عکاسی صنعتی تمیز با پس‌زمینه روشن و نور ملایم', floor: 'concrete', bg: 'linear-gradient(135deg, #1e293b, #0f172a)', lightColor: '#ffffff' },
+  { id: 'luxury_marble', name: 'استودیو سنگ مرمر (Light Luxury)', desc: 'استودیو لوکس با سنگ مرمر سفید Carrara', floor: 'marble', bg: 'linear-gradient(135deg, #1e293b, #0f172a)', lightColor: '#ffffff' },
   { id: 'nature_wood', name: 'طبیعت و چوب بلوط (Nature & Wood)', desc: 'استودیو ارگانیک با صفحه چوب بلوط طبیعی', floor: 'wood', bg: 'linear-gradient(135deg, #2e1065, #0f172a)', lightColor: '#fef3c7' },
-  { id: 'minimal_white', name: 'استودیو مینیمال روشن (Studio Minimal)', desc: 'استودیو عکاسی صنعتی با پس‌زمینه روشن', floor: 'concrete', bg: 'linear-gradient(135deg, #f8fafc, #e2e8f0)', lightColor: '#ffffff' },
   { id: 'universe_dark', name: 'صحنه سینمایی دارک (Universe Dark)', desc: 'فضای تاریک سینمایی با نور لبه‌ای نئون', floor: 'mirror', bg: 'linear-gradient(135deg, #09090b, #030712)', lightColor: '#38bdf8' },
   { id: 'podium_stand', name: 'استند نمایشگاهی (Exhibition Podium)', desc: 'سکوی پودیوم مدور نمایشگاهی با رینگ طلایی', floor: 'marble', bg: 'linear-gradient(135deg, #172554, #0f172a)', lightColor: '#fef08a' }
 ];
@@ -124,14 +127,6 @@ const LIGHTING_PRESETS = [
   { id: 'commercial_softbox', name: 'سافت‌باکس تبلیغاتی (High-Key Commercial)', intensity: 2.0, azimuth: 30, elevation: 70, temp: 'neutral' }
 ];
 
-// 5. Pre-made Brand Design Templates
-const BRAND_PRESETS = [
-  { id: 'luxury_perfume', name: 'عطر و ادکلن لوکس زمردین', desc: 'مشکی طلایی ۲۴ عیار با نشان برجسته' },
-  { id: 'organic_coffee', name: 'قهوه ارگانیک تخصصی عربیکا', desc: 'تم خاکی گرم با بافت طبیعی' },
-  { id: 'pharma_med', name: 'دارویی و بهداشتی آرمان امیران', desc: 'سفید و آبی کلینیکال با کادر فنی' },
-  { id: 'minimal_cosmetic', name: 'سرم مراقبت پوست هیالورونیک', desc: 'صورتی ملایم با طلاکوب رزگلد' }
-];
-
 export default function Packaging3DStudioView({
   initialBoxSpecs = null,
   onSwitchTo2DDieline,
@@ -139,31 +134,30 @@ export default function Packaging3DStudioView({
 }) {
   const mountRef = useRef(null);
 
-  // Active Tool Tab: 'models', 'upload', 'crafts', 'scenes', 'lighting', 'animation'
+  // Active Tool Tab: 'models', 'materials', 'upload', 'scenes', 'lighting', 'animation'
   const [activeTab, setActiveTab] = useState('models');
 
   // Model & Dimensions State
   const [selectedModelId, setSelectedModelId] = useState(initialBoxSpecs?.modelId || 'mailer');
   const [activeCategory, setActiveCategory] = useState('boxes');
-  const [lengthMm, setLengthMm] = useState(initialBoxSpecs?.length || 200);
-  const [widthMm, setWidthMm] = useState(initialBoxSpecs?.width || 150);
+  const [lengthMm, setLengthMm] = useState(initialBoxSpecs?.length || 220);
+  const [widthMm, setWidthMm] = useState(initialBoxSpecs?.width || 160);
   const [heightMm, setHeightMm] = useState(initialBoxSpecs?.height || 60);
   const [thicknessMm, setThicknessMm] = useState(initialBoxSpecs?.thickness || 1.5);
   const [unitMode, setUnitMode] = useState('mm');
 
-  // Materials & Finishing State
-  const [selectedCraft, setSelectedCraft] = useState('gold_foil');
-  const [boxBaseColor, setBoxBaseColor] = useState('#dfbe95');
-  const [roughness, setRoughness] = useState(0.5);
-  const [metalness, setMetalness] = useState(0.1);
+  // Materials & Board Type State - Pure Raw White Paperboard by Default (بدون طرح و رنگ اضافی)
+  const [selectedCraft, setSelectedCraft] = useState('white_cardboard');
+  const [boxBaseColor, setBoxBaseColor] = useState('#fafaf9');
+  const [roughness, setRoughness] = useState(0.38);
+  const [metalness, setMetalness] = useState(0.04);
 
-  // Artwork & Face Textures
-  const [selectedBrandPreset, setSelectedBrandPreset] = useState('luxury_perfume');
+  // Artwork / Texture Upload (null by default for clean paperboard)
   const [uploadedArtworkUrl, setUploadedArtworkUrl] = useState(null);
 
   // Scene & Environment
-  const [selectedScene, setSelectedScene] = useState('luxury_marble');
-  const [hasPodium, setHasPodium] = useState(true);
+  const [selectedScene, setSelectedScene] = useState('minimal_white');
+  const [hasPodium, setHasPodium] = useState(false);
 
   // Studio Lighting
   const [lightingPreset, setLightingPreset] = useState('3point_soft');
@@ -214,57 +208,80 @@ export default function Packaging3DStudioView({
     reader.readAsDataURL(file);
   };
 
-  // Reset Camera Position
+  const handleClearArtwork = () => {
+    setUploadedArtworkUrl(null);
+    setSelectedCraft('white_cardboard');
+  };
+
+  // 4K Render Exporter
+  const handleExport4KRender = () => {
+    if (!threeRef.current.renderer || !threeRef.current.scene || !threeRef.current.camera) return;
+
+    setIsExporting(true);
+    const renderer = threeRef.current.renderer;
+    const scene = threeRef.current.scene;
+    const camera = threeRef.current.camera;
+
+    // Temporary resize to 4K resolution (3840 x 2160)
+    const oldW = renderer.domElement.width;
+    const oldH = renderer.domElement.height;
+    const oldAspect = camera.aspect;
+
+    renderer.setSize(3840, 2160, false);
+    camera.aspect = 3840 / 2160;
+    camera.updateProjectionMatrix();
+
+    renderer.render(scene, camera);
+
+    const dataUrl = renderer.domElement.toDataURL('image/png', 1.0);
+
+    // Restore viewport size
+    renderer.setSize(oldW, oldH, false);
+    camera.aspect = oldAspect;
+    camera.updateProjectionMatrix();
+    renderer.render(scene, camera);
+
+    const link = document.createElement('a');
+    link.download = `رندر-استودیو-امیران-${selectedModelId}-${lengthMm}x${widthMm}x${heightMm}mm-4K.png`;
+    link.href = dataUrl;
+    link.click();
+
+    setTimeout(() => setIsExporting(false), 800);
+  };
+
+  // Camera Angle Helpers
   const handleSetCameraAngle = (view) => {
     setCameraView(view);
     const camera = threeRef.current.camera;
     if (!camera) return;
 
     const maxDim = Math.max(lengthMm, widthMm, heightMm, 120);
-    const dist = maxDim * 2.5;
+    const dist = maxDim * 2.2;
 
     switch (view) {
       case 'front':
         camera.position.set(0, heightMm / 2, dist);
         break;
       case 'top':
-        camera.position.set(0, dist * 1.2, 0.001);
-        break;
-      case 'left':
-        camera.position.set(-dist, heightMm / 2, 0);
+        camera.position.set(0, dist * 1.3, 0.001);
         break;
       case 'right':
         camera.position.set(dist, heightMm / 2, 0);
         break;
       case 'isometric':
-        camera.position.set(dist * 0.7, dist * 0.7, dist * 0.7);
+        camera.position.set(dist * 0.8, dist * 0.9, dist * 0.8);
         break;
       case 'perspective':
       default:
-        camera.position.set(dist * 0.8, dist * 0.9, dist * 1.1);
+        camera.position.set(dist * 0.9, dist * 0.7, dist * 1.1);
         break;
     }
     camera.lookAt(0, heightMm / 2, 0);
   };
 
-  // Export 4K Image Render
-  const handleExport4KRender = () => {
-    setIsExporting(true);
-    setTimeout(() => {
-      const renderer = threeRef.current.renderer;
-      if (renderer) {
-        const link = document.createElement('a');
-        link.download = `رندر-سه-بعدی-آرمان-امیران-${selectedModelId}-${Date.now()}.png`;
-        link.href = renderer.domElement.toDataURL('image/png', 1.0);
-        link.click();
-      }
-      setIsExporting(false);
-    }, 400);
-  };
-
-  // ==========================================
-  // THREE.JS MASTER ENGINE & WEBGL PIPELINE
-  // ==========================================
+  // ========================================================
+  // THREE.JS MASTER ENGINE & PBR PIPELINE
+  // ========================================================
   useEffect(() => {
     if (!mountRef.current) return;
 
@@ -276,65 +293,61 @@ export default function Packaging3DStudioView({
     const scene = new THREE.Scene();
     threeRef.current.scene = scene;
 
+    // Background Gradient Color
+    scene.background = new THREE.Color(0x0a0f1d);
+
     // 2. Camera Setup
-    const camera = new THREE.PerspectiveCamera(40, width / height, 1, 4000);
+    const camera = new THREE.PerspectiveCamera(40, width / height, 1, 6000);
     const maxDim = Math.max(lengthMm, widthMm, heightMm, 120);
-    camera.position.set(maxDim * 1.6, maxDim * 1.8, maxDim * 2.3);
+    camera.position.set(maxDim * 1.8, maxDim * 1.4, maxDim * 2.2);
     camera.lookAt(0, heightMm / 2, 0);
     threeRef.current.camera = camera;
 
-    // 3. WebGL Renderer with High Precision PBR Shaders
+    // 3. WebGL Renderer with High-Precision Shadows & Tone Mapping
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
       alpha: true,
-      preserveDrawingBuffer: true,
-      powerPreference: 'high-performance'
+      powerPreference: 'high-performance',
+      preserveDrawingBuffer: true
     });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2.5));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.1;
+    renderer.toneMappingExposure = 1.15;
+    threeRef.current.renderer = renderer;
 
-    // Clear previous elements
     while (container.firstChild) {
       container.removeChild(container.firstChild);
     }
     container.appendChild(renderer.domElement);
-    threeRef.current.renderer = renderer;
 
-    // 4. Lighting System
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+    // 4. Lighting Rig
+    const ambientLight = new THREE.AmbientLight(0xffffff, lightIntensity * 0.6);
     scene.add(ambientLight);
 
-    const mainKeyLight = new THREE.DirectionalLight(0xffffff, lightIntensity * 1.2);
-    mainKeyLight.castShadow = true;
-    mainKeyLight.shadow.mapSize.width = 2048;
-    mainKeyLight.shadow.mapSize.height = 2048;
-    mainKeyLight.shadow.bias = -0.0001;
-    scene.add(mainKeyLight);
+    const rad = (lightAngle * Math.PI) / 180;
+    const mainLight = new THREE.DirectionalLight(0xffffff, lightIntensity * 1.8);
+    mainLight.position.set(Math.cos(rad) * 450, 600, Math.sin(rad) * 450);
+    mainLight.castShadow = true;
+    mainLight.shadow.mapSize.width = 2048;
+    mainLight.shadow.mapSize.height = 2048;
+    mainLight.shadow.camera.near = 10;
+    mainLight.shadow.camera.far = 2000;
+    mainLight.shadow.bias = -0.0001;
+    scene.add(mainLight);
 
-    const fillLight = new THREE.DirectionalLight(0xbfdbfe, 0.8);
+    const fillLight = new THREE.DirectionalLight(0xdbeafe, lightIntensity * 0.8);
+    fillLight.position.set(-Math.sin(rad) * 400, 300, -Math.cos(rad) * 400);
     scene.add(fillLight);
 
-    const rimLight = new THREE.DirectionalLight(0xfef08a, 1.2);
+    const rimLight = new THREE.DirectionalLight(0xfef08a, lightIntensity * 0.6);
+    rimLight.position.set(0, -300, 300);
     scene.add(rimLight);
 
-    // Compute Light Position from Azimuth & Elevation
-    const radAz = (lightAngle * Math.PI) / 180;
-    const radEl = (55 * Math.PI) / 180;
-    const lightDist = 600;
-    mainKeyLight.position.set(
-      lightDist * Math.cos(radAz) * Math.cos(radEl),
-      lightDist * Math.sin(radEl),
-      lightDist * Math.sin(radAz) * Math.cos(radEl)
-    );
-    fillLight.position.set(-lightDist * 0.6, lightDist * 0.4, -lightDist * 0.6);
-    rimLight.position.set(0, -lightDist * 0.3, lightDist * 0.8);
-
-    // 5. Floor & Ground Shadow Mesh
-    const floorGeo = new THREE.PlaneGeometry(1600, 1600);
+    // 5. Studio Floor Grid / Plane
+    const floorGeo = new THREE.PlaneGeometry(3000, 3000);
     let floorMat;
 
     if (selectedScene === 'luxury_marble') {
@@ -361,8 +374,8 @@ export default function Packaging3DStudioView({
       });
     } else {
       floorMat = new THREE.MeshStandardMaterial({
-        color: 0xf1f5f9,
-        roughness: 0.8,
+        color: 0x111827,
+        roughness: 0.85,
         metalness: 0.0
       });
     }
@@ -411,8 +424,14 @@ export default function Packaging3DStudioView({
     scene.add(modelGroup);
     threeRef.current.modelGroup = modelGroup;
 
-    // Generate Textures & Materials
+    // ===============================================
+    // PURE RAW PACKAGING MATERIAL TEXTURE PIPELINE
+    // ===============================================
     let artworkTex = null;
+    let foilMetalness = 0.04;
+    let foilRoughness = 0.38;
+    let foilColor = new THREE.Color('#fafaf9');
+
     if (uploadedArtworkUrl) {
       const img = new Image();
       img.src = uploadedArtworkUrl;
@@ -420,39 +439,51 @@ export default function Packaging3DStudioView({
       img.onload = () => {
         artworkTex.needsUpdate = true;
       };
-    } else {
-      const presetData = createPresetArtwork(selectedBrandPreset, 'شرکت آرمان امیران');
-      artworkTex = presetData.texture;
-    }
-
-    // Calculate Materials for PBR Shader & Finishing Crafts
-    let foilMetalness = metalness;
-    let foilRoughness = roughness;
-    let foilColor = new THREE.Color(boxBaseColor);
-
-    if (selectedCraft === 'gold_foil') {
+    } else if (selectedCraft === 'kraft_brown' || selectedCraft === 'kraft' || selectedCraft === 'natural_kraft') {
+      // Natural Brown Kraft Paperboard (مقوای کرافت طبیعی قهوه‌ای)
+      artworkTex = createKraftTexture();
+      artworkTex.repeat.set(2, 2);
+      foilColor = new THREE.Color('#c89d6c');
+      foilRoughness = 0.82;
+      foilMetalness = 0.02;
+    } else if (selectedCraft === 'duplex_gray' || selectedCraft === 'duplex') {
+      // Duplex Greyback Board (مقوای پشت طوسی)
+      artworkTex = createDuplexTexture();
+      artworkTex.repeat.set(2, 2);
+      foilColor = new THREE.Color('#f1f1ed');
+      foilRoughness = 0.55;
+      foilMetalness = 0.03;
+    } else if (selectedCraft === 'gold_foil') {
+      artworkTex = createPaperboardTexture();
+      artworkTex.repeat.set(2, 2);
+      foilColor = new THREE.Color('#fbbf24');
       foilMetalness = 0.85;
       foilRoughness = 0.2;
-      foilColor = new THREE.Color(0xfbbf24);
     } else if (selectedCraft === 'silver_foil') {
+      artworkTex = createPaperboardTexture();
+      artworkTex.repeat.set(2, 2);
+      foilColor = new THREE.Color('#f1f5f9');
       foilMetalness = 0.95;
       foilRoughness = 0.1;
-      foilColor = new THREE.Color(0xf1f5f9);
-    } else if (selectedCraft === 'rose_gold') {
-      foilMetalness = 0.85;
-      foilRoughness = 0.2;
-      foilColor = new THREE.Color(0xfb7185);
-    } else if (selectedCraft === 'spot_uv') {
-      foilRoughness = 0.05;
-      foilMetalness = 0.3;
+    } else if (selectedCraft === 'kraft_gold') {
+      artworkTex = createKraftTexture();
+      artworkTex.repeat.set(2, 2);
+      foilColor = new THREE.Color('#d97706');
+      foilMetalness = 0.75;
+      foilRoughness = 0.4;
     } else if (selectedCraft === 'soft_touch') {
+      artworkTex = createPaperboardTexture();
+      artworkTex.repeat.set(2, 2);
+      foilColor = new THREE.Color('#334155');
       foilRoughness = 0.95;
       foilMetalness = 0.0;
-    } else if (selectedCraft === 'natural_kraft') {
-      const kraftTex = createKraftTexture();
-      artworkTex = kraftTex;
-      foilRoughness = 0.85;
-      foilColor = new THREE.Color(0xc89d6c);
+    } else {
+      // Default: Clean Pure White Paperboard (مقوای ایندربرد سفید بهداشتی خام)
+      artworkTex = createPaperboardTexture();
+      artworkTex.repeat.set(2, 2);
+      foilColor = new THREE.Color('#fafaf9');
+      foilRoughness = 0.38;
+      foilMetalness = 0.04;
     }
 
     const boxMat = new THREE.MeshStandardMaterial({
@@ -468,7 +499,7 @@ export default function Packaging3DStudioView({
       color: showWireframe ? 0xef4444 : 0x3b82f6,
       linewidth: showWireframe ? 2.5 : 1.2,
       transparent: true,
-      opacity: showWireframe ? 1.0 : 0.4
+      opacity: showWireframe ? 1.0 : 0.35
     });
 
     const creaseEdgeMat = new THREE.LineDashedMaterial({
@@ -478,7 +509,7 @@ export default function Packaging3DStudioView({
       dashSize: 4,
       gapSize: 2,
       transparent: true,
-      opacity: showWireframe ? 1.0 : 0.2
+      opacity: showWireframe ? 1.0 : 0.25
     });
 
     const L = Math.max(20, lengthMm);
@@ -641,7 +672,7 @@ export default function Packaging3DStudioView({
       iRight.rotation.y = -Math.PI / 2;
       modelGroup.add(iRight);
 
-      // Spine & Front Book Lid (rotates like a book)
+      // Spine & Front Book Lid
       const spinePivot = new THREE.Group();
       spinePivot.position.set(0, 0, -W / 2);
       modelGroup.add(spinePivot);
@@ -724,7 +755,6 @@ export default function Packaging3DStudioView({
       rWall.rotation.y = -Math.PI / 2;
       modelGroup.add(rWall);
 
-      // Roof Slanted Panels
       const fRoof = makeBoxPanel(L, roofH);
       fRoof.position.set(0, bodyH + roofH / 2, W / 4);
       fRoof.rotation.x = -Math.PI / 6 * f;
@@ -781,13 +811,11 @@ export default function Packaging3DStudioView({
 
     } else {
       // 8. Articulated Master Folding Carton (Tuck End, RTE, Snap Lock, Auto Bottom, Mailer, RSC, HSC, FOL, Pizza, Hanging Tab, Cake, Fry, Counter Display, 4-Corner Tray)
-      // Base Bottom Panel (Lies at y=0)
       const bottom = makeBoxPanel(L, W);
       bottom.rotation.x = -Math.PI / 2;
       bottom.position.y = 0;
       modelGroup.add(bottom);
 
-      // Rear Wall & Hinged Lid
       const rearPivot = new THREE.Group();
       rearPivot.position.set(0, 0, -W / 2);
       modelGroup.add(rearPivot);
@@ -798,7 +826,6 @@ export default function Packaging3DStudioView({
       rearPivot.add(rearWall);
       rearPivot.rotation.x = foldRad;
 
-      // Top Lid (Hinged to Rear Wall)
       const lidPivot = new THREE.Group();
       lidPivot.position.set(0, H, 0);
       rearPivot.add(lidPivot);
@@ -808,7 +835,6 @@ export default function Packaging3DStudioView({
       lidPivot.add(lidPanel);
       lidPivot.rotation.x = foldRad;
 
-      // Front Locking Flap
       const flapPivot = new THREE.Group();
       flapPivot.position.set(0, W, 0);
       lidPivot.add(flapPivot);
@@ -819,7 +845,6 @@ export default function Packaging3DStudioView({
       flapPivot.add(flapPanel);
       flapPivot.rotation.x = foldRad;
 
-      // Front Wall
       const frontPivot = new THREE.Group();
       frontPivot.position.set(0, 0, W / 2);
       modelGroup.add(frontPivot);
@@ -830,7 +855,6 @@ export default function Packaging3DStudioView({
       frontPivot.add(frontWall);
       frontPivot.rotation.x = -foldRad;
 
-      // Left Wall
       const leftPivot = new THREE.Group();
       leftPivot.position.set(-L / 2, 0, 0);
       modelGroup.add(leftPivot);
@@ -841,7 +865,6 @@ export default function Packaging3DStudioView({
       leftPivot.add(leftWall);
       leftPivot.rotation.z = -foldRad;
 
-      // Right Wall
       const rightPivot = new THREE.Group();
       rightPivot.position.set(L / 2, 0, 0);
       modelGroup.add(rightPivot);
@@ -892,19 +915,20 @@ export default function Packaging3DStudioView({
     let animId;
     const animate = () => {
       animId = requestAnimationFrame(animate);
+
       if (isAutoRotating && !isDragging) {
         modelGroup.rotation.y += 0.006 * rotationSpeed;
       }
+
       renderer.render(scene, camera);
     };
     animate();
-    threeRef.current.animId = animId;
 
-    // Resize
+    // Window Resize Handler
     const handleResize = () => {
-      if (!mountRef.current) return;
-      const newW = mountRef.current.clientWidth;
-      const newH = mountRef.current.clientHeight;
+      if (!container) return;
+      const newW = container.clientWidth;
+      const newH = container.clientHeight;
       camera.aspect = newW / newH;
       camera.updateProjectionMatrix();
       renderer.setSize(newW, newH);
@@ -930,7 +954,6 @@ export default function Packaging3DStudioView({
     boxBaseColor,
     roughness,
     metalness,
-    selectedBrandPreset,
     uploadedArtworkUrl,
     selectedScene,
     hasPodium,
@@ -957,13 +980,13 @@ export default function Packaging3DStudioView({
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-black text-amber-400 text-sm tracking-wide">استودیو طراحی و رندرینگ ۳ بعدی Pacdora</span>
+              <span className="font-black text-amber-400 text-sm tracking-wide">استودیو طراحی و رندرینگ ۳ بعدی امیران</span>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
                 PRO 4K
               </span>
             </div>
             <span className="text-xs text-slate-400 font-medium hidden sm:inline">
-              شبیه‌ساز تاشدن، اعمال متریال و افکت‌های چاپ و طلاکوب
+              شبیه‌ساز تاشدن، متریال مقوای خام/کرافت و خطوط دقیق CAD
             </span>
           </div>
         </div>
@@ -1063,8 +1086,8 @@ export default function Packaging3DStudioView({
           <div className="grid grid-cols-6 border-b border-slate-800 bg-slate-950 p-1.5 gap-1">
             {[
               { id: 'models', label: 'مدل‌ها', icon: Box },
-              { id: 'upload', label: 'طراحی', icon: Upload },
-              { id: 'crafts', label: 'افکت‌ها', icon: Sparkles },
+              { id: 'materials', label: 'متریال', icon: Layers },
+              { id: 'upload', label: 'طرح چاپی', icon: Upload },
               { id: 'scenes', label: 'صحنه', icon: Palette },
               { id: 'lighting', label: 'نور', icon: Sun },
               { id: 'animation', label: 'حرکت', icon: Film }
@@ -1173,113 +1196,68 @@ export default function Packaging3DStudioView({
               </div>
             )}
 
-            {/* TAB 2: UPLOAD & ARTWORK */}
-            {activeTab === 'upload' && (
+            {/* TAB 2: RAW PACKAGING MATERIALS (مقوای ایندربرد / کرافت خام) */}
+            {activeTab === 'materials' && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-black text-white flex items-center gap-2">
-                    <Upload className="w-4 h-4 text-indigo-400" />
-                    <span>آپلود طرح گرافیکی روی محصول</span>
-                  </h3>
-                </div>
-
-                <label className="flex flex-col items-center justify-center border-2 border-dashed border-indigo-500/40 hover:border-indigo-400 rounded-2xl p-5 bg-indigo-950/20 hover:bg-indigo-950/40 cursor-pointer transition">
-                  <Upload className="w-8 h-8 text-indigo-400 mb-2 animate-bounce" />
-                  <span className="text-xs font-black text-indigo-200">بارگذاری فایل طرح (PNG / JPG / SVG)</span>
-                  <span className="text-[10px] text-slate-400 mt-1">اعمال آنی بر روی تمام سطوح سه‌بعدی</span>
-                  <input type="file" accept="image/*" onChange={handleArtworkUpload} className="hidden" />
-                </label>
-
-                <div className="space-y-2 pt-2">
-                  <span className="text-xs font-black text-slate-300">طرح‌های نمونه آماده صنعتی:</span>
-                  <div className="space-y-2">
-                    {BRAND_PRESETS.map((p) => (
-                      <div
-                        key={p.id}
-                        onClick={() => {
-                          setSelectedBrandPreset(p.id);
-                          setUploadedArtworkUrl(null);
-                        }}
-                        className={`p-3 rounded-2xl border text-right cursor-pointer transition ${
-                          selectedBrandPreset === p.id && !uploadedArtworkUrl
-                            ? 'bg-indigo-950/80 border-amber-400'
-                            : 'bg-slate-950/50 border-slate-800 hover:bg-slate-800/50'
-                        }`}
-                      >
-                        <div className="text-xs font-black text-white">{p.name}</div>
-                        <div className="text-[10px] text-slate-400 mt-0.5">{p.desc}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* TAB 3: CRAFTS & FOIL */}
-            {activeTab === 'crafts' && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-black text-white flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-amber-400" />
-                    <span>افکت‌های ویژه چاپ و طلاکوب</span>
+                    <Layers className="w-4 h-4 text-amber-400" />
+                    <span>جنس و متریال مقوای خام / کرافت</span>
                   </h3>
                 </div>
 
                 <div className="space-y-2">
-                  {CRAFT_EFFECTS.map((craft) => (
+                  {RAW_MATERIALS.map((mat) => (
                     <div
-                      key={craft.id}
-                      onClick={() => setSelectedCraft(craft.id)}
-                      className={`p-3 rounded-2xl border text-right cursor-pointer transition ${
-                        selectedCraft === craft.id
+                      key={mat.id}
+                      onClick={() => {
+                        setSelectedCraft(mat.id);
+                        setUploadedArtworkUrl(null);
+                      }}
+                      className={`p-3.5 rounded-2xl border text-right cursor-pointer transition ${
+                        selectedCraft === mat.id && !uploadedArtworkUrl
                           ? 'bg-amber-950/40 border-amber-400 ring-2 ring-amber-400/20'
                           : 'bg-slate-950/40 border-slate-800 hover:bg-slate-800/40'
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-black text-white">{craft.name}</span>
-                        <span className="w-3.5 h-3.5 rounded-full border border-white/30" style={{ backgroundColor: craft.color }} />
+                        <span className="text-xs font-black text-white">{mat.name}</span>
+                        <span className="w-4 h-4 rounded-full border border-white/30 shadow-xs" style={{ backgroundColor: mat.color }} />
                       </div>
-                      <p className="text-[10px] text-slate-400 mt-1 leading-relaxed">{craft.desc}</p>
+                      <p className="text-[10px] text-slate-400 mt-1 leading-relaxed">{mat.desc}</p>
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
 
-                <div className="pt-4 border-t border-slate-800 space-y-3">
-                  <span className="text-xs font-black text-slate-300 block">خصوصیات فیزیکی متریال (PBR):</span>
-                  
-                  <div>
-                    <div className="flex justify-between text-[10px] text-slate-400 mb-1">
-                      <span>زبری سطح (Roughness):</span>
-                      <span className="font-mono text-amber-300">{Math.round(roughness * 100)}%</span>
-                    </div>
-                    <input
-                      type="range"
-                      min="0.0"
-                      max="1.0"
-                      step="0.05"
-                      value={roughness}
-                      onChange={(e) => setRoughness(parseFloat(e.target.value))}
-                      className="w-full accent-indigo-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
-                    />
-                  </div>
-
-                  <div>
-                    <div className="flex justify-between text-[10px] text-slate-400 mb-1">
-                      <span>ضریب متالیک و درخشش (Metalness):</span>
-                      <span className="font-mono text-amber-300">{Math.round(metalness * 100)}%</span>
-                    </div>
-                    <input
-                      type="range"
-                      min="0.0"
-                      max="1.0"
-                      step="0.05"
-                      value={metalness}
-                      onChange={(e) => setMetalness(parseFloat(e.target.value))}
-                      className="w-full accent-indigo-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
-                    />
-                  </div>
+            {/* TAB 3: UPLOAD & CUSTOM PRINT (اختیاری) */}
+            {activeTab === 'upload' && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-black text-white flex items-center gap-2">
+                    <Upload className="w-4 h-4 text-indigo-400" />
+                    <span>آپلود طرح گرافیکی اختصاصی (اختیاری)</span>
+                  </h3>
                 </div>
+
+                <label className="flex flex-col items-center justify-center border-2 border-dashed border-indigo-500/40 hover:border-indigo-400 rounded-2xl p-5 bg-indigo-950/20 hover:bg-indigo-950/40 cursor-pointer transition">
+                  <Upload className="w-8 h-8 text-indigo-400 mb-2 animate-bounce" />
+                  <span className="text-xs font-black text-indigo-200">بارگذاری فایل طرح چاپی (PNG / JPG / SVG)</span>
+                  <span className="text-[10px] text-slate-400 mt-1">اعمال روی تمام وجوه مدل سه‌بعدی</span>
+                  <input type="file" accept="image/*" onChange={handleArtworkUpload} className="hidden" />
+                </label>
+
+                {uploadedArtworkUrl && (
+                  <button
+                    type="button"
+                    onClick={handleClearArtwork}
+                    className="w-full py-2.5 px-4 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>پاکسازی طرح و بازگشت به مقوای خام</span>
+                  </button>
+                )}
               </div>
             )}
 
@@ -1300,24 +1278,24 @@ export default function Packaging3DStudioView({
                       onClick={() => setSelectedScene(scene.id)}
                       className={`p-3 rounded-2xl border text-right cursor-pointer transition ${
                         selectedScene === scene.id
-                          ? 'bg-indigo-950/70 border-indigo-400 ring-2 ring-indigo-400/20'
-                          : 'bg-slate-950/40 border-slate-800 hover:bg-slate-800/40'
+                          ? 'bg-indigo-950/80 border-indigo-500 ring-2 ring-indigo-500/20'
+                          : 'bg-slate-950/50 border-slate-800 hover:bg-slate-800/50'
                       }`}
                     >
-                      <div className="text-xs font-black text-white">{scene.name}</div>
-                      <div className="text-[10px] text-slate-400 mt-0.5">{scene.desc}</div>
+                      <span className="text-xs font-black text-white block">{scene.name}</span>
+                      <p className="text-[10px] text-slate-400 mt-0.5">{scene.desc}</p>
                     </div>
                   ))}
                 </div>
 
-                <div className="pt-4 border-t border-slate-800 space-y-3">
-                  <label className="flex items-center justify-between p-3 rounded-2xl bg-slate-950 border border-slate-800 cursor-pointer">
-                    <span className="text-xs font-bold text-slate-300">سکوی نمایشگاهی پودیوم (Podium Stand)</span>
+                <div className="pt-3 border-t border-slate-800">
+                  <label className="flex items-center justify-between cursor-pointer">
+                    <span className="text-xs font-bold text-slate-300">نمایش سکوی پودیوم زیر محصول:</span>
                     <input
                       type="checkbox"
                       checked={hasPodium}
                       onChange={(e) => setHasPodium(e.target.checked)}
-                      className="w-4 h-4 accent-indigo-500 rounded"
+                      className="w-4 h-4 accent-indigo-600 rounded cursor-pointer"
                     />
                   </label>
                 </div>
@@ -1330,26 +1308,26 @@ export default function Packaging3DStudioView({
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-black text-white flex items-center gap-2">
                     <Sun className="w-4 h-4 text-amber-400" />
-                    <span>تنظیمات استودیویی نور و زاویه تابش</span>
+                    <span>تنظیمات نورپردازی استودیو</span>
                   </h3>
                 </div>
 
                 <div className="space-y-2">
-                  {LIGHTING_PRESETS.map((preset) => (
+                  {LIGHTING_PRESETS.map((light) => (
                     <div
-                      key={preset.id}
+                      key={light.id}
                       onClick={() => {
-                        setLightingPreset(preset.id);
-                        setLightIntensity(preset.intensity);
-                        setLightAngle(preset.azimuth);
+                        setLightingPreset(light.id);
+                        setLightIntensity(light.intensity);
+                        setLightAngle(light.azimuth);
                       }}
                       className={`p-3 rounded-2xl border text-right cursor-pointer transition ${
-                        lightingPreset === preset.id
-                          ? 'bg-amber-950/40 border-amber-400 ring-2 ring-amber-400/20'
-                          : 'bg-slate-950/40 border-slate-800 hover:bg-slate-800/40'
+                        lightingPreset === light.id
+                          ? 'bg-amber-950/50 border-amber-400'
+                          : 'bg-slate-950/50 border-slate-800 hover:bg-slate-800/50'
                       }`}
                     >
-                      <div className="text-xs font-black text-white">{preset.name}</div>
+                      <span className="text-xs font-black text-white block">{light.name}</span>
                     </div>
                   ))}
                 </div>
@@ -1357,13 +1335,13 @@ export default function Packaging3DStudioView({
                 <div className="pt-4 border-t border-slate-800 space-y-3">
                   <div>
                     <div className="flex justify-between text-[10px] text-slate-400 mb-1">
-                      <span>شدت نور اصلی:</span>
+                      <span>شدت نور (Intensity):</span>
                       <span className="font-mono text-amber-300">{lightIntensity.toFixed(1)}x</span>
                     </div>
                     <input
                       type="range"
                       min="0.5"
-                      max="3.5"
+                      max="4.0"
                       step="0.1"
                       value={lightIntensity}
                       onChange={(e) => setLightIntensity(parseFloat(e.target.value))}
@@ -1373,7 +1351,7 @@ export default function Packaging3DStudioView({
 
                   <div>
                     <div className="flex justify-between text-[10px] text-slate-400 mb-1">
-                      <span>زاویه تابش نور در افق:</span>
+                      <span>زاویه تابش نور اصلی:</span>
                       <span className="font-mono text-amber-300">{lightAngle}°</span>
                     </div>
                     <input
@@ -1390,13 +1368,13 @@ export default function Packaging3DStudioView({
               </div>
             )}
 
-            {/* TAB 6: ANIMATION */}
+            {/* TAB 6: ANIMATION & FOLD */}
             {activeTab === 'animation' && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-black text-white flex items-center gap-2">
                     <Film className="w-4 h-4 text-indigo-400" />
-                    <span>شبیه‌ساز تاشدن و چرخش ۳۶۰ درجه</span>
+                    <span>انیمیشن تاشدن و چرخش محصول</span>
                   </h3>
                 </div>
 
@@ -1417,25 +1395,22 @@ export default function Packaging3DStudioView({
                   />
                   <div className="flex justify-between text-[10px] text-slate-500 font-bold">
                     <span>گسترده تخت (۰٪)</span>
-                    <span>نیمه‌باز (۵۰٪)</span>
-                    <span>بسته کامل (۱۰۰٪)</span>
+                    <span>نیمه تا (۵۰٪)</span>
+                    <span>بسته (۱۰۰٪)</span>
                   </div>
                 </div>
 
-                {/* Rotation Toggle & Speed */}
-                <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+                {/* Auto Rotate Control */}
+                <div className="pt-2 border-t border-slate-800 space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-300">چرخش خودکار ۳۶۰ درجه:</span>
+                    <span className="text-xs font-bold text-slate-300">چرخش مداوم استودیویی:</span>
                     <button
-                      type="button"
                       onClick={() => setIsAutoRotating((r) => !r)}
-                      className={`px-3 py-1 rounded-xl text-xs font-bold transition border ${
-                        isAutoRotating
-                          ? 'bg-amber-400 text-slate-950 border-amber-500 font-black'
-                          : 'bg-slate-800 text-slate-300 border-slate-700'
+                      className={`px-3 py-1 rounded-xl text-xs font-bold transition ${
+                        isAutoRotating ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400'
                       }`}
                     >
-                      {isAutoRotating ? 'در حال چرخش' : 'متوقف'}
+                      {isAutoRotating ? 'فعال (روشن)' : 'خاموش'}
                     </button>
                   </div>
 
@@ -1448,7 +1423,7 @@ export default function Packaging3DStudioView({
                       type="range"
                       min="0.2"
                       max="3.0"
-                      step="0.2"
+                      step="0.1"
                       value={rotationSpeed}
                       onChange={(e) => setRotationSpeed(parseFloat(e.target.value))}
                       className="w-full accent-indigo-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
@@ -1462,21 +1437,19 @@ export default function Packaging3DStudioView({
         </div>
 
         {/* ====================================================
-            CENTER 3D VIEWPORT CANVAS
+            CENTER: THREE.JS 3D CANVAS VIEWPORT (Pacdora 3D Engine)
            ==================================================== */}
-        <div className="flex-1 relative bg-slate-950 flex flex-col items-center justify-center overflow-hidden">
+        <div className="flex-1 bg-slate-950 relative flex items-center justify-center overflow-hidden">
           
-          {/* WebGL Mount */}
+          {/* Main Three.js Mount Container */}
           <div
             ref={mountRef}
-            className="w-full h-full cursor-grab active:cursor-grabbing flex items-center justify-center"
+            className="w-full h-full cursor-grab active:cursor-grabbing flex items-center justify-center relative select-none"
           />
 
           {/* Top Left Floating Studio Badge */}
-          <div className="absolute top-4 left-4 bg-slate-900/90 border border-slate-800 px-3.5 py-1.5 rounded-2xl text-xs text-white backdrop-blur-md flex items-center gap-2 shadow-lg pointer-events-none" dir="ltr">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="font-black text-amber-300">Three.js PBR Engine</span>
-            <span className="text-slate-500">|</span>
+          <div className="absolute top-4 left-4 bg-slate-900/80 border border-slate-800/80 px-3 py-1.5 rounded-xl backdrop-blur-md flex items-center gap-2 pointer-events-none z-10">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
             <span className="text-[11px] text-slate-300 font-mono">60 FPS</span>
           </div>
 
@@ -1524,7 +1497,7 @@ export default function Packaging3DStudioView({
               <span>{isAutoRotating ? 'توقف چرخش' : 'چرخش ۳۶۰°'}</span>
             </button>
 
-            {/* Wireframe Toggle */}
+            {/* Wireframe / CAD Lines Toggle */}
             <button
               type="button"
               onClick={() => setShowWireframe((w) => !w)}
@@ -1550,6 +1523,7 @@ export default function Packaging3DStudioView({
         </div>
 
       </div>
+
     </div>
   );
 }
