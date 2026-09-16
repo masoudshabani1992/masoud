@@ -906,8 +906,8 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
               />
             </div>
 
-            {/* Fold Slider */}
-            <div className="space-y-1.5 bg-slate-900/80 p-3 rounded-2xl border border-slate-800">
+            {/* Fold Slider & Quick Presets */}
+            <div className="space-y-2 bg-slate-900/80 p-3 rounded-2xl border border-slate-800">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-slate-300 font-bold">انیمیشن تا شدن جعبه:</span>
                 <span className="font-mono text-amber-400 font-bold">{Math.round(mockupFold * 100)}%</span>
@@ -921,6 +921,35 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
                 onChange={(e) => setMockupFold(parseFloat(e.target.value))}
                 className="w-full accent-amber-500 cursor-pointer"
               />
+              <div className="grid grid-cols-3 gap-1 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setMockupFold(0)}
+                  className={`py-1 rounded-lg text-[10px] font-bold transition ${
+                    mockupFold === 0 ? 'bg-amber-500 text-slate-950 font-black' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                  }`}
+                >
+                  شیت تخت (۰٪)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMockupFold(0.5)}
+                  className={`py-1 rounded-lg text-[10px] font-bold transition ${
+                    mockupFold === 0.5 ? 'bg-amber-500 text-slate-950 font-black' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                  }`}
+                >
+                  ۵۰٪ مونتاژ
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMockupFold(1.0)}
+                  className={`py-1 rounded-lg text-[10px] font-bold transition ${
+                    mockupFold === 1.0 || mockupFold === 1 ? 'bg-amber-500 text-slate-950 font-black' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                  }`}
+                >
+                  جعبه بسته
+                </button>
+              </div>
             </div>
           </div>
 

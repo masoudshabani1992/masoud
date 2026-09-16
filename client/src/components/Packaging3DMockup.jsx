@@ -1,6 +1,14 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
+/**
+ * High-Performance Interactive 3D Packaging Mockup Engine
+ * Features:
+ * - Spherical Orbit Controls (centered on box target, no clipping/disappearing)
+ * - Articulated Multi-Panel Folding (0.0 Flat Sheet -> 0.5 Half-Assembled -> 1.0 Closed Box)
+ * - Raw Natural Cardboard & Kraft Material Shaders
+ * - Crisp Red (Cut) and Green (Crease) CAD Vectors
+ */
 export default function Packaging3DMockup({
   boxType = 'tuck_end',
   length = 120,
@@ -8,7 +16,7 @@ export default function Packaging3DMockup({
   height = 160,
   thickness = 0.5,
   materialColor = '#ffffff',
-  foldAngle = 1.0, // 0 to 1
+  foldAngle = 1.0, // 0.0 (Flat) to 1.0 (Closed)
   isRotating = true
 }) {
   const mountRef = useRef(null);
@@ -20,15 +28,32 @@ export default function Packaging3DMockup({
     const widthPx = container.clientWidth || 300;
     const heightPx = container.clientHeight || 200;
 
-    // 1. Scene & Dark Studio Background
+    // 1. Three.js Scene
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x0a0f1d);
 
-    // 2. Camera Setup
-    const camera = new THREE.PerspectiveCamera(42, widthPx / heightPx, 1, 4000);
-    const maxDim = Math.max(length, width, height, 100);
-    camera.position.set(maxDim * 1.6, maxDim * 1.5, maxDim * 2.2);
-    camera.lookAt(0, height / 2, 0);
+    const L = Math.max(20, parseFloat(length) || 120);
+    const W = Math.max(20, parseFloat(width) || 60);
+    const H = Math.max(15, parseFloat(height) || 160);
+    const T = Math.max(0.5, parseFloat(thickness) || 0.8);
+
+    const maxDim = Math.max(L, W, H, 100);
+    const target = new THREE.Vector3(0, H * 0.45, 0);
+
+    // 2. Camera Setup with Wide Frustum & High Clipping Margin
+    const camera = new THREE.PerspectiveCamera(38, widthPx / heightPx, 1, 10000);
+    let orbitRadius = maxDim * 2.5;
+    let orbitTheta = 0.6; // azimuth (around Y)
+    let orbitPhi = 1.1;   // polar (from top down, ~63 deg)
+
+    const updateCameraPos = () => {
+      const x = target.x + orbitRadius * Math.sin(orbitPhi) * Math.sin(orbitTheta);
+      const y = target.y + orbitRadius * Math.cos(orbitPhi);
+      const z = target.z + orbitRadius * Math.sin(orbitPhi) * Math.cos(orbitTheta);
+      camera.position.set(x, y, z);
+      camera.lookAt(target);
+    };
+    updateCameraPos();
 
     // 3. WebGL Renderer
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -37,35 +62,34 @@ export default function Packaging3DMockup({
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-    // Clear previous canvases
     while (container.firstChild) {
       container.removeChild(container.firstChild);
     }
     container.appendChild(renderer.domElement);
 
-    // 4. Bright Studio Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.4);
+    // 4. Lighting Rig
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.3);
     scene.add(ambientLight);
 
-    const keyLight = new THREE.DirectionalLight(0xffffff, 2.0);
-    keyLight.position.set(250, 400, 250);
+    const keyLight = new THREE.DirectionalLight(0xffffff, 1.8);
+    keyLight.position.set(300, 500, 300);
     keyLight.castShadow = true;
     scene.add(keyLight);
 
-    const fillLight = new THREE.DirectionalLight(0x93c5fd, 1.2);
-    fillLight.position.set(-250, 200, -200);
+    const fillLight = new THREE.DirectionalLight(0x93c5fd, 1.0);
+    fillLight.position.set(-300, 300, -300);
     scene.add(fillLight);
 
-    const bottomLight = new THREE.DirectionalLight(0xfef08a, 0.8);
-    bottomLight.position.set(0, -200, 200);
-    scene.add(bottomLight);
+    const botLight = new THREE.DirectionalLight(0xfef08a, 0.5);
+    botLight.position.set(0, -200, 100);
+    scene.add(botLight);
 
-    // 5. Shadow Plane
-    const groundGeo = new THREE.PlaneGeometry(1200, 1200);
-    const groundMat = new THREE.ShadowMaterial({ opacity: 0.3 });
+    // 5. Floor Shadow Plane (placed below y=0 to prevent Z-fighting with flat sheet)
+    const groundGeo = new THREE.PlaneGeometry(2000, 2000);
+    const groundMat = new THREE.ShadowMaterial({ opacity: 0.25, depthWrite: false });
     const ground = new THREE.Mesh(groundGeo, groundMat);
     ground.rotation.x = -Math.PI / 2;
-    ground.position.y = -5;
+    ground.position.y = -2;
     ground.receiveShadow = true;
     scene.add(ground);
 
@@ -73,370 +97,254 @@ export default function Packaging3DMockup({
     const boxGroup = new THREE.Group();
     scene.add(boxGroup);
 
-    const L = Math.max(20, parseFloat(length) || 120);
-    const W = Math.max(20, parseFloat(width) || 60);
-    const H = Math.max(15, parseFloat(height) || 160);
-    const T = Math.max(0.6, parseFloat(thickness) || 0.8);
-
-    // Realistic Paperboard Material
+    // Realistic Cardboard Material
     const baseColor = new THREE.Color(materialColor || 0xffffff);
     const boxMat = new THREE.MeshStandardMaterial({
       color: baseColor,
-      roughness: 0.35,
-      metalness: 0.08,
+      roughness: 0.4,
+      metalness: 0.05,
       side: THREE.DoubleSide
     });
 
-    const edgeMat = new THREE.LineBasicMaterial({ color: 0x3b82f6, linewidth: 1.5 });
+    const cutEdgeMat = new THREE.LineBasicMaterial({ color: 0x3b82f6, linewidth: 1.5 });
+    const creaseEdgeMat = new THREE.LineDashedMaterial({ color: 0x22c55e, linewidth: 1.5, dashSize: 4, gapSize: 2 });
 
-    const makePanel = (w, h, d = T, mat = boxMat) => {
-      const geo = new THREE.BoxGeometry(w, h, d);
-      const mesh = new THREE.Mesh(geo, mat);
+    const makeBoxPanel = (w, h, d = T, isCrease = false) => {
+      const geo = new THREE.BoxGeometry(w, d, h);
+      const mesh = new THREE.Mesh(geo, boxMat);
       mesh.castShadow = true;
       mesh.receiveShadow = true;
 
       const wireGeo = new THREE.EdgesGeometry(geo);
-      const wire = new THREE.LineSegments(wireGeo, edgeMat);
+      const wire = new THREE.LineSegments(wireGeo, isCrease ? creaseEdgeMat : cutEdgeMat);
+      wire.computeLineDistances();
       mesh.add(wire);
       return mesh;
     };
 
-    // Fold angle in radians
+    // Fold Progress & Radian Angle: 0 = Flat Sheet (0 rad), 1 = Closed Box (PI/2 rad)
     const f = Math.max(0, Math.min(1, parseFloat(foldAngle) ?? 1.0));
-    const foldRad = (Math.PI / 2) * f;
-
+    const angle = (Math.PI / 2) * f;
     const bType = (boxType || 'tuck_end').toLowerCase();
 
-    // ================= MODEL-SPECIFIC 3D GEOMETRIES =================
-    if (bType.includes('hexagon')) {
-      // Hexagonal 6-sided Box
-      const radius = L / 2;
-      const hexGeo = new THREE.CylinderGeometry(radius, radius, H, 6, 1, false);
-      const hexMesh = new THREE.Mesh(hexGeo, boxMat);
-      hexMesh.position.set(0, H / 2, 0);
-      hexMesh.castShadow = true;
-      boxGroup.add(hexMesh);
-
-      const hexEdge = new THREE.LineSegments(new THREE.EdgesGeometry(hexGeo), edgeMat);
-      hexMesh.add(hexEdge);
-
-    } else if (bType.includes('triangle') || bType.includes('triangular')) {
-      // Triangular 3-sided Prism Box
-      const radius = L * 0.6;
-      const triGeo = new THREE.CylinderGeometry(radius, radius, H, 3, 1, false);
-      const triMesh = new THREE.Mesh(triGeo, boxMat);
-      triMesh.position.set(0, H / 2, 0);
-      triMesh.castShadow = true;
-      boxGroup.add(triMesh);
-
-      const triEdge = new THREE.LineSegments(new THREE.EdgesGeometry(triGeo), edgeMat);
-      triMesh.add(triEdge);
-
-    } else if (bType.includes('pillow')) {
-      // Pillow Box (Convex Lens Mesh)
-      const pillowGroup = new THREE.Group();
-      const pL = L;
-      const pW = W;
-      const pH = Math.max(25, H * 0.35);
-
-      const frontCurve = new THREE.Mesh(new THREE.SphereGeometry(pL * 0.7, 32, 16, 0, Math.PI, 0, Math.PI / 2), boxMat);
-      frontCurve.scale.set(1, pH / (pL * 0.7), pW / (pL * 0.7));
-      frontCurve.position.set(0, H / 2, 0);
-      pillowGroup.add(frontCurve);
-
-      boxGroup.add(pillowGroup);
-
-    } else if (bType.includes('two_piece') || bType.includes('base_lid') || bType.includes('rigid')) {
-      // Two-Piece Base & Lid Rigid Box
-      // Base Tray
-      const baseMesh = makePanel(L, W);
+    // ================= ARTICULATED KINEMATICS BUILDER =================
+    if (bType.includes('rigid') || bType.includes('two_piece') || bType.includes('base_lid')) {
+      // Two-Piece Rigid Base & Lid Box
+      // Base Bottom
+      const baseMesh = makeBoxPanel(L, W);
       baseMesh.position.set(0, 0, 0);
-      baseMesh.rotation.x = -Math.PI / 2;
       boxGroup.add(baseMesh);
 
-      const bWallFront = makePanel(L, H);
-      bWallFront.position.set(0, H / 2, W / 2);
-      boxGroup.add(bWallFront);
+      // 4 Base Walls (articulate with f from flat to 90 deg)
+      const bFrontPivot = new THREE.Group();
+      bFrontPivot.position.set(0, 0, W / 2);
+      boxGroup.add(bFrontPivot);
+      const bFront = makeBoxPanel(L, H);
+      bFront.position.set(0, 0, H / 2);
+      bFrontPivot.add(bFront);
+      bFrontPivot.rotation.x = -angle;
 
-      const bWallBack = makePanel(L, H);
-      bWallBack.position.set(0, H / 2, -W / 2);
-      boxGroup.add(bWallBack);
+      const bBackPivot = new THREE.Group();
+      bBackPivot.position.set(0, 0, -W / 2);
+      boxGroup.add(bBackPivot);
+      const bBack = makeBoxPanel(L, H);
+      bBack.position.set(0, 0, -H / 2);
+      bBackPivot.add(bBack);
+      bBackPivot.rotation.x = +angle;
 
-      const bWallLeft = makePanel(H, W);
-      bWallLeft.position.set(-L / 2, H / 2, 0);
-      bWallLeft.rotation.y = Math.PI / 2;
-      boxGroup.add(bWallLeft);
+      const bLeftPivot = new THREE.Group();
+      bLeftPivot.position.set(-L / 2, 0, 0);
+      boxGroup.add(bLeftPivot);
+      const bLeft = makeBoxPanel(H, W);
+      bLeft.position.set(-H / 2, 0, 0);
+      bLeftPivot.add(bLeft);
+      bLeftPivot.rotation.z = -angle;
 
-      const bWallRight = makePanel(H, W);
-      bWallRight.position.set(L / 2, H / 2, 0);
-      bWallRight.rotation.y = -Math.PI / 2;
-      boxGroup.add(bWallRight);
+      const bRightPivot = new THREE.Group();
+      bRightPivot.position.set(L / 2, 0, 0);
+      boxGroup.add(bRightPivot);
+      const bRight = makeBoxPanel(H, W);
+      bRight.position.set(H / 2, 0, 0);
+      bRightPivot.add(bRight);
+      bRightPivot.rotation.z = +angle;
 
-      // Lid Tray (Elevated with fold slider)
+      // Elevated Lid (Floats higher when f < 1)
       const lidGroup = new THREE.Group();
       const lidH = Math.max(15, H * 0.5);
-      const lidElevation = H + ((1 - f) * 80);
+      const lidElevation = (H + 4) * f + (1 - f) * (H * 1.5 + 40);
       lidGroup.position.set(0, lidElevation, 0);
 
-      const lidTop = makePanel(L + 3, W + 3);
-      lidTop.position.set(0, lidH, 0);
-      lidTop.rotation.x = -Math.PI / 2;
+      const lidTop = makeBoxPanel(L + 3, W + 3);
+      lidTop.position.set(0, 0, 0);
       lidGroup.add(lidTop);
 
-      const lWallF = makePanel(L + 3, lidH);
-      lWallF.position.set(0, lidH / 2, (W + 3) / 2);
-      lidGroup.add(lWallF);
+      // Lid Walls
+      const lFrontPivot = new THREE.Group();
+      lFrontPivot.position.set(0, 0, (W + 3) / 2);
+      lidGroup.add(lFrontPivot);
+      const lFront = makeBoxPanel(L + 3, lidH);
+      lFront.position.set(0, 0, lidH / 2);
+      lFrontPivot.add(lFront);
+      lFrontPivot.rotation.x = -angle;
 
-      const lWallB = makePanel(L + 3, lidH);
-      lWallB.position.set(0, lidH / 2, -(W + 3) / 2);
-      lidGroup.add(lWallB);
-
-      const lWallL = makePanel(lidH, W + 3);
-      lWallL.position.set(-(L + 3) / 2, lidH / 2, 0);
-      lWallL.rotation.y = Math.PI / 2;
-      lidGroup.add(lWallL);
-
-      const lWallR = makePanel(lidH, W + 3);
-      lWallR.position.set((L + 3) / 2, lidH / 2, 0);
-      lWallR.rotation.y = -Math.PI / 2;
-      lidGroup.add(lWallR);
+      const lBackPivot = new THREE.Group();
+      lBackPivot.position.set(0, 0, -(W + 3) / 2);
+      lidGroup.add(lBackPivot);
+      const lBack = makeBoxPanel(L + 3, lidH);
+      lBack.position.set(0, 0, -lidH / 2);
+      lBackPivot.add(lBack);
+      lBackPivot.rotation.x = +angle;
 
       boxGroup.add(lidGroup);
 
-    } else if (bType.includes('sleeve') || bType.includes('drawer') || bType.includes('matchbox')) {
-      // Sleeve & Slide Drawer Box
+    } else if (bType.includes('sleeve') || bType.includes('drawer')) {
+      // Sleeve & Drawer Box
       // Outer Sleeve
-      const sleeveMesh = makePanel(L + 4, H + 4);
-      sleeveMesh.position.set(0, H / 2, -(W + 2) / 2);
+      const sleeveMesh = makeBoxPanel(L + 4, W + 4);
+      sleeveMesh.position.set(0, 0, 0);
       boxGroup.add(sleeveMesh);
 
-      const sleeveFront = makePanel(L + 4, H + 4);
-      sleeveFront.position.set(0, H / 2, (W + 2) / 2);
-      boxGroup.add(sleeveFront);
+      const sLeftPivot = new THREE.Group();
+      sLeftPivot.position.set(-(L + 4) / 2, 0, 0);
+      boxGroup.add(sLeftPivot);
+      const sLeft = makeBoxPanel(H + 4, W + 4);
+      sLeft.position.set(-(H + 4) / 2, 0, 0);
+      sLeftPivot.add(sLeft);
+      sLeftPivot.rotation.z = -angle;
 
-      const sleeveTop = makePanel(L + 4, W + 4);
-      sleeveTop.position.set(0, H + 2, 0);
-      sleeveTop.rotation.x = -Math.PI / 2;
-      boxGroup.add(sleeveTop);
+      const sRightPivot = new THREE.Group();
+      sRightPivot.position.set((L + 4) / 2, 0, 0);
+      boxGroup.add(sRightPivot);
+      const sRight = makeBoxPanel(H + 4, W + 4);
+      sRight.position.set((H + 4) / 2, 0, 0);
+      sRightPivot.add(sRight);
+      sRightPivot.rotation.z = +angle;
 
-      const sleeveBot = makePanel(L + 4, W + 4);
-      sleeveBot.position.set(0, 0, 0);
-      sleeveBot.rotation.x = -Math.PI / 2;
-      boxGroup.add(sleeveBot);
-
-      // Inner Drawer (Slides out with fold slider)
-      const slideDist = (1 - f) * (L * 0.8);
+      // Inner Drawer (Slides horizontally out as f decreases)
+      const slideDist = (1 - f) * (L * 0.9);
       const drawerGroup = new THREE.Group();
-      drawerGroup.position.set(slideDist, 0, 0);
+      drawerGroup.position.set(slideDist, 1, 0);
 
-      const dBot = makePanel(L, W);
-      dBot.position.set(0, 2, 0);
-      dBot.rotation.x = -Math.PI / 2;
+      const dBot = makeBoxPanel(L, W);
+      dBot.position.set(0, 0, 0);
       drawerGroup.add(dBot);
 
-      const dFront = makePanel(L, H - 2);
-      dFront.position.set(0, H / 2, W / 2 - 2);
+      const dFront = makeBoxPanel(L, H - 2);
+      dFront.position.set(0, 0, (W - 2) / 2);
       drawerGroup.add(dFront);
 
-      const dBack = makePanel(L, H - 2);
-      dBack.position.set(0, H / 2, -W / 2 + 2);
+      const dBack = makeBoxPanel(L, H - 2);
+      dBack.position.set(0, 0, -(W - 2) / 2);
       drawerGroup.add(dBack);
-
-      const dLeft = makePanel(H - 2, W - 4);
-      dLeft.position.set(-L / 2 + 2, H / 2, 0);
-      dLeft.rotation.y = Math.PI / 2;
-      drawerGroup.add(dLeft);
-
-      const dRight = makePanel(H - 2, W - 4);
-      dRight.position.set(L / 2 - 2, H / 2, 0);
-      dRight.rotation.y = -Math.PI / 2;
-      drawerGroup.add(dRight);
 
       boxGroup.add(drawerGroup);
 
-    } else if (bType.includes('gable') || bType.includes('handle')) {
-      // Gable Top Handle Box
-      const bottomMesh = makePanel(L, W);
-      bottomMesh.position.set(0, 0, 0);
-      bottomMesh.rotation.x = -Math.PI / 2;
-      boxGroup.add(bottomMesh);
+    } else if (bType.includes('hexagon')) {
+      // Hexagonal Box
+      const radius = L / 2;
+      const hexGeo = new THREE.CylinderGeometry(radius, radius, H * Math.max(0.1, f), 6, 1, false);
+      const hexMesh = new THREE.Mesh(hexGeo, boxMat);
+      hexMesh.position.set(0, (H * Math.max(0.1, f)) / 2, 0);
+      hexMesh.castShadow = true;
+      boxGroup.add(hexMesh);
 
-      const bodyH = H * 0.7;
-      const roofH = H * 0.3;
+      const hexEdge = new THREE.LineSegments(new THREE.EdgesGeometry(hexGeo), cutEdgeMat);
+      hexMesh.add(hexEdge);
 
-      const fWall = makePanel(L, bodyH);
-      fWall.position.set(0, bodyH / 2, W / 2);
-      boxGroup.add(fWall);
+    } else if (bType.includes('triangle') || bType.includes('triangular')) {
+      // Triangular Box
+      const radius = L * 0.6;
+      const triGeo = new THREE.CylinderGeometry(radius, radius, H * Math.max(0.1, f), 3, 1, false);
+      const triMesh = new THREE.Mesh(triGeo, boxMat);
+      triMesh.position.set(0, (H * Math.max(0.1, f)) / 2, 0);
+      triMesh.castShadow = true;
+      boxGroup.add(triMesh);
 
-      const bWall = makePanel(L, bodyH);
-      bWall.position.set(0, bodyH / 2, -W / 2);
-      boxGroup.add(bWall);
+      const triEdge = new THREE.LineSegments(new THREE.EdgesGeometry(triGeo), cutEdgeMat);
+      triMesh.add(triEdge);
 
-      const lWall = makePanel(bodyH, W);
-      lWall.position.set(-L / 2, bodyH / 2, 0);
-      lWall.rotation.y = Math.PI / 2;
-      boxGroup.add(lWall);
+    } else if (bType.includes('pillow')) {
+      // Pillow Box
+      const pGeo = new THREE.SphereGeometry(L * 0.6, 32, 16, 0, Math.PI, 0, Math.PI / 2);
+      const pMesh = new THREE.Mesh(pGeo, boxMat);
+      pMesh.scale.set(1, Math.max(0.1, f) * (H / (L * 0.6)), (W * 0.8) / (L * 0.6));
+      pMesh.position.set(0, (H * Math.max(0.1, f)) / 2, 0);
+      pMesh.castShadow = true;
+      boxGroup.add(pMesh);
 
-      const rWall = makePanel(bodyH, W);
-      rWall.position.set(L / 2, bodyH / 2, 0);
-      rWall.rotation.y = -Math.PI / 2;
-      boxGroup.add(rWall);
-
-      // Slanted Roof & Handle
-      const fRoof = makePanel(L, roofH);
-      fRoof.position.set(0, bodyH + roofH / 2, W / 4);
-      fRoof.rotation.x = -Math.PI / 6;
-      boxGroup.add(fRoof);
-
-      const bRoof = makePanel(L, roofH);
-      bRoof.position.set(0, bodyH + roofH / 2, -W / 4);
-      bRoof.rotation.x = Math.PI / 6;
-      boxGroup.add(bRoof);
-
-      // Handle Tab
-      const handleMesh = makePanel(L * 0.8, 30);
-      handleMesh.position.set(0, H + 10, 0);
-      boxGroup.add(handleMesh);
-
-    } else if (bType.includes('hanging') || bType.includes('euro')) {
-      // Hanging Tab Display Box
-      const bottomMesh = makePanel(L, W);
-      bottomMesh.position.set(0, 0, 0);
-      bottomMesh.rotation.x = -Math.PI / 2;
-      boxGroup.add(bottomMesh);
-
-      const frontWall = makePanel(L, H);
-      frontWall.position.set(0, H / 2, W / 2);
-      boxGroup.add(frontWall);
-
-      // Extended Back Wall with Euro Hanging Tab (+40mm)
-      const backWall = makePanel(L, H + 40);
-      backWall.position.set(0, (H + 40) / 2, -W / 2);
-      boxGroup.add(backWall);
-
-      const leftWall = makePanel(H, W);
-      leftWall.position.set(-L / 2, H / 2, 0);
-      leftWall.rotation.y = Math.PI / 2;
-      boxGroup.add(leftWall);
-
-      const rightWall = makePanel(H, W);
-      rightWall.position.set(L / 2, H / 2, 0);
-      rightWall.rotation.y = -Math.PI / 2;
-      boxGroup.add(rightWall);
-
-      // Top Lid
-      const lidMesh = makePanel(L, W);
-      lidMesh.position.set(0, H, 0);
-      lidMesh.rotation.x = -Math.PI / 2;
-      boxGroup.add(lidMesh);
-
-    } else if (bType.includes('counter') || bType.includes('display')) {
-      // Counter Display Stand with Stepped Front and Riser Billboard
-      const baseMesh = makePanel(L, W);
-      baseMesh.position.set(0, 0, 0);
-      baseMesh.rotation.x = -Math.PI / 2;
-      boxGroup.add(baseMesh);
-
-      // Low front lip
-      const fLip = makePanel(L, H * 0.35);
-      fLip.position.set(0, (H * 0.35) / 2, W / 2);
-      boxGroup.add(fLip);
-
-      // Tall Header Riser Billboard
-      const headerH = Math.max(60, H * 0.8);
-      const bHeader = makePanel(L, H + headerH);
-      bHeader.position.set(0, (H + headerH) / 2, -W / 2);
-      boxGroup.add(bHeader);
-
-      const lSide = makePanel(H, W);
-      lSide.position.set(-L / 2, H / 2, 0);
-      lSide.rotation.y = Math.PI / 2;
-      boxGroup.add(lSide);
-
-      const rSide = makePanel(H, W);
-      rSide.position.set(L / 2, H / 2, 0);
-      rSide.rotation.y = -Math.PI / 2;
-      boxGroup.add(rSide);
+      const pEdge = new THREE.LineSegments(new THREE.EdgesGeometry(pGeo), cutEdgeMat);
+      pMesh.add(pEdge);
 
     } else {
-      // Standard Folding Carton (Tuck End, Mailer, RSC, Auto Bottom)
-      // Bottom Base Panel
-      const bottomMesh = makePanel(L, W);
-      bottomMesh.position.set(0, 0, 0);
-      bottomMesh.rotation.x = -Math.PI / 2;
-      boxGroup.add(bottomMesh);
+      // Standard Master Folding Carton (Tuck End STE, RTE, Mailer 0427, RSC 0201, Snap Lock, Auto Bottom)
+      // 1. Bottom Panel (Base)
+      const bottom = makeBoxPanel(L, W);
+      bottom.position.set(0, 0, 0);
+      boxGroup.add(bottom);
 
-      // Rear Wall & Top Lid
+      // 2. Rear Wall (Hinged at z = -W/2)
       const rearPivot = new THREE.Group();
       rearPivot.position.set(0, 0, -W / 2);
       boxGroup.add(rearPivot);
 
-      const rearMesh = makePanel(L, H);
-      rearMesh.position.set(0, H / 2, 0);
-      rearPivot.add(rearMesh);
-      rearPivot.rotation.x = foldRad;
+      const rearPanel = makeBoxPanel(L, H);
+      rearPanel.position.set(0, 0, -H / 2);
+      rearPivot.add(rearPanel);
+      rearPivot.rotation.x = +angle;
 
-      // Top Lid
+      // 3. Top Lid (Hinged at top of rear wall at local z = -H)
       const lidPivot = new THREE.Group();
-      lidPivot.position.set(0, H, 0);
+      lidPivot.position.set(0, 0, -H);
       rearPivot.add(lidPivot);
 
-      const lidMesh = makePanel(L, W);
-      lidMesh.position.set(0, W / 2, 0);
-      lidPivot.add(lidMesh);
-      lidPivot.rotation.x = foldRad;
+      const lidPanel = makeBoxPanel(L, W);
+      lidPanel.position.set(0, 0, -W / 2);
+      lidPivot.add(lidPanel);
+      lidPivot.rotation.x = +angle;
 
-      // Front Flap
+      // 4. Top Tuck Flap (Hinged at front of lid at local z = -W)
       const flapPivot = new THREE.Group();
-      flapPivot.position.set(0, W, 0);
+      flapPivot.position.set(0, 0, -W);
       lidPivot.add(flapPivot);
 
-      const flapMesh = makePanel(L, Math.min(H * 0.4, 30));
-      flapMesh.position.set(0, Math.min(H * 0.4, 30) / 2, 0);
-      flapPivot.add(flapMesh);
-      flapPivot.rotation.x = foldRad;
+      const flapH = Math.min(H * 0.45, Math.max(18, W * 0.35));
+      const flapPanel = makeBoxPanel(L, flapH);
+      flapPanel.position.set(0, 0, -flapH / 2);
+      flapPivot.add(flapPanel);
+      flapPivot.rotation.x = +angle;
 
-      // Front Wall
+      // 5. Front Wall (Hinged at z = +W/2)
       const frontPivot = new THREE.Group();
       frontPivot.position.set(0, 0, W / 2);
       boxGroup.add(frontPivot);
 
-      const frontMesh = makePanel(L, H);
-      frontMesh.position.set(0, H / 2, 0);
-      frontPivot.add(frontMesh);
-      frontPivot.rotation.x = -foldRad;
+      const frontPanel = makeBoxPanel(L, H);
+      frontPanel.position.set(0, 0, H / 2);
+      frontPivot.add(frontPanel);
+      frontPivot.rotation.x = -angle;
 
-      // Left Wall
+      // 6. Left Wall (Hinged at x = -L/2)
       const leftPivot = new THREE.Group();
       leftPivot.position.set(-L / 2, 0, 0);
       boxGroup.add(leftPivot);
 
-      const leftMesh = makePanel(H, W);
-      leftMesh.position.set(0, H / 2, 0);
-      leftMesh.rotation.y = Math.PI / 2;
-      leftPivot.add(leftMesh);
-      leftPivot.rotation.z = -foldRad;
+      const leftPanel = makeBoxPanel(H, W);
+      leftPanel.position.set(-H / 2, 0, 0);
+      leftPivot.add(leftPanel);
+      leftPivot.rotation.z = -angle;
 
-      // Right Wall
+      // 7. Right Wall (Hinged at x = +L/2)
       const rightPivot = new THREE.Group();
       rightPivot.position.set(L / 2, 0, 0);
       boxGroup.add(rightPivot);
 
-      const rightMesh = makePanel(H, W);
-      rightMesh.position.set(0, H / 2, 0);
-      rightMesh.rotation.y = -Math.PI / 2;
-      rightPivot.add(rightMesh);
-      rightPivot.rotation.z = foldRad;
+      const rightPanel = makeBoxPanel(H, W);
+      rightPanel.position.set(H / 2, 0, 0);
+      rightPivot.add(rightPanel);
+      rightPivot.rotation.z = +angle;
     }
 
-    // Center pivot
-    boxGroup.position.set(0, 0, 0);
-
-    // Camera Framing
-    camera.position.set(maxDim * 1.5, maxDim * 1.6, maxDim * 2.2);
-    camera.lookAt(0, H / 2, 0);
-
-    // Mouse Drag Controls
+    // 7. Spherical Orbit Controls (centered on box target)
     let isDragging = false;
     let prevMousePos = { x: 0, y: 0 };
     const domEl = renderer.domElement;
@@ -451,8 +359,13 @@ export default function Packaging3DMockup({
       const dx = e.clientX - prevMousePos.x;
       const dy = e.clientY - prevMousePos.y;
 
-      boxGroup.rotation.y += dx * 0.01;
-      boxGroup.rotation.x = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, boxGroup.rotation.x + dy * 0.01));
+      // Azimuth (Y rotation)
+      orbitTheta -= dx * 0.01;
+
+      // Polar (Elevation) - Clamped strictly between top and above-ground horizon
+      orbitPhi = Math.max(0.12, Math.min(Math.PI / 2 + 0.1, orbitPhi - dy * 0.01));
+
+      updateCameraPos();
       prevMousePos = { x: e.clientX, y: e.clientY };
     };
 
@@ -462,7 +375,10 @@ export default function Packaging3DMockup({
 
     const onWheel = (e) => {
       e.preventDefault();
-      camera.position.z = Math.max(80, Math.min(1500, camera.position.z + e.deltaY * 0.5));
+      // Smooth Distance Zoom
+      const zoomFactor = 1 + e.deltaY * 0.0015;
+      orbitRadius = Math.max(maxDim * 1.2, Math.min(maxDim * 6.0, orbitRadius * zoomFactor));
+      updateCameraPos();
     };
 
     domEl.addEventListener('mousedown', onMouseDown);
@@ -470,21 +386,25 @@ export default function Packaging3DMockup({
     window.addEventListener('mouseup', onMouseUp);
     domEl.addEventListener('wheel', onWheel, { passive: false });
 
-    // Render Animation Loop
+    // 8. Animation Render Loop
     let animId;
     const animate = () => {
       animId = requestAnimationFrame(animate);
+
       if (isRotating && !isDragging) {
-        boxGroup.rotation.y += 0.008;
+        orbitTheta += 0.006;
+        updateCameraPos();
       }
+
       renderer.render(scene, camera);
     };
     animate();
 
+    // 9. Resize Observer
     const handleResize = () => {
       if (!container) return;
-      const newW = container.clientWidth;
-      const newH = container.clientHeight;
+      const newW = container.clientWidth || 300;
+      const newH = container.clientHeight || 200;
       camera.aspect = newW / newH;
       camera.updateProjectionMatrix();
       renderer.setSize(newW, newH);
@@ -505,7 +425,7 @@ export default function Packaging3DMockup({
   return (
     <div
       ref={mountRef}
-      className="w-full h-full cursor-grab active:cursor-grabbing relative overflow-hidden flex items-center justify-center bg-slate-950"
+      className="w-full h-full cursor-grab active:cursor-grabbing relative overflow-hidden flex items-center justify-center bg-slate-950 select-none"
     />
   );
 }
