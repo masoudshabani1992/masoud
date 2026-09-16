@@ -463,11 +463,22 @@ export default function Packaging3DStudioView({
       side: THREE.DoubleSide
     });
 
-    const edgeMat = new THREE.LineBasicMaterial({
-      color: 0x475569,
-      linewidth: 1.5,
+    // High-visibility CAD Dieline Materials (Red Cut lines + Green Crease lines)
+    const cutEdgeMat = new THREE.LineBasicMaterial({
+      color: showWireframe ? 0xef4444 : 0x3b82f6,
+      linewidth: showWireframe ? 2.5 : 1.2,
       transparent: true,
-      opacity: showWireframe ? 0.9 : 0.25
+      opacity: showWireframe ? 1.0 : 0.4
+    });
+
+    const creaseEdgeMat = new THREE.LineDashedMaterial({
+      color: 0x22c55e,
+      linewidth: 2.0,
+      scale: 1,
+      dashSize: 4,
+      gapSize: 2,
+      transparent: true,
+      opacity: showWireframe ? 1.0 : 0.2
     });
 
     const L = Math.max(20, lengthMm);
@@ -476,26 +487,301 @@ export default function Packaging3DStudioView({
     const T = Math.max(0.4, thicknessMm);
 
     // ===============================================
-    // DYNAMIC GEOMETRY BUILDER (Boxes, Bottles, Cans, Pouches)
+    // UNIVERSAL ARTICULATED GEOMETRY BUILDER FOR ALL 28 MODELS
     // ===============================================
-    if (selectedModelId === 'mailer' || selectedModelId === 'tuck_end' || selectedModelId === 'auto_bottom') {
-      // Articulated Box Assembly
-      const makeBoxPanel = (w, h, d = T) => {
-        const geo = new THREE.BoxGeometry(w, h, d);
-        const mesh = new THREE.Mesh(geo, boxMat);
-        mesh.castShadow = true;
-        mesh.receiveShadow = true;
+    const makeBoxPanel = (w, h, d = T, isCrease = false) => {
+      const geo = new THREE.BoxGeometry(w, h, d);
+      const mesh = new THREE.Mesh(geo, boxMat);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
 
-        const wireGeo = new THREE.EdgesGeometry(geo);
-        const wire = new THREE.LineSegments(wireGeo, edgeMat);
-        mesh.add(wire);
-        return mesh;
-      };
+      const wireGeo = new THREE.EdgesGeometry(geo);
+      const wire = new THREE.LineSegments(wireGeo, isCrease ? creaseEdgeMat : cutEdgeMat);
+      wire.computeLineDistances();
+      mesh.add(wire);
+      return mesh;
+    };
 
-      const f = foldAngle;
-      const foldRad = (Math.PI / 2) * f;
+    const f = Math.max(0, Math.min(1, parseFloat(foldAngle) ?? 1.0));
+    const foldRad = (Math.PI / 2) * f;
+    const mId = (selectedModelId || 'tuck_end').toLowerCase();
 
-      // Base Bottom Panel
+    if (mId.includes('rigid') || mId.includes('two_piece')) {
+      // 1. Two-Piece Rigid Base & Lid Box
+      const baseMesh = makeBoxPanel(L, W, T);
+      baseMesh.rotation.x = -Math.PI / 2;
+      baseMesh.position.y = 0;
+      modelGroup.add(baseMesh);
+
+      // Base Walls
+      const bFront = makeBoxPanel(L, H);
+      bFront.position.set(0, H / 2, W / 2);
+      modelGroup.add(bFront);
+
+      const bBack = makeBoxPanel(L, H);
+      bBack.position.set(0, H / 2, -W / 2);
+      modelGroup.add(bBack);
+
+      const bLeft = makeBoxPanel(H, W);
+      bLeft.position.set(-L / 2, H / 2, 0);
+      bLeft.rotation.y = Math.PI / 2;
+      modelGroup.add(bLeft);
+
+      const bRight = makeBoxPanel(H, W);
+      bRight.position.set(L / 2, H / 2, 0);
+      bRight.rotation.y = -Math.PI / 2;
+      modelGroup.add(bRight);
+
+      // Lid Tray (Elevates with foldAngle slider from closed 1.0 to exploded 0.0)
+      const lidGroup = new THREE.Group();
+      const lidH = Math.max(15, H * 0.5);
+      const lidElevation = H + ((1 - f) * 90);
+      lidGroup.position.set(0, lidElevation, 0);
+      lidGroup.rotation.y = (1 - f) * 0.35;
+
+      const lidTop = makeBoxPanel(L + 4, W + 4);
+      lidTop.position.set(0, lidH, 0);
+      lidTop.rotation.x = -Math.PI / 2;
+      lidGroup.add(lidTop);
+
+      const lFront = makeBoxPanel(L + 4, lidH);
+      lFront.position.set(0, lidH / 2, (W + 4) / 2);
+      lidGroup.add(lFront);
+
+      const lBack = makeBoxPanel(L + 4, lidH);
+      lBack.position.set(0, lidH / 2, -(W + 4) / 2);
+      lidGroup.add(lBack);
+
+      const lLeft = makeBoxPanel(lidH, W + 4);
+      lLeft.position.set(-(L + 4) / 2, lidH / 2, 0);
+      lLeft.rotation.y = Math.PI / 2;
+      lidGroup.add(lLeft);
+
+      const lRight = makeBoxPanel(lidH, W + 4);
+      lRight.position.set((L + 4) / 2, lidH / 2, 0);
+      lRight.rotation.y = -Math.PI / 2;
+      lidGroup.add(lRight);
+
+      modelGroup.add(lidGroup);
+
+    } else if (mId.includes('sleeve') || mId.includes('drawer')) {
+      // 2. Sleeve & Drawer Matchbox
+      const sleeveMesh = makeBoxPanel(L + 4, H + 4);
+      sleeveMesh.position.set(0, H / 2, -(W + 2) / 2);
+      modelGroup.add(sleeveMesh);
+
+      const sleeveFront = makeBoxPanel(L + 4, H + 4);
+      sleeveFront.position.set(0, H / 2, (W + 2) / 2);
+      modelGroup.add(sleeveFront);
+
+      const sleeveTop = makeBoxPanel(L + 4, W + 4);
+      sleeveTop.position.set(0, H + 2, 0);
+      sleeveTop.rotation.x = -Math.PI / 2;
+      modelGroup.add(sleeveTop);
+
+      const sleeveBot = makeBoxPanel(L + 4, W + 4);
+      sleeveBot.position.set(0, 0, 0);
+      sleeveBot.rotation.x = -Math.PI / 2;
+      modelGroup.add(sleeveBot);
+
+      // Inner Drawer (slides horizontally with fold slider)
+      const slideDist = (1 - f) * (L * 0.85);
+      const drawerGroup = new THREE.Group();
+      drawerGroup.position.set(slideDist, 0, 0);
+
+      const dBot = makeBoxPanel(L, W);
+      dBot.position.set(0, 2, 0);
+      dBot.rotation.x = -Math.PI / 2;
+      drawerGroup.add(dBot);
+
+      const dFront = makeBoxPanel(L, H - 2);
+      dFront.position.set(0, H / 2, W / 2 - 2);
+      drawerGroup.add(dFront);
+
+      const dBack = makeBoxPanel(L, H - 2);
+      dBack.position.set(0, H / 2, -W / 2 + 2);
+      drawerGroup.add(dBack);
+
+      const dLeft = makeBoxPanel(H - 2, W - 4);
+      dLeft.position.set(-L / 2 + 2, H / 2, 0);
+      dLeft.rotation.y = Math.PI / 2;
+      drawerGroup.add(dLeft);
+
+      const dRight = makeBoxPanel(H - 2, W - 4);
+      dRight.position.set(L / 2 - 2, H / 2, 0);
+      dRight.rotation.y = -Math.PI / 2;
+      drawerGroup.add(dRight);
+
+      modelGroup.add(drawerGroup);
+
+    } else if (mId.includes('book_style')) {
+      // 3. Book Style Magnetic Rigid Box
+      const spineW = H;
+      const baseCover = makeBoxPanel(L, W);
+      baseCover.position.set(0, 0, 0);
+      baseCover.rotation.x = -Math.PI / 2;
+      modelGroup.add(baseCover);
+
+      // Inner Box on Base
+      const iFront = makeBoxPanel(L - 6, H - 4);
+      iFront.position.set(0, (H - 4) / 2, W / 2 - 3);
+      modelGroup.add(iFront);
+
+      const iBack = makeBoxPanel(L - 6, H - 4);
+      iBack.position.set(0, (H - 4) / 2, -W / 2 + 3);
+      modelGroup.add(iBack);
+
+      const iLeft = makeBoxPanel(H - 4, W - 6);
+      iLeft.position.set(-L / 2 + 3, (H - 4) / 2, 0);
+      iLeft.rotation.y = Math.PI / 2;
+      modelGroup.add(iLeft);
+
+      const iRight = makeBoxPanel(H - 4, W - 6);
+      iRight.position.set(L / 2 - 3, (H - 4) / 2, 0);
+      iRight.rotation.y = -Math.PI / 2;
+      modelGroup.add(iRight);
+
+      // Spine & Front Book Lid (rotates like a book)
+      const spinePivot = new THREE.Group();
+      spinePivot.position.set(0, 0, -W / 2);
+      modelGroup.add(spinePivot);
+
+      const spineMesh = makeBoxPanel(L, spineW);
+      spineMesh.position.set(0, spineW / 2, 0);
+      spinePivot.add(spineMesh);
+      spinePivot.rotation.x = foldRad;
+
+      const bookLidPivot = new THREE.Group();
+      bookLidPivot.position.set(0, spineW, 0);
+      spinePivot.add(bookLidPivot);
+
+      const bookLidMesh = makeBoxPanel(L, W + 6);
+      bookLidMesh.position.set(0, (W + 6) / 2, 0);
+      bookLidPivot.add(bookLidMesh);
+      bookLidPivot.rotation.x = foldRad;
+
+    } else if (mId.includes('hexagon')) {
+      // 4. Hexagonal 6-Sided Box
+      const radius = L / 2;
+      const hexGeo = new THREE.CylinderGeometry(radius, radius, H, 6, 1, false);
+      const hexMesh = new THREE.Mesh(hexGeo, boxMat);
+      hexMesh.position.set(0, H / 2, 0);
+      hexMesh.castShadow = true;
+      modelGroup.add(hexMesh);
+
+      const hexEdge = new THREE.LineSegments(new THREE.EdgesGeometry(hexGeo), cutEdgeMat);
+      hexMesh.add(hexEdge);
+
+    } else if (mId.includes('triangle') || mId.includes('triangular')) {
+      // 5. Triangular 3-Sided Prism Box
+      const radius = L * 0.6;
+      const triGeo = new THREE.CylinderGeometry(radius, radius, H, 3, 1, false);
+      const triMesh = new THREE.Mesh(triGeo, boxMat);
+      triMesh.position.set(0, H / 2, 0);
+      triMesh.castShadow = true;
+      modelGroup.add(triMesh);
+
+      const triEdge = new THREE.LineSegments(new THREE.EdgesGeometry(triGeo), cutEdgeMat);
+      triMesh.add(triEdge);
+
+    } else if (mId.includes('pillow')) {
+      // 6. Pillow Box
+      const pillowGeo = new THREE.SphereGeometry(L * 0.6, 32, 16, 0, Math.PI, 0, Math.PI / 2);
+      const pillowMesh = new THREE.Mesh(pillowGeo, boxMat);
+      pillowMesh.scale.set(1, Math.max(0.25, f) * (H / (L * 0.6)), (W * 0.8) / (L * 0.6));
+      pillowMesh.position.set(0, H / 2, 0);
+      pillowMesh.castShadow = true;
+      modelGroup.add(pillowMesh);
+
+      const pEdge = new THREE.LineSegments(new THREE.EdgesGeometry(pillowGeo), cutEdgeMat);
+      pillowMesh.add(pEdge);
+
+    } else if (mId.includes('gable')) {
+      // 7. Gable Top Handle Box
+      const bodyH = H * 0.7;
+      const roofH = H * 0.3;
+
+      const bottom = makeBoxPanel(L, W);
+      bottom.rotation.x = -Math.PI / 2;
+      bottom.position.y = 0;
+      modelGroup.add(bottom);
+
+      const fWall = makeBoxPanel(L, bodyH);
+      fWall.position.set(0, bodyH / 2, W / 2);
+      modelGroup.add(fWall);
+
+      const bWall = makeBoxPanel(L, bodyH);
+      bWall.position.set(0, bodyH / 2, -W / 2);
+      modelGroup.add(bWall);
+
+      const lWall = makeBoxPanel(bodyH, W);
+      lWall.position.set(-L / 2, bodyH / 2, 0);
+      lWall.rotation.y = Math.PI / 2;
+      modelGroup.add(lWall);
+
+      const rWall = makeBoxPanel(bodyH, W);
+      rWall.position.set(L / 2, bodyH / 2, 0);
+      rWall.rotation.y = -Math.PI / 2;
+      modelGroup.add(rWall);
+
+      // Roof Slanted Panels
+      const fRoof = makeBoxPanel(L, roofH);
+      fRoof.position.set(0, bodyH + roofH / 2, W / 4);
+      fRoof.rotation.x = -Math.PI / 6 * f;
+      modelGroup.add(fRoof);
+
+      const bRoof = makeBoxPanel(L, roofH);
+      bRoof.position.set(0, bodyH + roofH / 2, -W / 4);
+      bRoof.rotation.x = Math.PI / 6 * f;
+      modelGroup.add(bRoof);
+
+      const handle = makeBoxPanel(L * 0.75, 28);
+      handle.position.set(0, bodyH + roofH + 10, 0);
+      modelGroup.add(handle);
+
+    } else if (mId === 'dropper_bottle' || mId === 'wine_bottle') {
+      // Bottles
+      const bottleRadius = L / 2;
+      const bodyHeight = H * 0.7;
+      const bottleGeo = new THREE.CylinderGeometry(bottleRadius, bottleRadius, bodyHeight, 32);
+      const bottleMesh = new THREE.Mesh(bottleGeo, boxMat);
+      bottleMesh.position.y = bodyHeight / 2;
+      bottleMesh.castShadow = true;
+      modelGroup.add(bottleMesh);
+
+      const capGeo = new THREE.CylinderGeometry(bottleRadius * 0.6, bottleRadius * 0.6, H * 0.25, 32);
+      const goldCapMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.95, roughness: 0.15 });
+      const capMesh = new THREE.Mesh(capGeo, goldCapMat);
+      capMesh.position.y = bodyHeight + (H * 0.25) / 2 + (1 - f) * 40;
+      capMesh.castShadow = true;
+      modelGroup.add(capMesh);
+
+    } else if (mId === 'beverage_can') {
+      // Cans
+      const canGeo = new THREE.CylinderGeometry(L / 2, L / 2, H, 36);
+      const canMesh = new THREE.Mesh(canGeo, boxMat);
+      canMesh.position.y = H / 2;
+      canMesh.castShadow = true;
+      modelGroup.add(canMesh);
+
+    } else if (mId === 'cosmetic_jar') {
+      // Jars
+      const jarGeo = new THREE.CylinderGeometry(L / 2, L / 2, H * 0.65, 36);
+      const jarMesh = new THREE.Mesh(jarGeo, boxMat);
+      jarMesh.position.y = (H * 0.65) / 2;
+      jarMesh.castShadow = true;
+      modelGroup.add(jarMesh);
+
+      const lidGeo = new THREE.CylinderGeometry(L / 2 + 1, L / 2 + 1, H * 0.35, 36);
+      const goldLidMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.9, roughness: 0.15 });
+      const lidMesh = new THREE.Mesh(lidGeo, goldLidMat);
+      lidMesh.position.y = H * 0.65 + (H * 0.35) / 2 + (1 - f) * 40;
+      lidMesh.castShadow = true;
+      modelGroup.add(lidMesh);
+
+    } else {
+      // 8. Articulated Master Folding Carton (Tuck End, RTE, Snap Lock, Auto Bottom, Mailer, RSC, HSC, FOL, Pizza, Hanging Tab, Cake, Fry, Counter Display, 4-Corner Tray)
+      // Base Bottom Panel (Lies at y=0)
       const bottom = makeBoxPanel(L, W);
       bottom.rotation.x = -Math.PI / 2;
       bottom.position.y = 0;
@@ -506,8 +792,9 @@ export default function Packaging3DStudioView({
       rearPivot.position.set(0, 0, -W / 2);
       modelGroup.add(rearPivot);
 
-      const rearWall = makeBoxPanel(L, H);
-      rearWall.position.set(0, H / 2, 0);
+      const rearWallH = mId.includes('hanging') ? H + 35 : mId.includes('counter') ? H + 60 : H;
+      const rearWall = makeBoxPanel(L, rearWallH);
+      rearWall.position.set(0, rearWallH / 2, 0);
       rearPivot.add(rearWall);
       rearPivot.rotation.x = foldRad;
 
@@ -526,8 +813,9 @@ export default function Packaging3DStudioView({
       flapPivot.position.set(0, W, 0);
       lidPivot.add(flapPivot);
 
-      const flapPanel = makeBoxPanel(L, Math.min(H * 0.6, W * 0.4));
-      flapPanel.position.set(0, Math.min(H * 0.6, W * 0.4) / 2, 0);
+      const flapH = Math.min(H * 0.5, Math.max(20, W * 0.35));
+      const flapPanel = makeBoxPanel(L, flapH);
+      flapPanel.position.set(0, flapH / 2, 0);
       flapPivot.add(flapPanel);
       flapPivot.rotation.x = foldRad;
 
@@ -536,8 +824,9 @@ export default function Packaging3DStudioView({
       frontPivot.position.set(0, 0, W / 2);
       modelGroup.add(frontPivot);
 
-      const frontWall = makeBoxPanel(L, H);
-      frontWall.position.set(0, H / 2, 0);
+      const frontWallH = mId.includes('counter') ? H * 0.4 : H;
+      const frontWall = makeBoxPanel(L, frontWallH);
+      frontWall.position.set(0, frontWallH / 2, 0);
       frontPivot.add(frontWall);
       frontPivot.rotation.x = -foldRad;
 
@@ -562,84 +851,6 @@ export default function Packaging3DStudioView({
       rightWall.rotation.y = -Math.PI / 2;
       rightPivot.add(rightWall);
       rightPivot.rotation.z = foldRad;
-
-    } else if (selectedModelId === 'rigid_box') {
-      // Luxury Rigid Gift Box
-      const baseGeo = new THREE.BoxGeometry(L, H * 0.8, W);
-      const baseMesh = new THREE.Mesh(baseGeo, boxMat);
-      baseMesh.position.set(0, (H * 0.8) / 2, 0);
-      baseMesh.castShadow = true;
-      baseMesh.receiveShadow = true;
-      modelGroup.add(baseMesh);
-
-      // Lid raised slightly with fold animation
-      const lidGeo = new THREE.BoxGeometry(L * 1.04, H * 0.4, W * 1.04);
-      const lidMesh = new THREE.Mesh(lidGeo, boxMat);
-      const lidElevation = H * 0.8 + (1 - foldAngle) * 80;
-      lidMesh.position.set(0, lidElevation, 0);
-      lidMesh.rotation.y = (1 - foldAngle) * 0.4;
-      lidMesh.castShadow = true;
-      modelGroup.add(lidMesh);
-
-    } else if (selectedModelId === 'dropper_bottle' || selectedModelId === 'wine_bottle') {
-      // Glass Dropper Bottle
-      const bottleRadius = L / 2;
-      const bodyHeight = H * 0.7;
-      const bottleGeo = new THREE.CylinderGeometry(bottleRadius, bottleRadius, bodyHeight, 32);
-      const bottleMesh = new THREE.Mesh(bottleGeo, boxMat);
-      bottleMesh.position.y = bodyHeight / 2;
-      bottleMesh.castShadow = true;
-      modelGroup.add(bottleMesh);
-
-      const capGeo = new THREE.CylinderGeometry(bottleRadius * 0.6, bottleRadius * 0.6, H * 0.25, 32);
-      const goldCapMat = new THREE.MeshStandardMaterial({
-        color: 0xf59e0b,
-        metalness: 0.95,
-        roughness: 0.15
-      });
-      const capMesh = new THREE.Mesh(capGeo, goldCapMat);
-      capMesh.position.y = bodyHeight + (H * 0.25) / 2;
-      capMesh.castShadow = true;
-      modelGroup.add(capMesh);
-
-    } else if (selectedModelId === 'beverage_can') {
-      // Beverage Can
-      const canGeo = new THREE.CylinderGeometry(L / 2, L / 2, H, 36);
-      const canMesh = new THREE.Mesh(canGeo, boxMat);
-      canMesh.position.y = H / 2;
-      canMesh.castShadow = true;
-      modelGroup.add(canMesh);
-
-      const rimGeo = new THREE.TorusGeometry(L / 2, 1.5, 12, 36);
-      const aluMat = new THREE.MeshStandardMaterial({ color: 0xd1d5db, metalness: 0.9, roughness: 0.2 });
-      const topRim = new THREE.Mesh(rimGeo, aluMat);
-      topRim.rotation.x = Math.PI / 2;
-      topRim.position.y = H;
-      modelGroup.add(topRim);
-
-    } else if (selectedModelId === 'cosmetic_jar') {
-      // Luxury Jar
-      const jarGeo = new THREE.CylinderGeometry(L / 2, L / 2, H * 0.65, 36);
-      const jarMesh = new THREE.Mesh(jarGeo, boxMat);
-      jarMesh.position.y = (H * 0.65) / 2;
-      jarMesh.castShadow = true;
-      modelGroup.add(jarMesh);
-
-      const lidGeo = new THREE.CylinderGeometry(L / 2 + 1, L / 2 + 1, H * 0.35, 36);
-      const goldLidMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.9, roughness: 0.15 });
-      const lidMesh = new THREE.Mesh(lidGeo, goldLidMat);
-      lidMesh.position.y = H * 0.65 + (H * 0.35) / 2 + (1 - foldAngle) * 40;
-      lidMesh.castShadow = true;
-      modelGroup.add(lidMesh);
-
-    } else {
-      // Default Box
-      const geo = new THREE.BoxGeometry(L, H, W);
-      const mesh = new THREE.Mesh(geo, boxMat);
-      mesh.position.y = H / 2;
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
-      modelGroup.add(mesh);
     }
 
     // Interactive Drag Controls
@@ -1277,8 +1488,8 @@ export default function Packaging3DStudioView({
               <button
                 type="button"
                 onClick={() => setFoldAngle(0)}
-                className={`px-3 py-1 rounded-xl text-xs font-bold transition ${
-                  foldAngle === 0 ? 'bg-indigo-600 text-white' : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
+                className={`px-3 py-1.5 rounded-xl text-xs font-black transition ${
+                  foldAngle === 0 ? 'bg-amber-500 text-slate-950 shadow-md ring-2 ring-amber-400/40' : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
                 }`}
               >
                 شیت تخت (۰٪)
@@ -1286,17 +1497,17 @@ export default function Packaging3DStudioView({
               <button
                 type="button"
                 onClick={() => setFoldAngle(0.5)}
-                className={`px-3 py-1 rounded-xl text-xs font-bold transition ${
-                  foldAngle === 0.5 ? 'bg-indigo-600 text-white' : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
+                className={`px-3 py-1.5 rounded-xl text-xs font-black transition ${
+                  foldAngle === 0.5 ? 'bg-amber-500 text-slate-950 shadow-md ring-2 ring-amber-400/40' : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
                 }`}
               >
                 ۵۰٪ مونتاژ
               </button>
               <button
                 type="button"
-                onClick={() => setFoldAngle(1)}
-                className={`px-3 py-1 rounded-xl text-xs font-bold transition ${
-                  foldAngle === 1 ? 'bg-indigo-600 text-white' : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
+                onClick={() => setFoldAngle(1.0)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-black transition ${
+                  foldAngle === 1.0 || foldAngle === 1 ? 'bg-amber-500 text-slate-950 shadow-md ring-2 ring-amber-400/40' : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
                 }`}
               >
                 جعبه بسته (۱۰۰٪)
@@ -1307,7 +1518,7 @@ export default function Packaging3DStudioView({
             <button
               type="button"
               onClick={() => setIsAutoRotating((r) => !r)}
-              className="flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 transition"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 transition"
             >
               {isAutoRotating ? <Pause className="w-3.5 h-3.5 text-amber-400" /> : <Play className="w-3.5 h-3.5 text-emerald-400" />}
               <span>{isAutoRotating ? 'توقف چرخش' : 'چرخش ۳۶۰°'}</span>
@@ -1317,12 +1528,12 @@ export default function Packaging3DStudioView({
             <button
               type="button"
               onClick={() => setShowWireframe((w) => !w)}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold transition border ${
-                showWireframe ? 'bg-cyan-950 text-cyan-300 border-cyan-500' : 'bg-slate-800 text-slate-400 border-slate-700'
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition border ${
+                showWireframe ? 'bg-cyan-500 text-slate-950 border-cyan-400 shadow-md ring-2 ring-cyan-400/30' : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
               }`}
             >
               <Box className="w-3.5 h-3.5" />
-              <span>خطوط CAD</span>
+              <span>خطوط CAD و تیغ</span>
             </button>
 
             {/* Reset Camera Angle */}

@@ -19,7 +19,8 @@ import {
   Phone,
   ArrowRight,
   Send,
-  AlertCircle
+  AlertCircle,
+  Box
 } from 'lucide-react';
 
 /**
