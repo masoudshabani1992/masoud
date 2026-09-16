@@ -227,15 +227,30 @@ function verifyLicenseString(licenseKeyString, currentHardwareCode, db = null) {
   }
 }
 
+let cachedLicenseStatus = null;
+let lastLicenseCheckTime = 0;
+
 /**
  * Get current system license status
  */
 function getSystemLicenseStatus(db) {
-  initLicenseSchema(db);
+  const now = Date.now();
+  if (cachedLicenseStatus && (now - lastLicenseCheckTime < 15000)) {
+    return cachedLicenseStatus;
+  }
+
+  try {
+    initLicenseSchema(db);
+  } catch (e) {}
+
   const hw = getHardwareFingerprint();
 
   // 1. Check SQLite license_store
-  let stored = db.prepare('SELECT * FROM license_store WHERE id = 1').get();
+  let stored = null;
+  try {
+    stored = db.prepare('SELECT * FROM license_store WHERE id = 1').get();
+  } catch (e) {}
+
   let keyToVerify = stored?.license_key;
 
   // 2. Fallback check filesystem license.lic if db is empty
@@ -246,42 +261,46 @@ function getSystemLicenseStatus(db) {
   }
 
   if (!keyToVerify) {
-    return {
+    cachedLicenseStatus = {
       isActive: false,
       hardwareId: hw.code,
       license: null,
       errorReason: 'سامانه فاقد لایسنس فعال است. لطفاً کد شناسایی سخت‌افزار سرور را به توسعه‌دهنده نرم‌افزار ارائه فرمایید.'
     };
+    lastLicenseCheckTime = now;
+    return cachedLicenseStatus;
   }
 
   const result = verifyLicenseString(keyToVerify, hw.code, db);
 
   if (result.valid) {
     const nowIso = new Date().toISOString();
-    // Update DB record
-    db.prepare(`
-      INSERT INTO license_store (id, license_key, hardware_id, company_name, issued_to, expiry_date, is_permanent, is_active, last_verified_at)
-      VALUES (1, ?, ?, ?, ?, ?, ?, 1, ?)
-      ON CONFLICT(id) DO UPDATE SET
-        license_key = excluded.license_key,
-        hardware_id = excluded.hardware_id,
-        company_name = excluded.company_name,
-        issued_to = excluded.issued_to,
-        expiry_date = excluded.expiry_date,
-        is_permanent = excluded.is_permanent,
-        is_active = 1,
-        last_verified_at = excluded.last_verified_at
-    `).run(
-      result.rawKey,
-      hw.code,
-      result.payload.company || 'صنایع چاپ و بسته‌بندی آرمان امیران',
-      result.payload.issued_to || 'مدیریت کارخانه',
-      result.payload.expiry || 'PERMANENT',
-      result.isPermanent ? 1 : 0,
-      nowIso
-    );
+    // Update DB record safely
+    try {
+      db.prepare(`
+        INSERT INTO license_store (id, license_key, hardware_id, company_name, issued_to, expiry_date, is_permanent, is_active, last_verified_at)
+        VALUES (1, ?, ?, ?, ?, ?, ?, 1, ?)
+        ON CONFLICT(id) DO UPDATE SET
+          license_key = excluded.license_key,
+          hardware_id = excluded.hardware_id,
+          company_name = excluded.company_name,
+          issued_to = excluded.issued_to,
+          expiry_date = excluded.expiry_date,
+          is_permanent = excluded.is_permanent,
+          is_active = 1,
+          last_verified_at = excluded.last_verified_at
+      `).run(
+        result.rawKey,
+        hw.code,
+        result.payload.company || 'صنایع چاپ و بسته‌بندی آرمان امیران',
+        result.payload.issued_to || 'مدیریت کارخانه',
+        result.payload.expiry || 'PERMANENT',
+        result.isPermanent ? 1 : 0,
+        nowIso
+      );
+    } catch (e) {}
 
-    return {
+    cachedLicenseStatus = {
       isActive: true,
       hardwareId: hw.code,
       license: {
@@ -298,18 +317,22 @@ function getSystemLicenseStatus(db) {
       },
       errorReason: null
     };
+    lastLicenseCheckTime = now;
+    return cachedLicenseStatus;
   } else {
     // License exists but is invalid/expired
     try {
       db.prepare('UPDATE license_store SET is_active = 0 WHERE id = 1').run();
     } catch (e) {}
 
-    return {
+    cachedLicenseStatus = {
       isActive: false,
       hardwareId: hw.code,
       license: null,
       errorReason: result.reason
     };
+    lastLicenseCheckTime = now;
+    return cachedLicenseStatus;
   }
 }
 

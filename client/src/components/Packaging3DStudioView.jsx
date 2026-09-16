@@ -37,40 +37,62 @@ import {
 
 // 1. Packaging Model Library matching Pacdora Categories (100% Persian)
 const MODEL_CATEGORIES = [
-  { id: 'boxes', name: 'جعبه و کارتن (Boxes)', icon: '📦' },
-  { id: 'bottles', name: 'بطری و شیشه (Bottles)', icon: '🍾' },
-  { id: 'pouches', name: 'پاکت و ساشه (Pouches & Bags)', icon: '🛍️' },
-  { id: 'cans', name: 'قوطی فلزی (Cans)', icon: '🥫' },
-  { id: 'jars', name: 'جار و کرم (Jars & Pots)', icon: '🧴' },
-  { id: 'tubes', name: 'تیوب و لوله (Tubes)', icon: '🧪' },
-  { id: 'food', name: 'بسته‌بندی غذا (Food)', icon: '🍔' }
+  { id: 'all', name: 'همه مدل‌ها (۲۸)', icon: '✨' },
+  { id: 'folding', name: 'دارویی و بهداشتی (ECMA)', icon: '💊' },
+  { id: 'corrugated', name: 'پستی و کارتن مادر (FEFCO)', icon: '🚚' },
+  { id: 'rigid', name: 'هاردباکس و لوکس', icon: '🎁' },
+  { id: 'food', name: 'غذا و شیرینی', icon: '🍰' },
+  { id: 'special', name: 'خاص و استند', icon: '🏬' },
+  { id: 'bottles', name: 'بطری و شیشه', icon: '🍾' },
+  { id: 'pouches', name: 'پاکت و ساک دستی', icon: '🛍️' },
+  { id: 'cans', name: 'قوطی و جار', icon: '🥫' }
 ];
 
 const MODELS_DATA = [
-  // Boxes
-  { id: 'mailer', category: 'boxes', name: 'کارتن پستی کیبوردی قفل‌دار (FEFCO 0427)', farsiName: 'کارتن پستی کیبوردی', defaultDim: { l: 200, w: 150, h: 60, t: 1.5 }, icon: '📦' },
-  { id: 'tuck_end', category: 'boxes', name: 'جعبه دارویی دو طرف درب (Straight Tuck End)', farsiName: 'جعبه دارویی دو طرف درب', defaultDim: { l: 120, w: 60, h: 160, t: 0.5 }, icon: '💊' },
-  { id: 'auto_bottom', category: 'boxes', name: 'جعبه کفی قفلی اتوماتیک (Auto Bottom Lock)', farsiName: 'جعبه کفی قفلی اتوماتیک', defaultDim: { l: 140, w: 80, h: 180, t: 0.6 }, icon: '🔒' },
-  { id: 'rigid_box', category: 'boxes', name: 'هاردباکس لوکس دوتکه (درب و زیره)', farsiName: 'هاردباکس لوکس دوتکه', defaultDim: { l: 180, w: 120, h: 50, t: 2.0 }, icon: '🎁' },
-  { id: 'pillow_box', category: 'boxes', name: 'جعبه بالشتی فانتزی (Pillow Box)', farsiName: 'جعبه بالشتی فانتزی', defaultDim: { l: 160, w: 100, h: 40, t: 0.5 }, icon: '🎀' },
-  { id: 'sleeve_box', category: 'boxes', name: 'جعبه کشویی کاور و کفی (Sleeve & Tray)', farsiName: 'جعبه کشویی کاور و کفی', defaultDim: { l: 150, w: 90, h: 45, t: 0.8 }, icon: '🗂️' },
-  
-  // Bottles
+  // 1. Folding Cartons (ECMA)
+  { id: 'tuck_end', category: 'folding', name: 'جعبه دارویی دو طرف درب هماهنگ (STE)', farsiName: 'جعبه دارویی دو طرف درب', defaultDim: { l: 120, w: 60, h: 160, t: 0.5 }, icon: '💊' },
+  { id: 'reverse_tuck', category: 'folding', name: 'جعبه دارویی دو طرف درب معکوس (RTE)', farsiName: 'جعبه دارویی درب معکوس', defaultDim: { l: 100, w: 50, h: 140, t: 0.5 }, icon: '💄' },
+  { id: 'snap_lock_bottom', category: 'folding', name: 'جعبه قفل زیرین چفتی ۱-۲-۳ (Snap-Lock)', farsiName: 'جعبه قفل زیرین چفتی', defaultDim: { l: 140, w: 80, h: 180, t: 0.6 }, icon: '🔒' },
+  { id: 'auto_bottom', category: 'folding', name: 'جعبه کفی قفلی اتوماتیک (Crash-Lock)', farsiName: 'جعبه کفی اتوماتیک', defaultDim: { l: 130, w: 75, h: 170, t: 0.6 }, icon: '⚡' },
+  { id: 'hanging_tab', category: 'folding', name: 'جعبه آویزدار رگالی سوراخ یوروپانچ', farsiName: 'جعبه آویزدار رگالی', defaultDim: { l: 90, w: 40, h: 130, t: 0.5 }, icon: '🏷️' },
+
+  // 2. Corrugated & Mailers (FEFCO)
+  { id: 'mailer', category: 'corrugated', name: 'کارتن پستی کیبوردی قفل‌دار (FEFCO 0427)', farsiName: 'کارتن پستی کیبوردی', defaultDim: { l: 220, w: 160, h: 60, t: 1.5 }, icon: '📦' },
+  { id: 'roll_end_tuck_top', category: 'corrugated', name: 'جعبه کیبوردی درب از بالا (RETT)', farsiName: 'کیبوردی درب از بالا', defaultDim: { l: 200, w: 140, h: 50, t: 1.5 }, icon: '📬' },
+  { id: 'american', category: 'corrugated', name: 'کارتن مادر ۴ درب استاندارد (FEFCO 0201)', farsiName: 'کارتن مادر استاندارد', defaultDim: { l: 350, w: 250, h: 280, t: 3.0 }, icon: '🏭' },
+  { id: 'hsc', category: 'corrugated', name: 'کارتن نیمه‌درب باز (FEFCO 0200)', farsiName: 'کارتن نیمه‌درب باز', defaultDim: { l: 300, w: 200, h: 220, t: 3.0 }, icon: '📦' },
+  { id: 'full_overlap', category: 'corrugated', name: 'کارتن با درب اورلب کامل (FEFCO 0203)', farsiName: 'کارتن با اورلب کامل', defaultDim: { l: 320, w: 220, h: 240, t: 3.0 }, icon: '🛡️' },
+  { id: 'pizza_box', category: 'corrugated', name: 'جعبه پیتزا کیبوردی با منافذ تهویه', farsiName: 'جعبه پیتزا کیبوردی', defaultDim: { l: 320, w: 320, h: 45, t: 1.5 }, icon: '🍕' },
+
+  // 3. Rigid & Luxury Gift Boxes
+  { id: 'rigid_box', category: 'rigid', name: 'هاردباکس لوکس دو تکه (کف و درب جدا)', farsiName: 'هاردباکس لوکس دو تکه', defaultDim: { l: 200, w: 140, h: 60, t: 2.0 }, icon: '🎁' },
+  { id: 'sleeve_box', category: 'rigid', name: 'جعبه کشویی کبریتی (غلاف و کشو)', farsiName: 'جعبه کشویی غلاف و کشو', defaultDim: { l: 180, w: 100, h: 45, t: 0.8 }, icon: '🗂️' },
+  { id: 'book_style', category: 'rigid', name: 'هاردباکس لوکس کتابی با درب مگنتی', farsiName: 'هاردباکس کتابی مگنتی', defaultDim: { l: 220, w: 150, h: 55, t: 2.0 }, icon: '📖' },
+
+  // 4. Food & Fast Food
+  { id: 'gable_top', category: 'food', name: 'جعبه دسته‌دار شیرینی و سوغات (Gable Top)', farsiName: 'جعبه دسته‌دار شیرینی', defaultDim: { l: 180, w: 120, h: 160, t: 0.6 }, icon: '🧁' },
+  { id: 'cake_box', category: 'food', name: 'جعبه کیک و شیرینی ۴ گوش با پنجره', farsiName: 'جعبه کیک پنجره‌دار', defaultDim: { l: 240, w: 240, h: 120, t: 0.6 }, icon: '🎂' },
+  { id: 'french_fry_box', category: 'food', name: 'پاکت هلالی سیب‌زمینی و فست‌فود', farsiName: 'پاکت هلالی سیب‌زمینی', defaultDim: { l: 110, w: 50, h: 130, t: 0.5 }, icon: '🍟' },
+
+  // 5. Specialty, Novelty & Displays
+  { id: 'pillow_box', category: 'special', name: 'جعبه بالشتی فانتزی (Pillow Box)', farsiName: 'جعبه بالشتی فانتزی', defaultDim: { l: 160, w: 110, h: 35, t: 0.5 }, icon: '🎀' },
+  { id: 'hexagon_box', category: 'special', name: 'جعبه شش‌ضلعی لوکس قنادی و عطر', farsiName: 'جعبه شش‌ضلعی لوکس', defaultDim: { l: 120, w: 120, h: 150, t: 0.6 }, icon: '⬡' },
+  { id: 'triangular_box', category: 'special', name: 'جعبه منشوری سه‌گوش شکلات و اسنک', farsiName: 'جعبه منشوری سه‌گوش', defaultDim: { l: 140, w: 100, h: 180, t: 0.6 }, icon: '📐' },
+  { id: 'counter_display', category: 'special', name: 'استند پیشخوان نمایشگاهی پرفراژدار', farsiName: 'استند پیشخوان پرفراژدار', defaultDim: { l: 250, w: 180, h: 200, t: 1.5 }, icon: '🏬' },
+  { id: 'four_corner_tray', category: 'special', name: 'سینی ۴ گوش تاشو (Four Corner Tray)', farsiName: 'سینی ۴ گوش تاشو', defaultDim: { l: 260, w: 180, h: 70, t: 0.8 }, icon: '📥' },
+
+  // 6. Bottles
   { id: 'dropper_bottle', category: 'bottles', name: 'بطری شیشه‌ای قطره‌چکانی آرایشی', farsiName: 'قطره‌چکانی آرایشی', defaultDim: { l: 45, w: 45, h: 110, t: 3.0 }, icon: '💧' },
   { id: 'wine_bottle', category: 'bottles', name: 'بطری شیشه‌ای استوانه‌ای ۷۵۰ میل', farsiName: 'بطری شیشه‌ای ۷۵۰ml', defaultDim: { l: 75, w: 75, h: 280, t: 4.0 }, icon: '🍾' },
   
-  // Pouches & Bags
+  // 7. Pouches & Bags
   { id: 'standup_pouch', category: 'pouches', name: 'پاکت ایستاده زیپ‌کیپ کرافت/متالایز', farsiName: 'پاکت ایستاده زیپ‌کیپ', defaultDim: { l: 140, w: 70, h: 220, t: 0.2 }, icon: '☕' },
   { id: 'shopping_bag', category: 'pouches', name: 'ساک دستی کاغذی دسته‌دار کرافت', farsiName: 'ساک دستی کاغذی کرافت', defaultDim: { l: 220, w: 100, h: 280, t: 0.4 }, icon: '🛍️' },
   
-  // Cans
+  // 8. Cans & Jars
   { id: 'beverage_can', category: 'cans', name: 'قوطی آلومینیومی استاندارد ۳۳۰ میل', farsiName: 'قوطی فلزی نوشابه', defaultDim: { l: 66, w: 66, h: 122, t: 0.3 }, icon: '🥤' },
-  
-  // Jars
-  { id: 'cosmetic_jar', category: 'jars', name: 'جار شیشه‌ای کرم با درب طلایی', farsiName: 'جار شیشه‌ای لوکس', defaultDim: { l: 65, w: 65, h: 55, t: 3.0 }, icon: '🧴' },
-  
-  // Tubes
-  { id: 'lotion_tube', category: 'tubes', name: 'تیوب انعطاف‌پذیر کرم و لوسیون', farsiName: 'تیوب کرم و لوسیون', defaultDim: { l: 40, w: 30, h: 140, t: 0.5 }, icon: '🧪' }
+  { id: 'cosmetic_jar', category: 'cans', name: 'جار شیشه‌ای کرم با درب طلایی', farsiName: 'جار شیشه‌ای لوکس', defaultDim: { l: 65, w: 65, h: 55, t: 3.0 }, icon: '🧴' },
+  { id: 'lotion_tube', category: 'cans', name: 'تیوب انعطاف‌پذیر کرم و لوسیون', farsiName: 'تیوب کرم و لوسیون', defaultDim: { l: 40, w: 30, h: 140, t: 0.5 }, icon: '🧪' }
 ];
 
 // 2. Finishing & Craft Effects (Pacdora Crafts & Foil in Persian)
