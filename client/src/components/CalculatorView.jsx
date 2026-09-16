@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../api/client';
 import { formatToman, formatNumber } from '../utils/helpers';
+import { useAuth } from '../context/AuthContext';
 import {
   Calculator,
   Layers,
@@ -12,26 +13,34 @@ import {
   Sliders,
   DollarSign,
   TrendingUp,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Inbox,
+  User,
+  Phone,
+  ArrowRight,
+  Send,
+  AlertCircle
 } from 'lucide-react';
 
-export default function CalculatorView({ onApplyToProject, initialSpecs }) {
+export default function CalculatorView({ onApplyToProject, initialSpecs, onLeadEstimated }) {
+  const { role, currentUser } = useAuth();
+
   const [specs, setSpecs] = useState({
-    lengthMm: initialSpecs?.lengthMm || 220,
-    widthMm: initialSpecs?.widthMm || 150,
-    heightMm: initialSpecs?.heightMm || 70,
+    lengthMm: initialSpecs?.lengthMm || initialSpecs?.box_length || 220,
+    widthMm: initialSpecs?.widthMm || initialSpecs?.box_width || 150,
+    heightMm: initialSpecs?.heightMm || initialSpecs?.box_height || 70,
     quantity: initialSpecs?.quantity || 5000,
     boxType: initialSpecs?.boxType || 'carton_e_flute',
-    paperType: 'مقوای ایندربرد ۳۰۰ گرم چنگمینگ',
+    paperType: initialSpecs?.cardboard_type || 'مقوای ایندربرد ۳۰۰ گرم',
     paperPricePerKg: 72000,
-    grammage: 300,
+    grammage: initialSpecs?.cardboard_grammage || 300,
     hasFlute: true,
     fluteType: 'e_flute',
     flutePricePerSqm: 14500,
     printColorsCount: 4,
     plateCostPerUnit: 160000,
     printCostPerThousand: 750000,
-    cellophaneType: 'matte',
+    cellophaneType: initialSpecs?.cellophane_type?.includes('براق') ? 'gloss' : 'matte',
     cellophanePricePerSqm: 4200,
     hasUv: true,
     uvCostPerThousand: 650000,
@@ -51,6 +60,72 @@ export default function CalculatorView({ onApplyToProject, initialSpecs }) {
 
   const [calcResult, setCalcResult] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  // Marketing Leads waiting for price estimation
+  const [pendingLeads, setPendingLeads] = useState([]);
+  const [loadingLeads, setLoadingLeads] = useState(false);
+  const [activeLead, setActiveLead] = useState(null);
+  const [estimatingLead, setEstimatingLead] = useState(false);
+  const [estimateNotes, setEstimateNotes] = useState('');
+
+  const fetchPendingLeads = async () => {
+    try {
+      setLoadingLeads(true);
+      const res = await api.getMarketingLeads();
+      if (res.success) {
+        // filter leads that are pending commercial estimation
+        const pending = (res.leads || []).filter(l => l.status === 'pending_commercial' || !l.estimated_unit_price);
+        setPendingLeads(pending);
+      }
+    } catch (err) {
+      console.error('Error fetching marketing leads in calculator:', err);
+    } finally {
+      setLoadingLeads(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPendingLeads();
+  }, []);
+
+  const handleSelectLeadForEstimation = (lead) => {
+    setActiveLead(lead);
+    setEstimateNotes(`برآورد قیمت استعلام ${lead.lead_code} - مشتری: ${lead.customer_name}`);
+
+    // Map lead parameters into calculator
+    setSpecs((prev) => ({
+      ...prev,
+      quantity: Number(lead.quantity) || 5000,
+      lengthMm: Number(lead.box_length) || prev.lengthMm,
+      widthMm: Number(lead.box_width) || prev.widthMm,
+      heightMm: Number(lead.box_height) || prev.heightMm,
+      grammage: Number(lead.cardboard_grammage) || 300,
+      hasFlute: lead.material_construction?.includes('سینگل') || lead.material_construction?.includes('ای فلوت') || false,
+      fluteType: lead.material_construction?.includes('بی فلوت') ? 'b_flute' : 'e_flute',
+      cellophaneType: lead.cellophane_type?.includes('براق') ? 'gloss' : lead.cellophane_type?.includes('بدون') ? 'none' : 'matte'
+    }));
+  };
+
+  const handleSubmitLeadEstimation = async () => {
+    if (!activeLead || !calcResult) return;
+    setEstimatingLead(true);
+    try {
+      await api.estimateMarketingLead(activeLead.id, {
+        estimated_unit_price: calcResult.unitPrice,
+        estimated_total_price: calcResult.finalPrice,
+        commercial_notes: estimateNotes || `برآورد قیمت فی ${formatToman(calcResult.unitPrice)} تومان بر اساس تیراژ ${formatNumber(specs.quantity)} عدد.`
+      });
+
+      alert(`✅ برآورد قیمت برای استعلام «${activeLead.customer_name}» (${activeLead.lead_code}) با موفقیت ثبت شد و به کارتابل بازاریاب ارسال گردید.`);
+      setActiveLead(null);
+      fetchPendingLeads();
+      if (onLeadEstimated) onLeadEstimated();
+    } catch (err) {
+      alert('خطا در ثبت برآورد قیمت: ' + err.message);
+    } finally {
+      setEstimatingLead(false);
+    }
+  };
 
   const presets = [
     {
@@ -143,6 +218,135 @@ export default function CalculatorView({ onApplyToProject, initialSpecs }) {
 
   return (
     <div className="space-y-6">
+      
+      {/* PENDING MARKETING INQUIRIES NOTIFICATION BANNER & CARDS */}
+      {pendingLeads.length > 0 && (
+        <div className="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 rounded-3xl p-5 text-white shadow-xl space-y-3">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white font-black text-base shadow-inner">
+                <Inbox className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-black text-sm sm:text-base text-white flex items-center gap-2">
+                  <span>استعلام‌های جدید بازاریاب در انتظار برآورد قیمت ({pendingLeads.length} استعلام)</span>
+                  <span className="bg-white text-orange-700 text-[11px] px-2.5 py-0.5 rounded-full font-black animate-pulse">
+                    اقدام فوری
+                  </span>
+                </h3>
+                <p className="text-xs text-orange-100 mt-0.5">
+                  جهت برآورد قیمت، روی استعلام مورد نظر کلیک کنید تا مشخصات مستقیماً در ماشین‌حساب بارگذاری شود.
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={fetchPendingLeads}
+              className="px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-xl text-xs font-bold transition flex items-center gap-1"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loadingLeads ? 'animate-spin' : ''}`} />
+              <span>به‌روزرسانی</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
+            {pendingLeads.map((lead) => {
+              const isSelected = activeLead?.id === lead.id;
+              return (
+                <div
+                  key={lead.id}
+                  onClick={() => handleSelectLeadForEstimation(lead)}
+                  className={`p-3.5 rounded-2xl transition-all cursor-pointer border flex flex-col justify-between gap-2 shadow-sm ${
+                    isSelected
+                      ? 'bg-white text-slate-900 border-white ring-4 ring-amber-300 shadow-lg scale-[1.02]'
+                      : 'bg-white/10 hover:bg-white/20 text-white border-white/20 backdrop-blur-md'
+                  }`}
+                >
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className={`text-[10px] font-mono font-black px-2 py-0.5 rounded ${
+                        isSelected ? 'bg-amber-100 text-amber-900' : 'bg-black/20 text-white'
+                      }`}>
+                        {lead.lead_code}
+                      </span>
+                      <span className={`text-xs font-bold ${isSelected ? 'text-amber-700' : 'text-amber-200'}`}>
+                        {Number(lead.quantity).toLocaleString('fa-IR')} عدد
+                      </span>
+                    </div>
+
+                    <h4 className={`font-black text-xs sm:text-sm line-clamp-1 ${isSelected ? 'text-slate-900' : 'text-white'}`}>
+                      {lead.customer_name} - {lead.product_name}
+                    </h4>
+
+                    <div className={`text-[11px] leading-relaxed line-clamp-2 ${isSelected ? 'text-slate-600' : 'text-orange-100'}`}>
+                      {lead.cardboard_type} {lead.cardboard_grammage} گرم | {lead.material_construction} | {lead.cellophane_type}
+                      {lead.box_length ? ` (${lead.box_length}×${lead.box_width}×${lead.box_height}mm)` : ''}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between border-t border-white/20 pt-2 text-[11px] font-bold">
+                    <span className={isSelected ? 'text-indigo-600' : 'text-orange-200'}>
+                      بازاریاب: {lead.marketer_name || 'کارشناس'}
+                    </span>
+                    <span className={`px-2 py-0.5 rounded-lg flex items-center gap-1 ${
+                      isSelected ? 'bg-indigo-600 text-white' : 'bg-white/20 text-white'
+                    }`}>
+                      <span>{isSelected ? 'در حال برآورد' : 'انتخاب استعلام'}</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ACTIVE SELECTED LEAD ESTIMATION BANNER */}
+      {activeLead && (
+        <div className="bg-indigo-50 border-2 border-indigo-400 rounded-2xl p-4 flex items-center justify-between flex-wrap gap-3 animate-in fade-in">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold">
+              <User className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-mono font-black text-indigo-700 bg-white px-2 py-0.5 rounded border border-indigo-200">
+                  {activeLead.lead_code}
+                </span>
+                <h4 className="font-black text-sm text-indigo-950">
+                  در حال برآورد قیمت برای: {activeLead.customer_name} ({activeLead.product_name})
+                </h4>
+              </div>
+              <p className="text-xs text-indigo-700 mt-0.5">
+                تیراژ: <strong>{Number(activeLead.quantity).toLocaleString('fa-IR')}</strong> عدد | تلفن: {activeLead.customer_phone} | بازاریاب: {activeLead.marketer_name}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleSubmitLeadEstimation}
+              disabled={estimatingLead || !calcResult}
+              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-md transition flex items-center gap-1.5 active:scale-95"
+            >
+              {estimatingLead ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              <span>تایید و ارسال قیمت به بازاریاب (فی {formatToman(calcResult?.unitPrice || 0)})</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveLead(null)}
+              className="px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs rounded-xl transition"
+            >
+              انصراف
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Top Header Card */}
       <div className="bg-gradient-to-r from-amber-600 via-amber-700 to-amber-900 text-white p-6 rounded-2xl shadow-md flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-4">
@@ -518,8 +722,21 @@ export default function CalculatorView({ onApplyToProject, initialSpecs }) {
                   )}
                 </div>
 
-                {/* Apply Button */}
-                {onApplyToProject && (
+                {/* Direct Action for Active Lead */}
+                {activeLead && (
+                  <button
+                    type="button"
+                    onClick={handleSubmitLeadEstimation}
+                    disabled={estimatingLead}
+                    className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black text-xs shadow-md shadow-emerald-200 transition-all active:scale-95 flex items-center justify-center gap-2"
+                  >
+                    {estimatingLead ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4 text-amber-300" />}
+                    <span>ارسال این قیمت به کارتابل بازاریاب</span>
+                  </button>
+                )}
+
+                {/* Apply Button to Project if available */}
+                {onApplyToProject && !activeLead && (
                   <button
                     type="button"
                     onClick={() => onApplyToProject(calcResult)}

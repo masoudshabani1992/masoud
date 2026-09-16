@@ -22,7 +22,7 @@ import {
   PhoneCall
 } from 'lucide-react';
 
-export default function NotificationCenterModal({ onClose, onSelectProject }) {
+export default function NotificationCenterModal({ onClose, onSelectProject, onSelectLead }) {
   const { role } = useAuth();
   const isCeo = role === 'ceo';
 
@@ -113,6 +113,27 @@ export default function NotificationCenterModal({ onClose, onSelectProject }) {
       setNotifications(prev => prev.map(n => ({ ...n, is_read: 1 })));
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleNotificationClick = (notif) => {
+    if (!notif.is_read) handleMarkAsRead(notif.id);
+
+    const isLeadNotification =
+      (notif.archive_code && String(notif.archive_code).startsWith('MKT-')) ||
+      (notif.title && notif.title.includes('بازاریاب')) ||
+      (notif.message && notif.message.includes('MKT-'));
+
+    if (isLeadNotification) {
+      if (onSelectLead) {
+        onSelectLead(notif.project_id, notif.archive_code);
+      } else if (onSelectProject) {
+        onSelectProject({ type: 'lead', leadId: notif.project_id, archiveCode: notif.archive_code });
+      }
+      onClose();
+    } else if (notif.project_id && onSelectProject) {
+      onSelectProject({ id: notif.project_id });
+      onClose();
     }
   };
 
@@ -264,13 +285,7 @@ export default function NotificationCenterModal({ onClose, onSelectProject }) {
                 notifications.map((notif) => (
                   <div
                     key={notif.id}
-                    onClick={() => {
-                      if (!notif.is_read) handleMarkAsRead(notif.id);
-                      if (notif.project_id && onSelectProject) {
-                        onSelectProject({ id: notif.project_id });
-                        onClose();
-                      }
-                    }}
+                    onClick={() => handleNotificationClick(notif)}
                     className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-start justify-between gap-3 ${
                       notif.is_read
                         ? 'bg-slate-50/60 border-slate-200 text-slate-600'
@@ -298,8 +313,8 @@ export default function NotificationCenterModal({ onClose, onSelectProject }) {
                     </div>
 
                     <div className="flex items-center gap-1">
-                      <span className="text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-white p-1.5 rounded-lg border border-indigo-200">
-                        مشاهده کار
+                      <span className="text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-white p-1.5 rounded-lg border border-indigo-200 whitespace-nowrap">
+                        {notif.archive_code?.startsWith('MKT-') ? 'برآورد قیمت استعلام' : 'مشاهده کار'}
                       </span>
                     </div>
                   </div>

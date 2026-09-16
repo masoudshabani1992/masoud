@@ -308,24 +308,39 @@ app.post('/api/marketing/leads', authMiddleware, (req, res) => {
       user.full_name || 'کارشناس بازاریابی'
     );
 
-    // Send In-App & Multi-channel Notification to Commercial and CEO
+    const newLeadId = result.lastInsertRowid;
+
+    // Send In-App & Multi-channel Notification to Commercial, Estimation and CEO
     sendNotification({
       targetRole: 'sales',
       title: 'استعلام جدید از بازاریاب',
       message: `استعلام جدید برای «${customer_name}» (${product_name}) با تیراژ ${Number(quantity).toLocaleString('fa-IR')} توسط ${user.full_name || 'بازاریاب'} ثبت و جهت برآورد قیمت ارسال شد.`,
-      stageNumber: 1
+      stageNumber: 1,
+      projectId: newLeadId,
+      archiveCode: leadCode
+    });
+
+    sendNotification({
+      targetRole: 'estimation',
+      title: 'استعلام جدید در انتظار برآورد قیمت',
+      message: `استعلام «${customer_name}» (${leadCode}) با تیراژ ${Number(quantity).toLocaleString('fa-IR')} منتظر برآورد قیمت است.`,
+      stageNumber: 2,
+      projectId: newLeadId,
+      archiveCode: leadCode
     });
 
     sendNotification({
       targetRole: 'ceo',
       title: 'استعلام بازاریابی جدید',
       message: `استعلام «${customer_name}» (${leadCode}) توسط بازاریاب ثبت شد.`,
-      stageNumber: 1
+      stageNumber: 1,
+      projectId: newLeadId,
+      archiveCode: leadCode
     });
 
     res.json({
       success: true,
-      lead_id: result.lastInsertRowid,
+      lead_id: newLeadId,
       lead_code: leadCode,
       message: 'استعلام با موفقیت ثبت و جهت برآورد قیمت به مدیر بازرگانی ارسال گردید.'
     });

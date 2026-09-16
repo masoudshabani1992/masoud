@@ -32,10 +32,12 @@ import {
   Layers3,
   Check,
   ChevronDown,
-  Palette
+  Palette,
+  FileType
 } from 'lucide-react';
 import { api } from '../api/client';
 import Packaging3DMockup from './Packaging3DMockup';
+import { exportDielineToPdf } from '../utils/pdfExport';
 
 const BOX_TEMPLATES = [
   {
@@ -156,11 +158,11 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
   // Active Studio Mode: '3d_mockup' | '2d_dieline' | 'sheet_montage'
   const [studioTab, setStudioTab] = useState('3d_mockup');
   const [loading, setLoading] = useState(false);
+  const [pdfExporting, setPdfExporting] = useState(false);
   const [dielineData, setDielineData] = useState(null);
   const [montageResult, setMontageResult] = useState(null);
   const [selectedSheetId, setSelectedSheetId] = useState('sheet_70x100');
   const [zoomScale, setZoomScale] = useState(1);
-  const [cadTheme, setCadTheme] = useState('light'); // 'light' or 'dark'
 
   // Apply Sample: Pacdora 150010 Mailer Box
   const handleApplyPacdoraMailer = () => {
@@ -226,7 +228,33 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
     handleGenerate();
   }, [selectedTemplate, selectedMaterial, sizeMode, customThickness]);
 
-  // Download 1:1 Vector SVG (Pacdora & ArtiosCAD standard)
+  // Export & Download PDF (Vector Print-ready Dieline)
+  const handleDownloadPdf = async () => {
+    if (!dielineData?.svg) return;
+    setPdfExporting(true);
+    try {
+      await exportDielineToPdf({
+        svgString: dielineData.svg,
+        boxName: currentTmpl.name,
+        boxCode: currentTmpl.fefcoCode,
+        pacdoraId: currentTmpl.pacdoraId,
+        dimensions: { l: triad.mfg.l, w: triad.mfg.w, h: triad.mfg.h },
+        thicknessMm: customThickness,
+        materialName: currentMat.name,
+        ruleCutMeters: dielineData.ruleLengthMeters?.cutRuleMeters || 1.5,
+        ruleCreaseMeters: dielineData.ruleLengthMeters?.creaseRuleMeters || 2.0,
+        flatWidthMm: dielineData.flatDimensions.flatWidthMm,
+        flatHeightMm: dielineData.flatDimensions.flatHeightMm,
+        filename: `Pacdora-Dieline-${selectedTemplate}-${triad.mfg.l}x${triad.mfg.w}x${triad.mfg.h}mm.pdf`
+      });
+    } catch (err) {
+      alert('خطا در صدور فایل PDF: ' + err.message);
+    } finally {
+      setPdfExporting(false);
+    }
+  };
+
+  // Download SVG
   const handleDownloadSvg = () => {
     if (!dielineData?.svg) return;
     const blob = new Blob([dielineData.svg], { type: 'image/svg+xml;charset=utf-8' });
@@ -267,7 +295,7 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
               </span>
             </div>
             <p className="text-xs text-indigo-200 mt-1">
-              محاسبه ۳ بعدی ابعاد، تبدیل خودکار (Inner / Mfg / Outer)، موکاپ با قابلیت باز و بسته‌شدن و فرم‌بندی زنده
+              محاسبه ۳ بعدی ابعاد، تبدیل خودکار (Inner / Mfg / Outer)، موکاپ با قابلیت باز و بسته‌شدن و خروجی مستقیم PDF
             </p>
           </div>
         </div>
@@ -548,8 +576,19 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
               </button>
             </div>
 
-            {/* Download & Export Actions */}
+            {/* Download & Export Actions: PDF Dieline & SVG */}
             <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleDownloadPdf}
+                disabled={pdfExporting}
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-black text-xs rounded-xl transition shadow-md shadow-rose-200 flex items-center gap-1.5 active:scale-95"
+                title="دانلود فایل PDF خط تیغ مهندسی با جدول مشخصات و تایتل بلاک لیتوگرافی"
+              >
+                {pdfExporting ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <FileType className="w-3.5 h-3.5" />}
+                <span>دانلود PDF خط تیغ</span>
+              </button>
+
               <button
                 type="button"
                 onClick={handleDownloadSvg}
@@ -557,7 +596,7 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
                 title="دانلود وکتور SVG خط تیغ با ابعاد استاندارد"
               >
                 <Download className="w-3.5 h-3.5" />
-                <span>دانلود وکتور SVG</span>
+                <span>SVG وکتور</span>
               </button>
 
               {onTransferToOrder && dielineData && (
@@ -650,7 +689,7 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
 
               <div className="w-full flex items-center justify-between text-[10px] text-slate-400 font-mono mt-3 px-2">
                 <span>Pacdora & ESKO ArtiosCAD 23.07 Vector Engine</span>
-                <span>Scale 1:1 Ready for Laser Die Cutting</span>
+                <span>PDF / SVG Export Ready for Laser Die Cutting</span>
               </div>
             </div>
           )}

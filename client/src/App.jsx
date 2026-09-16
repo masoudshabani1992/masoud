@@ -21,6 +21,7 @@ import LicenseGate from './components/LicenseGate';
 import LicenseStatusModal from './components/LicenseStatusModal';
 import AiAssistantView from './components/AiAssistantView';
 import MarketingLeadsView from './components/MarketingLeadsView';
+import DielineGeneratorView from './components/DielineGeneratorView';
 import { playNotificationSound } from './utils/helpers';
 
 export default function App() {
@@ -32,6 +33,9 @@ export default function App() {
   const [unreadNotifCount, setUnreadNotifCount] = useState(0);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [showLicenseModal, setShowLicenseModal] = useState(false);
+
+  // Selected Lead to load into price calculator / estimation
+  const [selectedLeadSpecs, setSelectedLeadSpecs] = useState(null);
 
   // License State
   const [licenseState, setLicenseState] = useState({
@@ -125,6 +129,20 @@ export default function App() {
       return () => clearInterval(interval);
     }
   }, [currentUser, licenseState.isActive]);
+
+  // Handle opening lead from notification
+  const handleOpenLeadFromNotification = async (leadId, leadCode) => {
+    try {
+      // If user is sales or estimation or accounting or ceo, navigate to calculator with lead loaded
+      if (role === 'sales' || role === 'estimation' || role === 'accounting' || role === 'ceo') {
+        setActiveTab('calculator');
+      } else {
+        setActiveTab('marketing');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   // If license is checking, display brief loader
   if (!licenseState.checked) {
@@ -271,6 +289,20 @@ export default function App() {
         {/* Data Migration & Import Center */}
         {activeTab === 'migration' && <DataMigrationView onRefreshData={fetchProjects} />}
 
+        {/* Pacdora & ArtiosCAD 3D Packaging Studio & Dieline Generator */}
+        {activeTab === 'dieline_generator' && (
+          <DielineGeneratorView
+            onTransferToOrder={(boxSpecs) => {
+              setReorderData({
+                ...boxSpecs,
+                order_code: String(Math.floor(1000 + Math.random() * 9000)),
+                archive_code: String(Math.floor(1000 + Math.random() * 9000))
+              });
+              setActiveTab('new_order');
+            }}
+          />
+        )}
+
         {/* AI Packaging Assistant & Nesting Optimizer */}
         {activeTab === 'ai_assistant' && (
           <AiAssistantView
@@ -285,14 +317,17 @@ export default function App() {
           />
         )}
 
-        {/* Full-Page Industrial Price Calculator */}
+        {/* Full-Page Industrial Price Calculator with Marketer Inquiries */}
         {activeTab === 'calculator' && (
           <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-4">
             <div className="border-b border-slate-100 pb-4 flex items-center justify-between">
-              <h2 className="text-xl font-black text-slate-800">ماشین حساب برآورد صنعتی قیمت جعبه و کارتن</h2>
-              <span className="text-xs font-bold text-slate-500">محاسبه دقیق فرمول‌های متریال، چاپ و خدمات تکمیلی</span>
+              <h2 className="text-xl font-black text-slate-800">ماشین حساب برآورد صنعتی قیمت جعبه و استعلام بازاریابی</h2>
+              <span className="text-xs font-bold text-slate-500">برآورد قیمت روز استعلام‌های بازاریاب و فرمول‌های صنعتی</span>
             </div>
-            <CalculatorView />
+            <CalculatorView
+              initialSpecs={selectedLeadSpecs}
+              onLeadEstimated={() => fetchNotificationsCount()}
+            />
           </div>
         )}
 
@@ -336,7 +371,14 @@ export default function App() {
             setShowNotificationModal(false);
             fetchNotificationsCount();
           }}
-          onSelectProject={(p) => setSelectedProjectId(p.id)}
+          onSelectProject={(p) => {
+            if (p.type === 'lead') {
+              handleOpenLeadFromNotification(p.leadId, p.archiveCode);
+            } else {
+              setSelectedProjectId(p.id);
+            }
+          }}
+          onSelectLead={handleOpenLeadFromNotification}
         />
       )}
 
