@@ -175,6 +175,12 @@ export default function LoginView() {
           </form>
         </div>
 
+        {/* Footer Notice */}
+        <div className="w-full text-center text-[12px] text-slate-400 font-medium py-2 space-y-1">
+          <p>همکار گرامی! تمامی اطلاعات این اتوماسیون محرمانه و امانت در اختیار شماست</p>
+          <p className="text-amber-400 font-bold font-mono text-[12px]">برنامه‌نویس: مسعود شعبانی</p>
+        </div>
+
       </div>
     </div>
   );

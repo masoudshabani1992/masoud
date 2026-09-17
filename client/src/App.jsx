@@ -430,6 +430,20 @@ export default function App() {
         </ErrorBoundary>
       </main>
 
+      {/* Universal Page Footer */}
+      <footer className="w-full py-2 px-4 sm:px-6 bg-slate-900 text-slate-300 border-t border-slate-800 text-[12px] flex items-center justify-between flex-wrap gap-2 z-30 shrink-0 select-none">
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span className="font-medium text-slate-200">
+            همکار گرامی! تمامی اطلاعات این اتوماسیون محرمانه و امانت در اختیار شماست
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5 text-amber-400 font-bold font-mono text-[12px]">
+          <span className="text-slate-400">برنامه‌نویس:</span>
+          <span>مسعود شعبانی</span>
+        </div>
+      </footer>
+
       {/* Project Details Modal */}
       {selectedProjectId && (
         <ProjectDetailsModal
