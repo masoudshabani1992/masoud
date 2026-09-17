@@ -280,7 +280,13 @@ export default function App() {
       />
 
       {/* Main Content Area Wrapped with Error Boundary */}
-      <main className="flex-1 w-full max-w-[2200px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      <main
+        className={
+          activeTab === 'dieline_generator' || activeTab === '3d_studio'
+            ? 'flex-1 w-full h-[calc(100vh-64px)] max-h-[calc(100vh-64px)] overflow-hidden p-2 sm:p-3'
+            : 'flex-1 w-full max-w-[2200px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6'
+        }
+      >
         <ErrorBoundary onReset={() => navigateTab('hub')}>
           
           {/* Department Hub (Landing Screen) */}
