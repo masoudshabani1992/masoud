@@ -9,6 +9,9 @@
     "roars": "node make-roars.mjs"
   },
   "dependencies": {
+    "@gltf-transform/cli": "^4.5.0",
+    "@gltf-transform/core": "^4.5.0",
+    "@gltf-transform/functions": "^4.5.0",
     "@msgpack/msgpack": "^2.8.0",
     "@tensorflow/tfjs": "4.16.0",
     "@tensorflow/tfjs-backend-webgl": "4.16.0",

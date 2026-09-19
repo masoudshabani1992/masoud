@@ -389,6 +389,22 @@ window.addEventListener('DOMContentLoaded', function () {
     document.querySelector('#help').classList.toggle('open');
   });
 
+  // 🏠 نمایش دایناسورها با اندازهٔ واقعی در اتاق (مثل دموی شیرآلات/ARcade)
+  // از Google Scene Viewer استفاده می‌کند: کف اتاق را پیدا می‌کند و مدل را
+  // ۱:۱ روی زمین می‌گذارد؛ برای اندروید بدون نصب اضافی.
+  var ROOM_GLB = 'https://raw.githubusercontent.com/masoudshabani1992/masoud/arena/01a0bb37-masoud/dino-ar/models/dinos-combined.glb';
+  document.querySelector('#btnRoom').addEventListener('click', function () {
+    var file = encodeURIComponent(ROOM_GLB);
+    var https = 'https://arvr.google.com/scene-viewer/1.0?file=' + file +
+      '&mode=ar_preferred&title=Dino%20Stand';
+    var intent = 'intent://arvr.google.com/scene-viewer/1.0?file=' + file +
+      '&mode=ar_preferred&title=Dino%20Stand' +
+      '#Intent;scheme=https;package=com.google.android.googlequicksearchbox;' +
+      'action=android.intent.action.VIEW;S.browser_fallback_url=' +
+      encodeURIComponent(https) + ';end';
+    window.location.href = intent;
+  });
+
   var isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
   if (!isTouch) document.querySelector('#desktopHint').style.display = 'flex';
 });

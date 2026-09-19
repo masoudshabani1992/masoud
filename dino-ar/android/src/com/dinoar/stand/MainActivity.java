@@ -64,6 +64,43 @@ public class MainActivity extends Activity {
 
         web.setWebViewClient(new WebViewClient() {
             @Override
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                Uri uri = request.getUrl();
+                String url = uri.toString();
+                if (url.startsWith(BASE)) {
+                    return false; // محتوای خود اپ از assets
+                }
+                String scheme = uri.getScheme();
+                if ("intent".equals(scheme)) {
+                    // لینک‌های intent:// مثل Scene Viewer گوگل
+                    try {
+                        Intent i = Intent.parseUri(url, Intent.URI_INTENT_SCHEME);
+                        startActivity(i);
+                    } catch (android.content.ActivityNotFoundException e) {
+                        try {
+                            Intent i = Intent.parseUri(url, Intent.URI_INTENT_SCHEME);
+                            String fallback = i.getStringExtra("browser_fallback_url");
+                            if (fallback != null) {
+                                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(fallback)));
+                            }
+                        } catch (Exception ignored) {
+                        }
+                    } catch (Exception ignored) {
+                    }
+                    return true;
+                }
+                if ("http".equals(scheme) || "https".equals(scheme)) {
+                    // هر لینک خارجی در مرورگر باز شود
+                    try {
+                        startActivity(new Intent(Intent.ACTION_VIEW, uri));
+                    } catch (Exception ignored) {
+                    }
+                    return true;
+                }
+                return true;
+            }
+
+            @Override
             public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest req) {
                 String url = req.getUrl().toString();
                 if (!url.startsWith(BASE)) {
