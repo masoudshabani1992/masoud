@@ -8,6 +8,6 @@
     "build": "bash build.sh"
   },
   "dependencies": {
-    "apk_sign_ts": "^1.0.0"
+    "apk_sign_ts": "^1.0.1"
   }
 }
