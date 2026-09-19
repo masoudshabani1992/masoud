@@ -1,0 +1,13 @@
+{
+  "name": "dino-stand-android",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "ساخت APK استند دایناسوری (WebView + MindAR)",
+  "scripts": {
+    "build": "bash build.sh"
+  },
+  "dependencies": {
+    "apk_sign_ts": "^1.0.0"
+  }
+}
