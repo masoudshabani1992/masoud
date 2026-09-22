@@ -19,7 +19,12 @@ import {
   Calendar,
   Sparkles,
   ArrowUpDown,
-  FileText
+  FileText,
+  Scissors,
+  X,
+  Check,
+  Tag,
+  PhoneCall
 } from 'lucide-react';
 
 export default function ProductionOrderView({ onOpenNewProject }) {
@@ -36,6 +41,7 @@ export default function ProductionOrderView({ onOpenNewProject }) {
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [activeOrderForStatus, setActiveOrderForStatus] = useState(null);
   const [statusForm, setStatusForm] = useState({ status_color: 'white', financial_status: '', financial_notes: '' });
+  const [printOrder, setPrintOrder] = useState(null);
 
   // New Order Form State
   const [newOrder, setNewOrder] = useState({
@@ -101,6 +107,18 @@ export default function ProductionOrderView({ onOpenNewProject }) {
     setShowStatusModal(true);
   };
 
+  const handleQuickColorChange = async (order, newColor) => {
+    try {
+      await api.updateProductionOrderStatusColor(order.id, {
+        status_color: newColor,
+        financial_status: newColor === 'green' ? 'تسویه کامل' : newColor === 'yellow' ? 'پرونده در دست مالی' : 'در حال تولید سالن'
+      });
+      fetchOrders();
+    } catch (err) {
+      alert('خطا در تغییر وضعیت: ' + err.message);
+    }
+  };
+
   const handleSaveStatus = async () => {
     if (!activeOrderForStatus) return;
     try {
@@ -148,7 +166,7 @@ export default function ProductionOrderView({ onOpenNewProject }) {
               </span>
             </h1>
             <p className="text-slate-300 text-sm max-w-2xl leading-relaxed">
-              مدیریت تفکیکی سفارشات در ۳ رنگ اختصاصی: <span className="text-white font-bold underline">سفید (صف تولید)</span>، <span className="text-amber-300 font-bold underline">زرد (پرونده مالی)</span> و <span className="text-emerald-300 font-bold underline">سبز (تکمیل شده و بایگانی)</span> به همراه خروجی اکسل چند شیت.
+              مدیریت تفکیکی سفارشات در ۳ رنگ اختصاصی: <span className="text-white font-bold underline">سفید (صف تولید)</span>، <span className="text-amber-300 font-bold underline">زرد (پرونده در دست مالی)</span> و <span className="text-emerald-300 font-bold underline">سبز (تکمیل شده و بایگانی)</span> به همراه تفکیک بخش‌های <span className="text-purple-300 font-bold">دیجیتال</span> و <span className="text-amber-300 font-bold">خدماتی (دایکات/سلفون)</span> و خروجی فایل اکسل ۳ شیت.
             </p>
           </div>
 
@@ -158,7 +176,7 @@ export default function ProductionOrderView({ onOpenNewProject }) {
               className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs sm:text-sm shadow-lg shadow-emerald-900/30 transition-all flex items-center gap-2 border border-emerald-400/30"
             >
               <FileSpreadsheet className="w-4 h-4" />
-              <span>دانلود اکسل ۳ شیت (سفید/زرد/سبز)</span>
+              <span>دانلود فایل اکسل ۳ شیت (سفید/زرد/سبز)</span>
             </button>
 
             <button
@@ -172,14 +190,14 @@ export default function ProductionOrderView({ onOpenNewProject }) {
         </div>
       </div>
 
-      {/* 3 Color Cartable Counters */}
+      {/* 3 Color Cartable Interactive Buttons */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* White: صف تولید */}
         <button
-          onClick={() => setSelectedColor('white')}
+          onClick={() => setSelectedColor(selectedColor === 'white' ? 'all' : 'white')}
           className={`p-5 rounded-2xl border transition-all text-right flex items-center justify-between ${
             selectedColor === 'white'
-              ? 'bg-white border-indigo-500 shadow-lg ring-2 ring-indigo-500/20'
+              ? 'bg-white border-indigo-500 shadow-xl ring-4 ring-indigo-500/20 scale-[1.02]'
               : 'bg-white border-slate-200 hover:border-slate-300 shadow-sm'
           }`}
         >
@@ -200,12 +218,12 @@ export default function ProductionOrderView({ onOpenNewProject }) {
           </span>
         </button>
 
-        {/* Yellow: پرونده مالی */}
+        {/* Yellow: پرونده در دست مالی */}
         <button
-          onClick={() => setSelectedColor('yellow')}
+          onClick={() => setSelectedColor(selectedColor === 'yellow' ? 'all' : 'yellow')}
           className={`p-5 rounded-2xl border transition-all text-right flex items-center justify-between ${
             selectedColor === 'yellow'
-              ? 'bg-amber-50 border-amber-500 shadow-lg ring-2 ring-amber-500/20'
+              ? 'bg-amber-50 border-amber-500 shadow-xl ring-4 ring-amber-500/20 scale-[1.02]'
               : 'bg-white border-slate-200 hover:border-amber-200 shadow-sm'
           }`}
         >
@@ -226,12 +244,12 @@ export default function ProductionOrderView({ onOpenNewProject }) {
           </span>
         </button>
 
-        {/* Green: تکمیل شده */}
+        {/* Green: تکمیل شده و بایگانی */}
         <button
-          onClick={() => setSelectedColor('green')}
+          onClick={() => setSelectedColor(selectedColor === 'green' ? 'all' : 'green')}
           className={`p-5 rounded-2xl border transition-all text-right flex items-center justify-between ${
             selectedColor === 'green'
-              ? 'bg-emerald-50 border-emerald-500 shadow-lg ring-2 ring-emerald-500/20'
+              ? 'bg-emerald-50 border-emerald-500 shadow-xl ring-4 ring-emerald-500/20 scale-[1.02]'
               : 'bg-white border-slate-200 hover:border-emerald-200 shadow-sm'
           }`}
         >
@@ -253,13 +271,13 @@ export default function ProductionOrderView({ onOpenNewProject }) {
         </button>
       </div>
 
-      {/* Filter and Search Bar */}
+      {/* Category Tabs & Search Bar */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
         {/* Category Tabs */}
         <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0">
           <button
             onClick={() => setSelectedCategory('all')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
               selectedCategory === 'all'
                 ? 'bg-slate-900 text-white shadow'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -267,35 +285,41 @@ export default function ProductionOrderView({ onOpenNewProject }) {
           >
             همه بخش‌ها ({counts.total})
           </button>
+          
           <button
             onClick={() => setSelectedCategory('offset')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${
               selectedCategory === 'offset'
                 ? 'bg-indigo-600 text-white shadow'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
             }`}
           >
-            چاپ افست و جعبه‌سازی
+            <Box className="w-3.5 h-3.5" />
+            <span>چاپ افست و جعبه‌سازی</span>
           </button>
+
           <button
             onClick={() => setSelectedCategory('digital')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${
               selectedCategory === 'digital'
                 ? 'bg-purple-600 text-white shadow'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                : 'bg-purple-50 text-purple-700 hover:bg-purple-100'
             }`}
           >
-            چاپ دیجیتال
+            <Printer className="w-3.5 h-3.5" />
+            <span>چاپ دیجیتال (دستگاه‌های دیجیتال)</span>
           </button>
+
           <button
             onClick={() => setSelectedCategory('service')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${
               selectedCategory === 'service'
                 ? 'bg-amber-600 text-white shadow'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                : 'bg-amber-50 text-amber-800 hover:bg-amber-100'
             }`}
           >
-            کارهای خدماتی و کارمزدی
+            <Scissors className="w-3.5 h-3.5" />
+            <span>کارهای خدماتی (دایکات / سلفون با مقوای مشتری)</span>
           </button>
         </div>
 
@@ -348,51 +372,84 @@ export default function ProductionOrderView({ onOpenNewProject }) {
             <table className="w-full text-right text-xs border-collapse">
               <thead>
                 <tr className="bg-slate-900 text-slate-200 font-bold border-b border-slate-800 text-[11px] select-none">
-                  <th className="py-3 px-3 text-center w-12">وضعیت</th>
+                  <th className="py-3 px-3 text-center w-28">وضعیت رنگ کارتابل</th>
                   <th className="py-3 px-3">کد سفارش / بایگانی</th>
-                  <th className="py-3 px-3">مشتری و شماره تماس</th>
+                  <th className="py-3 px-3">مشتری و تماس</th>
                   <th className="py-3 px-3">نام سفارش و محصول</th>
                   <th className="py-3 px-3 text-center">نوع و تیراژ</th>
                   <th className="py-3 px-3">جنس، گراماژ و سایز</th>
                   <th className="py-3 px-3">پوشش، دایکات و اتصال</th>
-                  <th className="py-3 px-3">وضعیت مالی و مبالغ</th>
+                  <th className="py-3 px-3">وضعیت مالی و حسابداری</th>
                   <th className="py-3 px-3">مهلت تحویل و ماشین</th>
-                  <th className="py-3 px-3 text-center">عملیات</th>
+                  <th className="py-3 px-3 text-center">عملیات کارگاه</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700 font-medium">
                 {orders.map((ord, idx) => {
                   let rowBg = 'hover:bg-slate-50/80';
                   let statusBadge = (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-300 text-[10px] font-bold">
-                      <span className="w-2 h-2 rounded-full bg-white border border-slate-400" />
-                      صف تولید
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-800 border border-slate-300 text-[11px] font-bold">
+                      <span className="w-2.5 h-2.5 rounded-full bg-white border-2 border-slate-400" />
+                      <span>صف تولید</span>
                     </span>
                   );
 
                   if (ord.status_color === 'yellow') {
                     rowBg = 'bg-amber-50/40 hover:bg-amber-50';
                     statusBadge = (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 border border-amber-300 text-[10px] font-bold">
-                        <span className="w-2 h-2 rounded-full bg-amber-400" />
-                        پرونده مالی
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-100 text-amber-900 border border-amber-300 text-[11px] font-bold">
+                        <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
+                        <span>پرونده مالی</span>
                       </span>
                     );
                   } else if (ord.status_color === 'green') {
                     rowBg = 'bg-emerald-50/40 hover:bg-emerald-50';
                     statusBadge = (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-bold">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                        تکمیل و تحویل
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-900 border border-emerald-300 text-[11px] font-bold">
+                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                        <span>تکمیل و بایگانی</span>
                       </span>
                     );
                   }
 
                   return (
                     <tr key={ord.id} className={`transition-colors ${rowBg}`}>
-                      {/* Status Color Badge */}
+                      {/* Status Color Badge with Quick Toggle */}
                       <td className="py-3 px-3 text-center">
-                        {statusBadge}
+                        <div className="flex flex-col items-center gap-1.5">
+                          <button
+                            onClick={() => handleOpenStatusModal(ord)}
+                            className="cursor-pointer hover:opacity-80 transition"
+                            title="کلیک جهت ویرایش وضعیت مالی و رنگ"
+                          >
+                            {statusBadge}
+                          </button>
+
+                          {/* Quick 3-color pills */}
+                          <div className="flex items-center gap-1 bg-white/80 p-0.5 rounded-full border border-slate-200">
+                            <button
+                              onClick={() => handleQuickColorChange(ord, 'white')}
+                              className={`w-3.5 h-3.5 rounded-full border transition-all ${
+                                ord.status_color === 'white' ? 'ring-2 ring-indigo-500 bg-white border-slate-400 scale-110' : 'bg-slate-200 border-slate-300 hover:bg-white'
+                              }`}
+                              title="تغییر سریع به سفید (صف تولید)"
+                            />
+                            <button
+                              onClick={() => handleQuickColorChange(ord, 'yellow')}
+                              className={`w-3.5 h-3.5 rounded-full border transition-all ${
+                                ord.status_color === 'yellow' ? 'ring-2 ring-amber-500 bg-amber-400 border-amber-500 scale-110' : 'bg-amber-200 border-amber-300 hover:bg-amber-400'
+                              }`}
+                              title="تغییر سریع به زرد (پرونده مالی)"
+                            />
+                            <button
+                              onClick={() => handleQuickColorChange(ord, 'green')}
+                              className={`w-3.5 h-3.5 rounded-full border transition-all ${
+                                ord.status_color === 'green' ? 'ring-2 ring-emerald-500 bg-emerald-500 border-emerald-600 scale-110' : 'bg-emerald-200 border-emerald-300 hover:bg-emerald-500'
+                              }`}
+                              title="تغییر سریع به سبز (تکمیل و بایگانی)"
+                            />
+                          </div>
+                        </div>
                       </td>
 
                       {/* Order & Archive Code */}
@@ -425,7 +482,13 @@ export default function ProductionOrderView({ onOpenNewProject }) {
                         <div className="font-black text-slate-900 font-mono text-xs">
                           {Number(ord.quantity).toLocaleString('fa-IR')} عدد
                         </div>
-                        <span className="inline-block mt-0.5 text-[10px] px-1.5 py-0.2 bg-slate-100 text-slate-600 rounded">
+                        <span className={`inline-block mt-0.5 text-[10px] px-1.5 py-0.2 rounded font-bold ${
+                          ord.order_category === 'offset'
+                            ? 'bg-indigo-100 text-indigo-800'
+                            : ord.order_category === 'digital'
+                            ? 'bg-purple-100 text-purple-800'
+                            : 'bg-amber-100 text-amber-800'
+                        }`}>
                           {ord.order_category === 'offset' ? 'افست' : ord.order_category === 'digital' ? 'دیجیتال' : 'خدماتی'}
                         </span>
                       </td>
@@ -450,11 +513,11 @@ export default function ProductionOrderView({ onOpenNewProject }) {
                       <td className="py-3 px-3">
                         <div className="font-bold text-xs">
                           {ord.financial_status === 'تسویه کامل' ? (
-                            <span className="text-emerald-700">تسویه کامل</span>
+                            <span className="text-emerald-700 font-black">تسویه کامل</span>
                           ) : ord.financial_status === 'بیعانه دریافت شد' ? (
                             <span className="text-indigo-700">بیعانه واریز شد</span>
                           ) : (
-                            <span className="text-amber-700">{ord.financial_status || 'در انتظار واریز'}</span>
+                            <span className="text-amber-800">{ord.financial_status || 'در انتظار واریز'}</span>
                           )}
                         </div>
                         {ord.total_price > 0 && (
@@ -479,12 +542,21 @@ export default function ProductionOrderView({ onOpenNewProject }) {
                       <td className="py-3 px-3 text-center">
                         <div className="flex items-center justify-center gap-1.5">
                           <button
+                            onClick={() => setPrintOrder(ord)}
+                            className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[11px] font-bold transition-all border border-slate-300 flex items-center gap-1"
+                            title="چاپ برگه دستور کارگاهی"
+                          >
+                            <Printer className="w-3 h-3" />
+                            <span>چاپ حواله</span>
+                          </button>
+
+                          <button
                             onClick={() => handleOpenStatusModal(ord)}
                             className="px-2 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-[11px] font-bold transition-all border border-indigo-200 flex items-center gap-1"
                             title="تغییر وضعیت رنگ و مالی"
                           >
                             <ArrowUpDown className="w-3 h-3" />
-                            <span>تغییر وضعیت</span>
+                            <span>ویرایش</span>
                           </button>
                         </div>
                       </td>
@@ -497,7 +569,96 @@ export default function ProductionOrderView({ onOpenNewProject }) {
         )}
       </div>
 
-      {/* MODAL: Change Status Color */}
+      {/* MODAL: Printable Workshop Job Ticket */}
+      {printOrder && (
+        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 my-8 space-y-6">
+            {/* Modal Controls */}
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 no-print">
+              <span className="text-sm font-bold text-slate-700">پیش‌نمایش برگه دستور کارگاه چاپ و جعبه‌سازی</span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => window.print()}
+                  className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1 shadow-sm"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>چاپ سند</span>
+                </button>
+                <button
+                  onClick={() => setPrintOrder(null)}
+                  className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold"
+                >
+                  بستن
+                </button>
+              </div>
+            </div>
+
+            {/* A4 Sheet Preview */}
+            <div className="border-2 border-slate-800 p-6 rounded-2xl space-y-5 bg-white text-slate-900" dir="rtl">
+              {/* Header */}
+              <div className="flex items-center justify-between border-b-2 border-slate-800 pb-4">
+                <div>
+                  <h2 className="text-xl font-black">شرکت صنایع بسته‌بندی آرمان امیران</h2>
+                  <p className="text-xs text-slate-600">برگه رسمی دستور تولید و کنترل فرآیند کارگاهی</p>
+                </div>
+                <div className="text-left font-mono text-xs space-y-0.5" dir="ltr">
+                  <div><strong>ORDER:</strong> #{printOrder.order_code}</div>
+                  <div><strong>ARCHIVE:</strong> #{printOrder.archive_code}</div>
+                  <div><strong>DATE:</strong> 1405/01/15</div>
+                </div>
+              </div>
+
+              {/* Specs Grid */}
+              <div className="grid grid-cols-2 gap-4 text-xs">
+                <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                  <div><span className="text-slate-500">نام مشتری:</span> <strong>{printOrder.customer_name}</strong></div>
+                  <div><span className="text-slate-500">عنوان محصول:</span> <strong>{printOrder.product_title}</strong></div>
+                  <div><span className="text-slate-500">نوع سفارش:</span> <strong>{printOrder.order_category === 'offset' ? 'افست' : printOrder.order_category === 'digital' ? 'دیجیتال' : 'خدمات کارمزدی'}</strong></div>
+                  <div><span className="text-slate-500">تیراژ تحویلی:</span> <strong className="font-mono text-indigo-700 text-sm">{Number(printOrder.quantity).toLocaleString('fa-IR')} عدد</strong></div>
+                </div>
+
+                <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                  <div><span className="text-slate-500">جنس و گراماژ:</span> <strong>{printOrder.material || '-'} ({printOrder.grammage || '-'}g)</strong></div>
+                  <div><span className="text-slate-500">سایز و تعداد شیت:</span> <strong>{printOrder.sheet_size || '-'} ({printOrder.sheet_count || '-'} شیت)</strong></div>
+                  <div><span className="text-slate-500">روکش و سلفون:</span> <strong>{printOrder.coating_type || 'بدون روکش'}</strong></div>
+                  <div><span className="text-slate-500">دایکات و اتصال:</span> <strong>{printOrder.diecut_type || '-'} | {printOrder.gluing_type || '-'}</strong></div>
+                </div>
+              </div>
+
+              {/* Machine & Production Notes */}
+              <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-950 space-y-1">
+                <div><strong>ماشین اختصاص‌یافته:</strong> {printOrder.assigned_machine || 'سالن چاپ افست'}</div>
+                <div><strong>مهلت تحویل به مشتری:</strong> {printOrder.delivery_deadline || 'فوری'}</div>
+                {printOrder.production_notes && (
+                  <div><strong>ملاحظات فنی تولید:</strong> {printOrder.production_notes}</div>
+                )}
+              </div>
+
+              {/* Signature Boxes */}
+              <div className="grid grid-cols-4 gap-2 pt-4 border-t border-slate-300 text-center text-[10px] text-slate-500">
+                <div className="p-2 border border-slate-300 rounded-lg h-16 flex flex-col justify-between">
+                  <span>سرپرست سالن چاپ</span>
+                  <span className="text-slate-300">امضا و تاریخ</span>
+                </div>
+                <div className="p-2 border border-slate-300 rounded-lg h-16 flex flex-col justify-between">
+                  <span>اپراتور لامینت / سلفون</span>
+                  <span className="text-slate-300">امضا و تاریخ</span>
+                </div>
+                <div className="p-2 border border-slate-300 rounded-lg h-16 flex flex-col justify-between">
+                  <span>اپراتور دایکات و تیغ</span>
+                  <span className="text-slate-300">امضا و تاریخ</span>
+                </div>
+                <div className="p-2 border border-slate-300 rounded-lg h-16 flex flex-col justify-between">
+                  <span>کنترل کیفیت نهایی (QC)</span>
+                  <span className="text-slate-300">امضا و تایید</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Change Status Color & Financial Notes */}
       {showStatusModal && activeOrderForStatus && (
         <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 animate-scaleUp space-y-5">
@@ -654,15 +815,15 @@ export default function ProductionOrderView({ onOpenNewProject }) {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">نوع سفارش</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">نوع سفارش *</label>
                   <select
                     value={newOrder.order_category}
                     onChange={(e) => setNewOrder({ ...newOrder, order_category: e.target.value })}
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:bg-white focus:outline-none"
                   >
                     <option value="offset">چاپ افست و جعبه‌سازی</option>
-                    <option value="digital">چاپ دیجیتال فوری</option>
-                    <option value="service">کارهای خدماتی و کارمزدی</option>
+                    <option value="digital">چاپ دیجیتال (دستگاه‌های دیجیتال)</option>
+                    <option value="service">کارهای خدماتی (دایکات/سلفون با متریال مشتری)</option>
                   </select>
                 </div>
 
@@ -684,7 +845,7 @@ export default function ProductionOrderView({ onOpenNewProject }) {
                     type="text"
                     value={newOrder.material}
                     onChange={(e) => setNewOrder({ ...newOrder, material: e.target.value })}
-                    placeholder="مثال: ایندربرد بهداشتی / پشت طوسی / کرافت"
+                    placeholder="ایندربرد بهداشتی / پشت طوسی / کرافت / ارسالی مشتری"
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:bg-white focus:outline-none"
                   />
                 </div>
@@ -725,7 +886,7 @@ export default function ProductionOrderView({ onOpenNewProject }) {
                     type="text"
                     value={newOrder.coating_type}
                     onChange={(e) => setNewOrder({ ...newOrder, coating_type: e.target.value })}
-                    placeholder="مثال: سلفون مات + یووی موضعی"
+                    placeholder="سلفون مات حرارتی / براق / یووی موضعی"
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold"
                   />
                 </div>
@@ -737,7 +898,7 @@ export default function ProductionOrderView({ onOpenNewProject }) {
                       type="text"
                       value={newOrder.diecut_type}
                       onChange={(e) => setNewOrder({ ...newOrder, diecut_type: e.target.value })}
-                      placeholder="دایکات بابست"
+                      placeholder="دایکات بابست / لترپرس"
                       className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold"
                     />
                     <input
@@ -751,23 +912,25 @@ export default function ProductionOrderView({ onOpenNewProject }) {
                 </div>
 
                 <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">رنگ اولیه کارتابل</label>
+                  <select
+                    value={newOrder.status_color}
+                    onChange={(e) => setNewOrder({ ...newOrder, status_color: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:bg-white focus:outline-none"
+                  >
+                    <option value="white">سفید (صف تولید کارخانه)</option>
+                    <option value="yellow">زرد (پرونده در دست مالی)</option>
+                    <option value="green">سبز (تکمیل شده و بایگانی)</option>
+                  </select>
+                </div>
+
+                <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">ماشین چاپ / تولید اختصاص یافته</label>
                   <input
                     type="text"
                     value={newOrder.assigned_machine}
                     onChange={(e) => setNewOrder({ ...newOrder, assigned_machine: e.target.value })}
                     placeholder="افست ۵ رنگ هایدلبرگ CD 102"
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">مهلت تحویل به مشتری</label>
-                  <input
-                    type="text"
-                    value={newOrder.delivery_deadline}
-                    onChange={(e) => setNewOrder({ ...newOrder, delivery_deadline: e.target.value })}
-                    placeholder="مثال: ۱۴۰۵/۰۲/۱۵"
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold"
                   />
                 </div>
