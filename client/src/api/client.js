@@ -56,12 +56,13 @@ export const api = {
   updateProductionOrderStatusColor: (id, data) => apiRequest(`/production-orders/${id}/status-color`, { method: 'PUT', body: JSON.stringify(data) }),
   updateProductionOrder: (id, data) => apiRequest(`/production-orders/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
 
-  // Warehouse Receipts (انبار مقوا و کاغذ)
+  // Warehouse Receipts (انبار ۶ گانه)
   getWarehouseReceipts: (params = {}) => {
     const query = new URLSearchParams(params).toString();
     return apiRequest(`/warehouse-receipts${query ? `?${query}` : ''}`);
   },
   createWarehouseReceipt: (data) => apiRequest('/warehouse-receipts', { method: 'POST', body: JSON.stringify(data) }),
+  updateWarehouseStatusColor: (id, data) => apiRequest(`/warehouse-receipts/${id}/status-color`, { method: 'PUT', body: JSON.stringify(data) }),
 
   // Digital Print Orders (چاپ دیجیتال)
   getDigitalOrders: (params = {}) => {

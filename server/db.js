@@ -356,6 +356,10 @@ function initDb() {
     db.prepare("ALTER TABLE warehouse_receipts ADD COLUMN unit TEXT DEFAULT 'شیت'").run();
   } catch (e) {}
 
+  try {
+    db.prepare("ALTER TABLE warehouse_receipts ADD COLUMN status_color TEXT DEFAULT 'white'").run();
+  } catch (e) {}
+
   // Seed default warehouse receipts matching actual factory Google Sheet
   const checkWarehouse = db.prepare('SELECT COUNT(*) as count FROM warehouse_receipts').get();
   if (checkWarehouse.count === 0) {

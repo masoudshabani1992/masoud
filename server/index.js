@@ -501,7 +501,7 @@ app.post('/api/marketing/leads/:id/convert-to-project', authMiddleware, (req, re
   }
 });
 
-// ================= PRODUCTION ORDERS (دستور تولید با ۳ رنگ وضعیت) =================
+// ================= PRODUCTION ORDERS (دستور تولید با ۴ رنگ وضعیت: سفید، زرد، قرمز، سبز) =================
 // 1. Get Production Orders List
 app.get('/api/production-orders', authMiddleware, (req, res) => {
   try {
@@ -528,12 +528,19 @@ app.get('/api/production-orders', authMiddleware, (req, res) => {
 
     const whiteCount = db.prepare("SELECT COUNT(*) as c FROM production_orders WHERE status_color = 'white'").get().c || 0;
     const yellowCount = db.prepare("SELECT COUNT(*) as c FROM production_orders WHERE status_color = 'yellow'").get().c || 0;
+    const redCount = db.prepare("SELECT COUNT(*) as c FROM production_orders WHERE status_color = 'red'").get().c || 0;
     const greenCount = db.prepare("SELECT COUNT(*) as c FROM production_orders WHERE status_color = 'green'").get().c || 0;
 
     res.json({
       success: true,
       orders,
-      counts: { white: whiteCount, yellow: yellowCount, green: greenCount, total: whiteCount + yellowCount + greenCount }
+      counts: {
+        white: whiteCount,
+        yellow: yellowCount,
+        red: redCount,
+        green: greenCount,
+        total: whiteCount + yellowCount + redCount + greenCount
+      }
     });
   } catch (err) {
     res.status(500).json({ error: 'خطا در دریافت لیست دستور تولید: ' + err.message });
@@ -584,14 +591,14 @@ app.post('/api/production-orders', authMiddleware, (req, res) => {
   }
 });
 
-// 3. Update Status Color (White / Yellow / Green)
+// 3. Update Status Color (White / Yellow / Red / Green)
 app.put('/api/production-orders/:id/status-color', authMiddleware, (req, res) => {
   try {
     const { id } = req.params;
     const { status_color, financial_status, financial_notes } = req.body;
 
-    if (!['white', 'yellow', 'green'].includes(status_color)) {
-      return res.status(400).json({ error: 'رنگ وضعیت باید سفید، زرد یا سبز باشد.' });
+    if (!['white', 'yellow', 'red', 'green'].includes(status_color)) {
+      return res.status(400).json({ error: 'رنگ وضعیت باید سفید، زرد، قرمز یا سبز باشد.' });
     }
 
     let query = 'UPDATE production_orders SET status_color = ?, updated_at = CURRENT_TIMESTAMP';
@@ -650,11 +657,12 @@ app.put('/api/production-orders/:id', authMiddleware, (req, res) => {
   }
 });
 
-// 5. Export Production Orders Excel with 3 SHEETS (سفید / زرد / سبز)
+// 5. Export Production Orders Excel with 4 SHEETS (سفید / زرد / قرمز / سبز)
 app.get('/api/production-orders/export-excel', authMiddleware, (req, res) => {
   try {
     const whiteOrders = db.prepare("SELECT * FROM production_orders WHERE status_color = 'white' ORDER BY id DESC").all();
     const yellowOrders = db.prepare("SELECT * FROM production_orders WHERE status_color = 'yellow' ORDER BY id DESC").all();
+    const redOrders = db.prepare("SELECT * FROM production_orders WHERE status_color = 'red' ORDER BY id DESC").all();
     const greenOrders = db.prepare("SELECT * FROM production_orders WHERE status_color = 'green' ORDER BY id DESC").all();
 
     const formatRows = (rows) => rows.map((r, i) => ({
@@ -687,16 +695,18 @@ app.get('/api/production-orders/export-excel', authMiddleware, (req, res) => {
 
     const wsWhite = XLSX.utils.json_to_sheet(formatRows(whiteOrders));
     const wsYellow = XLSX.utils.json_to_sheet(formatRows(yellowOrders));
+    const wsRed = XLSX.utils.json_to_sheet(formatRows(redOrders));
     const wsGreen = XLSX.utils.json_to_sheet(formatRows(greenOrders));
 
     XLSX.utils.book_append_sheet(wb, wsWhite, 'صف تولید (سفید)');
     XLSX.utils.book_append_sheet(wb, wsYellow, 'پرونده مالی (زرد)');
+    XLSX.utils.book_append_sheet(wb, wsRed, 'کنسل شده (قرمز)');
     XLSX.utils.book_append_sheet(wb, wsGreen, 'تکمیل و بایگانی (سبز)');
 
     const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
 
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', 'attachment; filename="Amiran-Production-Orders-3Sheets.xlsx"');
+    res.setHeader('Content-Disposition', 'attachment; filename="Amiran-Production-Orders-4Sheets.xlsx"');
     res.send(buffer);
   } catch (err) {
     res.status(500).json({ error: 'خطا در خروجی اکسل: ' + err.message });
@@ -758,7 +768,7 @@ app.post('/api/warehouse-receipts', authMiddleware, (req, res) => {
     const {
       warehouse_category, registration_date, order_code, archive_code, customer_name, order_name,
       supplier, material, grammage, size, unit, required_qty, unloading_location,
-      received_qty_1, received_date_1, received_qty_2, received_date_2, status, notes
+      received_qty_1, received_date_1, received_qty_2, received_date_2, status, status_color, notes
     } = req.body;
 
     const r1 = parseInt(received_qty_1) || 0;
@@ -769,17 +779,32 @@ app.post('/api/warehouse-receipts', authMiddleware, (req, res) => {
       INSERT INTO warehouse_receipts (
         warehouse_category, registration_date, order_code, archive_code, customer_name, order_name,
         supplier, material, grammage, size, unit, required_qty, unloading_location,
-        received_qty_1, received_date_1, received_qty_2, received_date_2, total_received, status, notes
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        received_qty_1, received_date_1, received_qty_2, received_date_2, total_received, status, status_color, notes
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       warehouse_category || 'cardboard', registration_date || '1405/01/01', order_code, archive_code, customer_name, order_name,
       supplier, material, parseFloat(grammage) || null, size, unit || 'شیت', parseInt(required_qty), unloading_location,
-      r1, received_date_1 || null, r2, received_date_2 || null, total, status || 'received', notes || null
+      r1, received_date_1 || null, r2, received_date_2 || null, total, status || 'received', status_color || 'white', notes || null
     );
 
     res.json({ success: true, message: 'رسید انبار با موفقیت ثبت شد.' });
   } catch (err) {
     res.status(500).json({ error: 'خطا در ثبت انبار: ' + err.message });
+  }
+});
+
+// 2.1 Update Warehouse Status Color (White / Yellow / Red / Green)
+app.put('/api/warehouse-receipts/:id/status-color', authMiddleware, (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status_color } = req.body;
+    if (!['white', 'yellow', 'red', 'green'].includes(status_color)) {
+      return res.status(400).json({ error: 'رنگ وضعیت باید سفید، زرد، قرمز یا سبز باشد.' });
+    }
+    db.prepare('UPDATE warehouse_receipts SET status_color = ? WHERE id = ?').run(status_color, id);
+    res.json({ success: true, message: 'وضعیت رسید انبار تغییر یافت.' });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در تغییر وضعیت انبار: ' + err.message });
   }
 });
 

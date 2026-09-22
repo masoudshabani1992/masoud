@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   Clock,
   CreditCard,
+  XCircle,
   Building2,
   Calendar,
   Sparkles,
@@ -78,6 +79,15 @@ export default function DigitalPrintView() {
     setShowStatusModal(true);
   };
 
+  const handleQuickColorChange = async (order, newColor) => {
+    try {
+      await api.updateDigitalOrderStatusColor(order.id, { status_color: newColor });
+      fetchOrders();
+    } catch (err) {
+      alert('خطا در تغییر وضعیت: ' + err.message);
+    }
+  };
+
   const handleSaveStatus = async () => {
     if (!activeOrder) return;
     try {
@@ -103,6 +113,7 @@ export default function DigitalPrintView() {
 
   const whiteCount = orders.filter((o) => o.status_color === 'white').length;
   const yellowCount = orders.filter((o) => o.status_color === 'yellow').length;
+  const redCount = orders.filter((o) => o.status_color === 'red').length;
   const greenCount = orders.filter((o) => o.status_color === 'green').length;
 
   return (
@@ -116,16 +127,16 @@ export default function DigitalPrintView() {
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/20 border border-purple-400/30 text-purple-300 text-xs font-bold">
               <Printer className="w-3.5 h-3.5" />
-              <span>واحد چاپ دیجیتال فوری و لارج فرمت</span>
+              <span>دستور تولید ۲: چاپ دیجیتال فوری و لارج فرمت</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white flex items-center gap-3">
-              <span>سفارشات چاپ دیجیتال و نمونه‌گیری</span>
+              <span>سفارشات چاپ با دستگاه‌های دیجیتال</span>
               <span className="text-xs px-2.5 py-1 bg-amber-500/20 border border-amber-400/30 text-amber-300 rounded-lg font-bold">
                 استودیو طراحی امیران
               </span>
             </h1>
             <p className="text-slate-300 text-sm max-w-2xl leading-relaxed">
-              مدیریت نمونه‌گیری‌های پیش از چاپ افست، کاتالوگ و بروشورهای تیراژ محدود، جعبه‌های فوری، پلات، استند، لیبل و چاپ‌های عریض در ۳ کارتابل مجزا.
+              مدیریت نمونه‌گیری‌های پیش از چاپ، کاتالوگ و بروشورهای فوری، جعبه‌های دیجیتال و پلات در ۴ رنگ وضعیت: سفید (صف چاپ)، زرد (مالی و رنگ)، قرمز (کنسل شده) و سبز (تحویل شده).
             </p>
           </div>
 
@@ -141,79 +152,104 @@ export default function DigitalPrintView() {
         </div>
       </div>
 
-      {/* 3 Color Cartable Counters */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* 4 Color Status Buttons */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <button
-          onClick={() => setSelectedColor('white')}
-          className={`p-5 rounded-2xl border transition-all text-right flex items-center justify-between ${
+          onClick={() => setSelectedColor(selectedColor === 'white' ? 'all' : 'white')}
+          className={`p-4 rounded-2xl border transition-all text-right flex items-center justify-between ${
             selectedColor === 'white'
-              ? 'bg-white border-purple-500 shadow-lg ring-2 ring-purple-500/20'
-              : 'bg-white border-slate-200 hover:border-slate-300 shadow-sm'
+              ? 'bg-white border-purple-500 shadow-xl ring-4 ring-purple-500/20 scale-[1.02]'
+              : 'bg-white border-slate-200 hover:border-slate-300 shadow-xs'
           }`}
         >
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-slate-100 border-2 border-slate-300 flex items-center justify-center text-slate-700 shadow-inner">
-              <Clock className="w-6 h-6" />
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-700">
+              <Clock className="w-5 h-5" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-white border-2 border-slate-400 shadow-sm" />
-                <h3 className="font-black text-slate-900 text-base">صف چاپ دیجیتال (سفید)</h3>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-white border border-slate-400" />
+                <h3 className="font-black text-slate-900 text-xs sm:text-sm">صف چاپ (سفید)</h3>
               </div>
-              <p className="text-xs text-slate-500 mt-1">سفارش‌های در صف ریپ، چاپ و برش فوری</p>
+              <p className="text-[10px] text-slate-500 mt-0.5">در نوبت ریپ و چاپ فوری</p>
             </div>
           </div>
-          <span className="text-2xl font-black text-slate-800 font-mono px-3 py-1 bg-slate-100 rounded-xl border border-slate-200">
+          <span className="text-xl font-black text-slate-800 font-mono px-2.5 py-0.5 bg-slate-100 rounded-lg">
             {whiteCount}
           </span>
         </button>
 
         <button
-          onClick={() => setSelectedColor('yellow')}
-          className={`p-5 rounded-2xl border transition-all text-right flex items-center justify-between ${
+          onClick={() => setSelectedColor(selectedColor === 'yellow' ? 'all' : 'yellow')}
+          className={`p-4 rounded-2xl border transition-all text-right flex items-center justify-between ${
             selectedColor === 'yellow'
-              ? 'bg-amber-50 border-amber-500 shadow-lg ring-2 ring-amber-500/20'
-              : 'bg-white border-slate-200 hover:border-amber-200 shadow-sm'
+              ? 'bg-amber-50 border-amber-500 shadow-xl ring-4 ring-amber-500/20 scale-[1.02]'
+              : 'bg-white border-slate-200 hover:border-amber-200 shadow-xs'
           }`}
         >
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-amber-100 border-2 border-amber-400 flex items-center justify-center text-amber-700 shadow-inner">
-              <CreditCard className="w-6 h-6" />
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-100 border border-amber-400 flex items-center justify-center text-amber-700">
+              <CreditCard className="w-5 h-5" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-amber-400 border border-amber-500 shadow-sm" />
-                <h3 className="font-black text-amber-950 text-base">تایید رنگ و مالی (زرد)</h3>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
+                <h3 className="font-black text-amber-950 text-xs sm:text-sm">تایید مالی (زرد)</h3>
               </div>
-              <p className="text-xs text-amber-700 mt-1">منتظر تایید نمونه رنگی توسط کارفرما یا تسویه</p>
+              <p className="text-[10px] text-amber-700 mt-0.5">تایید نمونه رنگ و تسویه</p>
             </div>
           </div>
-          <span className="text-2xl font-black text-amber-800 font-mono px-3 py-1 bg-amber-100 rounded-xl border border-amber-200">
+          <span className="text-xl font-black text-amber-800 font-mono px-2.5 py-0.5 bg-amber-100 rounded-lg">
             {yellowCount}
           </span>
         </button>
 
         <button
-          onClick={() => setSelectedColor('green')}
-          className={`p-5 rounded-2xl border transition-all text-right flex items-center justify-between ${
-            selectedColor === 'green'
-              ? 'bg-emerald-50 border-emerald-500 shadow-lg ring-2 ring-emerald-500/20'
-              : 'bg-white border-slate-200 hover:border-emerald-200 shadow-sm'
+          onClick={() => setSelectedColor(selectedColor === 'red' ? 'all' : 'red')}
+          className={`p-4 rounded-2xl border transition-all text-right flex items-center justify-between ${
+            selectedColor === 'red'
+              ? 'bg-rose-50 border-rose-500 shadow-xl ring-4 ring-rose-500/20 scale-[1.02]'
+              : 'bg-white border-slate-200 hover:border-rose-200 shadow-xs'
           }`}
         >
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-100 border-2 border-emerald-400 flex items-center justify-center text-emerald-700 shadow-inner">
-              <CheckCircle2 className="w-6 h-6" />
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-rose-100 border border-rose-400 flex items-center justify-center text-rose-700">
+              <XCircle className="w-5 h-5" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-emerald-500 border border-emerald-600 shadow-sm" />
-                <h3 className="font-black text-emerald-950 text-base">چاپ و تحویل شده (سبز)</h3>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-rose-500" />
+                <h3 className="font-black text-rose-950 text-xs sm:text-sm">کنسل شده (قرمز)</h3>
               </div>
-              <p className="text-xs text-emerald-700 mt-1">چاپ تکمیل، بسته‌بندی و تحویل مشتری گردید</p>
+              <p className="text-[10px] text-rose-700 mt-0.5">ابطال سفارش دیجیتال</p>
             </div>
           </div>
-          <span className="text-2xl font-black text-emerald-800 font-mono px-3 py-1 bg-emerald-100 rounded-xl border border-emerald-200">
+          <span className="text-xl font-black text-rose-800 font-mono px-2.5 py-0.5 bg-rose-100 rounded-lg">
+            {redCount}
+          </span>
+        </button>
+
+        <button
+          onClick={() => setSelectedColor(selectedColor === 'green' ? 'all' : 'green')}
+          className={`p-4 rounded-2xl border transition-all text-right flex items-center justify-between ${
+            selectedColor === 'green'
+              ? 'bg-emerald-50 border-emerald-500 shadow-xl ring-4 ring-emerald-500/20 scale-[1.02]'
+              : 'bg-white border-slate-200 hover:border-emerald-200 shadow-xs'
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-100 border border-emerald-400 flex items-center justify-center text-emerald-700">
+              <CheckCircle2 className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                <h3 className="font-black text-emerald-950 text-xs sm:text-sm">تحویل شده (سبز)</h3>
+              </div>
+              <p className="text-[10px] text-emerald-700 mt-0.5">چاپ تکمیل و تحویل شد</p>
+            </div>
+          </div>
+          <span className="text-xl font-black text-emerald-800 font-mono px-2.5 py-0.5 bg-emerald-100 rounded-lg">
             {greenCount}
           </span>
         </button>
@@ -269,7 +305,7 @@ export default function DigitalPrintView() {
             <table className="w-full text-right text-xs border-collapse">
               <thead>
                 <tr className="bg-slate-900 text-slate-200 font-bold border-b border-slate-800 text-[11px]">
-                  <th className="py-3 px-3 text-center w-12">وضعیت</th>
+                  <th className="py-3 px-3 text-center w-28">وضعیت ۴ رنگ</th>
                   <th className="py-3 px-3">کد سفارش</th>
                   <th className="py-3 px-3">مشتری</th>
                   <th className="py-3 px-3">عنوان سفارش</th>
@@ -296,6 +332,13 @@ export default function DigitalPrintView() {
                         تایید مالی
                       </span>
                     );
+                  } else if (ord.status_color === 'red') {
+                    badge = (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 border border-rose-300 text-[10px] font-bold">
+                        <span className="w-2 h-2 rounded-full bg-rose-500" />
+                        کنسل شده
+                      </span>
+                    );
                   } else if (ord.status_color === 'green') {
                     badge = (
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-bold">
@@ -307,7 +350,17 @@ export default function DigitalPrintView() {
 
                   return (
                     <tr key={ord.id} className="hover:bg-purple-50/30 transition-colors">
-                      <td className="py-3 px-3 text-center">{badge}</td>
+                      <td className="py-3 px-3 text-center">
+                        <div className="flex flex-col items-center gap-1">
+                          <button onClick={() => handleOpenStatusModal(ord)}>{badge}</button>
+                          <div className="flex items-center gap-1 bg-white p-0.5 rounded-full border border-slate-200">
+                            <button onClick={() => handleQuickColorChange(ord, 'white')} className={`w-3 h-3 rounded-full border ${ord.status_color === 'white' ? 'bg-white ring-1 ring-purple-600' : 'bg-slate-200'}`} title="سفید" />
+                            <button onClick={() => handleQuickColorChange(ord, 'yellow')} className={`w-3 h-3 rounded-full border ${ord.status_color === 'yellow' ? 'bg-amber-400 ring-1 ring-amber-600' : 'bg-amber-200'}`} title="زرد" />
+                            <button onClick={() => handleQuickColorChange(ord, 'red')} className={`w-3 h-3 rounded-full border ${ord.status_color === 'red' ? 'bg-rose-500 ring-1 ring-rose-600' : 'bg-rose-200'}`} title="قرمز" />
+                            <button onClick={() => handleQuickColorChange(ord, 'green')} className={`w-3 h-3 rounded-full border ${ord.status_color === 'green' ? 'bg-emerald-500 ring-1 ring-emerald-600' : 'bg-emerald-200'}`} title="سبز" />
+                          </div>
+                        </div>
+                      </td>
                       <td className="py-3 px-3 font-mono font-bold text-slate-900">{ord.order_code}</td>
                       <td className="py-3 px-3">
                         <div className="font-bold text-slate-900">{ord.customer_name}</div>
@@ -350,12 +403,12 @@ export default function DigitalPrintView() {
         )}
       </div>
 
-      {/* MODAL: Status Color */}
+      {/* MODAL: Status Color (White, Yellow, Red, Green) */}
       {showStatusModal && activeOrder && (
         <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 space-y-4">
-            <h3 className="text-base font-black text-slate-900">تغییر وضعیت کارتابل چاپ دیجیتال</h3>
-            <div className="grid grid-cols-3 gap-2">
+            <h3 className="text-base font-black text-slate-900">تغییر وضعیت ۴ رنگ چاپ دیجیتال</h3>
+            <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
                 onClick={() => setSelectedStatusColor('white')}
@@ -378,9 +431,19 @@ export default function DigitalPrintView() {
               </button>
               <button
                 type="button"
+                onClick={() => setSelectedStatusColor('red')}
+                className={`p-3 rounded-xl border text-center font-bold text-xs flex flex-col items-center gap-1 ${
+                  selectedStatusColor === 'red' ? 'bg-rose-100 border-rose-400 ring-2 ring-rose-400 text-rose-950' : 'bg-white border-slate-200'
+                }`}
+              >
+                <span className="w-3.5 h-3.5 rounded-full bg-rose-500" />
+                <span>قرمز (کنسل شده)</span>
+              </button>
+              <button
+                type="button"
                 onClick={() => setSelectedStatusColor('green')}
                 className={`p-3 rounded-xl border text-center font-bold text-xs flex flex-col items-center gap-1 ${
-                  selectedStatusColor === 'green' ? 'bg-emerald-100 border-emerald-400 ring-2 ring-emerald-400' : 'bg-white border-slate-200'
+                  selectedStatusColor === 'green' ? 'bg-emerald-100 border-emerald-400 ring-2 ring-emerald-400 text-emerald-950' : 'bg-white border-slate-200'
                 }`}
               >
                 <span className="w-3.5 h-3.5 rounded-full bg-emerald-500" />
