@@ -260,115 +260,170 @@ export default function DepartmentHubView({
         </div>
       </div>
 
-      {/* 4 Core Factory Production Modules */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Module 1: دستور تولید ۳ رنگ */}
-        <div
-          onClick={() => onNavigateDepartment('production_orders')}
-          className="bg-white rounded-2xl p-5 border-2 border-indigo-200 hover:border-indigo-500 hover:shadow-xl transition-all cursor-pointer group space-y-3 relative overflow-hidden"
-        >
-          <div className="flex items-center justify-between">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-700 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <FileSpreadsheet className="w-6 h-6" />
+      {/* Two Core Centers: ۱. دستور تولید | ۲. انبار */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        
+        {/* Card 1: مرکز دستور تولید (۱.تولید | ۲.دیجیتال | ۳.خدماتی) */}
+        <div className="bg-white rounded-3xl p-6 border-2 border-indigo-200 shadow-sm space-y-4">
+          <div className="flex items-center justify-between border-b border-indigo-100 pb-3">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-md shadow-indigo-200">
+                <FileSpreadsheet className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-lg font-black text-slate-900">دستور تولید کارخانه</h2>
+                <p className="text-xs text-slate-500">مدیریت سفارشات تولید، دیجیتال و کارهای خدماتی</p>
+              </div>
             </div>
-            <span className="px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-800 text-[10px] font-black">
-              ۳ رنگ کارتابل
-            </span>
+            <button
+              onClick={() => onNavigateDepartment('production_orders')}
+              className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-black transition"
+            >
+              مشاهده کل کارتابل ←
+            </button>
           </div>
-          <div>
-            <h3 className="text-base font-black text-slate-900 group-hover:text-indigo-700 transition-colors">
-              دستور تولید کارخانه
-            </h3>
-            <p className="text-xs text-slate-500 mt-1 line-clamp-2">
-              سفید (صف تولید)، زرد (پرونده مالی)، سبز (تکمیل بایگانی) با خروجی اکسل ۳ شیت
-            </p>
-          </div>
-          <div className="flex items-center gap-1.5 pt-2 border-t border-slate-100 text-[11px] font-bold text-indigo-600">
-            <span>مشاهده کارتابل سالن تولید</span>
-            <span>←</span>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {/* 1. تولید */}
+            <button
+              onClick={() => onNavigateDepartment('production_orders')}
+              className="p-3.5 bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 rounded-2xl text-right transition-all group"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-black text-xs">۱</span>
+                <div className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-slate-400" />
+                  <span className="w-2 h-2 rounded-full bg-amber-400" />
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                </div>
+              </div>
+              <h3 className="font-black text-xs text-slate-900 group-hover:text-indigo-800">۱. تولید (افست)</h3>
+              <p className="text-[10px] text-slate-500 mt-0.5">۳ رنگ: سفید، زرد، سبز + اکسل ۳ شیت</p>
+            </button>
+
+            {/* 2. دیجیتال */}
+            <button
+              onClick={() => onNavigateDepartment('digital_orders')}
+              className="p-3.5 bg-slate-50 hover:bg-purple-50 border border-slate-200 hover:border-purple-300 rounded-2xl text-right transition-all group"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="w-7 h-7 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center font-black text-xs">۲</span>
+                <Printer className="w-4 h-4 text-purple-600" />
+              </div>
+              <h3 className="font-black text-xs text-slate-900 group-hover:text-purple-800">۲. دیجیتال</h3>
+              <p className="text-[10px] text-slate-500 mt-0.5">چاپ با دستگاه‌های دیجیتال و فوری</p>
+            </button>
+
+            {/* 3. خدماتی */}
+            <button
+              onClick={() => onNavigateDepartment('service_orders')}
+              className="p-3.5 bg-slate-50 hover:bg-amber-50 border border-slate-200 hover:border-amber-300 rounded-2xl text-right transition-all group"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center font-black text-xs">۳</span>
+                <Scissors className="w-4 h-4 text-amber-600" />
+              </div>
+              <h3 className="font-black text-xs text-slate-900 group-hover:text-amber-800">۳. خدماتی</h3>
+              <p className="text-[10px] text-slate-500 mt-0.5">تنها دایکات و سلفون روی جعبه مشتری</p>
+            </button>
           </div>
         </div>
 
-        {/* Module 2: انبار مقوا و کاغذ */}
-        <div
-          onClick={() => onNavigateDepartment('warehouse_inventory')}
-          className="bg-white rounded-2xl p-5 border-2 border-sky-200 hover:border-sky-500 hover:shadow-xl transition-all cursor-pointer group space-y-3 relative overflow-hidden"
-        >
-          <div className="flex items-center justify-between">
-            <div className="w-12 h-12 rounded-2xl bg-sky-50 text-sky-700 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Package className="w-6 h-6" />
+        {/* Card 2: مرکز انبار (۱.مقوا | ۲.ورق | ۳.سینگل | ۴.سلفون | ۵.طلق | ۶.مرکب) */}
+        <div className="bg-white rounded-3xl p-6 border-2 border-sky-200 shadow-sm space-y-4">
+          <div className="flex items-center justify-between border-b border-sky-100 pb-3">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-sky-600 text-white flex items-center justify-center shadow-md shadow-sky-200">
+                <Package className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-lg font-black text-slate-900">انبار مرکزی کارخانه</h2>
+                <p className="text-xs text-slate-500">دفاتر ورودی متریال، کسری/مازاد و اکسل ۶ شیت</p>
+              </div>
             </div>
-            <span className="px-2.5 py-1 rounded-full bg-sky-100 text-sky-800 text-[10px] font-black">
-              ۲۲ پرونده شیت
-            </span>
+            <button
+              onClick={() => onNavigateDepartment('warehouse_inventory')}
+              className="px-3 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-700 rounded-xl text-xs font-black transition"
+            >
+              مشاهده کل انبار ←
+            </button>
           </div>
-          <div>
-            <h3 className="text-base font-black text-slate-900 group-hover:text-sky-700 transition-colors">
-              دفتر انبار مقوا و کاغذ
-            </h3>
-            <p className="text-xs text-slate-500 mt-1 line-clamp-2">
-              تطبیق شیت‌های راماسیم، بنار، ممقانی با سفارش و کنترل کسری/مازاد
-            </p>
-          </div>
-          <div className="flex items-center gap-1.5 pt-2 border-t border-slate-100 text-[11px] font-bold text-sky-600">
-            <span>مشاهده رسیدهای انبار</span>
-            <span>←</span>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+            {/* 1. مقوا */}
+            <button
+              onClick={() => onNavigateDepartment('warehouse_cardboard')}
+              className="p-2.5 bg-slate-50 hover:bg-sky-50 border border-slate-200 hover:border-sky-300 rounded-xl text-right transition-all group flex items-center gap-2"
+            >
+              <span className="w-6 h-6 rounded-lg bg-sky-100 text-sky-800 flex items-center justify-center font-black text-xs shrink-0">۱</span>
+              <div>
+                <h4 className="font-bold text-xs text-slate-900 group-hover:text-sky-800">۱. مقوا</h4>
+                <p className="text-[9px] text-slate-400">ایندربرد / طوسی</p>
+              </div>
+            </button>
+
+            {/* 2. ورق */}
+            <button
+              onClick={() => onNavigateDepartment('warehouse_sheet_carton')}
+              className="p-2.5 bg-slate-50 hover:bg-amber-50 border border-slate-200 hover:border-amber-300 rounded-xl text-right transition-all group flex items-center gap-2"
+            >
+              <span className="w-6 h-6 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center font-black text-xs shrink-0">۲</span>
+              <div>
+                <h4 className="font-bold text-xs text-slate-900 group-hover:text-amber-800">۲. ورق</h4>
+                <p className="text-[9px] text-slate-400">ورق ۳ و ۵ لایه</p>
+              </div>
+            </button>
+
+            {/* 3. سینگل */}
+            <button
+              onClick={() => onNavigateDepartment('warehouse_single_face')}
+              className="p-2.5 bg-slate-50 hover:bg-teal-50 border border-slate-200 hover:border-teal-300 rounded-xl text-right transition-all group flex items-center gap-2"
+            >
+              <span className="w-6 h-6 rounded-lg bg-teal-100 text-teal-800 flex items-center justify-center font-black text-xs shrink-0">۳</span>
+              <div>
+                <h4 className="font-bold text-xs text-slate-900 group-hover:text-teal-800">۳. سینگل</h4>
+                <p className="text-[9px] text-slate-400">رول / شیت فلوت</p>
+              </div>
+            </button>
+
+            {/* 4. سلفون */}
+            <button
+              onClick={() => onNavigateDepartment('warehouse_cellophane')}
+              className="p-2.5 bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 rounded-xl text-right transition-all group flex items-center gap-2"
+            >
+              <span className="w-6 h-6 rounded-lg bg-indigo-100 text-indigo-800 flex items-center justify-center font-black text-xs shrink-0">۴</span>
+              <div>
+                <h4 className="font-bold text-xs text-slate-900 group-hover:text-indigo-800">۴. سلفون</h4>
+                <p className="text-[9px] text-slate-400">مات / براق / مخملی</p>
+              </div>
+            </button>
+
+            {/* 5. طلق */}
+            <button
+              onClick={() => onNavigateDepartment('warehouse_pvc_film')}
+              className="p-2.5 bg-slate-50 hover:bg-purple-50 border border-slate-200 hover:border-purple-300 rounded-xl text-right transition-all group flex items-center gap-2"
+            >
+              <span className="w-6 h-6 rounded-lg bg-purple-100 text-purple-800 flex items-center justify-center font-black text-xs shrink-0">۵</span>
+              <div>
+                <h4 className="font-bold text-xs text-slate-900 group-hover:text-purple-800">۵. طلق</h4>
+                <p className="text-[9px] text-slate-400">PVC / PET پنجره</p>
+              </div>
+            </button>
+
+            {/* 6. مرکب */}
+            <button
+              onClick={() => onNavigateDepartment('warehouse_ink')}
+              className="p-2.5 bg-slate-50 hover:bg-rose-50 border border-slate-200 hover:border-rose-300 rounded-xl text-right transition-all group flex items-center gap-2"
+            >
+              <span className="w-6 h-6 rounded-lg bg-rose-100 text-rose-800 flex items-center justify-center font-black text-xs shrink-0">۶</span>
+              <div>
+                <h4 className="font-bold text-xs text-slate-900 group-hover:text-rose-800">۶. مرکب</h4>
+                <p className="text-[9px] text-slate-400">CMYK / پنتون / ورنی</p>
+              </div>
+            </button>
           </div>
         </div>
 
-        {/* Module 3: چاپ دیجیتال */}
-        <div
-          onClick={() => onNavigateDepartment('digital_orders')}
-          className="bg-white rounded-2xl p-5 border-2 border-purple-200 hover:border-purple-500 hover:shadow-xl transition-all cursor-pointer group space-y-3 relative overflow-hidden"
-        >
-          <div className="flex items-center justify-between">
-            <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-700 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Printer className="w-6 h-6" />
-            </div>
-            <span className="px-2.5 py-1 rounded-full bg-purple-100 text-purple-800 text-[10px] font-black">
-              نمونه و تیراژ کم
-            </span>
-          </div>
-          <div>
-            <h3 className="text-base font-black text-slate-900 group-hover:text-purple-700 transition-colors">
-              واحد چاپ دیجیتال فوری
-            </h3>
-            <p className="text-xs text-slate-500 mt-1 line-clamp-2">
-              مدیریت نمونه‌گیری‌های رنگی، جعبه فوری، کاتالوگ و شیت‌های چاپی
-            </p>
-          </div>
-          <div className="flex items-center gap-1.5 pt-2 border-t border-slate-100 text-[11px] font-bold text-purple-600">
-            <span>مشاهده سفارشات دیجیتال</span>
-            <span>←</span>
-          </div>
-        </div>
-
-        {/* Module 4: کارهای خدماتی و کارمزدی */}
-        <div
-          onClick={() => onNavigateDepartment('service_orders')}
-          className="bg-white rounded-2xl p-5 border-2 border-amber-200 hover:border-amber-500 hover:shadow-xl transition-all cursor-pointer group space-y-3 relative overflow-hidden"
-        >
-          <div className="flex items-center justify-between">
-            <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Scissors className="w-6 h-6" />
-            </div>
-            <span className="px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 text-[10px] font-black">
-              مقوای مشتری
-            </span>
-          </div>
-          <div>
-            <h3 className="text-base font-black text-slate-900 group-hover:text-amber-700 transition-colors">
-              کارهای خدماتی و کارمزدی
-            </h3>
-            <p className="text-xs text-slate-500 mt-1 line-clamp-2">
-              لامینت، دایکات بابست، طلاکوب و جعبه‌چسبانی با متریال دریافتی از مشتری
-            </p>
-          </div>
-          <div className="flex items-center gap-1.5 pt-2 border-t border-slate-100 text-[11px] font-bold text-amber-600">
-            <span>مشاهده فرآیندهای خدماتی</span>
-            <span>←</span>
-          </div>
-        </div>
       </div>
 
       {/* Main 8-Department Grid (Exact 3 Columns x 3 Rows Structure) */}

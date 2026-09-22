@@ -703,14 +703,18 @@ app.get('/api/production-orders/export-excel', authMiddleware, (req, res) => {
   }
 });
 
-// ================= WAREHOUSE RECEIPTS (انبار مقوا و کاغذ) =================
-// 1. Get Warehouse Receipts
+// ================= WAREHOUSE RECEIPTS (انبار ۶ گانه کارخانه) =================
+// 1. Get Warehouse Receipts with category filter
 app.get('/api/warehouse-receipts', authMiddleware, (req, res) => {
   try {
-    const { supplier, location, search, status } = req.query;
+    const { category, supplier, location, search, status } = req.query;
     let query = 'SELECT * FROM warehouse_receipts WHERE 1=1';
     const params = [];
 
+    if (category && category !== 'all') {
+      query += ' AND warehouse_category = ?';
+      params.push(category);
+    }
     if (supplier && supplier !== 'all') {
       query += ' AND supplier = ?';
       params.push(supplier);
@@ -731,7 +735,18 @@ app.get('/api/warehouse-receipts', authMiddleware, (req, res) => {
 
     query += ' ORDER BY id DESC';
     const receipts = db.prepare(query).all(...params);
-    res.json({ success: true, receipts });
+
+    // Summary counts per warehouse category
+    const counts = {
+      cardboard: db.prepare("SELECT COUNT(*) as c FROM warehouse_receipts WHERE warehouse_category = 'cardboard'").get().c || 0,
+      sheet_carton: db.prepare("SELECT COUNT(*) as c FROM warehouse_receipts WHERE warehouse_category = 'sheet_carton'").get().c || 0,
+      single_face: db.prepare("SELECT COUNT(*) as c FROM warehouse_receipts WHERE warehouse_category = 'single_face'").get().c || 0,
+      cellophane: db.prepare("SELECT COUNT(*) as c FROM warehouse_receipts WHERE warehouse_category = 'cellophane'").get().c || 0,
+      pvc_film: db.prepare("SELECT COUNT(*) as c FROM warehouse_receipts WHERE warehouse_category = 'pvc_film'").get().c || 0,
+      ink: db.prepare("SELECT COUNT(*) as c FROM warehouse_receipts WHERE warehouse_category = 'ink'").get().c || 0
+    };
+
+    res.json({ success: true, receipts, counts });
   } catch (err) {
     res.status(500).json({ error: 'خطا در دریافت انبار: ' + err.message });
   }
@@ -741,8 +756,8 @@ app.get('/api/warehouse-receipts', authMiddleware, (req, res) => {
 app.post('/api/warehouse-receipts', authMiddleware, (req, res) => {
   try {
     const {
-      registration_date, order_code, archive_code, customer_name, order_name,
-      supplier, material, grammage, size, required_qty, unloading_location,
+      warehouse_category, registration_date, order_code, archive_code, customer_name, order_name,
+      supplier, material, grammage, size, unit, required_qty, unloading_location,
       received_qty_1, received_date_1, received_qty_2, received_date_2, status, notes
     } = req.body;
 
@@ -752,13 +767,13 @@ app.post('/api/warehouse-receipts', authMiddleware, (req, res) => {
 
     db.prepare(`
       INSERT INTO warehouse_receipts (
-        registration_date, order_code, archive_code, customer_name, order_name,
-        supplier, material, grammage, size, required_qty, unloading_location,
+        warehouse_category, registration_date, order_code, archive_code, customer_name, order_name,
+        supplier, material, grammage, size, unit, required_qty, unloading_location,
         received_qty_1, received_date_1, received_qty_2, received_date_2, total_received, status, notes
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
-      registration_date || '1405/01/01', order_code, archive_code, customer_name, order_name,
-      supplier, material, parseFloat(grammage) || null, size, parseInt(required_qty), unloading_location,
+      warehouse_category || 'cardboard', registration_date || '1405/01/01', order_code, archive_code, customer_name, order_name,
+      supplier, material, parseFloat(grammage) || null, size, unit || 'شیت', parseInt(required_qty), unloading_location,
       r1, received_date_1 || null, r2, received_date_2 || null, total, status || 'received', notes || null
     );
 
@@ -768,23 +783,23 @@ app.post('/api/warehouse-receipts', authMiddleware, (req, res) => {
   }
 });
 
-// 3. Export Warehouse Excel
+// 3. Export Warehouse Excel (با ۶ شیت تخصصی: مقوا، ورق، سینگل، سلفون، طلق، مرکب)
 app.get('/api/warehouse-receipts/export-excel', authMiddleware, (req, res) => {
   try {
-    const receipts = db.prepare("SELECT * FROM warehouse_receipts ORDER BY id DESC").all();
-    const rows = receipts.map((r, i) => ({
+    const formatRows = (rows) => rows.map((r, i) => ({
       'ردیف': i + 1,
       'تاریخ ثبت': r.registration_date,
       'شماره سفارش': r.order_code,
       'شماره بایگانی': r.archive_code,
       'نام مشتری': r.customer_name,
-      'نام سفارش': r.order_name,
+      'نام سفارش / عنوان کالا': r.order_name,
       'تامین کننده': r.supplier,
-      'جنس': r.material,
-      'گراماژ': r.grammage,
-      'سایز': r.size,
+      'جنس / مشخصات فنی': r.material,
+      'گراماژ / ضخامت': r.grammage || '-',
+      'سایز / ابعاد': r.size,
+      'واحد شمارش': r.unit || 'شیت',
       'تیراژ سفارش': r.required_qty,
-      'محل تخلیه': r.unloading_location,
+      'محل تخلیه انبار': r.unloading_location,
       'تعداد دریافتی (پارت ۱)': r.received_qty_1 || 0,
       'تاریخ دریافت (پارت ۱)': r.received_date_1 || '-',
       'تعداد دریافتی (پارت ۲)': r.received_qty_2 || 0,
@@ -794,13 +809,25 @@ app.get('/api/warehouse-receipts/export-excel', authMiddleware, (req, res) => {
       'توضیحات انبار': r.notes || '-'
     }));
 
+    const cardboardRows = db.prepare("SELECT * FROM warehouse_receipts WHERE warehouse_category = 'cardboard' ORDER BY id DESC").all();
+    const cartonRows = db.prepare("SELECT * FROM warehouse_receipts WHERE warehouse_category = 'sheet_carton' ORDER BY id DESC").all();
+    const singleRows = db.prepare("SELECT * FROM warehouse_receipts WHERE warehouse_category = 'single_face' ORDER BY id DESC").all();
+    const cellophaneRows = db.prepare("SELECT * FROM warehouse_receipts WHERE warehouse_category = 'cellophane' ORDER BY id DESC").all();
+    const pvcRows = db.prepare("SELECT * FROM warehouse_receipts WHERE warehouse_category = 'pvc_film' ORDER BY id DESC").all();
+    const inkRows = db.prepare("SELECT * FROM warehouse_receipts WHERE warehouse_category = 'ink' ORDER BY id DESC").all();
+
     const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(rows);
-    XLSX.utils.book_append_sheet(wb, ws, 'انبار مقوا و کاغذ');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(formatRows(cardboardRows)), '۱. انبار مقوا');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(formatRows(cartonRows)), '۲. انبار ورق');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(formatRows(singleRows)), '۳. انبار سینگل');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(formatRows(cellophaneRows)), '۴. انبار سلفون');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(formatRows(pvcRows)), '۵. انبار طلق');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(formatRows(inkRows)), '۶. انبار مرکب');
+
     const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
 
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', 'attachment; filename="Amiran-Warehouse-Inventory.xlsx"');
+    res.setHeader('Content-Disposition', 'attachment; filename="Amiran-Warehouse-6Categories.xlsx"');
     res.send(buffer);
   } catch (err) {
     res.status(500).json({ error: 'خطا در خروجی اکسل انبار: ' + err.message });

@@ -429,26 +429,44 @@ export default function App() {
             />
           )}
 
-          {/* Production Orders (دستور تولید با ۳ رنگ کارتابل و اکسل ۳ شیت) */}
-          {activeTab === 'production_orders' && (
+          {/* Production Orders (دستور تولید: ۱. تولید (صف ۳ رنگ)) */}
+          {(activeTab === 'production_orders' || activeTab === 'production_orders_offset') && (
             <ProductionOrderView
               onOpenNewProject={() => navigateTab('new_order')}
             />
           )}
 
-          {/* Warehouse Inventory (دفتر ورود مقوا و کاغذ با ۲۲ رکورد شیت و اکسل) */}
-          {activeTab === 'warehouse_inventory' && (
-            <WarehouseInventoryView />
-          )}
-
-          {/* Digital Print Orders (چاپ دیجیتال و نمونه‌گیری فوری) */}
-          {activeTab === 'digital_orders' && (
+          {/* Digital Print Orders (دستور تولید: ۲. دیجیتال) */}
+          {(activeTab === 'digital_orders' || activeTab === 'production_orders_digital') && (
             <DigitalPrintView />
           )}
 
-          {/* Toll Service Orders (کارهای خدماتی، اجرتی و کارمزدی با متریال مشتری) */}
-          {activeTab === 'service_orders' && (
+          {/* Toll Service Orders (دستور تولید: ۳. خدماتی با متریال مشتری) */}
+          {(activeTab === 'service_orders' || activeTab === 'production_orders_service') && (
             <TollServicesView />
+          )}
+
+          {/* Warehouse Inventory (انبار: ۱. مقوا | ۲. ورق | ۳. سینگل | ۴. سلفون | ۵. طلق | ۶. مرکب) */}
+          {activeTab === 'warehouse_inventory' && (
+            <WarehouseInventoryView initialCategory="cardboard" />
+          )}
+          {activeTab === 'warehouse_cardboard' && (
+            <WarehouseInventoryView initialCategory="cardboard" />
+          )}
+          {activeTab === 'warehouse_sheet_carton' && (
+            <WarehouseInventoryView initialCategory="sheet_carton" />
+          )}
+          {activeTab === 'warehouse_single_face' && (
+            <WarehouseInventoryView initialCategory="single_face" />
+          )}
+          {activeTab === 'warehouse_cellophane' && (
+            <WarehouseInventoryView initialCategory="cellophane" />
+          )}
+          {activeTab === 'warehouse_pvc_film' && (
+            <WarehouseInventoryView initialCategory="pvc_film" />
+          )}
+          {activeTab === 'warehouse_ink' && (
+            <WarehouseInventoryView initialCategory="ink" />
           )}
 
           {/* Subdomain Guide */}
