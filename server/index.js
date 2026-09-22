@@ -5,6 +5,7 @@ const fs = require('fs');
 const multer = require('multer');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const XLSX = require('xlsx');
 const db = require('./db');
 const { calculateBoxCost } = require('./calculator');
 const { sendNotification, sendTestCustomerSms } = require('./notifications');
@@ -497,6 +498,453 @@ app.post('/api/marketing/leads/:id/convert-to-project', authMiddleware, (req, re
     });
   } catch (err) {
     res.status(500).json({ error: 'خطا در تبدیل استعلام به سفارش: ' + err.message });
+  }
+});
+
+// ================= PRODUCTION ORDERS (دستور تولید با ۳ رنگ وضعیت) =================
+// 1. Get Production Orders List
+app.get('/api/production-orders', authMiddleware, (req, res) => {
+  try {
+    const { color, category, search } = req.query;
+    let query = 'SELECT * FROM production_orders WHERE 1=1';
+    const params = [];
+
+    if (color && color !== 'all') {
+      query += ' AND status_color = ?';
+      params.push(color);
+    }
+    if (category && category !== 'all') {
+      query += ' AND order_category = ?';
+      params.push(category);
+    }
+    if (search) {
+      query += ' AND (customer_name LIKE ? OR product_title LIKE ? OR order_code LIKE ? OR archive_code LIKE ?)';
+      const s = `%${search}%`;
+      params.push(s, s, s, s);
+    }
+
+    query += ' ORDER BY id DESC';
+    const orders = db.prepare(query).all(...params);
+
+    const whiteCount = db.prepare("SELECT COUNT(*) as c FROM production_orders WHERE status_color = 'white'").get().c || 0;
+    const yellowCount = db.prepare("SELECT COUNT(*) as c FROM production_orders WHERE status_color = 'yellow'").get().c || 0;
+    const greenCount = db.prepare("SELECT COUNT(*) as c FROM production_orders WHERE status_color = 'green'").get().c || 0;
+
+    res.json({
+      success: true,
+      orders,
+      counts: { white: whiteCount, yellow: yellowCount, green: greenCount, total: whiteCount + yellowCount + greenCount }
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در دریافت لیست دستور تولید: ' + err.message });
+  }
+});
+
+// 2. Create Production Order
+app.post('/api/production-orders', authMiddleware, (req, res) => {
+  try {
+    const {
+      customer_name, customer_phone, product_title, order_category,
+      quantity, box_type, material, grammage, sheet_size, sheet_count,
+      zinc_count, coating_type, diecut_type, gluing_type, status_color,
+      financial_status, financial_notes, total_price, paid_amount,
+      delivery_deadline, assigned_machine, production_notes
+    } = req.body;
+
+    if (!customer_name || !product_title || !quantity) {
+      return res.status(400).json({ error: 'نام مشتری، نام محصول و تیراژ الزامی هستند.' });
+    }
+
+    const count = db.prepare('SELECT COUNT(*) as c FROM production_orders').get().c || 0;
+    const order_code = req.body.order_code || String(10800 + count + 1);
+    const archive_code = req.body.archive_code || String(9200 + count + 1);
+
+    const stmt = db.prepare(`
+      INSERT INTO production_orders (
+        order_code, archive_code, customer_name, customer_phone, product_title, order_category,
+        quantity, box_type, material, grammage, sheet_size, sheet_count, zinc_count,
+        coating_type, diecut_type, gluing_type, status_color, financial_status,
+        financial_notes, total_price, paid_amount, delivery_deadline, assigned_machine, production_notes
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    stmt.run(
+      order_code, archive_code, customer_name, customer_phone || null, product_title, order_category || 'offset',
+      parseInt(quantity), box_type || null, material || null, parseFloat(grammage) || null,
+      sheet_size || null, parseInt(sheet_count) || null, parseInt(zinc_count) || 4,
+      coating_type || null, diecut_type || null, gluing_type || null, status_color || 'white',
+      financial_status || 'در انتظار پیش‌پرداخت', financial_notes || null,
+      parseFloat(total_price) || 0, parseFloat(paid_amount) || 0,
+      delivery_deadline || null, assigned_machine || null, production_notes || null
+    );
+
+    res.json({ success: true, message: 'دستور تولید با موفقیت ثبت شد.' });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در ثبت دستور تولید: ' + err.message });
+  }
+});
+
+// 3. Update Status Color (White / Yellow / Green)
+app.put('/api/production-orders/:id/status-color', authMiddleware, (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status_color, financial_status, financial_notes } = req.body;
+
+    if (!['white', 'yellow', 'green'].includes(status_color)) {
+      return res.status(400).json({ error: 'رنگ وضعیت باید سفید، زرد یا سبز باشد.' });
+    }
+
+    let query = 'UPDATE production_orders SET status_color = ?, updated_at = CURRENT_TIMESTAMP';
+    const params = [status_color];
+
+    if (financial_status) {
+      query += ', financial_status = ?';
+      params.push(financial_status);
+    }
+    if (financial_notes !== undefined) {
+      query += ', financial_notes = ?';
+      params.push(financial_notes);
+    }
+
+    query += ' WHERE id = ?';
+    params.push(id);
+
+    db.prepare(query).run(...params);
+    res.json({ success: true, message: 'وضعیت کار به رنگ ' + status_color + ' تغییر یافت.' });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در تغییر وضعیت: ' + err.message });
+  }
+});
+
+// 4. Update Production Order Details
+app.put('/api/production-orders/:id', authMiddleware, (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      customer_name, customer_phone, product_title, order_category,
+      quantity, box_type, material, grammage, sheet_size, sheet_count,
+      zinc_count, coating_type, diecut_type, gluing_type, status_color,
+      financial_status, financial_notes, total_price, paid_amount,
+      delivery_deadline, assigned_machine, production_notes
+    } = req.body;
+
+    db.prepare(`
+      UPDATE production_orders SET
+        customer_name = ?, customer_phone = ?, product_title = ?, order_category = ?,
+        quantity = ?, box_type = ?, material = ?, grammage = ?, sheet_size = ?, sheet_count = ?,
+        zinc_count = ?, coating_type = ?, diecut_type = ?, gluing_type = ?, status_color = ?,
+        financial_status = ?, financial_notes = ?, total_price = ?, paid_amount = ?,
+        delivery_deadline = ?, assigned_machine = ?, production_notes = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).run(
+      customer_name, customer_phone, product_title, order_category,
+      quantity, box_type, material, grammage, sheet_size, sheet_count,
+      zinc_count, coating_type, diecut_type, gluing_type, status_color,
+      financial_status, financial_notes, total_price, paid_amount,
+      delivery_deadline, assigned_machine, production_notes, id
+    );
+
+    res.json({ success: true, message: 'دستور تولید با موفقیت به‌روزرسانی شد.' });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در ویرایش دستور تولید: ' + err.message });
+  }
+});
+
+// 5. Export Production Orders Excel with 3 SHEETS (سفید / زرد / سبز)
+app.get('/api/production-orders/export-excel', authMiddleware, (req, res) => {
+  try {
+    const whiteOrders = db.prepare("SELECT * FROM production_orders WHERE status_color = 'white' ORDER BY id DESC").all();
+    const yellowOrders = db.prepare("SELECT * FROM production_orders WHERE status_color = 'yellow' ORDER BY id DESC").all();
+    const greenOrders = db.prepare("SELECT * FROM production_orders WHERE status_color = 'green' ORDER BY id DESC").all();
+
+    const formatRows = (rows) => rows.map((r, i) => ({
+      'ردیف': i + 1,
+      'شماره سفارش': r.order_code,
+      'کد بایگانی': r.archive_code,
+      'نام مشتری': r.customer_name,
+      'نام سفارش / عنوان محصول': r.product_title,
+      'نوع سفارش': r.order_category === 'offset' ? 'چاپ افست' : r.order_category === 'digital' ? 'چاپ دیجیتال' : 'خدمات کارمزدی',
+      'تیراژ': r.quantity,
+      'نوع جعبه': r.box_type || '-',
+      'جنس مقوا / کاغذ': r.material || '-',
+      'گراماژ': r.grammage || '-',
+      'سایز شیت': r.sheet_size || '-',
+      'تعداد شیت': r.sheet_count || '-',
+      'تعداد زینک': r.zinc_count || '-',
+      'نوع پوشش و سلفون': r.coating_type || '-',
+      'دایکات و تیغ': r.diecut_type || '-',
+      'چسب و اتصال': r.gluing_type || '-',
+      'وضعیت مالی': r.financial_status || '-',
+      'مبلغ کل (تومان)': r.total_price || 0,
+      'مبلغ دریافتی (تومان)': r.paid_amount || 0,
+      'مانده حساب (تومان)': (r.total_price || 0) - (r.paid_amount || 0),
+      'مهلت تحویل': r.delivery_deadline || '-',
+      'ماشین اختصاص‌یافته': r.assigned_machine || '-',
+      'ملاحظات فنی تولید': r.production_notes || '-'
+    }));
+
+    const wb = XLSX.utils.book_new();
+
+    const wsWhite = XLSX.utils.json_to_sheet(formatRows(whiteOrders));
+    const wsYellow = XLSX.utils.json_to_sheet(formatRows(yellowOrders));
+    const wsGreen = XLSX.utils.json_to_sheet(formatRows(greenOrders));
+
+    XLSX.utils.book_append_sheet(wb, wsWhite, 'صف تولید (سفید)');
+    XLSX.utils.book_append_sheet(wb, wsYellow, 'پرونده مالی (زرد)');
+    XLSX.utils.book_append_sheet(wb, wsGreen, 'تکمیل و بایگانی (سبز)');
+
+    const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename="Amiran-Production-Orders-3Sheets.xlsx"');
+    res.send(buffer);
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در خروجی اکسل: ' + err.message });
+  }
+});
+
+// ================= WAREHOUSE RECEIPTS (انبار مقوا و کاغذ) =================
+// 1. Get Warehouse Receipts
+app.get('/api/warehouse-receipts', authMiddleware, (req, res) => {
+  try {
+    const { supplier, location, search, status } = req.query;
+    let query = 'SELECT * FROM warehouse_receipts WHERE 1=1';
+    const params = [];
+
+    if (supplier && supplier !== 'all') {
+      query += ' AND supplier = ?';
+      params.push(supplier);
+    }
+    if (location && location !== 'all') {
+      query += ' AND unloading_location = ?';
+      params.push(location);
+    }
+    if (status && status !== 'all') {
+      query += ' AND status = ?';
+      params.push(status);
+    }
+    if (search) {
+      query += ' AND (customer_name LIKE ? OR order_name LIKE ? OR order_code LIKE ? OR archive_code LIKE ? OR material LIKE ?)';
+      const s = `%${search}%`;
+      params.push(s, s, s, s, s);
+    }
+
+    query += ' ORDER BY id DESC';
+    const receipts = db.prepare(query).all(...params);
+    res.json({ success: true, receipts });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در دریافت انبار: ' + err.message });
+  }
+});
+
+// 2. Create Warehouse Receipt
+app.post('/api/warehouse-receipts', authMiddleware, (req, res) => {
+  try {
+    const {
+      registration_date, order_code, archive_code, customer_name, order_name,
+      supplier, material, grammage, size, required_qty, unloading_location,
+      received_qty_1, received_date_1, received_qty_2, received_date_2, status, notes
+    } = req.body;
+
+    const r1 = parseInt(received_qty_1) || 0;
+    const r2 = parseInt(received_qty_2) || 0;
+    const total = r1 + r2;
+
+    db.prepare(`
+      INSERT INTO warehouse_receipts (
+        registration_date, order_code, archive_code, customer_name, order_name,
+        supplier, material, grammage, size, required_qty, unloading_location,
+        received_qty_1, received_date_1, received_qty_2, received_date_2, total_received, status, notes
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      registration_date || '1405/01/01', order_code, archive_code, customer_name, order_name,
+      supplier, material, parseFloat(grammage) || null, size, parseInt(required_qty), unloading_location,
+      r1, received_date_1 || null, r2, received_date_2 || null, total, status || 'received', notes || null
+    );
+
+    res.json({ success: true, message: 'رسید انبار با موفقیت ثبت شد.' });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در ثبت انبار: ' + err.message });
+  }
+});
+
+// 3. Export Warehouse Excel
+app.get('/api/warehouse-receipts/export-excel', authMiddleware, (req, res) => {
+  try {
+    const receipts = db.prepare("SELECT * FROM warehouse_receipts ORDER BY id DESC").all();
+    const rows = receipts.map((r, i) => ({
+      'ردیف': i + 1,
+      'تاریخ ثبت': r.registration_date,
+      'شماره سفارش': r.order_code,
+      'شماره بایگانی': r.archive_code,
+      'نام مشتری': r.customer_name,
+      'نام سفارش': r.order_name,
+      'تامین کننده': r.supplier,
+      'جنس': r.material,
+      'گراماژ': r.grammage,
+      'سایز': r.size,
+      'تیراژ سفارش': r.required_qty,
+      'محل تخلیه': r.unloading_location,
+      'تعداد دریافتی (پارت ۱)': r.received_qty_1 || 0,
+      'تاریخ دریافت (پارت ۱)': r.received_date_1 || '-',
+      'تعداد دریافتی (پارت ۲)': r.received_qty_2 || 0,
+      'تاریخ دریافت (پارت ۲)': r.received_date_2 || '-',
+      'جمع کل دریافتی': (r.received_qty_1 || 0) + (r.received_qty_2 || 0),
+      'وضعیت کسری / مازاد': r.status === 'received' ? 'دریافت کامل' : r.status === 'partial' ? 'دارای کسری' : r.status === 'excess' ? 'مازاد بر تیراژ' : 'در انتظار',
+      'توضیحات انبار': r.notes || '-'
+    }));
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(rows);
+    XLSX.utils.book_append_sheet(wb, ws, 'انبار مقوا و کاغذ');
+    const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename="Amiran-Warehouse-Inventory.xlsx"');
+    res.send(buffer);
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در خروجی اکسل انبار: ' + err.message });
+  }
+});
+
+// ================= DIGITAL PRINT ORDERS (چاپ دیجیتال) =================
+// 1. Get Digital Orders
+app.get('/api/digital-orders', authMiddleware, (req, res) => {
+  try {
+    const { color, search } = req.query;
+    let query = 'SELECT * FROM digital_orders WHERE 1=1';
+    const params = [];
+    if (color && color !== 'all') {
+      query += ' AND status_color = ?';
+      params.push(color);
+    }
+    if (search) {
+      query += ' AND (customer_name LIKE ? OR title LIKE ? OR order_code LIKE ?)';
+      const s = `%${search}%`;
+      params.push(s, s, s);
+    }
+    query += ' ORDER BY id DESC';
+    const orders = db.prepare(query).all(...params);
+    res.json({ success: true, orders });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در دریافت چاپ دیجیتال: ' + err.message });
+  }
+});
+
+// 2. Create Digital Order
+app.post('/api/digital-orders', authMiddleware, (req, res) => {
+  try {
+    const {
+      customer_name, customer_phone, title, machine_type,
+      paper_type, grammage, dimensions, quantity, print_side, lamination,
+      finishing, status_color, unit_price, total_price, paid_amount, delivery_deadline, notes
+    } = req.body;
+
+    const count = db.prepare('SELECT COUNT(*) as c FROM digital_orders').get().c || 0;
+    const order_code = req.body.order_code || `DIG-${101 + count}`;
+
+    db.prepare(`
+      INSERT INTO digital_orders (
+        order_code, customer_name, customer_phone, title, machine_type,
+        paper_type, grammage, dimensions, quantity, print_side, lamination,
+        finishing, status_color, unit_price, total_price, paid_amount, delivery_deadline, notes
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      order_code, customer_name, customer_phone || null, title, machine_type,
+      paper_type, parseFloat(grammage) || null, dimensions, parseInt(quantity),
+      print_side || 'یکرو ۴ رنگ', lamination || 'بدون روکش',
+      finishing || null, status_color || 'white', parseFloat(unit_price) || 0,
+      parseFloat(total_price) || 0, parseFloat(paid_amount) || 0,
+      delivery_deadline || null, notes || null
+    );
+
+    res.json({ success: true, message: 'سفارش چاپ دیجیتال ثبت شد.' });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در ثبت چاپ دیجیتال: ' + err.message });
+  }
+});
+
+// 3. Update Digital Order Status Color
+app.put('/api/digital-orders/:id/status-color', authMiddleware, (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status_color } = req.body;
+    db.prepare('UPDATE digital_orders SET status_color = ? WHERE id = ?').run(status_color, id);
+    res.json({ success: true, message: 'وضعیت سفارش دیجیتال تغییر کرد.' });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در تغییر وضعیت: ' + err.message });
+  }
+});
+
+// ================= TOLL SERVICES ORDERS (کارهای خدماتی و اجرتی) =================
+// 1. Get Toll Service Orders
+app.get('/api/service-orders', authMiddleware, (req, res) => {
+  try {
+    const { color, search } = req.query;
+    let query = 'SELECT * FROM toll_service_orders WHERE 1=1';
+    const params = [];
+    if (color && color !== 'all') {
+      query += ' AND status_color = ?';
+      params.push(color);
+    }
+    if (search) {
+      query += ' AND (customer_name LIKE ? OR service_title LIKE ? OR order_code LIKE ?)';
+      const s = `%${search}%`;
+      params.push(s, s, s);
+    }
+    query += ' ORDER BY id DESC';
+    const orders = db.prepare(query).all(...params);
+    res.json({ success: true, orders });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در دریافت سفارشات خدماتی: ' + err.message });
+  }
+});
+
+// 2. Create Toll Service Order
+app.post('/api/service-orders', authMiddleware, (req, res) => {
+  try {
+    const {
+      customer_name, customer_phone, service_title, service_types,
+      incoming_material_desc, incoming_sheet_count, incoming_receipt_number,
+      die_status, setup_fee, rate_per_unit, total_amount, paid_amount,
+      status_color, operator_name, completed_qty, delivered_date, notes
+    } = req.body;
+
+    const count = db.prepare('SELECT COUNT(*) as c FROM toll_service_orders').get().c || 0;
+    const order_code = req.body.order_code || `SRV-${201 + count}`;
+
+    db.prepare(`
+      INSERT INTO toll_service_orders (
+        order_code, customer_name, customer_phone, service_title, service_types,
+        incoming_material_desc, incoming_sheet_count, incoming_receipt_number,
+        die_status, setup_fee, rate_per_unit, total_amount, paid_amount,
+        status_color, operator_name, completed_qty, delivered_date, notes
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      order_code, customer_name, customer_phone || null, service_title,
+      typeof service_types === 'string' ? service_types : JSON.stringify(service_types || []),
+      incoming_material_desc, parseInt(incoming_sheet_count) || 0, incoming_receipt_number || null,
+      die_status || 'قالب در کارخانه موجود است', parseFloat(setup_fee) || 0,
+      parseFloat(rate_per_unit) || 0, parseFloat(total_amount) || 0,
+      parseFloat(paid_amount) || 0, status_color || 'white', operator_name || null,
+      parseInt(completed_qty) || 0, delivered_date || null, notes || null
+    );
+
+    res.json({ success: true, message: 'سفارش خدماتی و کارمزدی ثبت شد.' });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در ثبت سفارش خدماتی: ' + err.message });
+  }
+});
+
+// 3. Update Toll Service Status Color
+app.put('/api/service-orders/:id/status-color', authMiddleware, (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status_color } = req.body;
+    db.prepare('UPDATE toll_service_orders SET status_color = ? WHERE id = ?').run(status_color, id);
+    res.json({ success: true, message: 'وضعیت سفارش خدماتی تغییر کرد.' });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در تغییر وضعیت: ' + err.message });
   }
 });
 

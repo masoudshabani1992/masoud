@@ -1,7 +1,25 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { canAccessDepartment } from '../utils/helpers';
-import { Lock, AlertCircle, X, ShieldAlert, ArrowRightLeft, FileSpreadsheet, PlusCircle, Boxes, Sparkles } from 'lucide-react';
+import {
+  Lock,
+  AlertCircle,
+  X,
+  ShieldAlert,
+  ArrowRightLeft,
+  FileSpreadsheet,
+  PlusCircle,
+  Boxes,
+  Sparkles,
+  Package,
+  Printer,
+  Scissors,
+  Layers,
+  Box,
+  CreditCard,
+  Clock,
+  CheckCircle2
+} from 'lucide-react';
 
 // Custom SVGs crafted to match the legacy MIS screenshot
 function DesignerIcon({ className = "w-16 h-16" }) {
@@ -239,6 +257,117 @@ export default function DepartmentHubView({
             <PlusCircle className="w-4 h-4" />
             <span>ثبت سفارش جدید</span>
           </button>
+        </div>
+      </div>
+
+      {/* 4 Core Factory Production Modules */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Module 1: دستور تولید ۳ رنگ */}
+        <div
+          onClick={() => onNavigateDepartment('production_orders')}
+          className="bg-white rounded-2xl p-5 border-2 border-indigo-200 hover:border-indigo-500 hover:shadow-xl transition-all cursor-pointer group space-y-3 relative overflow-hidden"
+        >
+          <div className="flex items-center justify-between">
+            <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-700 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <FileSpreadsheet className="w-6 h-6" />
+            </div>
+            <span className="px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-800 text-[10px] font-black">
+              ۳ رنگ کارتابل
+            </span>
+          </div>
+          <div>
+            <h3 className="text-base font-black text-slate-900 group-hover:text-indigo-700 transition-colors">
+              دستور تولید کارخانه
+            </h3>
+            <p className="text-xs text-slate-500 mt-1 line-clamp-2">
+              سفید (صف تولید)، زرد (پرونده مالی)، سبز (تکمیل بایگانی) با خروجی اکسل ۳ شیت
+            </p>
+          </div>
+          <div className="flex items-center gap-1.5 pt-2 border-t border-slate-100 text-[11px] font-bold text-indigo-600">
+            <span>مشاهده کارتابل سالن تولید</span>
+            <span>←</span>
+          </div>
+        </div>
+
+        {/* Module 2: انبار مقوا و کاغذ */}
+        <div
+          onClick={() => onNavigateDepartment('warehouse_inventory')}
+          className="bg-white rounded-2xl p-5 border-2 border-sky-200 hover:border-sky-500 hover:shadow-xl transition-all cursor-pointer group space-y-3 relative overflow-hidden"
+        >
+          <div className="flex items-center justify-between">
+            <div className="w-12 h-12 rounded-2xl bg-sky-50 text-sky-700 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Package className="w-6 h-6" />
+            </div>
+            <span className="px-2.5 py-1 rounded-full bg-sky-100 text-sky-800 text-[10px] font-black">
+              ۲۲ پرونده شیت
+            </span>
+          </div>
+          <div>
+            <h3 className="text-base font-black text-slate-900 group-hover:text-sky-700 transition-colors">
+              دفتر انبار مقوا و کاغذ
+            </h3>
+            <p className="text-xs text-slate-500 mt-1 line-clamp-2">
+              تطبیق شیت‌های راماسیم، بنار، ممقانی با سفارش و کنترل کسری/مازاد
+            </p>
+          </div>
+          <div className="flex items-center gap-1.5 pt-2 border-t border-slate-100 text-[11px] font-bold text-sky-600">
+            <span>مشاهده رسیدهای انبار</span>
+            <span>←</span>
+          </div>
+        </div>
+
+        {/* Module 3: چاپ دیجیتال */}
+        <div
+          onClick={() => onNavigateDepartment('digital_orders')}
+          className="bg-white rounded-2xl p-5 border-2 border-purple-200 hover:border-purple-500 hover:shadow-xl transition-all cursor-pointer group space-y-3 relative overflow-hidden"
+        >
+          <div className="flex items-center justify-between">
+            <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-700 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Printer className="w-6 h-6" />
+            </div>
+            <span className="px-2.5 py-1 rounded-full bg-purple-100 text-purple-800 text-[10px] font-black">
+              نمونه و تیراژ کم
+            </span>
+          </div>
+          <div>
+            <h3 className="text-base font-black text-slate-900 group-hover:text-purple-700 transition-colors">
+              واحد چاپ دیجیتال فوری
+            </h3>
+            <p className="text-xs text-slate-500 mt-1 line-clamp-2">
+              مدیریت نمونه‌گیری‌های رنگی، جعبه فوری، کاتالوگ و شیت‌های چاپی
+            </p>
+          </div>
+          <div className="flex items-center gap-1.5 pt-2 border-t border-slate-100 text-[11px] font-bold text-purple-600">
+            <span>مشاهده سفارشات دیجیتال</span>
+            <span>←</span>
+          </div>
+        </div>
+
+        {/* Module 4: کارهای خدماتی و کارمزدی */}
+        <div
+          onClick={() => onNavigateDepartment('service_orders')}
+          className="bg-white rounded-2xl p-5 border-2 border-amber-200 hover:border-amber-500 hover:shadow-xl transition-all cursor-pointer group space-y-3 relative overflow-hidden"
+        >
+          <div className="flex items-center justify-between">
+            <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Scissors className="w-6 h-6" />
+            </div>
+            <span className="px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 text-[10px] font-black">
+              مقوای مشتری
+            </span>
+          </div>
+          <div>
+            <h3 className="text-base font-black text-slate-900 group-hover:text-amber-700 transition-colors">
+              کارهای خدماتی و کارمزدی
+            </h3>
+            <p className="text-xs text-slate-500 mt-1 line-clamp-2">
+              لامینت، دایکات بابست، طلاکوب و جعبه‌چسبانی با متریال دریافتی از مشتری
+            </p>
+          </div>
+          <div className="flex items-center gap-1.5 pt-2 border-t border-slate-100 text-[11px] font-bold text-amber-600">
+            <span>مشاهده فرآیندهای خدماتی</span>
+            <span>←</span>
+          </div>
         </div>
       </div>
 

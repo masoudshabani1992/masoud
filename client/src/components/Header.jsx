@@ -22,7 +22,11 @@ import {
   ArrowRightLeft,
   Sparkles,
   Box,
-  Crown
+  Crown,
+  FileSpreadsheet,
+  Package,
+  Printer,
+  Scissors
 } from 'lucide-react';
 
 export default function Header({
@@ -194,7 +198,7 @@ export default function Header({
 
       {/* Grid Tabs Navigation Bar - 100% No Horizontal Scroll */}
       <div className="border-t border-slate-200 bg-slate-100/90 px-4 sm:px-6 lg:px-8 py-2.5">
-        <div className="w-full max-w-[2200px] mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-10 gap-2">
+        <div className="w-full max-w-[2200px] mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-12 gap-2">
           
           {/* Marketer ONLY view */}
           {isMarketer && (
@@ -222,38 +226,75 @@ export default function Header({
                 <span className="truncate">صفحه اصلی</span>
               </button>
 
-              {/* 2. Marketing Leads Tab (for Sales & CEO) */}
-              {(isSales || isCeo) && (
-                <button
-                  onClick={() => setActiveTab('marketing')}
-                  className={`flex items-center justify-center gap-2 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
-                    activeTab === 'marketing'
-                      ? 'bg-teal-600 text-white border-teal-700 shadow-md ring-2 ring-teal-400'
-                      : 'bg-teal-50 text-teal-900 hover:text-teal-950 hover:bg-teal-100 border-teal-300 shadow-xs'
-                  }`}
-                >
-                  <Users className="w-4 h-4 text-teal-600 flex-shrink-0" />
-                  <span className="truncate">استعلام‌های بازاریاب</span>
-                </button>
-              )}
+              {/* 2. دستور تولید (Production Orders) */}
+              <button
+                onClick={() => setActiveTab('production_orders')}
+                className={`flex items-center justify-center gap-1.5 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
+                  activeTab === 'production_orders'
+                    ? 'bg-indigo-700 text-white border-indigo-800 shadow-md ring-2 ring-indigo-400'
+                    : 'bg-white text-slate-700 hover:text-indigo-700 hover:bg-indigo-50/50 border-slate-200 shadow-xs'
+                }`}
+              >
+                <FileSpreadsheet className="w-4 h-4 text-indigo-600 flex-shrink-0" />
+                <span className="truncate">دستور تولید</span>
+              </button>
 
-              {/* 3. Workflow Kanban Board */}
+              {/* 3. انبار مقوا (Warehouse Receipts) */}
+              <button
+                onClick={() => setActiveTab('warehouse_inventory')}
+                className={`flex items-center justify-center gap-1.5 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
+                  activeTab === 'warehouse_inventory'
+                    ? 'bg-sky-700 text-white border-sky-800 shadow-md ring-2 ring-sky-400'
+                    : 'bg-white text-slate-700 hover:text-sky-700 hover:bg-sky-50/50 border-slate-200 shadow-xs'
+                }`}
+              >
+                <Package className="w-4 h-4 text-sky-600 flex-shrink-0" />
+                <span className="truncate">انبار مقوا</span>
+              </button>
+
+              {/* 4. چاپ دیجیتال (Digital Orders) */}
+              <button
+                onClick={() => setActiveTab('digital_orders')}
+                className={`flex items-center justify-center gap-1.5 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
+                  activeTab === 'digital_orders'
+                    ? 'bg-purple-700 text-white border-purple-800 shadow-md ring-2 ring-purple-400'
+                    : 'bg-white text-slate-700 hover:text-purple-700 hover:bg-purple-50/50 border-slate-200 shadow-xs'
+                }`}
+              >
+                <Printer className="w-4 h-4 text-purple-600 flex-shrink-0" />
+                <span className="truncate">چاپ دیجیتال</span>
+              </button>
+
+              {/* 5. کارهای خدماتی (Toll Services) */}
+              <button
+                onClick={() => setActiveTab('service_orders')}
+                className={`flex items-center justify-center gap-1.5 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
+                  activeTab === 'service_orders'
+                    ? 'bg-amber-600 text-white border-amber-700 shadow-md ring-2 ring-amber-400'
+                    : 'bg-white text-slate-700 hover:text-amber-700 hover:bg-amber-50/50 border-slate-200 shadow-xs'
+                }`}
+              >
+                <Scissors className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                <span className="truncate">کارهای خدماتی</span>
+              </button>
+
+              {/* 6. Workflow Kanban Board */}
               <button
                 onClick={() => setActiveTab('kanban')}
-                className={`flex items-center justify-center gap-2 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
+                className={`flex items-center justify-center gap-1.5 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
                   activeTab === 'kanban'
                     ? 'bg-indigo-600 text-white border-indigo-700 shadow-md ring-2 ring-indigo-400'
                     : 'bg-white text-slate-700 hover:text-indigo-600 hover:bg-slate-50 border-slate-200 shadow-xs'
                 }`}
               >
                 <Kanban className="w-4 h-4 text-indigo-500 flex-shrink-0" />
-                <span className="truncate">گردش کار تولید (۹ مرحله)</span>
+                <span className="truncate">گردش کار ۹ مرحله</span>
               </button>
 
-              {/* 4. Products & Orders Archive */}
+              {/* 7. Products & Orders Archive */}
               <button
                 onClick={() => setActiveTab('archive')}
-                className={`flex items-center justify-center gap-2 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
+                className={`flex items-center justify-center gap-1.5 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
                   activeTab === 'archive'
                     ? 'bg-indigo-600 text-white border-indigo-700 shadow-md ring-2 ring-indigo-400'
                     : 'bg-white text-slate-700 hover:text-indigo-600 hover:bg-slate-50 border-slate-200 shadow-xs'
@@ -263,38 +304,51 @@ export default function Header({
                 <span className="truncate">آرشیو و جستجو</span>
               </button>
 
-              {/* 5. New Order (Sales / CEO) */}
-              {(isSales || isCeo) && (
-                <button
-                  onClick={() => setActiveTab('new_order')}
-                  className={`flex items-center justify-center gap-2 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
-                    activeTab === 'new_order'
-                      ? 'bg-indigo-600 text-white border-indigo-700 shadow-md ring-2 ring-indigo-400'
-                      : 'bg-white text-slate-700 hover:text-indigo-600 hover:bg-slate-50 border-slate-200 shadow-xs'
-                  }`}
-                >
-                  <FilePlus2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                  <span className="truncate">ثبت سفارش</span>
-                </button>
-              )}
-
-              {/* 6. Amiran 3D Modeling & Dieline Studio */}
+              {/* 8. Amiran 3D Modeling & Dieline Studio */}
               <button
                 onClick={() => setActiveTab('dieline_generator')}
-                className={`flex items-center justify-center gap-2 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
+                className={`flex items-center justify-center gap-1.5 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
                   activeTab === 'dieline_generator' || activeTab === '3d_studio'
                     ? 'bg-amber-500 text-slate-950 border-amber-600 shadow-md ring-2 ring-amber-400'
                     : 'bg-white text-slate-700 hover:text-amber-700 hover:bg-amber-50 border-slate-200 shadow-xs'
                 }`}
               >
                 <Box className="w-4 h-4 text-amber-500 flex-shrink-0" />
-                <span className="truncate">استودیو طراحی امیران</span>
+                <span className="truncate">طراحی امیران</span>
               </button>
 
-              {/* 7. My Tasks Inbox */}
+              {/* 9. AI Packaging Copilot */}
+              <button
+                onClick={() => setActiveTab('ai_assistant')}
+                className={`flex items-center justify-center gap-1.5 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
+                  activeTab === 'ai_assistant'
+                    ? 'bg-gradient-to-r from-purple-700 to-indigo-700 text-amber-300 border-purple-800 shadow-md ring-2 ring-purple-400'
+                    : 'bg-purple-50 text-purple-900 hover:text-purple-950 hover:bg-purple-100 border-purple-200 shadow-xs'
+                }`}
+              >
+                <Sparkles className="w-4 h-4 text-purple-600 flex-shrink-0 animate-pulse" />
+                <span className="truncate">هوش مصنوعی</span>
+              </button>
+
+              {/* 10. Marketing Leads Tab (for Sales & CEO) */}
+              {(isSales || isCeo) && (
+                <button
+                  onClick={() => setActiveTab('marketing')}
+                  className={`flex items-center justify-center gap-1.5 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
+                    activeTab === 'marketing'
+                      ? 'bg-teal-600 text-white border-teal-700 shadow-md ring-2 ring-teal-400'
+                      : 'bg-teal-50 text-teal-900 hover:text-teal-950 hover:bg-teal-100 border-teal-300 shadow-xs'
+                  }`}
+                >
+                  <Users className="w-4 h-4 text-teal-600 flex-shrink-0" />
+                  <span className="truncate">استعلام بازاریاب</span>
+                </button>
+              )}
+
+              {/* 11. My Tasks Inbox */}
               <button
                 onClick={() => setActiveTab('my_tasks')}
-                className={`relative flex items-center justify-center gap-2 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
+                className={`relative flex items-center justify-center gap-1.5 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
                   activeTab === 'my_tasks'
                     ? 'bg-indigo-600 text-white border-indigo-700 shadow-md ring-2 ring-indigo-400'
                     : 'bg-white text-slate-700 hover:text-indigo-600 hover:bg-slate-50 border-slate-200 shadow-xs'
@@ -309,11 +363,11 @@ export default function Header({
                 )}
               </button>
 
-              {/* 8. Dashboard (CEO / Production) */}
+              {/* 12. Dashboard (CEO / Production) */}
               {(isCeo || isProduction) && (
                 <button
                   onClick={() => setActiveTab('dashboard')}
-                  className={`flex items-center justify-center gap-2 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
+                  className={`flex items-center justify-center gap-1.5 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
                     activeTab === 'dashboard'
                       ? 'bg-indigo-600 text-white border-indigo-700 shadow-md ring-2 ring-indigo-400'
                       : 'bg-white text-slate-700 hover:text-indigo-600 hover:bg-slate-50 border-slate-200 shadow-xs'
@@ -323,50 +377,7 @@ export default function Header({
                   <span className="truncate">داشبورد</span>
                 </button>
               )}
-
-              {/* 9. Raw Materials Prices */}
-              {(isEstimator || isProcurement || isCeo) && (
-                <button
-                  onClick={() => setActiveTab('materials')}
-                  className={`flex items-center justify-center gap-2 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
-                    activeTab === 'materials'
-                      ? 'bg-indigo-600 text-white border-indigo-700 shadow-md ring-2 ring-indigo-400'
-                      : 'bg-white text-slate-700 hover:text-indigo-600 hover:bg-slate-50 border-slate-200 shadow-xs'
-                  }`}
-                >
-                  <Layers className="w-4 h-4 text-teal-500 flex-shrink-0" />
-                  <span className="truncate">قیمت متریال</span>
-                </button>
-              )}
-
-              {/* 10. AI Packaging Copilot (Single Unified Button) */}
-              <button
-                onClick={() => setActiveTab('ai_assistant')}
-                className={`flex items-center justify-center gap-2 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
-                  activeTab === 'ai_assistant'
-                    ? 'bg-gradient-to-r from-purple-700 to-indigo-700 text-amber-300 border-purple-800 shadow-md ring-2 ring-purple-400'
-                    : 'bg-purple-50 text-purple-900 hover:text-purple-950 hover:bg-purple-100 border-purple-200 shadow-xs'
-                }`}
-              >
-                <Sparkles className="w-4 h-4 text-purple-600 flex-shrink-0 animate-pulse" />
-                <span className="truncate">هوش مصنوعی (AI)</span>
-              </button>
             </>
-          )}
-
-          {/* User Management (CEO only) */}
-          {isCeo && (
-            <button
-              onClick={() => setActiveTab('users')}
-              className={`flex items-center justify-center gap-2 p-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border text-center ${
-                activeTab === 'users'
-                  ? 'bg-indigo-600 text-white border-indigo-700 shadow-md ring-2 ring-indigo-400'
-                  : 'bg-white text-slate-700 hover:text-indigo-600 hover:bg-slate-50 border-slate-200 shadow-xs'
-              }`}
-            >
-              <Users className="w-4 h-4 text-purple-600 flex-shrink-0" />
-              <span className="truncate">مدیریت پرسنل</span>
-            </button>
           )}
 
         </div>

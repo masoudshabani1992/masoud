@@ -47,6 +47,38 @@ export const api = {
   generateDieline: (data) => apiRequest('/dieline/generate', { method: 'POST', body: JSON.stringify(data) }),
   generateDielineMontage: (data) => apiRequest('/dieline/montage', { method: 'POST', body: JSON.stringify(data) }),
 
+  // Production Orders (دستور تولید ۳ رنگ)
+  getProductionOrders: (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return apiRequest(`/production-orders${query ? `?${query}` : ''}`);
+  },
+  createProductionOrder: (data) => apiRequest('/production-orders', { method: 'POST', body: JSON.stringify(data) }),
+  updateProductionOrderStatusColor: (id, data) => apiRequest(`/production-orders/${id}/status-color`, { method: 'PUT', body: JSON.stringify(data) }),
+  updateProductionOrder: (id, data) => apiRequest(`/production-orders/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  // Warehouse Receipts (انبار مقوا و کاغذ)
+  getWarehouseReceipts: (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return apiRequest(`/warehouse-receipts${query ? `?${query}` : ''}`);
+  },
+  createWarehouseReceipt: (data) => apiRequest('/warehouse-receipts', { method: 'POST', body: JSON.stringify(data) }),
+
+  // Digital Print Orders (چاپ دیجیتال)
+  getDigitalOrders: (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return apiRequest(`/digital-orders${query ? `?${query}` : ''}`);
+  },
+  createDigitalOrder: (data) => apiRequest('/digital-orders', { method: 'POST', body: JSON.stringify(data) }),
+  updateDigitalOrderStatusColor: (id, data) => apiRequest(`/digital-orders/${id}/status-color`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  // Toll Service Orders (خدمات کارمزدی)
+  getServiceOrders: (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return apiRequest(`/service-orders${query ? `?${query}` : ''}`);
+  },
+  createServiceOrder: (data) => apiRequest('/service-orders', { method: 'POST', body: JSON.stringify(data) }),
+  updateServiceOrderStatusColor: (id, data) => apiRequest(`/service-orders/${id}/status-color`, { method: 'PUT', body: JSON.stringify(data) }),
+
   // Marketing Leads (بخش بازاریاب و استعلامات)
   getMarketingLeads: () => apiRequest('/marketing/leads'),
   createMarketingLead: (data) => apiRequest('/marketing/leads', { method: 'POST', body: JSON.stringify(data) }),

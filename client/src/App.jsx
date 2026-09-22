@@ -23,6 +23,10 @@ import AiAssistantView from './components/AiAssistantView';
 import MarketingLeadsView from './components/MarketingLeadsView';
 import DielineGeneratorView from './components/DielineGeneratorView';
 import Packaging3DStudioView from './components/Packaging3DStudioView';
+import ProductionOrderView from './components/ProductionOrderView';
+import WarehouseInventoryView from './components/WarehouseInventoryView';
+import DigitalPrintView from './components/DigitalPrintView';
+import TollServicesView from './components/TollServicesView';
 import ErrorBoundary from './components/ErrorBoundary';
 import { playNotificationSound } from './utils/helpers';
 
@@ -423,6 +427,28 @@ export default function App() {
                 }
               }}
             />
+          )}
+
+          {/* Production Orders (دستور تولید با ۳ رنگ کارتابل و اکسل ۳ شیت) */}
+          {activeTab === 'production_orders' && (
+            <ProductionOrderView
+              onOpenNewProject={() => navigateTab('new_order')}
+            />
+          )}
+
+          {/* Warehouse Inventory (دفتر ورود مقوا و کاغذ با ۲۲ رکورد شیت و اکسل) */}
+          {activeTab === 'warehouse_inventory' && (
+            <WarehouseInventoryView />
+          )}
+
+          {/* Digital Print Orders (چاپ دیجیتال و نمونه‌گیری فوری) */}
+          {activeTab === 'digital_orders' && (
+            <DigitalPrintView />
+          )}
+
+          {/* Toll Service Orders (کارهای خدماتی، اجرتی و کارمزدی با متریال مشتری) */}
+          {activeTab === 'service_orders' && (
+            <TollServicesView />
           )}
 
           {/* Subdomain Guide */}

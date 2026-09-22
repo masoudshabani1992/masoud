@@ -119,243 +119,345 @@ function initDb() {
       glue_type TEXT,
       glue_price REAL,
 
-      -- Staple
-      has_staple INTEGER DEFAULT 0,
-      staple_count INTEGER,
+      -- Plastic & Corrugated
+      has_plastic INTEGER DEFAULT 0,
+      has_carton INTEGER DEFAULT 0,
+      carton_type TEXT,
 
-      -- Single / Corrugated Sheet
-      has_sheet INTEGER DEFAULT 0,
-      sheet_category TEXT,
-      sheet_length REAL,
-      sheet_width REAL,
-      sheet_price REAL,
-      sheet_type TEXT,
-
-      -- Karji
-      has_karji INTEGER DEFAULT 0,
-      karji_length REAL,
-      karji_width REAL,
-      karji_thickness REAL,
-      karji_selection TEXT,
-
-      -- Design Files & Notes
-      design_file_status TEXT,
-      general_notes TEXT,
-
-      -- Financials
-      estimated_unit_price REAL DEFAULT 0,
-      estimated_total_price REAL DEFAULT 0,
-      cost_price REAL DEFAULT 0,
-      profit_margin REAL DEFAULT 15,
-
-      -- Detailed JSON Payloads for 9 workflow stages
-      specs_data TEXT,
-      estimation_data TEXT,
-      ceo_approval_data TEXT,
-      design_data TEXT,
-      customer_design_data TEXT,
-      mockup_data TEXT,
-      customer_mockup_data TEXT,
-      purchasing_data TEXT,
-      production_data TEXT,
-
-      created_by INTEGER,
-      assigned_to INTEGER,
+      notes TEXT,
+      unit_price REAL,
+      total_price REAL,
+      prepayment REAL,
+      profit_percent REAL DEFAULT 20,
+      settlement_type INTEGER DEFAULT 1,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
-    CREATE TABLE IF NOT EXISTS workflow_logs (
+    CREATE TABLE IF NOT EXISTS project_history (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       project_id INTEGER NOT NULL,
-      stage_number INTEGER NOT NULL,
-      stage_name TEXT NOT NULL,
+      stage INTEGER NOT NULL,
       action TEXT NOT NULL,
-      user_id INTEGER,
+      user_id INTEGER NOT NULL,
       user_name TEXT NOT NULL,
-      user_role TEXT NOT NULL,
       comment TEXT,
-      metadata TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (project_id) REFERENCES projects(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS project_files (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      project_id INTEGER NOT NULL,
+      file_name TEXT NOT NULL,
+      file_path TEXT NOT NULL,
+      file_type TEXT,
+      file_size INTEGER,
+      uploaded_by TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (project_id) REFERENCES projects(id)
     );
 
     CREATE TABLE IF NOT EXISTS project_comments (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       project_id INTEGER NOT NULL,
-      user_id INTEGER,
+      user_id INTEGER NOT NULL,
       user_name TEXT NOT NULL,
       user_role TEXT NOT NULL,
-      message TEXT NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
-
-    CREATE TABLE IF NOT EXISTS purchase_orders (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      project_id INTEGER NOT NULL,
-      material_name TEXT NOT NULL,
-      quantity REAL NOT NULL,
-      unit TEXT NOT NULL,
-      unit_price REAL NOT NULL,
-      total_price REAL NOT NULL,
-      supplier TEXT,
-      status TEXT DEFAULT 'pending',
-      invoice_number TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      comment TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (project_id) REFERENCES projects(id)
     );
 
     CREATE TABLE IF NOT EXISTS notifications (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER,
-      role TEXT,
       project_id INTEGER,
       archive_code TEXT,
+      user_id INTEGER,
+      role TEXT,
       title TEXT NOT NULL,
       message TEXT NOT NULL,
-      stage_number INTEGER,
       is_read INTEGER DEFAULT 0,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS notification_settings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      key TEXT UNIQUE NOT NULL,
+      value TEXT NOT NULL
     );
 
     CREATE TABLE IF NOT EXISTS marketing_leads (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       lead_code TEXT UNIQUE NOT NULL,
       customer_name TEXT NOT NULL,
-      customer_phone TEXT NOT NULL,
-      product_name TEXT NOT NULL,
+      phone TEXT NOT NULL,
+      company_name TEXT,
+      box_title TEXT NOT NULL,
+      box_type TEXT NOT NULL,
+      length REAL NOT NULL,
+      width REAL NOT NULL,
+      height REAL NOT NULL,
       quantity INTEGER NOT NULL,
-      cardboard_type TEXT NOT NULL,
-      cardboard_grammage INTEGER,
-      material_construction TEXT NOT NULL,
-      cellophane_type TEXT,
-      box_length REAL,
-      box_width REAL,
-      box_height REAL,
-      notes TEXT,
-      status TEXT DEFAULT 'pending_commercial',
-      marketer_id INTEGER,
-      marketer_name TEXT,
-      commercial_reviewer_id INTEGER,
-      commercial_reviewer_name TEXT,
+      cardboard_type TEXT,
+      grammage REAL,
+      coating_type TEXT,
+      foil_type TEXT,
+      uv_type TEXT,
+      emboss_type TEXT,
+      window_patching INTEGER DEFAULT 0,
+      gluing_type TEXT,
+      marketer_notes TEXT,
+      target_price_per_box REAL,
+      marketer_name TEXT NOT NULL,
       estimated_unit_price REAL,
       estimated_total_price REAL,
-      commercial_notes TEXT,
-      reviewed_at DATETIME,
-      converted_project_id INTEGER,
-      converted_archive_code TEXT,
+      estimation_date TEXT,
+      estimated_by TEXT,
+      status TEXT DEFAULT 'pending_estimation',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- 1. دستور تولید هوشمند با ۳ رنگ وضعیت (سفید / زرد / سبز)
+    CREATE TABLE IF NOT EXISTS production_orders (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      order_code TEXT NOT NULL,
+      archive_code TEXT NOT NULL,
+      customer_name TEXT NOT NULL,
+      customer_phone TEXT,
+      product_title TEXT NOT NULL,
+      order_category TEXT DEFAULT 'offset', -- 'offset', 'digital', 'service'
+      quantity INTEGER NOT NULL,
+      box_type TEXT,
+      material TEXT,
+      grammage REAL,
+      sheet_size TEXT,
+      sheet_count INTEGER,
+      zinc_count INTEGER,
+      coating_type TEXT,
+      diecut_type TEXT,
+      gluing_type TEXT,
+      status_color TEXT DEFAULT 'white', -- 'white' (در صف تولید), 'yellow' (پرونده در دست مالی), 'green' (تکمیل و بایگانی)
+      financial_status TEXT DEFAULT 'در انتظار پیش‌پرداخت',
+      financial_notes TEXT,
+      total_price REAL,
+      paid_amount REAL DEFAULT 0,
+      delivery_deadline TEXT,
+      assigned_machine TEXT,
+      production_notes TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
-    CREATE TABLE IF NOT EXISTS settings (
-      key TEXT PRIMARY KEY,
-      value TEXT NOT NULL
+    -- 2. انبار مقوا و کاغذ و تامین‌کنندگان (مطابق اکسل واقعی کارخانه)
+    CREATE TABLE IF NOT EXISTS warehouse_receipts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      registration_date TEXT NOT NULL,
+      order_code TEXT NOT NULL,
+      archive_code TEXT NOT NULL,
+      customer_name TEXT NOT NULL,
+      order_name TEXT NOT NULL,
+      supplier TEXT NOT NULL, -- یزدی، جوزی، مرادیان، انبار، امیران، اسکویی
+      material TEXT NOT NULL, -- ایندربرد، پشت طوسی راشا، گلاسه، تحریر...
+      grammage REAL,
+      size TEXT NOT NULL, -- 50*90, 70*100, 60*90...
+      required_qty INTEGER NOT NULL,
+      unloading_location TEXT NOT NULL, -- اندیشه، ارتا، صیادی، اسکویی، چاپخانه
+      received_qty_1 INTEGER,
+      received_date_1 TEXT,
+      received_qty_2 INTEGER,
+      received_date_2 TEXT,
+      total_received INTEGER DEFAULT 0,
+      status TEXT DEFAULT 'received', -- 'received', 'partial', 'pending', 'excess'
+      notes TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- 3. سفارشات چاپ دیجیتال
+    CREATE TABLE IF NOT EXISTS digital_orders (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      order_code TEXT NOT NULL,
+      customer_name TEXT NOT NULL,
+      customer_phone TEXT,
+      title TEXT NOT NULL,
+      machine_type TEXT NOT NULL, -- کونیکا مینولتا، زیراکس، اکوسالونت، یووی فلت‌بد، پلاتر
+      paper_type TEXT NOT NULL, -- گلاسه، تحریر، کتان، متالایز، پشت‌چسب‌دار، لیبل PVC
+      grammage REAL,
+      dimensions TEXT NOT NULL, -- A3+، A4، 50x70، رول عرض ۱۰۰
+      quantity INTEGER NOT NULL,
+      print_side TEXT DEFAULT 'یکرو ۴ رنگ', -- یکرو ۴ رنگ، دورو ۴ رنگ، چاپ سفید + ۴ رنگ
+      lamination TEXT DEFAULT 'بدون روکش', -- سلفون مات، براق، سافت‌تاچ، شنی
+      finishing TEXT, -- برش دوربری، کات دیجیتال، خط‌تا، طلاکوب دیجیتال، فنر دوبل
+      status_color TEXT DEFAULT 'white', -- 'white', 'yellow', 'green'
+      unit_price REAL,
+      total_price REAL,
+      paid_amount REAL DEFAULT 0,
+      delivery_deadline TEXT,
+      notes TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- 4. کارهای خدماتی و اجرتی (Toll / Finishing Processing)
+    CREATE TABLE IF NOT EXISTS toll_service_orders (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      order_code TEXT NOT NULL,
+      customer_name TEXT NOT NULL,
+      customer_phone TEXT,
+      service_title TEXT NOT NULL,
+      service_types TEXT NOT NULL, -- JSON Array: ["دایکات", "سلفون مات", "طلاکوب", ...]
+      incoming_material_desc TEXT NOT NULL, -- توضیحات جنس امانی مشتری
+      incoming_sheet_count INTEGER NOT NULL, -- تعداد شیت امانی ورودی
+      incoming_receipt_number TEXT, -- شماره قبض انبار ورودی
+      die_status TEXT DEFAULT 'قالب در کارخانه موجود است', -- قالب موجود / قالب مشتری / ساخت قالب
+      setup_fee REAL DEFAULT 0, -- هزینه تنظیم دستگاه
+      rate_per_unit REAL NOT NULL, -- اجرت هر ضرب/شیت/متر
+      total_amount REAL NOT NULL,
+      paid_amount REAL DEFAULT 0,
+      status_color TEXT DEFAULT 'white', -- 'white' (در نوبت اجرا), 'yellow' (تسویه مالی), 'green' (تکمیل و تحویل)
+      operator_name TEXT,
+      completed_qty INTEGER,
+      delivered_date TEXT,
+      notes TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
   `);
 
-  // Default Users
-  const salt = bcrypt.genSaltSync(10);
-  const hash = (p) => bcrypt.hashSync(p, salt);
+  // Seed default users
+  const checkUser = db.prepare('SELECT COUNT(*) as count FROM users').get();
+  if (checkUser.count === 0) {
+    const salt = bcrypt.genSaltSync(10);
+    const passHash = bcrypt.hashSync('123456', salt);
 
-  const checkUsers = db.prepare('SELECT COUNT(*) as count FROM users').get();
-  if (checkUsers.count === 0) {
     const insertUser = db.prepare(`
       INSERT INTO users (username, password_hash, full_name, role, department, phone)
       VALUES (?, ?, ?, ?, ?, ?)
     `);
 
-    insertUser.run('ceo', hash('123456'), 'مهندس مسعود شعبانی', 'ceo', 'مدیریت عامل', '09121111111');
-    insertUser.run('designer', hash('123456'), 'واحد طراحی و آتلیه', 'design', 'طراحی', '09124444444');
-    insertUser.run('sales', hash('123456'), 'واحد بازرگانی و فروش', 'sales', 'بازرگانی', '09122222222');
-    insertUser.run('secretary', hash('123456'), 'مسئول دفتر و پذیرش', 'secretary', 'مسئول دفتر', '09123333333');
-    insertUser.run('accounting', hash('123456'), 'واحد حسابداری و برآورد', 'accounting', 'حسابداری', '09125555555');
-    insertUser.run('production', hash('123456'), 'سرپرست سالن چاپ و تولید', 'production', 'سالن تولید', '09127777777');
-    insertUser.run('outsource', hash('123456'), 'واحد برونسپاری و ماکت', 'outsource', 'برونسپاری', '09126666666');
-    insertUser.run('warehouse', hash('123456'), 'مسئول انبار و ورود مصرفی', 'warehouse', 'ورود انبار مصرفی', '09128888888');
-    insertUser.run('marketer', hash('123456'), 'کارشناس بازاریابی و فروش میدانی', 'marketer', 'بازاریابی', '09129999999');
-  } else {
-    const checkMarketer = db.prepare('SELECT * FROM users WHERE role = ? OR username = ?').get('marketer', 'marketer');
-    if (!checkMarketer) {
-      db.prepare(`
-        INSERT INTO users (username, password_hash, full_name, role, department, phone)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `).run('marketer', hash('123456'), 'کارشناس بازاریابی و فروش میدانی', 'marketer', 'بازاریابی', '09129999999');
-    }
+    insertUser.run('ceo', passHash, 'مسعود شعبانی', 'ceo', 'مدیریت کارخانه', '09121111111');
+    insertUser.run('sales', passHash, 'مهندس رادمنش', 'sales', 'واحد فروش', '09122222222');
+    insertUser.run('marketer', passHash, 'رضا صادقی', 'marketer', 'بازاریابی و استعلام میدانی', '09123334455');
+    insertUser.run('secretary', passHash, 'خانم افشار', 'secretary', 'دبیرخانه و ثبت سفارش', '09123333333');
+    insertUser.run('estimate', passHash, 'مهندس احمدی', 'estimation', 'واحد برآورد و قیمت‌گذاری', '09124444444');
+    insertUser.run('designer', passHash, 'مهندس کاظمی', 'design', 'استودیو طراحی و قالب', '09125555555');
+    insertUser.run('mockup', passHash, 'مهندس طاهری', 'mockup', 'واحد ماکت‌سازی و لیتوگرافی', '09126666666');
+    insertUser.run('procurement', passHash, 'مهندس باقری', 'procurement', 'واحد بازرگانی و خرید مقوا', '09127777777');
+    insertUser.run('production', passHash, 'استاد رحیمی', 'production', 'سرپرست سالن چاپ و دایکات', '09128888888');
+    insertUser.run('accounting', passHash, 'خانم تهرانی', 'accounting', 'امور مالی و حسابداری', '09129999999');
   }
 
-  // Seed sample projects matching the user's software
-  const checkProjects = db.prepare('SELECT COUNT(*) as count FROM projects').get();
-  if (checkProjects.count === 0) {
-    const insertProj = db.prepare(`
-      INSERT INTO projects (
-        archive_code, order_code, customer_code, title, customer_name, customer_phone,
-        box_type, box_structure, quantity, order_date, file_date, is_first_print, photography,
-        has_cardboard, cardboard_type, cardboard_length, cardboard_width, cardboard_grammage, cardboard_unit_price,
-        has_print, zinc_status, custom_color, print_colors_count, print_type, print_format, print_length, print_width, print_waste, boxes_per_sheet, print_sheets_count,
-        has_varnish, has_cellophane, cellophane_type,
-        has_uv, uv_shablon_status, uv_type,
-        has_foil, foil_type, foil_length, foil_width,
-        has_emboss, emboss_cliche_status, emboss_type,
-        has_blade, blade_status, blade_type,
-        has_glue, glue_type, glue_price,
-        has_staple, has_sheet, sheet_category,
-        general_notes, estimated_unit_price, estimated_total_price, cost_price, profit_margin, current_stage, status
-      ) VALUES (
-        ?, ?, ?, ?, ?, ?,
-        ?, ?, ?, ?, ?, ?, ?,
-        ?, ?, ?, ?, ?, ?,
-        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-        ?, ?, ?,
-        ?, ?, ?,
-        ?, ?, ?, ?,
-        ?, ?, ?,
-        ?, ?, ?,
-        ?, ?, ?,
-        ?, ?, ?,
-        ?, ?, ?, ?, ?, ?, ?
-      )
+  // Seed default warehouse receipts matching actual factory Google Sheet
+  const checkWarehouse = db.prepare('SELECT COUNT(*) as count FROM warehouse_receipts').get();
+  if (checkWarehouse.count === 0) {
+    const insertWh = db.prepare(`
+      INSERT INTO warehouse_receipts (
+        registration_date, order_code, archive_code, customer_name, order_name,
+        supplier, material, grammage, size, required_qty, unloading_location,
+        received_qty_1, received_date_1, received_qty_2, received_date_2, total_received, status, notes
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
-    // Sample matching user's screen: جعبه ترموستات
-    insertProj.run(
-      '7542', '6320', '3463', 'جعبه ترموستات', 'صنایع خودروسازی پارت', '09123004050',
-      'جعبه مقوایی پشت طوسی صنعتی', 'ته قفلی درب دارویی', 10000, '1405-6-7', '1405-6-7', 1, 'طراحی توسط امیران',
-      1, 'طوسی', 1000, 600, 350, 2020000,
-      1, 'زینک جدید', 0, 4, 'افست', 'دوربرقی', 500, 600, 5, 2, 300,
-      1, 1, 'سلفون حرارتی مات',
-      0, 'شابلون موجود', 'موضعی',
-      1, 'طلاکوب', 200, 150,
-      1, 'کلیشه جدید', 'مقوایی',
-      1, 'جدید', 'لترپرس',
-      1, 'لمینتی', 110,
-      0, 1, 'سینگل',
-      'کنترل کیفیت دقیق روی خط تا و تیغ بوبست، تست لبه چسب با چسب گرم', 4500, 45000000, 36000000, 20, 2, 'in_progress'
+    insertWh.run('1405/01/15', '10745', '8609', 'الکتروژن', 'جعبه 90001061 BLDC', 'یزدی', 'پشت طوسی راشا', 180, '50*90', 40300, 'اندیشه', 21800, '1405/01/15', 18500, '1405/02/02', 40300, 'received', 'آقای یزدی کم فرستاده در نتیجه بقیشو از موجودی ارسال میکنیم.');
+    insertWh.run('1405/01/16', '10746', '8535', 'علوم خلاق', 'جعبه تخم دایناسور', 'انبار', 'ایندربرد', 230, '80*120', 300, 'ارتا', 300, '1405/01/16', null, null, 300, 'received', 'تحویل فوری');
+    insertWh.run('1405/01/29', '10747', '8541', 'میهن یدک', 'جعبه برق هشت بوبین هرمزی کد 120', 'یزدی', 'پشت طوسی راشا', 180, '70*100', 2600, 'ارتا', 2600, '1405/02/02', null, null, 2600, 'received', 'تکمیل و ارسال به چاپ');
+    insertWh.run('1405/01/29', '10748', '8540', 'میهن یدک', 'جعبه ایتم 414 بوبین برق cdi با پایه نگهدارنده', 'جوزی', 'ایندربرد', 350, '70*120', 1700, 'صیادی', 1900, '1405/01/31', null, null, 1900, 'excess', '۲۰۰ عدد (۲ بند) اضافی آمده - پالت خریداری شده نه بند.');
+    insertWh.run('1405/01/29', '10749', '8533', 'میهن یدک', 'جعبه برق هشت بوبین هوندا سوکت کد 418', 'جوزی', 'پشت طوسی راشا', 180, '70*100', 5100, 'صیادی', 5500, '1405/01/31', null, null, 5500, 'received', '۵۵۰۰ خرید / ۵۱۰۰ ارسال به چاپخانه');
+    insertWh.run('1405/01/30', '10750', '8640', 'آ.اردلان', 'زیروکیوم پژو 405', 'یزدی', 'پشت طوسی راشا', 180, '55*83', 10200, 'اندیشه', 10200, '1405/01/30', null, null, 10200, 'received', 'کامل دریافت شد');
+    insertWh.run('1405/01/30', '10751', '8642', 'میهن یدک', 'کارتن 34.5در54درارتفاع38.8', 'یزدی', 'پشت طوسی راشا', 180, '75*94', 10400, 'اندیشه', 10400, '1405/01/30', null, null, 10400, 'received', 'در صف لامینت');
+    insertWh.run('1405/01/31', '10752', '8651', 'آ.نورانی', 'لیبل ماشین', 'جوزی', 'پشت چسب دار', 80, '51*70', 2550, 'اسکویی', 2550, '1405/02/05', null, null, 2550, 'received', 'لیبل رولی');
+    insertWh.run('1405/01/31', '10753', '8626', 'صحت', 'سربرگ آزمایشگاه', 'جوزی', 'تحریر', 80, '60*90', 500, 'ارتا', 500, '1405/02/02', null, null, 500, 'received', 'تحویل شد');
+    insertWh.run('1405/01/31', '10754', '8637', 'دل کوک', 'بروشور سه لتی', 'جوزی', 'گلاسه', 170, '60*90', 1300, 'ارتا', 1300, '1405/02/02', null, null, 1300, 'received', 'سلفون مات');
+    insertWh.run('1405/01/31', '10755', '8662', 'آ.نورانی', 'استند حباب ساز', 'جوزی', 'پشت طوسی راشا', 180, '70*100', 2200, 'اندیشه', 2200, '1405/02/02', null, null, 2200, 'received', '۵۵۰۰ خرید ۲۲۰۰ ارسال به چاپخانه');
+    insertWh.run('1405/02/02', '10756', '8685', 'اکسیرآفرین', 'بروشور 3 و 5 میلی گرم', 'جوزی', 'تحریر', 80, '60*90', 3200, 'اندیشه', 3200, '1405/02/02', null, null, 3200, 'received', 'دارویی');
+    insertWh.run('1405/02/02', '10757', '8686', 'اکسیرآفرین', 'بروشور ملاتونین 10 میلی گرم', 'جوزی', 'تحریر', 80, '60*90', 3200, 'اندیشه', 3200, '1405/02/02', null, null, 3200, 'received', 'دارویی');
+    insertWh.run('1405/02/02', '10759', '8752', 'خودکار', 'زیره دسر سوهان', 'جوزی', 'ایندربرد', 270, '80*100', 5100, 'صیادی', 5100, '1405/02/06', null, null, 5100, 'received', 'روکش بهداشتی');
+    insertWh.run('1405/02/02', '10758', '8753', 'خودکار', 'رویه دسر سوهان', 'جوزی', 'ایندربرد', 270, '80*100', 2600, 'صیادی', 2600, '1405/02/06', null, null, 2600, 'received', 'طلاکوب');
+    insertWh.run('1405/02/04', '10760', '8769', 'بنار', 'برشور 5025', 'جوزی', 'گلاسه', 115, '70*100', 5000, 'اندیشه', 5000, '1405/02/06', null, null, 5000, 'received', 'تکمیل');
+    insertWh.run('1405/02/07', '10771', '8814', 'فکراوران', 'جعبه مونوپولی کیفی', 'جوزی', 'پشت طوسی راشا', 180, '60*90', 3500, 'اندیشه', 5500, '1405/02/12', null, null, 5500, 'received', '۵۵۰۰ برگ خریداری شده ۳۵۰۰ برگ ارسال به چاپخانه');
+    insertWh.run('1405/02/07', '10779', '8830', 'هنر پلاستیک', 'جعبه بوگاتی ویزن TT93005', 'جوزی', 'پشت طوسی راشا', 180, '70*100', 3700, 'اندیشه', 3700, '1405/02/12', null, null, 3700, 'received', 'دایکات لترپرس');
+    insertWh.run('1405/02/12', '10785', '8876', 'یوسفی', 'لیبل امبولانس', 'جوزی', 'لیبل', 80, '50*70', 2250, 'اسکویی', 2550, '1405/02/16', null, null, 2550, 'received', 'نیم‌تیغ دیجیتال');
+    insertWh.run('1405/02/14', '10791', '8966', 'ممقانی', 'جعبه پودر فیکس گابرینی', 'جوزی', 'ایندربرد', 300, '60*89', 2300, 'صیادی', 2300, '1405/02/19', null, null, 2300, 'received', '۲۵۹۹ خرید شده ۲۳۰۰ چاپخانه');
+    insertWh.run('1405/02/22', '10806', '9140', 'راماسیم', 'کارتن قرقره K200', 'یزدی', 'پشت طوسی', 180, '65*90', 22000, 'اندیشه', 22000, '1405/02/26', null, null, 22000, 'received', 'مقوا برگشت داده شد');
+    insertWh.run('1405/02/22', '10807', '9101', 'راماسیم', 'لفاف قرقره K200', 'یزدی/امیران', 'ایندربرد', 270, '70*100', 6700, 'ارتا', 6000, '1405/02/23', null, null, 6000, 'partial', '۶۰۰۰ برگ یزدی / ۷۰۰ برگ امیران');
+  }
+
+  // Seed default production orders with 3-color statuses (White, Yellow, Green)
+  const checkProd = db.prepare('SELECT COUNT(*) as count FROM production_orders').get();
+  if (checkProd.count === 0) {
+    const insertPo = db.prepare(`
+      INSERT INTO production_orders (
+        order_code, archive_code, customer_name, customer_phone, product_title, order_category,
+        quantity, box_type, material, grammage, sheet_size, sheet_count, zinc_count,
+        coating_type, diecut_type, gluing_type, status_color, financial_status,
+        financial_notes, total_price, paid_amount, delivery_deadline, assigned_machine, production_notes
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    // ⚪ سفید (در صف تولید)
+    insertPo.run('10745', '8609', 'الکتروژن', '09121111111', 'جعبه 90001061 BLDC', 'offset', 40300, 'جعبه قفل زیرین', 'پشت طوسی راشا', 180, '50*90', 20150, 4, 'ورنی براق', 'دایکات بوبست اتوماتیک', 'لب‌چسب ۵ نقطه', 'white', 'پیش‌پرداخت ۵۰٪ دریافت شد', 'چک صیادی ثبت گردید', 145000000, 72500000, '1405/03/10', 'هایدلبرگ ۴ ورقی CD102', 'کنترل دقیق خط تیغ روی شماره فنی');
+    insertPo.run('10759', '8752', 'خودکار', '09122222222', 'زیره و رویه دسر سوهان', 'offset', 7700, 'هاردباکس دو تکه', 'ایندربرد بهداشتی', 270, '80*100', 3850, 4, 'سلفون مات + طلاکوب', 'لترپرس هایدلبرگ', 'چسب گرم جعبه‌سازی', 'white', 'بیعانه واریز شد', 'تأییدیه امور مالی ثبت است', 58000000, 30000000, '1405/03/05', 'ماشین طلاکوب و لترپرس', 'طلاکوب طلای براق ۲۴ عیار');
+    insertPo.run('10791', '8966', 'ممقانی', '09123333333', 'جعبه پودر فیکس گابرینی', 'offset', 2300, 'جعبه دارویی دو طرف درب', 'ایندربرد بهداشتی', 300, '60*89', 1150, 4, 'سلفون مات + یووی موضعی', 'دایکات فکی', 'جعبه‌چسبانی اتوماتیک', 'white', 'پیش‌پرداخت واریز شد', 'تأییدیه مالی دارد', 24500000, 15000000, '1405/03/08', 'دستگاه یووی سیلندری و فکی', 'یووی موضعی روی لوگو گابرینی');
+    insertPo.run('10771', '8814', 'فکراوران', '09124444444', 'جعبه مونوپولی کیفی', 'offset', 3500, 'کارتن کیبوردی پستی', 'پشت طوسی راشا + E-Flute', 180, '60*90', 3500, 4, 'سلفون براق', 'دایکات روتاری', 'دستی دسته‌دار', 'white', 'نقدی پرداخت شد', 'تسویه پیش‌پرداخت', 48000000, 48000000, '1405/03/12', 'خط لامینت اتومات و دایکات', 'نصب دسته پلاستیکی');
+
+    // 🟡 زرد (پرونده در دست مالی)
+    insertPo.run('10760', '8769', 'بنار', '09125555555', 'برشورهای تخصصی دارویی 5025 و 7070', 'offset', 10600, 'بروشور آکاردئونی', 'گلاسه ۱۱۵ گرم', 115, '70*100', 5300, 4, 'بدون سلفون', 'برش پلار', 'تاکن ۶ لت دارویی', 'yellow', 'در انتظار وصول چک', 'چک صیادی هنوز تایید سیستمی نشده', 38000000, 0, '1405/03/15', 'چاپخانه اندیشه', 'تا زمان تایید مالی کار متوقف بماند');
+    insertPo.run('10779', '8830', 'هنر پلاستیک', '09126666666', 'استند و جعبه بوگاتی TT93005', 'offset', 3700, 'استند پیشخوان پرفراژدار', 'پشت طوسی راشا', 180, '70*100', 3700, 4, 'سلفون مات', 'لترپرس پرفراژدار', 'لب‌چسب دستی', 'yellow', 'کسری پیش‌پرداخت', 'مشتری قول واریز تا فردا داده است', 32000000, 10000000, '1405/03/18', 'سالن دایکات', 'به محض اعلام مالی چاپ شروع شود');
+    insertPo.run('10785', '8876', 'یوسفی', '09127777777', 'مجموعه لیبل‌های آمبولانس و اتوبوس', 'digital', 7350, 'لیبل رولی دوربری', 'پشت‌چسب‌دار براق', 80, '50*70', 2450, 0, 'سلفون براق', 'نیم‌تیغ دیجیتال', 'برش رول', 'yellow', 'در انتظار پیش‌پرداخت', 'فاکتور صادر شده ولی پرداخت نشده', 18500000, 0, '1405/03/20', 'پلاتر و کاتر پلاتر دیجیتال', 'تحویل فوری به محض واریز');
+
+    // 🟢 سبز (تکمیل شده و بایگانی)
+    insertPo.run('10747', '8541', 'میهن یدک', '09128888888', 'جعبه برق هشت بوبین هرمزی کد 120', 'offset', 2600, 'جعبه دارویی دو طرف درب', 'پشت طوسی راشا', 180, '70*100', 1300, 4, 'سلفون براق', 'لترپرس', 'لب‌چسب اتومات', 'green', 'تسویه کامل', 'فاکتور تسویه و وجه واریز شد', 22000000, 22000000, '1405/02/15', 'تولید تکمیل شد', 'تحویل انبار مرکزی میهن یدک گردید');
+    insertPo.run('10750', '8640', 'آ.اردلان', '09129999999', 'زیروکیوم پژو 405', 'offset', 10200, 'جعبه قطعات خودرو', 'پشت طوسی راشا', 180, '55*83', 5100, 4, 'ورنی', 'دایکات بوبست', 'چسب ۲ نقطه', 'green', 'تسویه کامل', 'رسید تحویل امضا شد', 68000000, 68000000, '1405/02/18', 'تولید تکمیل شد', 'کنترل کیفیت ۱۰۰٪ انجام شد');
+    insertPo.run('10753', '8626', 'صحت', '09120000000', 'سربرگ و پاکت‌های آزمایشگاه', 'offset', 500, 'سربرگ و ست اداری', 'تحریر ۸۰ گرم کتان', 80, '60*90', 250, 4, 'ساده', 'برش دوربری', 'سرچسب دستی', 'green', 'تسویه کامل', 'واریز نقدی', 8500000, 8500000, '1405/02/20', 'تولید تکمیل شد', 'تحویل مدیریت آزمایشگاه صحت');
+  }
+
+  // Seed default digital orders
+  const checkDigital = db.prepare('SELECT COUNT(*) as count FROM digital_orders').get();
+  if (checkDigital.count === 0) {
+    const insertDig = db.prepare(`
+      INSERT INTO digital_orders (
+        order_code, customer_name, customer_phone, title, machine_type,
+        paper_type, grammage, dimensions, quantity, print_side, lamination,
+        finishing, status_color, unit_price, total_price, paid_amount, delivery_deadline, notes
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    insertDig.run('DIG-101', 'دکتر بهرامی (کلینیک رستا)', '09121112233', 'کارت ویزیت لوکس پی‌وی‌سی + کاتالوگ مطب', 'کونیکا مینولتا C6085', 'گلاسه ۳۰۰ گرم + PVC', 300, 'A3+ (32x48cm)', 500, 'دورو ۴ رنگ', 'سلفون مات حرارتی', 'برش دوربری + خط‌تا', 'white', 18000, 9000000, 5000000, '1405/03/02', 'تحویل فوری ۲۴ ساعته');
+    insertDig.run('DIG-102', 'کافه رستوران نارنج', '09123334455', 'منوی رستورانی فنر دوبل با جلد سخت', 'زیراکس ورسانت 180', 'گلاسه ۲۵۰ گرم لمینتی', 250, 'A4', 80, 'دورو ۴ رنگ', 'سلفون مات ضدخش', 'فنر دوبل فلزی + جلد سخت', 'yellow', 65000, 5200000, 0, '1405/03/04', 'در انتظار تایید فایل نهایی و واریز');
+    insertDig.run('DIG-103', 'شرکت مهندسی پویا', '09125556677', 'استند رول‌آپ نمایشگاهی و پاپ‌آپ', 'پلاتر اکوسالونت رولند', 'سولیت و بنر ۱۳ انس کره‌ای', 400, 'عرض ۸۵ در ارتفاع ۲۰۰ سانت', 4, 'یکرو ۴ رنگ', 'بدون روکش', 'نصب روی پایه استند آلومینیومی', 'green', 1400000, 5600000, 5600000, '1405/02/28', 'تکمیل و تحویل غرفه نمایشگاه');
+  }
+
+  // Seed default toll services orders (کارهای خدماتی و اجرتی)
+  const checkService = db.prepare('SELECT COUNT(*) as count FROM toll_service_orders').get();
+  if (checkService.count === 0) {
+    const insertSrv = db.prepare(`
+      INSERT INTO toll_service_orders (
+        order_code, customer_name, customer_phone, service_title, service_types,
+        incoming_material_desc, incoming_sheet_count, incoming_receipt_number,
+        die_status, setup_fee, rate_per_unit, total_amount, paid_amount,
+        status_color, operator_name, completed_qty, delivered_date, notes
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    insertSrv.run(
+      'SRV-201', 'چاپخانه افق', '09127778899', 'اجرت دایکات فکی و سلفون مات جعبه فیلتر هوا',
+      JSON.stringify(['دایکات فکی', 'سلفون حرارتی مات']),
+      '۸۰۰۰ شیت مقوای چاپ‌شده پشت طوسی ابعاد ۶۰×۹۰ ارسالی مشتری', 8000, 'REC-9081',
+      'قالب توسط مشتری ارسال شده است', 350000, 850, 7150000, 3500000,
+      'white', 'استاد رحیمی', 0, '1405/03/06', 'دقت بالا در لبه‌های پوشال‌گیری'
     );
-  }
-
-  // Seed default material prices
-  const checkMaterials = db.prepare('SELECT COUNT(*) as count FROM material_prices').get();
-  if (checkMaterials.count === 0) {
-    const insertMat = db.prepare(`
-      INSERT INTO material_prices (category, name, unit, price_per_unit, description)
-      VALUES (?, ?, ?, ?, ?)
-    `);
-
-    insertMat.run('مقوا', 'مقوای پشت طوسی ۳۵۰ گرم', 'بند / شیت', 2020000, 'شیت ۱۰۰×۶۰ و ۷۰×۱۰۰');
-    insertMat.run('مقوا', 'مقوای ایندربرد ۳۰۰ گرم بهداشتی', 'بند / شیت', 2400000, 'شیت ۱۰۰×۷۰ فودگرید');
-    insertMat.run('مقوا', 'مقوای کرافت ۳۰۰ گرم', 'کیلوگرم', 58000, 'کرافت روسی وارداتی');
-    insertMat.run('ورق و کارتن', 'سینگل فلوت E', 'متر مربع', 14500, 'رول یا شیت سینگل فیس');
-    insertMat.run('ورق و کارتن', 'ورق ۳ لایه کرافت B فلوت', 'متر مربع', 24000, 'ورق ۳ لایه جهت کارتن لمینتی');
-    insertMat.run('ورق و کارتن', 'ورق ۵ لایه BC فلوت صادراتی', 'متر مربع', 42000, 'مخصوص کارتن‌های سنگین و صادراتی');
-    insertMat.run('لیتوگرافی و زینک', 'زینک حرارتی سایز ۲ ورقی', 'ورق', 95000, 'زینک افست سایز ۵۰×۷۰');
-    insertMat.run('لیتوگرافی و زینک', 'زینک حرارتی سایز ۴.۵ ورقی', 'ورق', 160000, 'زینک افست سایز ۷۰×۱۰۰');
-    insertMat.run('سلفون و پوشش', 'سلفون حرارتی مات', 'متر مربع', 4200, 'عرض‌های مختلف');
-    insertMat.run('سلفون و پوشش', 'سلفون حرارتی براق', 'متر مربع', 3800, 'شفاف و مقاوم');
-    insertMat.run('سلفون و پوشش', 'سلفون مخملی (سافت تاچ)', 'متر مربع', 9500, 'روکش لوکس لمسی');
-    insertMat.run('خدمات تکمیلی', 'یووی موضعی سیلندری', 'فرم / دور', 650000, 'UV براق موضعی');
-    insertMat.run('خدمات تکمیلی', 'طلاکوب و نقره‌کوب حرارتی', 'فرم / دور', 750000, 'اجرت ضرب فویل');
-    insertMat.run('قالب و تیغ', 'قالب لیزری لترپرس / بوبست', 'قالب', 1200000, 'ساخت تیغ و اسفنج‌گذاری دقیق');
-    insertMat.run('جعبه چسبانی', 'جعبه چسبانی لاک باتم و ۵ نقطه', 'عدد جعبه', 190, 'خط اتوماتیک چسب گرم و سرد');
-    insertMat.run('جعبه چسبانی', 'جعبه چسبانی ساده لب چسب', 'عدد جعبه', 110, 'خط اتوماتیک جعبه چسبانی');
+    insertSrv.run(
+      'SRV-202', 'بسته‌بندی پارس گستر', '09129990011', 'خدمات طلاکوب حرارتی و یووی موضعی جعبه ادکلن',
+      JSON.stringify(['طلاکوب حرارتی', 'یووی موضعی سیلندری']),
+      '۳۵۰۰ شیت مقوای ایندربرد سلفون‌خورده ابعاد ۷۰×۱۰۰ ارسالی مشتری', 3500, 'REC-9082',
+      'کلیشه طلاکوب ساخته شد', 450000, 1200, 4650000, 0,
+      'yellow', 'مهندس طاهری', 0, '1405/03/08', 'در انتظار تسویه فاکتور خدمات'
+    );
+    insertSrv.run(
+      'SRV-203', 'کارتن‌سازی البرز', '09121114455', 'اجرت لامینت اتوماتیک کارتن E-Flute و لب‌چسب',
+      JSON.stringify(['لامینت اتوماتیک', 'جعبه‌چسبانی اتوماتیک']),
+      '۱۲۰۰۰ شیت پوستر گلاسه + ورق سینگل فیس ارسالی مشتری', 12000, 'REC-9079',
+      'قالب در کارخانه موجود است', 600000, 650, 8400000, 8400000,
+      'green', 'استاد کاظمی', 12000, '1405/02/25', 'کار تحویل و فاکتور تسویه شد'
+    );
   }
 }
 
