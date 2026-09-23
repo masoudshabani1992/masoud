@@ -232,18 +232,67 @@ app.post('/api/dieline/montage', authMiddleware, (req, res) => {
   }
 });
 
+<<<<<<< HEAD
 // ================= MARKETING LEADS ROUTES (بخش بازاریاب) =================
 // 1. Get leads list
+=======
+// ================= MARKETING LEADS ROUTES (بخش بازاریاب و پیگیری استعلامات) =================
+// 1. Get leads list with marketer tracking & linked project stage details
+>>>>>>> a9d1c26 (feat: implement dedicated marketer inquiry tracking, timeline steppers, follow-up logs, and printable quotation sheets)
 app.get('/api/marketing/leads', authMiddleware, (req, res) => {
   try {
     const user = req.user;
     let leads;
     if (user.role === 'marketer') {
+<<<<<<< HEAD
       leads = db.prepare('SELECT * FROM marketing_leads WHERE marketer_id = ? ORDER BY id DESC').all(user.id);
     } else {
       leads = db.prepare('SELECT * FROM marketing_leads ORDER BY id DESC').all();
     }
     res.json({ success: true, leads });
+=======
+      leads = db.prepare(`
+        SELECT l.*,
+               p.current_stage as project_current_stage,
+               p.status as project_status,
+               p.order_code as project_order_code,
+               p.archive_code as project_archive_code
+        FROM marketing_leads l
+        LEFT JOIN projects p ON l.converted_project_id = p.id
+        WHERE l.marketer_id = ?
+        ORDER BY l.id DESC
+      `).all(user.id);
+    } else {
+      leads = db.prepare(`
+        SELECT l.*,
+               p.current_stage as project_current_stage,
+               p.status as project_status,
+               p.order_code as project_order_code,
+               p.archive_code as project_archive_code
+        FROM marketing_leads l
+        LEFT JOIN projects p ON l.converted_project_id = p.id
+        ORDER BY l.id DESC
+      `).all();
+    }
+
+    // Parse JSON followup_logs
+    const enrichedLeads = leads.map(lead => {
+      let followups = [];
+      try {
+        if (lead.followup_logs) {
+          followups = typeof lead.followup_logs === 'string' ? JSON.parse(lead.followup_logs) : lead.followup_logs;
+        }
+      } catch (e) {
+        followups = [];
+      }
+      return {
+        ...lead,
+        followup_logs: followups
+      };
+    });
+
+    res.json({ success: true, leads: enrichedLeads });
+>>>>>>> a9d1c26 (feat: implement dedicated marketer inquiry tracking, timeline steppers, follow-up logs, and printable quotation sheets)
   } catch (err) {
     res.status(500).json({ error: 'خطا در دریافت لیست استعلام‌های بازاریابی: ' + err.message });
   }
@@ -403,12 +452,35 @@ app.put('/api/marketing/leads/:id/estimate', authMiddleware, (req, res) => {
 app.put('/api/marketing/leads/:id/status', authMiddleware, (req, res) => {
   try {
     const { id } = req.params;
+<<<<<<< HEAD
     const { status } = req.body;
+=======
+    const { status, customer_feedback, rejection_reason } = req.body;
+>>>>>>> a9d1c26 (feat: implement dedicated marketer inquiry tracking, timeline steppers, follow-up logs, and printable quotation sheets)
 
     const lead = db.prepare('SELECT * FROM marketing_leads WHERE id = ?').get(id);
     if (!lead) return res.status(404).json({ error: 'استعلام یافت نشد.' });
 
+<<<<<<< HEAD
     db.prepare('UPDATE marketing_leads SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(status, id);
+=======
+    let query = 'UPDATE marketing_leads SET status = ?, updated_at = CURRENT_TIMESTAMP';
+    const params = [status];
+
+    if (customer_feedback !== undefined) {
+      query += ', customer_feedback = ?';
+      params.push(customer_feedback);
+    }
+    if (rejection_reason !== undefined) {
+      query += ', rejection_reason = ?';
+      params.push(rejection_reason);
+    }
+
+    query += ' WHERE id = ?';
+    params.push(id);
+
+    db.prepare(query).run(...params);
+>>>>>>> a9d1c26 (feat: implement dedicated marketer inquiry tracking, timeline steppers, follow-up logs, and printable quotation sheets)
 
     res.json({ success: true, message: 'وضعیت استعلام به‌روزرسانی شد.' });
   } catch (err) {
@@ -416,6 +488,82 @@ app.put('/api/marketing/leads/:id/status', authMiddleware, (req, res) => {
   }
 });
 
+<<<<<<< HEAD
+=======
+// 4.1 Add Follow-up Log (ثبت پیگیری و یادداشت تماس با مشتری توسط بازاریاب)
+app.post('/api/marketing/leads/:id/followup', authMiddleware, (req, res) => {
+  try {
+    const user = req.user;
+    const { id } = req.params;
+    const { note, outcome, new_status } = req.body;
+
+    if (!note || !note.trim()) {
+      return res.status(400).json({ error: 'متن یادداشت پیگیری الزامی است.' });
+    }
+
+    const lead = db.prepare('SELECT * FROM marketing_leads WHERE id = ?').get(id);
+    if (!lead) return res.status(404).json({ error: 'استعلام یافت نشد.' });
+
+    let followups = [];
+    try {
+      if (lead.followup_logs) {
+        followups = typeof lead.followup_logs === 'string' ? JSON.parse(lead.followup_logs) : lead.followup_logs;
+      }
+    } catch (e) {
+      followups = [];
+    }
+
+    const newLog = {
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      date_shamsi: new Intl.DateTimeFormat('fa-IR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date()),
+      user_name: user.fullName || user.full_name || 'کارشناس بازاریابی',
+      user_role: user.role,
+      note: note.trim(),
+      outcome: outcome || 'پیگیری عادی'
+    };
+
+    followups.unshift(newLog);
+
+    let nextStatus = new_status || lead.status;
+    db.prepare(`
+      UPDATE marketing_leads
+      SET followup_logs = ?,
+          status = ?,
+          customer_feedback = ?,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).run(
+      JSON.stringify(followups),
+      nextStatus,
+      note.trim(),
+      id
+    );
+
+    // If customer approved from follow-up, notify sales to convert
+    if (nextStatus === 'customer_approved') {
+      sendNotification({
+        targetRole: 'sales',
+        title: 'تایید قیمت توسط مشتری',
+        message: `مشتری «${lead.customer_name}» قیمت استعلام ${lead.lead_code} را تایید کرد و آماده تبدیل به سفارش کارخانه است.`,
+        stageNumber: 1,
+        projectId: lead.id,
+        archiveCode: lead.lead_code
+      });
+    }
+
+    res.json({
+      success: true,
+      followup_logs: followups,
+      status: nextStatus,
+      message: 'پیگیری با موفقیت در پرونده استعلام ثبت گردید.'
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در ثبت پیگیری: ' + err.message });
+  }
+});
+
+>>>>>>> a9d1c26 (feat: implement dedicated marketer inquiry tracking, timeline steppers, follow-up logs, and printable quotation sheets)
 // 5. Convert Lead to Factory ERP Project
 app.post('/api/marketing/leads/:id/convert-to-project', authMiddleware, (req, res) => {
   try {
