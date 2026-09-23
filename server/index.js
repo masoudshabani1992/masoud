@@ -232,25 +232,13 @@ app.post('/api/dieline/montage', authMiddleware, (req, res) => {
   }
 });
 
-<<<<<<< HEAD
-// ================= MARKETING LEADS ROUTES (بخش بازاریاب) =================
-// 1. Get leads list
-=======
 // ================= MARKETING LEADS ROUTES (بخش بازاریاب و پیگیری استعلامات) =================
 // 1. Get leads list with marketer tracking & linked project stage details
->>>>>>> a9d1c26 (feat: implement dedicated marketer inquiry tracking, timeline steppers, follow-up logs, and printable quotation sheets)
 app.get('/api/marketing/leads', authMiddleware, (req, res) => {
   try {
     const user = req.user;
     let leads;
     if (user.role === 'marketer') {
-<<<<<<< HEAD
-      leads = db.prepare('SELECT * FROM marketing_leads WHERE marketer_id = ? ORDER BY id DESC').all(user.id);
-    } else {
-      leads = db.prepare('SELECT * FROM marketing_leads ORDER BY id DESC').all();
-    }
-    res.json({ success: true, leads });
-=======
       leads = db.prepare(`
         SELECT l.*,
                p.current_stage as project_current_stage,
@@ -292,7 +280,6 @@ app.get('/api/marketing/leads', authMiddleware, (req, res) => {
     });
 
     res.json({ success: true, leads: enrichedLeads });
->>>>>>> a9d1c26 (feat: implement dedicated marketer inquiry tracking, timeline steppers, follow-up logs, and printable quotation sheets)
   } catch (err) {
     res.status(500).json({ error: 'خطا در دریافت لیست استعلام‌های بازاریابی: ' + err.message });
   }
@@ -452,18 +439,11 @@ app.put('/api/marketing/leads/:id/estimate', authMiddleware, (req, res) => {
 app.put('/api/marketing/leads/:id/status', authMiddleware, (req, res) => {
   try {
     const { id } = req.params;
-<<<<<<< HEAD
-    const { status } = req.body;
-=======
     const { status, customer_feedback, rejection_reason } = req.body;
->>>>>>> a9d1c26 (feat: implement dedicated marketer inquiry tracking, timeline steppers, follow-up logs, and printable quotation sheets)
 
     const lead = db.prepare('SELECT * FROM marketing_leads WHERE id = ?').get(id);
     if (!lead) return res.status(404).json({ error: 'استعلام یافت نشد.' });
 
-<<<<<<< HEAD
-    db.prepare('UPDATE marketing_leads SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(status, id);
-=======
     let query = 'UPDATE marketing_leads SET status = ?, updated_at = CURRENT_TIMESTAMP';
     const params = [status];
 
@@ -480,7 +460,6 @@ app.put('/api/marketing/leads/:id/status', authMiddleware, (req, res) => {
     params.push(id);
 
     db.prepare(query).run(...params);
->>>>>>> a9d1c26 (feat: implement dedicated marketer inquiry tracking, timeline steppers, follow-up logs, and printable quotation sheets)
 
     res.json({ success: true, message: 'وضعیت استعلام به‌روزرسانی شد.' });
   } catch (err) {
@@ -488,8 +467,6 @@ app.put('/api/marketing/leads/:id/status', authMiddleware, (req, res) => {
   }
 });
 
-<<<<<<< HEAD
-=======
 // 4.1 Add Follow-up Log (ثبت پیگیری و یادداشت تماس با مشتری توسط بازاریاب)
 app.post('/api/marketing/leads/:id/followup', authMiddleware, (req, res) => {
   try {
@@ -563,7 +540,6 @@ app.post('/api/marketing/leads/:id/followup', authMiddleware, (req, res) => {
   }
 });
 
->>>>>>> a9d1c26 (feat: implement dedicated marketer inquiry tracking, timeline steppers, follow-up logs, and printable quotation sheets)
 // 5. Convert Lead to Factory ERP Project
 app.post('/api/marketing/leads/:id/convert-to-project', authMiddleware, (req, res) => {
   try {
@@ -1185,6 +1161,260 @@ const STAGES = {
   11: { id: 11, key: 'COMPLETED', name: 'تکمیل و تحویل شد', role: 'all', desc: 'سفارش با موفقیت تحویل مشتری گردید' }
 };
 
+const DEFAULT_ROLE_PERMISSIONS = {
+  // 1. طراح (Designer) - STRICT ISOLATION
+  design: {
+    can_view_studio: true, // استودیو طراحی امیران (خط تیغ ۲ بعدی و ۳ بعدی)
+    can_view_ai: true,     // هوش مصنوعی و بازرسی خط تیغ
+    can_view_my_tasks: true, // وظایف محوله به طراحی
+    can_view_hub: false,
+    can_view_production_offset: false,
+    can_view_production_digital: false,
+    can_view_production_service: false,
+    can_create_production_order: false,
+    can_view_warehouse_cardboard: false,
+    can_view_warehouse_sheet_carton: false,
+    can_view_warehouse_single_face: false,
+    can_view_warehouse_cellophane: false,
+    can_view_warehouse_pvc_film: false,
+    can_view_warehouse_ink: false,
+    can_create_warehouse_receipt: false,
+    can_view_kanban: false,
+    can_view_archive: false,
+    can_view_marketing: false,
+    can_create_marketing_lead: false,
+    can_view_calculator: false,
+    can_view_material_prices: false,
+    can_view_dashboard: false,
+    can_create_order: false,
+    can_manage_users: false,
+    can_view_migration: false
+  },
+
+  // 2. بازاریاب (Marketer) - STRICT ISOLATION
+  marketer: {
+    can_view_marketing: true,       // کارتابل استعلام بازاریابی و پیگیری استعلامات خودش
+    can_create_marketing_lead: true, // ثبت استعلام بازاریابی جدید
+    can_view_calculator: true,      // ماشین حساب استعلام قیمت سریع
+    can_view_hub: false,
+    can_view_studio: false,
+    can_view_ai: false,
+    can_view_my_tasks: false,
+    can_view_production_offset: false,
+    can_view_production_digital: false,
+    can_view_production_service: false,
+    can_create_production_order: false,
+    can_view_warehouse_cardboard: false,
+    can_view_warehouse_sheet_carton: false,
+    can_view_warehouse_single_face: false,
+    can_view_warehouse_cellophane: false,
+    can_view_warehouse_pvc_film: false,
+    can_view_warehouse_ink: false,
+    can_create_warehouse_receipt: false,
+    can_view_kanban: false,
+    can_view_archive: false,
+    can_view_material_prices: false,
+    can_view_dashboard: false,
+    can_create_order: false,
+    can_manage_users: false,
+    can_view_migration: false
+  },
+
+  // 3. مسئول دفتر (Secretary) - STRICT ISOLATION
+  secretary: {
+    can_create_order: true,       // ثبت سفارش جدید صنعتی
+    can_view_archive: true,        // دفتر تلفن و آرشیو مشتریان
+    can_view_my_tasks: true,       // وظایف پذیرش و هماهنگی
+    can_view_hub: true,            // صفحه اصلی
+    can_view_studio: false,
+    can_view_ai: false,
+    can_view_marketing: false,
+    can_create_marketing_lead: false,
+    can_view_calculator: false,
+    can_view_material_prices: false,
+    can_view_dashboard: false,
+    can_manage_users: false,
+    can_view_migration: false,
+    can_view_production_offset: false,
+    can_view_production_digital: false,
+    can_view_production_service: false,
+    can_create_production_order: false,
+    can_view_warehouse_cardboard: false,
+    can_view_warehouse_sheet_carton: false,
+    can_view_warehouse_single_face: false,
+    can_view_warehouse_cellophane: false,
+    can_view_warehouse_pvc_film: false,
+    can_view_warehouse_ink: false,
+    can_create_warehouse_receipt: false,
+    can_view_kanban: false
+  },
+
+  // 4. مدیرعامل (CEO) - FULL ACCESS
+  ceo: {
+    can_view_hub: true,
+    can_view_production_offset: true,
+    can_view_production_digital: true,
+    can_view_production_service: true,
+    can_create_production_order: true,
+    can_view_warehouse_cardboard: true,
+    can_view_warehouse_sheet_carton: true,
+    can_view_warehouse_single_face: true,
+    can_view_warehouse_cellophane: true,
+    can_view_warehouse_pvc_film: true,
+    can_view_warehouse_ink: true,
+    can_create_warehouse_receipt: true,
+    can_view_kanban: true,
+    can_view_archive: true,
+    can_view_studio: true,
+    can_view_ai: true,
+    can_view_marketing: true,
+    can_create_marketing_lead: true,
+    can_view_my_tasks: true,
+    can_view_calculator: true,
+    can_view_material_prices: true,
+    can_view_dashboard: true,
+    can_create_order: true,
+    can_manage_users: true,
+    can_view_migration: true
+  },
+
+  // 5. سرپرست تولید (Production)
+  production: {
+    can_view_hub: true,
+    can_view_production_offset: true,
+    can_view_production_digital: true,
+    can_view_production_service: true,
+    can_create_production_order: true,
+    can_view_warehouse_cardboard: true,
+    can_view_warehouse_sheet_carton: true,
+    can_view_warehouse_single_face: true,
+    can_view_warehouse_cellophane: true,
+    can_view_warehouse_pvc_film: true,
+    can_view_warehouse_ink: true,
+    can_create_warehouse_receipt: true,
+    can_view_kanban: true,
+    can_view_my_tasks: true,
+    can_view_archive: true,
+    can_view_studio: false,
+    can_view_ai: false,
+    can_view_marketing: false,
+    can_create_marketing_lead: false,
+    can_view_calculator: false,
+    can_view_material_prices: false,
+    can_view_dashboard: true,
+    can_create_order: false,
+    can_manage_users: false,
+    can_view_migration: false
+  },
+
+  // 6. انباردار (Warehouse)
+  warehouse: {
+    can_view_warehouse_cardboard: true,
+    can_view_warehouse_sheet_carton: true,
+    can_view_warehouse_single_face: true,
+    can_view_warehouse_cellophane: true,
+    can_view_warehouse_pvc_film: true,
+    can_view_warehouse_ink: true,
+    can_create_warehouse_receipt: true,
+    can_view_my_tasks: true,
+    can_view_hub: false,
+    can_view_production_offset: false,
+    can_view_production_digital: false,
+    can_view_production_service: false,
+    can_create_production_order: false,
+    can_view_kanban: false,
+    can_view_archive: false,
+    can_view_studio: false,
+    can_view_ai: false,
+    can_view_marketing: false,
+    can_create_marketing_lead: false,
+    can_view_calculator: false,
+    can_view_material_prices: false,
+    can_view_dashboard: false,
+    can_create_order: false,
+    can_manage_users: false,
+    can_view_migration: false
+  },
+
+  // 7. بازرگانی و فروش (Sales)
+  sales: {
+    can_view_hub: true,
+    can_view_marketing: true,
+    can_create_marketing_lead: true,
+    can_create_order: true,
+    can_view_archive: true,
+    can_view_kanban: true,
+    can_view_my_tasks: true,
+    can_view_calculator: true,
+    can_view_production_offset: true,
+    can_view_production_digital: true,
+    can_view_production_service: true,
+    can_create_production_order: true,
+    can_view_studio: false,
+    can_view_ai: false,
+    can_view_warehouse_cardboard: false,
+    can_view_warehouse_sheet_carton: false,
+    can_view_warehouse_single_face: false,
+    can_view_warehouse_cellophane: false,
+    can_view_warehouse_pvc_film: false,
+    can_view_warehouse_ink: false,
+    can_create_warehouse_receipt: false,
+    can_view_material_prices: true,
+    can_view_dashboard: true,
+    can_manage_users: false,
+    can_view_migration: false
+  },
+
+  // 8. حسابداری و برآورد (Accounting / Estimation)
+  accounting: {
+    can_view_hub: true,
+    can_view_calculator: true,
+    can_view_material_prices: true,
+    can_view_archive: true,
+    can_view_my_tasks: true,
+    can_view_kanban: true,
+    can_view_production_offset: true,
+    can_view_production_digital: true,
+    can_view_production_service: true,
+    can_create_production_order: false,
+    can_view_marketing: true,
+    can_create_marketing_lead: false,
+    can_view_dashboard: true,
+    can_view_studio: false,
+    can_view_ai: false,
+    can_view_warehouse_cardboard: false,
+    can_view_warehouse_sheet_carton: false,
+    can_view_warehouse_single_face: false,
+    can_view_warehouse_cellophane: false,
+    can_view_warehouse_pvc_film: false,
+    can_view_warehouse_ink: false,
+    can_create_warehouse_receipt: false,
+    can_create_order: false,
+    can_manage_users: false,
+    can_view_migration: false
+  }
+};
+
+function resolveUserPermissions(user) {
+  if (!user) return DEFAULT_ROLE_PERMISSIONS.marketer;
+  if (user.role === 'ceo') return DEFAULT_ROLE_PERMISSIONS.ceo;
+
+  let parsed = null;
+  if (user.permissions) {
+    try {
+      parsed = typeof user.permissions === 'string' ? JSON.parse(user.permissions) : user.permissions;
+    } catch (e) {
+      parsed = null;
+    }
+  }
+
+  const defaultRolePerms = DEFAULT_ROLE_PERMISSIONS[user.role] || DEFAULT_ROLE_PERMISSIONS.design;
+  return {
+    ...defaultRolePerms,
+    ...(parsed || {})
+  };
+}
+
 // ================= AUTH =================
 app.post('/api/auth/login', (req, res) => {
   const { username, password } = req.body;
@@ -1192,25 +1422,35 @@ app.post('/api/auth/login', (req, res) => {
   if (!user || !bcrypt.compareSync(password, user.password_hash)) {
     return res.status(400).json({ error: 'نام کاربری یا کلمه عبور اشتباه است' });
   }
+
+  if (user.is_active === 0) {
+    return res.status(403).json({ error: 'حساب کاربری شما غیرفعال شده است. با مدیرعامل تماس بگیرید.' });
+  }
+
+  const permissions = resolveUserPermissions(user);
+
   const token = jwt.sign(
-    { id: user.id, username: user.username, role: user.role, fullName: user.full_name, department: user.department },
+    { id: user.id, username: user.username, role: user.role, fullName: user.full_name, department: user.department, permissions },
     JWT_SECRET,
     { expiresIn: '30d' }
   );
   const { password_hash, ...userProfile } = user;
-  res.json({ token, user: userProfile });
+  res.json({ token, user: { ...userProfile, permissions } });
 });
 
 app.post('/api/auth/demo-login/:role', (req, res) => {
   const user = db.prepare('SELECT * FROM users WHERE role = ? LIMIT 1').get(req.params.role);
   if (!user) return res.status(404).json({ error: 'کاربر برای این نقش یافت نشد' });
+
+  const permissions = resolveUserPermissions(user);
+
   const token = jwt.sign(
-    { id: user.id, username: user.username, role: user.role, fullName: user.full_name, department: user.department },
+    { id: user.id, username: user.username, role: user.role, fullName: user.full_name, department: user.department, permissions },
     JWT_SECRET,
     { expiresIn: '30d' }
   );
   const { password_hash, ...userProfile } = user;
-  res.json({ token, user: userProfile });
+  res.json({ token, user: { ...userProfile, permissions } });
 });
 
 function requireCeo(req, res, next) {
@@ -1231,14 +1471,19 @@ function requireRoles(...allowed) {
 
 // ================= USER MANAGEMENT & RBAC =================
 app.get('/api/users', authMiddleware, requireCeo, (req, res) => {
-  const users = db.prepare('SELECT id, username, full_name, role, department, phone, created_at FROM users ORDER BY id ASC').all();
-  res.json({ users });
+  const users = db.prepare('SELECT id, username, full_name, role, department, phone, permissions, is_active, created_at FROM users ORDER BY id ASC').all();
+  const enriched = users.map(u => ({
+    ...u,
+    is_active: u.is_active !== 0,
+    permissions: resolveUserPermissions(u)
+  }));
+  res.json({ users: enriched, default_presets: DEFAULT_ROLE_PERMISSIONS });
 });
 
 app.post('/api/users', authMiddleware, requireCeo, (req, res) => {
-  const { username, password, full_name, role, department, phone } = req.body;
+  const { username, password, full_name, role, department, phone, permissions, is_active } = req.body;
   if (!username || !password || !full_name || !role) {
-    return res.status(400).json({ error: 'تمامی فیلدهای الزامی را پر کنید' });
+    return res.status(400).json({ error: 'تمامی فیلدهای الزامی (نام، نام کاربری، رمز و نقش) را پر کنید' });
   }
 
   const existing = db.prepare('SELECT id FROM users WHERE username = ?').get(username);
@@ -1249,33 +1494,39 @@ app.post('/api/users', authMiddleware, requireCeo, (req, res) => {
   const salt = bcrypt.genSaltSync(10);
   const password_hash = bcrypt.hashSync(password, salt);
 
+  const permsString = permissions ? (typeof permissions === 'string' ? permissions : JSON.stringify(permissions)) : JSON.stringify(DEFAULT_ROLE_PERMISSIONS[role] || {});
+  const activeVal = is_active === false ? 0 : 1;
+
   const insert = db.prepare(`
-    INSERT INTO users (username, password_hash, full_name, role, department, phone)
-    VALUES (?, ?, ?, ?, ?, ?)
+    INSERT INTO users (username, password_hash, full_name, role, department, phone, permissions, is_active)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `);
-  const result = insert.run(username, password_hash, full_name, role, department || role, phone || '');
-  res.json({ success: true, id: result.lastInsertRowid });
+  const result = insert.run(username, password_hash, full_name, role, department || role, phone || '', permsString, activeVal);
+  res.json({ success: true, id: result.lastInsertRowid, message: 'کاربر جدید با سطوح دسترسی مشخص با موفقیت ایجاد گردید.' });
 });
 
 app.put('/api/users/:id', authMiddleware, requireCeo, (req, res) => {
-  const { full_name, role, department, phone, password } = req.body;
+  const { full_name, role, department, phone, password, permissions, is_active } = req.body;
   const id = req.params.id;
+
+  const permsString = permissions ? (typeof permissions === 'string' ? permissions : JSON.stringify(permissions)) : null;
+  const activeVal = is_active === false ? 0 : 1;
 
   if (password && password.trim().length > 0) {
     const salt = bcrypt.genSaltSync(10);
     const password_hash = bcrypt.hashSync(password, salt);
     db.prepare(`
-      UPDATE users SET full_name = ?, role = ?, department = ?, phone = ?, password_hash = ?
+      UPDATE users SET full_name = ?, role = ?, department = ?, phone = ?, password_hash = ?, permissions = COALESCE(?, permissions), is_active = ?
       WHERE id = ?
-    `).run(full_name, role, department, phone || '', password_hash, id);
+    `).run(full_name, role, department, phone || '', password_hash, permsString, activeVal, id);
   } else {
     db.prepare(`
-      UPDATE users SET full_name = ?, role = ?, department = ?, phone = ?
+      UPDATE users SET full_name = ?, role = ?, department = ?, phone = ?, permissions = COALESCE(?, permissions), is_active = ?
       WHERE id = ?
-    `).run(full_name, role, department, phone || '', id);
+    `).run(full_name, role, department, phone || '', permsString, activeVal, id);
   }
 
-  res.json({ success: true });
+  res.json({ success: true, message: 'اطلاعات و سطوح دسترسی کاربر با موفقیت ذخیره گردید.' });
 });
 
 app.delete('/api/users/:id', authMiddleware, requireCeo, (req, res) => {
@@ -1284,7 +1535,7 @@ app.delete('/api/users/:id', authMiddleware, requireCeo, (req, res) => {
     return res.status(400).json({ error: 'امکان حذف حساب کاربری جاری وجود ندارد' });
   }
   db.prepare('DELETE FROM users WHERE id = ?').run(id);
-  res.json({ success: true });
+  res.json({ success: true, message: 'کاربر با موفقیت حذف گردید.' });
 });
 
 

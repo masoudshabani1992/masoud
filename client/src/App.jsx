@@ -30,9 +30,68 @@ import TollServicesView from './components/TollServicesView';
 import ErrorBoundary from './components/ErrorBoundary';
 import { playNotificationSound } from './utils/helpers';
 
+const TAB_PERMISSION_MAP = {
+  hub: 'can_view_hub',
+  new_order: 'can_create_order',
+  archive: 'can_view_archive',
+  kanban: 'can_view_kanban',
+  my_tasks: 'can_view_my_tasks',
+  dashboard: 'can_view_dashboard',
+  materials: 'can_view_material_prices',
+  users: 'can_manage_users',
+  migration: 'can_view_migration',
+  dieline_generator: 'can_view_studio',
+  '3d_studio': 'can_view_studio',
+  ai_assistant: 'can_view_ai',
+  calculator: 'can_view_calculator',
+  marketing: 'can_view_marketing',
+  production_orders: 'can_view_production_offset',
+  production_orders_offset: 'can_view_production_offset',
+  digital_orders: 'can_view_production_digital',
+  production_orders_digital: 'can_view_production_digital',
+  service_orders: 'can_view_production_service',
+  production_orders_service: 'can_view_production_service',
+  warehouse_inventory: 'can_view_warehouse_cardboard',
+  warehouse_cardboard: 'can_view_warehouse_cardboard',
+  warehouse_sheet_carton: 'can_view_warehouse_sheet_carton',
+  warehouse_single_face: 'can_view_warehouse_single_face',
+  warehouse_cellophane: 'can_view_warehouse_cellophane',
+  warehouse_pvc_film: 'can_view_warehouse_pvc_film',
+  warehouse_ink: 'can_view_warehouse_ink'
+};
+
+const getDefaultTabForUser = (user, checkPermFn) => {
+  if (!user) return 'hub';
+  if (user.role === 'ceo') return 'hub';
+  if (user.role === 'design' && checkPermFn('can_view_studio')) return 'dieline_generator';
+  if (user.role === 'marketer' && checkPermFn('can_view_marketing')) return 'marketing';
+  if (user.role === 'secretary' && checkPermFn('can_create_order')) return 'new_order';
+  if (user.role === 'warehouse' && checkPermFn('can_view_warehouse_cardboard')) return 'warehouse_cardboard';
+  if (user.role === 'production' && checkPermFn('can_view_production_offset')) return 'production_orders';
+  if (user.role === 'accounting' && checkPermFn('can_view_calculator')) return 'calculator';
+  
+  if (checkPermFn('can_view_hub')) return 'hub';
+  if (checkPermFn('can_view_studio')) return 'dieline_generator';
+  if (checkPermFn('can_view_marketing')) return 'marketing';
+  if (checkPermFn('can_create_order')) return 'new_order';
+  if (checkPermFn('can_view_production_offset')) return 'production_orders';
+  if (checkPermFn('can_view_warehouse_cardboard')) return 'warehouse_cardboard';
+  if (checkPermFn('can_view_calculator')) return 'calculator';
+  if (checkPermFn('can_view_my_tasks')) return 'my_tasks';
+  return 'hub';
+};
+
 export default function App() {
-  const { currentUser, role } = useAuth();
-  const [activeTab, setActiveTab] = useState(role === 'marketer' ? 'marketing' : 'hub');
+  const { currentUser, role, hasPermission } = useAuth();
+  const [activeTab, setActiveTab] = useState(() => {
+    if (role === 'design') return 'dieline_generator';
+    if (role === 'marketer') return 'marketing';
+    if (role === 'secretary') return 'new_order';
+    if (role === 'warehouse') return 'warehouse_cardboard';
+    if (role === 'production') return 'production_orders';
+    if (role === 'accounting') return 'calculator';
+    return 'hub';
+  });
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [reorderData, setReorderData] = useState(null);
@@ -95,25 +154,24 @@ export default function App() {
       if (event.state && event.state.tab) {
         setActiveTab(event.state.tab);
       } else {
-        // Default back goes to hub
-        if (role === 'marketer') {
-          setActiveTab('marketing');
-        } else {
-          setActiveTab('hub');
-        }
+        const fallback = getDefaultTabForUser(currentUser, hasPermission);
+        setActiveTab(fallback);
       }
     };
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [selectedProjectId, printProject, showNotificationModal, showLicenseModal, activeTab, role]);
+  }, [selectedProjectId, printProject, showNotificationModal, showLicenseModal, activeTab, role, currentUser]);
 
-  // Check License on Startup
+  // Enforce Strict Role Isolation & Permissions Filter
   useEffect(() => {
-    if (role === 'marketer' && activeTab !== 'marketing') {
-      setActiveTab('marketing');
+    if (!currentUser) return;
+    const requiredPerm = TAB_PERMISSION_MAP[activeTab];
+    if (requiredPerm && !hasPermission(requiredPerm)) {
+      const fallbackTab = getDefaultTabForUser(currentUser, hasPermission);
+      setActiveTab(fallbackTab);
     }
-  }, [role, activeTab]);
+  }, [currentUser, role, activeTab]);
 
   const checkLicense = async () => {
     try {

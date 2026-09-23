@@ -25,9 +25,6 @@ import {
   Building,
   Check,
   XCircle,
-<<<<<<< HEAD
-  Boxes
-=======
   Boxes,
   Printer,
   MessageSquare,
@@ -39,7 +36,6 @@ import {
   ExternalLink,
   ChevronDown,
   Info
->>>>>>> a9d1c26 (feat: implement dedicated marketer inquiry tracking, timeline steppers, follow-up logs, and printable quotation sheets)
 } from 'lucide-react';
 
 const CARDBOARD_TYPES = [
@@ -77,8 +73,6 @@ const CELLOPHANE_TYPES = [
   'بدون سلفون (ورنی / چاپ مستقیم)'
 ];
 
-<<<<<<< HEAD
-=======
 const STAGE_NAMES = {
   1: '۱. بازرگانی و تعریف سفارش',
   2: '۲. برآورد و پیش‌فاکتور',
@@ -92,27 +86,18 @@ const STAGE_NAMES = {
   10: '۱۰. سالن تولید و تحویل'
 };
 
->>>>>>> a9d1c26 (feat: implement dedicated marketer inquiry tracking, timeline steppers, follow-up logs, and printable quotation sheets)
 export default function MarketingLeadsView({ onNavigateToKanban }) {
   const { currentUser, role } = useAuth();
   const isMarketer = role === 'marketer';
   const isCommercialOrCeo = role === 'sales' || role === 'ceo' || role === 'secretary' || role === 'accounting';
 
-<<<<<<< HEAD
-  const [activeTab, setActiveTab] = useState(isMarketer ? 'new_lead' : 'leads_list'); // 'new_lead' | 'leads_list'
-=======
   const [activeTab, setActiveTab] = useState('leads_list'); // 'leads_list' | 'new_lead' | 'profile_stats'
->>>>>>> a9d1c26 (feat: implement dedicated marketer inquiry tracking, timeline steppers, follow-up logs, and printable quotation sheets)
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
-<<<<<<< HEAD
-  // Form States
-=======
   // New Lead Form States
->>>>>>> a9d1c26 (feat: implement dedicated marketer inquiry tracking, timeline steppers, follow-up logs, and printable quotation sheets)
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [productName, setProductName] = useState('');
@@ -128,8 +113,6 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
   const [submitting, setSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(null);
 
-<<<<<<< HEAD
-=======
   // Modals State
   const [selectedLeadForDetail, setSelectedLeadForDetail] = useState(null);
   const [selectedLeadForFollowup, setSelectedLeadForFollowup] = useState(null);
@@ -141,7 +124,6 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
   const [followupStatus, setFollowupStatus] = useState('');
   const [followupLoading, setFollowupLoading] = useState(false);
 
->>>>>>> a9d1c26 (feat: implement dedicated marketer inquiry tracking, timeline steppers, follow-up logs, and printable quotation sheets)
   // Estimation Modal State (for Commercial Manager / CEO)
   const [estimatingLead, setEstimatingLead] = useState(null);
   const [estimatedUnitPrice, setEstimatedUnitPrice] = useState('');
@@ -209,13 +191,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
         setBoxHeight('');
         setNotes('');
         fetchLeads();
-<<<<<<< HEAD
-        if (isMarketer) {
-          setActiveTab('leads_list');
-        }
-=======
         setActiveTab('leads_list');
->>>>>>> a9d1c26 (feat: implement dedicated marketer inquiry tracking, timeline steppers, follow-up logs, and printable quotation sheets)
       }
     } catch (err) {
       alert(err.message || 'خطا در ثبت استعلام.');
@@ -224,11 +200,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
     }
   };
 
-<<<<<<< HEAD
-  // Open Estimation Modal
-=======
   // Open Estimation Modal (Commercial / CEO)
->>>>>>> a9d1c26 (feat: implement dedicated marketer inquiry tracking, timeline steppers, follow-up logs, and printable quotation sheets)
   const handleOpenEstimateModal = (lead) => {
     setEstimatingLead(lead);
     setEstimatedUnitPrice(lead.estimated_unit_price || '');
@@ -236,11 +208,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
     setCommercialNotes(lead.commercial_notes || '');
   };
 
-<<<<<<< HEAD
-  // Submit Estimation (by Commercial Manager)
-=======
   // Submit Estimation (Commercial Manager)
->>>>>>> a9d1c26 (feat: implement dedicated marketer inquiry tracking, timeline steppers, follow-up logs, and printable quotation sheets)
   const handleSubmitEstimate = async () => {
     if (!estimatedUnitPrice) {
       alert('لطفاً قیمت برآورد شده هر عدد را وارد فرمایید.');
@@ -267,11 +235,6 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
     }
   };
 
-<<<<<<< HEAD
-  // Convert Lead to Official Factory Order
-  const handleConvertToProject = async (lead) => {
-    if (!window.confirm(`آیا از تبدیل استعلام «${lead.customer_name}» (${lead.product_name}) به سفارش رسمی و گردش کار تولید اطمینان دارید؟`)) {
-=======
   // Open Follow-up Modal
   const handleOpenFollowupModal = (lead) => {
     setSelectedLeadForFollowup(lead);
@@ -311,7 +274,6 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
   // Convert Lead to Official Factory Order
   const handleConvertToProject = async (lead) => {
     if (!window.confirm(`آیا از تبدیل استعلام «${lead.customer_name}» (${lead.product_name}) به سفارش رسمی و شروع فرآیند تولید در کارخانه اطمینان دارید؟`)) {
->>>>>>> a9d1c26 (feat: implement dedicated marketer inquiry tracking, timeline steppers, follow-up logs, and printable quotation sheets)
       return;
     }
 
@@ -332,15 +294,6 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
     }
   };
 
-<<<<<<< HEAD
-  // Update Status (Customer Approval / Rejection)
-  const handleUpdateStatus = async (leadId, status) => {
-    try {
-      const res = await api.updateMarketingLeadStatus(leadId, status);
-      if (res.success) {
-        fetchLeads();
-      }
-=======
   // Quick Status Update
   const handleQuickStatusChange = async (leadId, status, rejectionReason = '') => {
     try {
@@ -349,7 +302,6 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
         rejection_reason: rejectionReason
       });
       fetchLeads();
->>>>>>> a9d1c26 (feat: implement dedicated marketer inquiry tracking, timeline steppers, follow-up logs, and printable quotation sheets)
     } catch (err) {
       alert(err.message || 'خطا در تغییر وضعیت.');
     }
@@ -368,107 +320,6 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
     return matchesSearch && matchesStatus;
   });
 
-<<<<<<< HEAD
-  const pendingCount = leads.filter(l => l.status === 'pending_commercial').length;
-  const estimatedCount = leads.filter(l => l.status === 'estimated').length;
-  const convertedCount = leads.filter(l => l.status === 'converted_to_order').length;
-
-  return (
-    <div className="space-y-6" dir="rtl">
-      {/* Top Header Card */}
-      <div className="bg-gradient-to-r from-teal-900 via-teal-800 to-slate-900 rounded-3xl p-6 text-white shadow-xl flex items-center justify-between flex-wrap gap-4">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-teal-500/20 border border-teal-400/30 flex items-center justify-center text-teal-300 shadow-inner">
-            <Users className="w-8 h-8" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-black">کارتابل بازاریابی و استعلام قیمت</h1>
-              <span className="text-xs bg-teal-400/20 text-teal-200 border border-teal-400/30 px-2.5 py-0.5 rounded-full font-bold">
-                {isMarketer ? 'پنل اختصاصی بازاریاب' : 'واحد بازرگانی و فروش'}
-              </span>
-            </div>
-            <p className="text-xs text-teal-100/80 mt-1 leading-relaxed">
-              ثبت مشخصات فنی مقوا، فلوت، سلفون و ارسال مستقیم به مدیر بازرگانی جهت برآورد قیمت و پیش‌فاکتور
-            </p>
-          </div>
-        </div>
-
-        {/* Tab Switcher */}
-        <div className="flex items-center gap-2 bg-slate-950/40 p-1.5 rounded-2xl border border-white/10 backdrop-blur-sm">
-          <button
-            type="button"
-            onClick={() => setActiveTab('new_lead')}
-            className={`px-4 py-2 rounded-xl text-xs font-black transition flex items-center gap-1.5 ${
-              activeTab === 'new_lead'
-                ? 'bg-teal-500 text-slate-950 shadow-md'
-                : 'text-slate-300 hover:text-white'
-            }`}
-          >
-            <PlusCircle className="w-4 h-4" />
-            <span>ثبت استعلام جدید</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('leads_list')}
-            className={`px-4 py-2 rounded-xl text-xs font-black transition flex items-center gap-1.5 relative ${
-              activeTab === 'leads_list'
-                ? 'bg-teal-500 text-slate-950 shadow-md'
-                : 'text-slate-300 hover:text-white'
-            }`}
-          >
-            <FileText className="w-4 h-4" />
-            <span>لیست و پیگیری استعلام‌ها</span>
-            {pendingCount > 0 && (
-              <span className="w-5 h-5 bg-rose-500 text-white rounded-full text-[10px] flex items-center justify-center font-bold">
-                {pendingCount}
-              </span>
-            )}
-          </button>
-        </div>
-      </div>
-
-      {/* Metric Counters (for Commercial/CEO & Marketer) */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-          <div>
-            <span className="text-[11px] text-slate-500 block font-bold">کل استعلام‌های ثبت شده</span>
-            <strong className="text-lg font-black text-slate-800 font-mono mt-0.5 block">{leads.length}</strong>
-          </div>
-          <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center">
-            <Boxes className="w-5 h-5" />
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-2xl border border-amber-200 shadow-sm flex items-center justify-between bg-amber-50/30">
-          <div>
-            <span className="text-[11px] text-amber-700 block font-bold">در انتظار برآورد بازرگانی</span>
-            <strong className="text-lg font-black text-amber-700 font-mono mt-0.5 block">{pendingCount}</strong>
-          </div>
-          <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
-            <Clock className="w-5 h-5" />
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-2xl border border-emerald-200 shadow-sm flex items-center justify-between bg-emerald-50/30">
-          <div>
-            <span className="text-[11px] text-emerald-700 block font-bold">قیمت‌گذاری شده (آماده تایید)</span>
-            <strong className="text-lg font-black text-emerald-700 font-mono mt-0.5 block">{estimatedCount}</strong>
-          </div>
-          <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
-            <DollarSign className="w-5 h-5" />
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-2xl border border-indigo-200 shadow-sm flex items-center justify-between bg-indigo-50/30">
-          <div>
-            <span className="text-[11px] text-indigo-700 block font-bold">تبدیل شده به سفارش کارخانه</span>
-            <strong className="text-lg font-black text-indigo-700 font-mono mt-0.5 block">{convertedCount}</strong>
-          </div>
-          <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center">
-            <TrendingUp className="w-5 h-5" />
-=======
   // Calculate Metrics
   const totalLeads = leads.length;
   const pendingCount = leads.filter(l => l.status === 'pending_commercial').length;
@@ -535,14 +386,10 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
               <PlusCircle className="w-4 h-4" />
               <span>ثبت استعلام جدید</span>
             </button>
->>>>>>> a9d1c26 (feat: implement dedicated marketer inquiry tracking, timeline steppers, follow-up logs, and printable quotation sheets)
           </div>
         </div>
       </div>
 
-<<<<<<< HEAD
-      {/* TAB 1: NEW MARKETING LEAD FORM */}
-=======
       {/* Marketer Performance & Status Counters */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {/* Total Leads */}
@@ -1082,23 +929,12 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
       )}
 
       {/* TAB 2: NEW MARKETING LEAD SUBMISSION FORM */}
->>>>>>> a9d1c26 (feat: implement dedicated marketer inquiry tracking, timeline steppers, follow-up logs, and printable quotation sheets)
       {activeTab === 'new_lead' && (
         <form onSubmit={handleSubmitLead} className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
           <div className="border-b border-slate-100 pb-4 flex items-center justify-between flex-wrap gap-2">
             <div>
               <h2 className="text-base font-black text-slate-800 flex items-center gap-2">
                 <PlusCircle className="w-5 h-5 text-teal-600" />
-<<<<<<< HEAD
-                فرم ثبت مشخصات استعلام توسط بازاریاب
-              </h2>
-              <p className="text-xs text-slate-500 mt-1">
-                اطلاعات مشتری و مشخصات فنی جعبه را وارد نمایید. پس از ثبت، مستقیماً برای مدیر بازرگانی ارسال می‌گردد.
-              </p>
-            </div>
-            <span className="text-xs bg-teal-50 text-teal-800 border border-teal-200 px-3 py-1 rounded-full font-bold">
-              مرحله ۱: دریافت اطلاعات میدانی
-=======
                 فرم ثبت استعلام جدید توسط بازاریاب
               </h2>
               <p className="text-xs text-slate-500 mt-1">
@@ -1107,7 +943,6 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
             </div>
             <span className="text-xs bg-teal-50 text-teal-800 border border-teal-200 px-3 py-1 rounded-full font-bold">
               ثبت استعلام میدانی
->>>>>>> a9d1c26 (feat: implement dedicated marketer inquiry tracking, timeline steppers, follow-up logs, and printable quotation sheets)
             </span>
           </div>
 
@@ -1124,11 +959,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                 onClick={() => setActiveTab('leads_list')}
                 className="bg-emerald-600 text-white px-3 py-1.5 rounded-xl font-bold text-xs hover:bg-emerald-700 transition"
               >
-<<<<<<< HEAD
-                مشاهده در کارتابل
-=======
                 مشاهده در کارتابل پیگیری
->>>>>>> a9d1c26 (feat: implement dedicated marketer inquiry tracking, timeline steppers, follow-up logs, and printable quotation sheets)
               </button>
             </div>
           )}
@@ -1147,11 +978,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                 <input
                   type="text"
                   required
-<<<<<<< HEAD
-                  placeholder="مثال: شرکت داروسازی کیمیا / صنایع غذایی برتر"
-=======
                   placeholder="مثال: صنایع دارویی سینا / میهن یدک"
->>>>>>> a9d1c26 (feat: implement dedicated marketer inquiry tracking, timeline steppers, follow-up logs, and printable quotation sheets)
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-teal-500"
@@ -1183,11 +1010,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                 <input
                   type="text"
                   required
-<<<<<<< HEAD
-                  placeholder="مثال: جعبه خمیردندان ذغالی ۱۰۰ میل"
-=======
                   placeholder="مثال: جعبه شربت گیاهی ۱۲۰ میل"
->>>>>>> a9d1c26 (feat: implement dedicated marketer inquiry tracking, timeline steppers, follow-up logs, and printable quotation sheets)
                   value={productName}
                   onChange={(e) => setProductName(e.target.value)}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-teal-500"
@@ -1207,11 +1030,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
               {/* Quantity */}
               <div>
                 <label className="font-bold text-slate-700 block mb-1.5">
-<<<<<<< HEAD
-                  تیراژ سفارش: <span className="text-rose-500">*</span>
-=======
                   تیراژ سفارش (عدد): <span className="text-rose-500">*</span>
->>>>>>> a9d1c26 (feat: implement dedicated marketer inquiry tracking, timeline steppers, follow-up logs, and printable quotation sheets)
                 </label>
                 <input
                   type="number"
@@ -1269,11 +1088,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
             {/* Material Construction (Single / Sheet / Flute) */}
             <div>
               <label className="font-bold text-slate-700 block mb-1.5">
-<<<<<<< HEAD
-                نوع جنس ساختار (سینگل / ورق / مقوا):
-=======
                 نوع ساختار جنس (سینگل / ورق کارتن / مقوا):
->>>>>>> a9d1c26 (feat: implement dedicated marketer inquiry tracking, timeline steppers, follow-up logs, and printable quotation sheets)
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
                 {MATERIAL_CONSTRUCTIONS.map((mc) => (
@@ -1346,11 +1161,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
 
             <div>
               <label className="font-bold text-slate-700 block mb-1">
-<<<<<<< HEAD
-                توضیحات و نیازمندی‌های مشتری (یووی، طلاکوب، نوع درب، شرایط تحویل):
-=======
                 توضیحات و نیازمندی‌های مشتری (یووی موضعی، طلاکوب، طلق پنجره، نوع تحویل):
->>>>>>> a9d1c26 (feat: implement dedicated marketer inquiry tracking, timeline steppers, follow-up logs, and printable quotation sheets)
               </label>
               <textarea
                 rows="3"
@@ -1370,227 +1181,12 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
               className="bg-teal-600 hover:bg-teal-700 text-white font-black text-sm px-6 py-3 rounded-2xl shadow-lg shadow-teal-100 transition flex items-center gap-2 active:scale-95"
             >
               {submitting ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
-<<<<<<< HEAD
-              <span>ثبت و ارسال به مدیر بازرگانی جهت برآورد قیمت</span>
-=======
               <span>ثبت استعلام و ارسال به مدیر بازرگانی جهت برآورد قیمت</span>
->>>>>>> a9d1c26 (feat: implement dedicated marketer inquiry tracking, timeline steppers, follow-up logs, and printable quotation sheets)
             </button>
           </div>
         </form>
       )}
 
-<<<<<<< HEAD
-      {/* TAB 2: LEADS LIST & WORKFLOW TRACKING */}
-      {activeTab === 'leads_list' && (
-        <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
-          <div className="flex items-center justify-between flex-wrap gap-3 border-b border-slate-100 pb-4">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center font-bold">
-                <FileText className="w-4 h-4" />
-              </div>
-              <div>
-                <h2 className="text-sm sm:text-base font-black text-slate-800">
-                  {isMarketer ? 'استعلام‌های ثبت شده توسط من' : 'کلیه استعلام‌های دریافتی از بازاریابان'}
-                </h2>
-                <span className="text-xs text-slate-500">
-                  مشاهده وضعیت برآورد بازرگانی، تاییدات کارفرما و ارجاع به خط تولید
-                </span>
-              </div>
-            </div>
-
-            {/* Filter & Search Bar */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="جستجوی مشتری یا کد..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="bg-slate-50 border border-slate-200 rounded-xl pl-3 pr-8 py-1.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-teal-500 w-44 sm:w-56"
-                />
-                <Search className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5" />
-              </div>
-
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-700"
-              >
-                <option value="all">همه وضعیت‌ها</option>
-                <option value="pending_commercial">در انتظار برآورد</option>
-                <option value="estimated">قیمت‌گذاری شده</option>
-                <option value="customer_approved">تایید مشتری</option>
-                <option value="converted_to_order">تبدیل به سفارش کارخانه</option>
-              </select>
-
-              <button
-                type="button"
-                onClick={fetchLeads}
-                className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition"
-                title="تازه‌سازی"
-              >
-                <RefreshCw className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-          {/* Table / List */}
-          {loading ? (
-            <div className="py-12 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
-              <RefreshCw className="w-4 h-4 animate-spin text-teal-600" />
-              <span>در حال دریافت استعلام‌ها...</span>
-            </div>
-          ) : filteredLeads.length === 0 ? (
-            <div className="py-12 text-center text-xs text-slate-400 space-y-2">
-              <Package className="w-8 h-8 mx-auto text-slate-300" />
-              <p>هیچ استعلامی یافت نشد.</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs text-right border-collapse">
-                <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold">
-                    <th className="p-3">کد استعلام</th>
-                    <th className="p-3">مشتری و تلفن</th>
-                    <th className="p-3">نام محصول</th>
-                    <th className="p-3">تیراژ</th>
-                    <th className="p-3">مشخصات فنی</th>
-                    <th className="p-3">وضعیت</th>
-                    <th className="p-3">برآورد قیمت</th>
-                    <th className="p-3 text-center">عملیات</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {filteredLeads.map((lead) => {
-                    const isPending = lead.status === 'pending_commercial';
-                    const isEstimated = lead.status === 'estimated';
-                    const isApproved = lead.status === 'customer_approved';
-                    const isConverted = lead.status === 'converted_to_order';
-
-                    return (
-                      <tr key={lead.id} className="hover:bg-slate-50/70 transition">
-                        <td className="p-3 font-mono font-bold text-teal-700">{lead.lead_code}</td>
-                        <td className="p-3">
-                          <strong className="block text-slate-800">{lead.customer_name}</strong>
-                          <span className="text-[11px] text-slate-400 font-mono" dir="ltr">{lead.customer_phone}</span>
-                        </td>
-                        <td className="p-3 font-bold text-slate-700">{lead.product_name}</td>
-                        <td className="p-3 font-mono font-black text-slate-900">
-                          {lead.quantity?.toLocaleString('fa-IR')} عدد
-                        </td>
-                        <td className="p-3 text-[11px] text-slate-600 space-y-0.5">
-                          <div>• مقوا: <strong>{lead.cardboard_type}</strong> ({lead.cardboard_grammage}g)</div>
-                          <div>• جنس: <strong>{lead.material_construction}</strong></div>
-                          <div>• سلفون: <strong>{lead.cellophane_type}</strong></div>
-                          {lead.box_length && (
-                            <div className="text-slate-400 font-mono">
-                              ابعاد: {lead.box_length}×{lead.box_width}×{lead.box_height} cm
-                            </div>
-                          )}
-                        </td>
-                        <td className="p-3">
-                          {isPending && (
-                            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200 flex items-center gap-1 w-fit">
-                              <Clock className="w-3 h-3" />
-                              در انتظار بازرگانی
-                            </span>
-                          )}
-                          {isEstimated && (
-                            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1 w-fit">
-                              <CheckCircle2 className="w-3 h-3" />
-                              قیمت‌گذاری شد
-                            </span>
-                          )}
-                          {isApproved && (
-                            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800 border border-sky-200 flex items-center gap-1 w-fit">
-                              <Check className="w-3 h-3" />
-                              تایید مشتری
-                            </span>
-                          )}
-                          {isConverted && (
-                            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-800 border border-indigo-200 flex items-center gap-1 w-fit">
-                              <TrendingUp className="w-3 h-3" />
-                              در حال تولید (#{lead.converted_archive_code})
-                            </span>
-                          )}
-                        </td>
-                        <td className="p-3">
-                          {lead.estimated_unit_price ? (
-                            <div>
-                              <strong className="text-emerald-700 block font-mono text-xs">
-                                فی: {lead.estimated_unit_price?.toLocaleString('fa-IR')} ت
-                              </strong>
-                              <span className="text-[10px] text-slate-400 block font-mono">
-                                کل: {lead.estimated_total_price?.toLocaleString('fa-IR')} ت
-                              </span>
-                              {lead.commercial_notes && (
-                                <span className="text-[10px] text-indigo-600 block truncate max-w-[120px]" title={lead.commercial_notes}>
-                                  {lead.commercial_notes}
-                                </span>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-slate-400 text-[11px]">---</span>
-                          )}
-                        </td>
-                        <td className="p-3 text-center">
-                          <div className="flex items-center justify-center gap-1.5 flex-wrap">
-                            {/* Commercial Price Estimation Button */}
-                            {isCommercialOrCeo && (
-                              <button
-                                type="button"
-                                onClick={() => handleOpenEstimateModal(lead)}
-                                className="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-[11px] font-bold transition shadow-xs flex items-center gap-1"
-                                title="برآورد و اعلام قیمت به بازاریاب"
-                              >
-                                <DollarSign className="w-3 h-3" />
-                                <span>{isPending ? 'برآورد قیمت' : 'ویرایش قیمت'}</span>
-                              </button>
-                            )}
-
-                            {/* Marketer: Confirm Customer Approval */}
-                            {isEstimated && (
-                              <button
-                                type="button"
-                                onClick={() => handleUpdateStatus(lead.id, 'customer_approved')}
-                                className="px-2.5 py-1 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-[11px] font-bold transition shadow-xs flex items-center gap-1"
-                                title="ثبت تاییدیه مشتری"
-                              >
-                                <Check className="w-3 h-3" />
-                                <span>تایید مشتری</span>
-                              </button>
-                            )}
-
-                            {/* Commercial/CEO: Convert to Factory Project */}
-                            {isCommercialOrCeo && (isEstimated || isApproved) && !isConverted && (
-                              <button
-                                type="button"
-                                onClick={() => handleConvertToProject(lead)}
-                                className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[11px] font-bold transition shadow-xs flex items-center gap-1"
-                                title="تبدیل به سفارش کارخانه و صدور پیش‌فاکتور"
-                              >
-                                <TrendingUp className="w-3 h-3" />
-                                <span>ارسال به تولید</span>
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* PRICE ESTIMATION MODAL (For Commercial Manager / CEO) */}
-      {estimatingLead && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4" dir="rtl">
-=======
       {/* MODAL 1: FOLLOW-UP LOGGER (ثبت پیگیری و لاگ تماس) */}
       {selectedLeadForFollowup && (
         <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -1821,7 +1417,6 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
       {estimatingLead && (
         <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-scaleUp" dir="rtl">
->>>>>>> a9d1c26 (feat: implement dedicated marketer inquiry tracking, timeline steppers, follow-up logs, and printable quotation sheets)
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2 text-amber-600 font-black text-sm">
                 <DollarSign className="w-5 h-5" />
@@ -1830,45 +1425,19 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
               <button
                 type="button"
                 onClick={() => setEstimatingLead(null)}
-<<<<<<< HEAD
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
-=======
                 className="text-slate-400 hover:text-slate-600 p-1"
->>>>>>> a9d1c26 (feat: implement dedicated marketer inquiry tracking, timeline steppers, follow-up logs, and printable quotation sheets)
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-<<<<<<< HEAD
-            {/* Specs Summary */}
-            <div className="p-3 bg-slate-50 rounded-2xl text-xs space-y-1.5 border border-slate-200">
-              <div className="flex justify-between">
-                <span className="text-slate-500">مشتری / محصول:</span>
-=======
             <div className="p-3 bg-slate-50 rounded-2xl text-xs space-y-1 border border-slate-200">
               <div className="flex justify-between">
                 <span className="text-slate-500">مشتری و محصول:</span>
->>>>>>> a9d1c26 (feat: implement dedicated marketer inquiry tracking, timeline steppers, follow-up logs, and printable quotation sheets)
                 <strong className="text-slate-800">{estimatingLead.customer_name} ({estimatingLead.product_name})</strong>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">تیراژ:</span>
-<<<<<<< HEAD
-                <strong className="text-slate-800 font-mono">{estimatingLead.quantity?.toLocaleString('fa-IR')} عدد</strong>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">مشخصات متریال:</span>
-                <strong className="text-slate-800">{estimatingLead.cardboard_type} - {estimatingLead.material_construction}</strong>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">سلفون:</span>
-                <strong className="text-slate-800">{estimatingLead.cellophane_type}</strong>
-              </div>
-            </div>
-
-            {/* Inputs */}
-=======
                 <strong className="text-slate-800 font-mono">{Number(estimatingLead.quantity).toLocaleString('fa-IR')} عدد</strong>
               </div>
               <div className="flex justify-between">
@@ -1877,7 +1446,6 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
               </div>
             </div>
 
->>>>>>> a9d1c26 (feat: implement dedicated marketer inquiry tracking, timeline steppers, follow-up logs, and printable quotation sheets)
             <div className="space-y-3 text-xs">
               <div>
                 <label className="font-bold text-slate-700 block mb-1">
@@ -1902,11 +1470,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
               </div>
 
               <div>
-<<<<<<< HEAD
-                <label className="font-bold text-slate-700 block mb-1">قیمت کل سفارش (تومان):</label>
-=======
                 <label className="font-bold text-slate-700 block mb-1">قیمت کل برآورد شده سفارش (تومان):</label>
->>>>>>> a9d1c26 (feat: implement dedicated marketer inquiry tracking, timeline steppers, follow-up logs, and printable quotation sheets)
                 <div className="relative">
                   <input
                     type="number"
@@ -1920,17 +1484,10 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
               </div>
 
               <div>
-<<<<<<< HEAD
-                <label className="font-bold text-slate-700 block mb-1">توضیحات و شرایط بازرگانی:</label>
-                <textarea
-                  rows="2"
-                  placeholder="شرایط پرداخت، تخفیف تیراژ، زمان تحویل..."
-=======
                 <label className="font-bold text-slate-700 block mb-1">توضیحات و شرایط بازرگانی جهت ابلاغ به بازاریاب:</label>
                 <textarea
                   rows="2"
                   placeholder="شرایط پرداخت بیعانه، موعد تحویل، نحوه ارسال و تخفیف..."
->>>>>>> a9d1c26 (feat: implement dedicated marketer inquiry tracking, timeline steppers, follow-up logs, and printable quotation sheets)
                   value={commercialNotes}
                   onChange={(e) => setCommercialNotes(e.target.value)}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-amber-500"
@@ -1950,17 +1507,10 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                 type="button"
                 disabled={estimatingLoading}
                 onClick={handleSubmitEstimate}
-<<<<<<< HEAD
-                className="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-black text-xs shadow-md transition flex items-center gap-1.5"
-              >
-                {estimatingLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                <span>ثبت برآورد و اعلام به بازاریاب</span>
-=======
                 className="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl font-black text-xs shadow-md transition flex items-center gap-1.5"
               >
                 {estimatingLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
                 <span>ثبت برآورد و اعلام به کارتابل بازاریاب</span>
->>>>>>> a9d1c26 (feat: implement dedicated marketer inquiry tracking, timeline steppers, follow-up logs, and printable quotation sheets)
               </button>
             </div>
           </div>

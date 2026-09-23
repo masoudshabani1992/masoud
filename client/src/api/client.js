@@ -84,12 +84,8 @@ export const api = {
   getMarketingLeads: () => apiRequest('/marketing/leads'),
   createMarketingLead: (data) => apiRequest('/marketing/leads', { method: 'POST', body: JSON.stringify(data) }),
   estimateMarketingLead: (id, data) => apiRequest(`/marketing/leads/${id}/estimate`, { method: 'PUT', body: JSON.stringify(data) }),
-<<<<<<< HEAD
-  updateMarketingLeadStatus: (id, status) => apiRequest(`/marketing/leads/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) }),
-=======
   updateMarketingLeadStatus: (id, data) => apiRequest(`/marketing/leads/${id}/status`, { method: 'PUT', body: JSON.stringify(typeof data === 'string' ? { status: data } : data) }),
   addMarketingLeadFollowup: (id, data) => apiRequest(`/marketing/leads/${id}/followup`, { method: 'POST', body: JSON.stringify(data) }),
->>>>>>> a9d1c26 (feat: implement dedicated marketer inquiry tracking, timeline steppers, follow-up logs, and printable quotation sheets)
   convertMarketingLeadToProject: (id) => apiRequest(`/marketing/leads/${id}/convert-to-project`, { method: 'POST' }),
 
   // License Management

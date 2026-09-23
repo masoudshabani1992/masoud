@@ -43,7 +43,7 @@ export default function Header({
   onOpenLicense,
   licenseInfo
 }) {
-  const { currentUser, role, switchRole, logout } = useAuth();
+  const { currentUser, role, switchRole, logout, hasPermission } = useAuth();
   
   // Dropdowns state
   const [showProdDropdown, setShowProdDropdown] = useState(false);
@@ -67,12 +67,34 @@ export default function Header({
 
   const isCeo = role === 'ceo';
   const isMarketer = role === 'marketer';
-  const isSales = role === 'sales' || role === 'secretary' || isCeo;
-  const isEstimator = role === 'estimation' || role === 'accounting' || isCeo;
-  const isDesigner = role === 'design' || isCeo;
-  const isMockup = role === 'mockup' || role === 'outsource' || isCeo;
-  const isProcurement = role === 'procurement' || role === 'warehouse' || isCeo;
-  const isProduction = role === 'production' || isCeo;
+  const isDesigner = role === 'design';
+
+  // Permission Checks
+  const canHub = hasPermission('can_view_hub');
+  
+  const canProdOffset = hasPermission('can_view_production_offset');
+  const canProdDigital = hasPermission('can_view_production_digital');
+  const canProdService = hasPermission('can_view_production_service');
+  const canProdDropdown = canProdOffset || canProdDigital || canProdService;
+
+  const canWhCardboard = hasPermission('can_view_warehouse_cardboard');
+  const canWhSheet = hasPermission('can_view_warehouse_sheet_carton');
+  const canWhSingle = hasPermission('can_view_warehouse_single_face');
+  const canWhCellophane = hasPermission('can_view_warehouse_cellophane');
+  const canWhFilm = hasPermission('can_view_warehouse_pvc_film');
+  const canWhInk = hasPermission('can_view_warehouse_ink');
+  const canWhDropdown = canWhCardboard || canWhSheet || canWhSingle || canWhCellophane || canWhFilm || canWhInk;
+
+  const canKanban = hasPermission('can_view_kanban');
+  const canArchive = hasPermission('can_view_archive');
+  const canStudio = hasPermission('can_view_studio');
+  const canAi = hasPermission('can_view_ai');
+  const canMarketing = hasPermission('can_view_marketing');
+  const canMyTasks = hasPermission('can_view_my_tasks');
+  const canCalculator = hasPermission('can_view_calculator');
+  const canDashboard = hasPermission('can_view_dashboard');
+  const canCreateOrder = hasPermission('can_create_order');
+  const canManageUsers = hasPermission('can_manage_users');
 
   const isProdActive = ['production_orders', 'production_orders_offset', 'digital_orders', 'production_orders_digital', 'service_orders', 'production_orders_service'].includes(activeTab);
   const isWhActive = ['warehouse_inventory', 'warehouse_cardboard', 'warehouse_sheet_carton', 'warehouse_single_face', 'warehouse_cellophane', 'warehouse_pvc_film', 'warehouse_ink'].includes(activeTab);
@@ -119,7 +141,12 @@ export default function Header({
       {/* Main Header Bar */}
       <div className="w-full max-w-[2200px] mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between flex-wrap gap-4">
         {/* Brand & Current Logged-in User */}
-        <div className="flex items-center gap-3.5 cursor-pointer" onClick={() => setActiveTab('hub')}>
+        <div
+          className={`flex items-center gap-3.5 ${canHub ? 'cursor-pointer' : ''}`}
+          onClick={() => {
+            if (canHub) setActiveTab('hub');
+          }}
+        >
           <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-amber-600 via-indigo-600 to-indigo-700 flex items-center justify-center text-white shadow-md shadow-indigo-100">
             <Boxes className="w-7 h-7" />
           </div>
@@ -135,7 +162,7 @@ export default function Header({
             <div className="text-xs sm:text-sm text-slate-500 flex items-center gap-2 mt-0.5">
               <span>کاربر فعال: <strong className="text-slate-800 font-black">{currentUser?.fullName || currentUser?.full_name}</strong></span>
               <span className="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
-              <span className="text-indigo-600 font-bold">({currentUser?.department})</span>
+              <span className="text-indigo-600 font-bold">({currentUser?.department || ROLES.find(r => r.id === role)?.name})</span>
               <span className="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
               <span className="font-mono text-slate-400 text-xs">@{currentUser?.username}</span>
             </div>
@@ -146,42 +173,48 @@ export default function Header({
         <div className="flex items-center gap-2.5 flex-wrap">
           
           {/* License Status Badge Button */}
-          <button
-            onClick={onOpenLicense}
-            className="flex items-center gap-1.5 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-xl transition text-emerald-800 font-bold text-xs shadow-xs"
-            title="مشاهده اطلاعات لایسنس و قفل سخت‌افزاری"
-          >
-            <ShieldCheck className="w-4 h-4 text-emerald-600" />
-            <span className="hidden sm:inline">لایسنس معتبر</span>
-          </button>
+          {isCeo && (
+            <button
+              onClick={onOpenLicense}
+              className="flex items-center gap-1.5 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-xl transition text-emerald-800 font-bold text-xs shadow-xs"
+              title="مشاهده اطلاعات لایسنس و قفل سخت‌افزاری"
+            >
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              <span className="hidden sm:inline">لایسنس معتبر</span>
+            </button>
+          )}
 
           {/* Amiran Design Studio Fast Access Button */}
-          <button
-            onClick={() => setActiveTab('dieline_generator')}
-            className={`flex items-center gap-1.5 px-3.5 py-2 text-xs font-black rounded-xl transition-all shadow-xs border ${
-              activeTab === 'dieline_generator' || activeTab === '3d_studio'
-                ? 'bg-gradient-to-r from-amber-500 to-indigo-600 text-white border-amber-600 shadow-md ring-2 ring-amber-400'
-                : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300'
-            }`}
-            title="استودیو طراحی امیران: تولید نقشه خط تیغ و رندرینگ ۳ بعدی"
-          >
-            <Box className="w-4 h-4 text-amber-600" />
-            <span>استودیو طراحی امیران</span>
-          </button>
+          {canStudio && (
+            <button
+              onClick={() => setActiveTab('dieline_generator')}
+              className={`flex items-center gap-1.5 px-3.5 py-2 text-xs font-black rounded-xl transition-all shadow-xs border ${
+                activeTab === 'dieline_generator' || activeTab === '3d_studio'
+                  ? 'bg-gradient-to-r from-amber-500 to-indigo-600 text-white border-amber-600 shadow-md ring-2 ring-amber-400'
+                  : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300'
+              }`}
+              title="استودیو طراحی امیران: تولید نقشه خط تیغ و رندرینگ ۳ بعدی"
+            >
+              <Box className="w-4 h-4 text-amber-600" />
+              <span>استودیو طراحی امیران</span>
+            </button>
+          )}
 
           {/* Calculator Button */}
-          <button
-            onClick={() => setActiveTab('calculator')}
-            className={`flex items-center gap-2 px-3.5 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-colors shadow-sm border ${
-              activeTab === 'calculator'
-                ? 'bg-amber-500 text-slate-900 border-amber-600 font-black ring-2 ring-amber-400'
-                : 'text-amber-800 bg-amber-50 hover:bg-amber-100 border-amber-200'
-            }`}
-            title="ماشین‌حساب برآورد صنعتی قیمت جعبه و استعلامات"
-          >
-            <Calculator className="w-4 h-4 text-amber-600" />
-            <span>ماشین‌حساب قیمت</span>
-          </button>
+          {canCalculator && (
+            <button
+              onClick={() => setActiveTab('calculator')}
+              className={`flex items-center gap-2 px-3.5 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-colors shadow-sm border ${
+                activeTab === 'calculator'
+                  ? 'bg-amber-500 text-slate-900 border-amber-600 font-black ring-2 ring-amber-400'
+                  : 'text-amber-800 bg-amber-50 hover:bg-amber-100 border-amber-200'
+              }`}
+              title="ماشین‌حساب برآورد صنعتی قیمت جعبه و استعلامات"
+            >
+              <Calculator className="w-4 h-4 text-amber-600" />
+              <span>ماشین‌حساب قیمت</span>
+            </button>
+          )}
 
           {/* Notification Bell with Badge */}
           <button
@@ -198,7 +231,7 @@ export default function Header({
           </button>
 
           {/* New Order Button */}
-          {(isSales || isCeo) && (
+          {canCreateOrder && (
             <button
               onClick={() => setActiveTab('new_order')}
               className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-black rounded-xl transition-all shadow-md active:scale-95 ${
@@ -228,19 +261,10 @@ export default function Header({
       <div className="border-t border-slate-200 bg-slate-100/90 px-4 sm:px-6 lg:px-8 py-2.5">
         <div className="w-full max-w-[2200px] mx-auto flex flex-wrap items-center justify-between gap-2">
           
-          {/* Marketer ONLY view */}
-          {isMarketer ? (
-            <button
-              onClick={() => setActiveTab('marketing')}
-              className="w-full flex items-center justify-center gap-2 p-3 rounded-xl text-sm font-black transition-all border bg-teal-600 text-white border-teal-700 shadow-md ring-2 ring-teal-400"
-            >
-              <Users className="w-5 h-5 text-teal-200 flex-shrink-0" />
-              <span>کارتابل بازاریابی و ثبت استعلام قیمت</span>
-            </button>
-          ) : (
-            <div className="flex flex-wrap items-center gap-2 w-full">
-              
-              {/* 1. صفحه اصلی (Hub) */}
+          <div className="flex flex-wrap items-center gap-2 w-full">
+            
+            {/* 1. صفحه اصلی (Hub) */}
+            {canHub && (
               <button
                 onClick={() => setActiveTab('hub')}
                 className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border ${
@@ -252,8 +276,10 @@ export default function Header({
                 <LayoutGrid className="w-4 h-4 text-amber-500" />
                 <span>صفحه اصلی</span>
               </button>
+            )}
 
-              {/* 2. دستور تولید (Production Order Main Dropdown) */}
+            {/* 2. دستور تولید (Production Order Main Dropdown) */}
+            {canProdDropdown && (
               <div className="relative" ref={prodRef}>
                 <button
                   type="button"
@@ -280,78 +306,86 @@ export default function Header({
                     </div>
 
                     {/* Sub-item 1: تولید */}
-                    <button
-                      onClick={() => {
-                        setActiveTab('production_orders');
-                        setShowProdDropdown(false);
-                      }}
-                      className={`w-full text-right px-3.5 py-2.5 text-xs font-bold transition-colors flex items-center justify-between ${
-                        activeTab === 'production_orders' || activeTab === 'production_orders_offset'
-                          ? 'bg-indigo-50 text-indigo-900 font-black'
-                          : 'text-slate-700 hover:bg-slate-50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
-                          ۱
+                    {canProdOffset && (
+                      <button
+                        onClick={() => {
+                          setActiveTab('production_orders');
+                          setShowProdDropdown(false);
+                        }}
+                        className={`w-full text-right px-3.5 py-2.5 text-xs font-bold transition-colors flex items-center justify-between ${
+                          activeTab === 'production_orders' || activeTab === 'production_orders_offset'
+                            ? 'bg-indigo-50 text-indigo-900 font-black'
+                            : 'text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
+                            ۱
+                          </div>
+                          <div>
+                            <div className="font-black text-slate-900">۱. تولید (افست)</div>
+                            <div className="text-[10px] text-slate-400">۳ رنگ: سفید (صف)، زرد (مالی)، سبز (بایگانی)</div>
+                          </div>
                         </div>
-                        <div>
-                          <div className="font-black text-slate-900">۱. تولید (افست)</div>
-                          <div className="text-[10px] text-slate-400">۳ رنگ: سفید (صف)، زرد (مالی)، سبز (بایگانی)</div>
-                        </div>
-                      </div>
-                    </button>
+                      </button>
+                    )}
 
                     {/* Sub-item 2: دیجیتال */}
-                    <button
-                      onClick={() => {
-                        setActiveTab('digital_orders');
-                        setShowProdDropdown(false);
-                      }}
-                      className={`w-full text-right px-3.5 py-2.5 text-xs font-bold transition-colors flex items-center justify-between ${
-                        activeTab === 'digital_orders' || activeTab === 'production_orders_digital'
-                          ? 'bg-purple-50 text-purple-900 font-black'
-                          : 'text-slate-700 hover:bg-slate-50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
-                          ۲
+                    {canProdDigital && (
+                      <button
+                        onClick={() => {
+                          setActiveTab('digital_orders');
+                          setShowProdDropdown(false);
+                        }}
+                        className={`w-full text-right px-3.5 py-2.5 text-xs font-bold transition-colors flex items-center justify-between ${
+                          activeTab === 'digital_orders' || activeTab === 'production_orders_digital'
+                            ? 'bg-purple-50 text-purple-900 font-black'
+                            : 'text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-7 h-7 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
+                            ۲
+                          </div>
+                          <div>
+                            <div className="font-black text-purple-950">۲. دیجیتال</div>
+                            <div className="text-[10px] text-slate-400">چاپ‌های با دستگاه‌های دیجیتال و نمونه</div>
+                          </div>
                         </div>
-                        <div>
-                          <div className="font-black text-purple-950">۲. دیجیتال</div>
-                          <div className="text-[10px] text-slate-400">چاپ‌های با دستگاه‌های دیجیتال و نمونه</div>
-                        </div>
-                      </div>
-                    </button>
+                      </button>
+                    )}
 
                     {/* Sub-item 3: خدماتی */}
-                    <button
-                      onClick={() => {
-                        setActiveTab('service_orders');
-                        setShowProdDropdown(false);
-                      }}
-                      className={`w-full text-right px-3.5 py-2.5 text-xs font-bold transition-colors flex items-center justify-between ${
-                        activeTab === 'service_orders' || activeTab === 'production_orders_service'
-                          ? 'bg-amber-50 text-amber-900 font-black'
-                          : 'text-slate-700 hover:bg-slate-50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
-                          ۳
+                    {canProdService && (
+                      <button
+                        onClick={() => {
+                          setActiveTab('service_orders');
+                          setShowProdDropdown(false);
+                        }}
+                        className={`w-full text-right px-3.5 py-2.5 text-xs font-bold transition-colors flex items-center justify-between ${
+                          activeTab === 'service_orders' || activeTab === 'production_orders_service'
+                            ? 'bg-amber-50 text-amber-900 font-black'
+                            : 'text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
+                            ۳
+                          </div>
+                          <div>
+                            <div className="font-black text-amber-950">۳. خدماتی</div>
+                            <div className="text-[10px] text-slate-400">تنها انجام خدمات روی جعبه مشتری (دایکات/سلفون)</div>
+                          </div>
                         </div>
-                        <div>
-                          <div className="font-black text-amber-950">۳. خدماتی</div>
-                          <div className="text-[10px] text-slate-400">تنها انجام خدمات روی جعبه مشتری (دایکات/سلفون)</div>
-                        </div>
-                      </div>
-                    </button>
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
+            )}
 
-              {/* 3. انبار (Warehouse Main Dropdown: مقوا، ورق، سینگل، سلفون، طلق، مرکب) */}
+            {/* 3. انبار (Warehouse Main Dropdown: مقوا، ورق، سینگل، سلفون، طلق، مرکب) */}
+            {canWhDropdown && (
               <div className="relative" ref={whRef}>
                 <button
                   type="button"
@@ -378,123 +412,137 @@ export default function Header({
                     </div>
 
                     {/* Sub 1: مقوا */}
-                    <button
-                      onClick={() => {
-                        setActiveTab('warehouse_cardboard');
-                        setShowWhDropdown(false);
-                      }}
-                      className={`w-full text-right px-3.5 py-2 text-xs font-bold transition-colors flex items-center gap-2.5 ${
-                        activeTab === 'warehouse_cardboard' || activeTab === 'warehouse_inventory'
-                          ? 'bg-sky-50 text-sky-950 font-black'
-                          : 'text-slate-700 hover:bg-slate-50'
-                      }`}
-                    >
-                      <div className="w-6 h-6 rounded-md bg-sky-100 text-sky-700 flex items-center justify-center font-bold text-[11px]">۱</div>
-                      <div>
-                        <div className="font-bold text-slate-900">۱. مقوا</div>
-                        <div className="text-[10px] text-slate-400">ایندربرد، پشت طوسی، گلاسه، کرافت</div>
-                      </div>
-                    </button>
+                    {canWhCardboard && (
+                      <button
+                        onClick={() => {
+                          setActiveTab('warehouse_cardboard');
+                          setShowWhDropdown(false);
+                        }}
+                        className={`w-full text-right px-3.5 py-2 text-xs font-bold transition-colors flex items-center gap-2.5 ${
+                          activeTab === 'warehouse_cardboard' || activeTab === 'warehouse_inventory'
+                            ? 'bg-sky-50 text-sky-950 font-black'
+                            : 'text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className="w-6 h-6 rounded-md bg-sky-100 text-sky-700 flex items-center justify-center font-bold text-[11px]">۱</div>
+                        <div>
+                          <div className="font-bold text-slate-900">۱. مقوا</div>
+                          <div className="text-[10px] text-slate-400">ایندربرد، پشت طوسی، گلاسه، کرافت</div>
+                        </div>
+                      </button>
+                    )}
 
                     {/* Sub 2: ورق */}
-                    <button
-                      onClick={() => {
-                        setActiveTab('warehouse_sheet_carton');
-                        setShowWhDropdown(false);
-                      }}
-                      className={`w-full text-right px-3.5 py-2 text-xs font-bold transition-colors flex items-center gap-2.5 ${
-                        activeTab === 'warehouse_sheet_carton'
-                          ? 'bg-amber-50 text-amber-950 font-black'
-                          : 'text-slate-700 hover:bg-slate-50'
-                      }`}
-                    >
-                      <div className="w-6 h-6 rounded-md bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-[11px]">۲</div>
-                      <div>
-                        <div className="font-bold text-slate-900">۲. ورق</div>
-                        <div className="text-[10px] text-slate-400">ورق ۳ لایه و ۵ لایه کارتن (E/B/C Flute)</div>
-                      </div>
-                    </button>
+                    {canWhSheet && (
+                      <button
+                        onClick={() => {
+                          setActiveTab('warehouse_sheet_carton');
+                          setShowWhDropdown(false);
+                        }}
+                        className={`w-full text-right px-3.5 py-2 text-xs font-bold transition-colors flex items-center gap-2.5 ${
+                          activeTab === 'warehouse_sheet_carton'
+                            ? 'bg-amber-50 text-amber-950 font-black'
+                            : 'text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className="w-6 h-6 rounded-md bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-[11px]">۲</div>
+                        <div>
+                          <div className="font-bold text-slate-900">۲. ورق</div>
+                          <div className="text-[10px] text-slate-400">ورق ۳ لایه و ۵ لایه کارتن (E/B/C Flute)</div>
+                        </div>
+                      </button>
+                    )}
 
                     {/* Sub 3: سینگل */}
-                    <button
-                      onClick={() => {
-                        setActiveTab('warehouse_single_face');
-                        setShowWhDropdown(false);
-                      }}
-                      className={`w-full text-right px-3.5 py-2 text-xs font-bold transition-colors flex items-center gap-2.5 ${
-                        activeTab === 'warehouse_single_face'
-                          ? 'bg-teal-50 text-teal-950 font-black'
-                          : 'text-slate-700 hover:bg-slate-50'
-                      }`}
-                    >
-                      <div className="w-6 h-6 rounded-md bg-teal-100 text-teal-700 flex items-center justify-center font-bold text-[11px]">۳</div>
-                      <div>
-                        <div className="font-bold text-slate-900">۳. سینگل</div>
-                        <div className="text-[10px] text-slate-400">رول و شیت سینگل فلوت بهداشتی و صنعتی</div>
-                      </div>
-                    </button>
+                    {canWhSingle && (
+                      <button
+                        onClick={() => {
+                          setActiveTab('warehouse_single_face');
+                          setShowWhDropdown(false);
+                        }}
+                        className={`w-full text-right px-3.5 py-2 text-xs font-bold transition-colors flex items-center gap-2.5 ${
+                          activeTab === 'warehouse_single_face'
+                            ? 'bg-teal-50 text-teal-950 font-black'
+                            : 'text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className="w-6 h-6 rounded-md bg-teal-100 text-teal-700 flex items-center justify-center font-bold text-[11px]">۳</div>
+                        <div>
+                          <div className="font-bold text-slate-900">۳. سینگل</div>
+                          <div className="text-[10px] text-slate-400">رول و شیت سینگل فلوت بهداشتی و صنعتی</div>
+                        </div>
+                      </button>
+                    )}
 
                     {/* Sub 4: سلفون */}
-                    <button
-                      onClick={() => {
-                        setActiveTab('warehouse_cellophane');
-                        setShowWhDropdown(false);
-                      }}
-                      className={`w-full text-right px-3.5 py-2 text-xs font-bold transition-colors flex items-center gap-2.5 ${
-                        activeTab === 'warehouse_cellophane'
-                          ? 'bg-indigo-50 text-indigo-950 font-black'
-                          : 'text-slate-700 hover:bg-slate-50'
-                      }`}
-                    >
-                      <div className="w-6 h-6 rounded-md bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-[11px]">۴</div>
-                      <div>
-                        <div className="font-bold text-slate-900">۴. سلفون</div>
-                        <div className="text-[10px] text-slate-400">حرارتی مات، براق، مخملی، واتربیس، شنی</div>
-                      </div>
-                    </button>
+                    {canWhCellophane && (
+                      <button
+                        onClick={() => {
+                          setActiveTab('warehouse_cellophane');
+                          setShowWhDropdown(false);
+                        }}
+                        className={`w-full text-right px-3.5 py-2 text-xs font-bold transition-colors flex items-center gap-2.5 ${
+                          activeTab === 'warehouse_cellophane'
+                            ? 'bg-indigo-50 text-indigo-950 font-black'
+                            : 'text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className="w-6 h-6 rounded-md bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-[11px]">۴</div>
+                        <div>
+                          <div className="font-bold text-slate-900">۴. سلفون</div>
+                          <div className="text-[10px] text-slate-400">حرارتی مات، براق، مخملی، واتربیس، شنی</div>
+                        </div>
+                      </button>
+                    )}
 
                     {/* Sub 5: طلق */}
-                    <button
-                      onClick={() => {
-                        setActiveTab('warehouse_pvc_film');
-                        setShowWhDropdown(false);
-                      }}
-                      className={`w-full text-right px-3.5 py-2 text-xs font-bold transition-colors flex items-center gap-2.5 ${
-                        activeTab === 'warehouse_pvc_film'
-                          ? 'bg-purple-50 text-purple-950 font-black'
-                          : 'text-slate-700 hover:bg-slate-50'
-                      }`}
-                    >
-                      <div className="w-6 h-6 rounded-md bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-[11px]">۵</div>
-                      <div>
-                        <div className="font-bold text-slate-900">۵. طلق</div>
-                        <div className="text-[10px] text-slate-400">طلق شفاف PVC، طلق سخت PET، پنجره جعبه</div>
-                      </div>
-                    </button>
+                    {canWhFilm && (
+                      <button
+                        onClick={() => {
+                          setActiveTab('warehouse_pvc_film');
+                          setShowWhDropdown(false);
+                        }}
+                        className={`w-full text-right px-3.5 py-2 text-xs font-bold transition-colors flex items-center gap-2.5 ${
+                          activeTab === 'warehouse_pvc_film'
+                            ? 'bg-purple-50 text-purple-950 font-black'
+                            : 'text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className="w-6 h-6 rounded-md bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-[11px]">۵</div>
+                        <div>
+                          <div className="font-bold text-slate-900">۵. طلق</div>
+                          <div className="text-[10px] text-slate-400">طلق شفاف PVC، طلق سخت PET، پنجره جعبه</div>
+                        </div>
+                      </button>
+                    )}
 
                     {/* Sub 6: مرکب */}
-                    <button
-                      onClick={() => {
-                        setActiveTab('warehouse_ink');
-                        setShowWhDropdown(false);
-                      }}
-                      className={`w-full text-right px-3.5 py-2 text-xs font-bold transition-colors flex items-center gap-2.5 ${
-                        activeTab === 'warehouse_ink'
-                          ? 'bg-rose-50 text-rose-950 font-black'
-                          : 'text-slate-700 hover:bg-slate-50'
-                      }`}
-                    >
-                      <div className="w-6 h-6 rounded-md bg-rose-100 text-rose-700 flex items-center justify-center font-bold text-[11px]">۶</div>
-                      <div>
-                        <div className="font-bold text-slate-900">۶. مرکب</div>
-                        <div className="text-[10px] text-slate-400">مرکب افست CMYK، طلایی، نقره‌ای، پنتون، ورنی</div>
-                      </div>
-                    </button>
+                    {canWhInk && (
+                      <button
+                        onClick={() => {
+                          setActiveTab('warehouse_ink');
+                          setShowWhDropdown(false);
+                        }}
+                        className={`w-full text-right px-3.5 py-2 text-xs font-bold transition-colors flex items-center gap-2.5 ${
+                          activeTab === 'warehouse_ink'
+                            ? 'bg-rose-50 text-rose-950 font-black'
+                            : 'text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className="w-6 h-6 rounded-md bg-rose-100 text-rose-700 flex items-center justify-center font-bold text-[11px]">۶</div>
+                        <div>
+                          <div className="font-bold text-slate-900">۶. مرکب</div>
+                          <div className="text-[10px] text-slate-400">مرکب افست CMYK، طلایی، نقره‌ای، پنتون، ورنی</div>
+                        </div>
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
+            )}
 
-              {/* 4. گردش کار ۹ مرحله (Kanban) */}
+            {/* 4. گردش کار ۹ مرحله (Kanban) */}
+            {canKanban && (
               <button
                 onClick={() => setActiveTab('kanban')}
                 className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border ${
@@ -506,8 +554,10 @@ export default function Header({
                 <Kanban className="w-4 h-4 text-indigo-500" />
                 <span>گردش کار ۹ مرحله</span>
               </button>
+            )}
 
-              {/* 5. آرشیو و جستجو (Archive) */}
+            {/* 5. آرشیو و جستجو (Archive) */}
+            {canArchive && (
               <button
                 onClick={() => setActiveTab('archive')}
                 className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border ${
@@ -519,8 +569,10 @@ export default function Header({
                 <Boxes className="w-4 h-4 text-amber-500" />
                 <span>آرشیو و جستجو</span>
               </button>
+            )}
 
-              {/* 6. استودیو طراحی امیران */}
+            {/* 6. استودیو طراحی امیران */}
+            {canStudio && (
               <button
                 onClick={() => setActiveTab('dieline_generator')}
                 className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border ${
@@ -532,8 +584,10 @@ export default function Header({
                 <Box className="w-4 h-4 text-amber-500" />
                 <span>طراحی امیران</span>
               </button>
+            )}
 
-              {/* 7. هوش مصنوعی */}
+            {/* 7. هوش مصنوعی */}
+            {canAi && (
               <button
                 onClick={() => setActiveTab('ai_assistant')}
                 className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border ${
@@ -545,23 +599,25 @@ export default function Header({
                 <Sparkles className="w-4 h-4 text-purple-600 animate-pulse" />
                 <span>هوش مصنوعی</span>
               </button>
+            )}
 
-              {/* 8. استعلام بازاریاب */}
-              {(isSales || isCeo) && (
-                <button
-                  onClick={() => setActiveTab('marketing')}
-                  className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border ${
-                    activeTab === 'marketing'
-                      ? 'bg-teal-600 text-white border-teal-700 shadow-md ring-2 ring-teal-400'
-                      : 'bg-teal-50 text-teal-900 hover:text-teal-950 hover:bg-teal-100 border-teal-300 shadow-xs'
-                  }`}
-                >
-                  <Users className="w-4 h-4 text-teal-600" />
-                  <span>استعلام بازاریاب</span>
-                </button>
-              )}
+            {/* 8. استعلام بازاریاب */}
+            {canMarketing && (
+              <button
+                onClick={() => setActiveTab('marketing')}
+                className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border ${
+                  activeTab === 'marketing'
+                    ? 'bg-teal-600 text-white border-teal-700 shadow-md ring-2 ring-teal-400'
+                    : 'bg-teal-50 text-teal-900 hover:text-teal-950 hover:bg-teal-100 border-teal-300 shadow-xs'
+                }`}
+              >
+                <Users className="w-4 h-4 text-teal-600" />
+                <span>استعلام بازاریاب</span>
+              </button>
+            )}
 
-              {/* 9. وظایف من */}
+            {/* 9. وظایف من */}
+            {canMyTasks && (
               <button
                 onClick={() => setActiveTab('my_tasks')}
                 className={`relative flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border ${
@@ -578,39 +634,39 @@ export default function Header({
                   </span>
                 )}
               </button>
+            )}
 
-              {/* 10. داشبورد */}
-              {(isCeo || isProduction) && (
-                <button
-                  onClick={() => setActiveTab('dashboard')}
-                  className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border ${
-                    activeTab === 'dashboard'
-                      ? 'bg-indigo-600 text-white border-indigo-700 shadow-md ring-2 ring-indigo-400'
-                      : 'bg-white text-slate-700 hover:text-indigo-600 hover:bg-slate-50 border-slate-200 shadow-xs'
-                  }`}
-                >
-                  <BarChart3 className="w-4 h-4 text-purple-500" />
-                  <span>داشبورد</span>
-                </button>
-              )}
+            {/* 10. داشبورد */}
+            {canDashboard && (
+              <button
+                onClick={() => setActiveTab('dashboard')}
+                className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border ${
+                  activeTab === 'dashboard'
+                    ? 'bg-indigo-600 text-white border-indigo-700 shadow-md ring-2 ring-indigo-400'
+                    : 'bg-white text-slate-700 hover:text-indigo-600 hover:bg-slate-50 border-slate-200 shadow-xs'
+                }`}
+              >
+                <BarChart3 className="w-4 h-4 text-purple-500" />
+                <span>داشبورد</span>
+              </button>
+            )}
 
-              {/* 11. پرسنل (مدیرعامل) */}
-              {isCeo && (
-                <button
-                  onClick={() => setActiveTab('users')}
-                  className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border ${
-                    activeTab === 'users'
-                      ? 'bg-indigo-600 text-white border-indigo-700 shadow-md ring-2 ring-indigo-400'
-                      : 'bg-white text-slate-700 hover:text-indigo-600 hover:bg-slate-50 border-slate-200 shadow-xs'
-                  }`}
-                >
-                  <Users className="w-4 h-4 text-purple-600" />
-                  <span>پرسنل</span>
-                </button>
-              )}
+            {/* 11. پرسنل (مدیرعامل / دسترسی کاربران) */}
+            {canManageUsers && (
+              <button
+                onClick={() => setActiveTab('users')}
+                className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border ${
+                  activeTab === 'users'
+                    ? 'bg-indigo-600 text-white border-indigo-700 shadow-md ring-2 ring-indigo-400'
+                    : 'bg-white text-slate-700 hover:text-indigo-600 hover:bg-slate-50 border-slate-200 shadow-xs'
+                }`}
+              >
+                <Users className="w-4 h-4 text-purple-600" />
+                <span>مدیریت پرسنل و دسترسی‌ها</span>
+              </button>
+            )}
 
-            </div>
-          )}
+          </div>
 
         </div>
       </div>

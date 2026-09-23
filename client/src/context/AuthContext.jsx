@@ -71,11 +71,24 @@ export function AuthProvider({ children }) {
     setCurrentUser(null);
   };
 
+  const permissions = currentUser?.permissions || {};
+
+  const hasPermission = (permissionKey) => {
+    if (!currentUser) return false;
+    if (currentUser.role === 'ceo') return true;
+    if (currentUser.permissions && currentUser.permissions[permissionKey] !== undefined) {
+      return Boolean(currentUser.permissions[permissionKey]);
+    }
+    return false;
+  };
+
   return (
     <AuthContext.Provider
       value={{
         currentUser,
         role: currentUser?.role || 'sales',
+        permissions,
+        hasPermission,
         token,
         loading,
         login: handleLogin,
