@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { api } from '../api/client';
 import { formatToman, formatNumber } from '../utils/helpers';
 import { useAuth } from '../context/AuthContext';
+import FilePreviewModal from './FilePreviewModal';
 import {
   Calculator,
   Layers,
@@ -20,7 +21,11 @@ import {
   ArrowRight,
   Send,
   AlertCircle,
-  Box
+  Box,
+  Paperclip,
+  Eye,
+  Download,
+  FileText
 } from 'lucide-react';
 
 /**
@@ -196,6 +201,7 @@ export default function CalculatorView({ onApplyToProject, initialSpecs, onLeadE
   const [activeLead, setActiveLead] = useState(null);
   const [estimatingLead, setEstimatingLead] = useState(false);
   const [estimateNotes, setEstimateNotes] = useState('');
+  const [previewFile, setPreviewFile] = useState(null);
 
   const fetchPendingLeads = async () => {
     try {
@@ -428,6 +434,39 @@ export default function CalculatorView({ onApplyToProject, initialSpecs, onLeadE
                       {lead.cardboard_type} {lead.cardboard_grammage} گرم | {lead.material_construction} | {lead.cellophane_type}
                       {lead.box_length ? ` (${lead.box_length}×${lead.box_width}×${lead.box_height}mm)` : ''}
                     </div>
+
+                    {/* Dieline attachment button inside card */}
+                    {lead.dieline_filename && (
+                      <div className={`p-1.5 rounded-xl flex items-center justify-between text-xs mt-1.5 ${
+                        isSelected ? 'bg-teal-50 border border-teal-200 text-teal-900' : 'bg-black/25 text-white'
+                      }`}>
+                        <div className="flex items-center gap-1.5 truncate">
+                          <Paperclip className="w-3.5 h-3.5 text-cyan-300 shrink-0" />
+                          <span className="truncate text-[10px] font-bold" title={lead.dieline_filename}>
+                            {lead.dieline_filename}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setPreviewFile({
+                              file_url: lead.dieline_file_url,
+                              original_filename: lead.dieline_filename
+                            });
+                          }}
+                          className={`px-2 py-0.5 rounded-lg text-[10px] font-black transition flex items-center gap-1 shrink-0 ${
+                            isSelected
+                              ? 'bg-slate-900 text-white hover:bg-slate-800'
+                              : 'bg-white text-slate-900 hover:bg-cyan-100 shadow-xs'
+                          }`}
+                          title="مشاهده مستقیم پیش‌نمایش فایل خط تیغ"
+                        >
+                          <Eye className="w-3 h-3 text-cyan-500" />
+                          <span>مشاهده</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex items-center justify-between border-t border-white/20 pt-2 text-[11px] font-bold">
@@ -450,44 +489,110 @@ export default function CalculatorView({ onApplyToProject, initialSpecs, onLeadE
 
       {/* ACTIVE SELECTED LEAD ESTIMATION BANNER */}
       {activeLead && (
-        <div className="bg-indigo-50 border-2 border-indigo-400 rounded-2xl p-4 flex items-center justify-between flex-wrap gap-3 animate-in fade-in">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold">
-              <User className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-mono font-black text-indigo-700 bg-white px-2 py-0.5 rounded border border-indigo-200">
-                  {activeLead.lead_code}
-                </span>
-                <h4 className="font-black text-sm text-indigo-950">
-                  در حال برآورد قیمت برای: {activeLead.customer_name} ({activeLead.product_name})
-                </h4>
+        <div className="bg-indigo-50 border-2 border-indigo-400 rounded-3xl p-5 space-y-4 animate-in fade-in shadow-md">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-bold shadow-md shadow-indigo-200">
+                <User className="w-5 h-5" />
               </div>
-              <p className="text-xs text-indigo-700 mt-0.5">
-                تیراژ: <strong>{Number(activeLead.quantity).toLocaleString('fa-IR')}</strong> عدد | تلفن: {activeLead.customer_phone} | بازاریاب: {activeLead.marketer_name}
-              </p>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono font-black text-indigo-700 bg-white px-2.5 py-0.5 rounded-lg border border-indigo-200">
+                    {activeLead.lead_code}
+                  </span>
+                  <h4 className="font-black text-sm sm:text-base text-indigo-950">
+                    در حال برآورد قیمت برای: {activeLead.customer_name} ({activeLead.product_name})
+                  </h4>
+                </div>
+                <p className="text-xs text-indigo-700 mt-1">
+                  تیراژ: <strong>{Number(activeLead.quantity).toLocaleString('fa-IR')}</strong> عدد | تلفن: <strong className="font-mono text-slate-800">{activeLead.customer_phone}</strong> | بازاریاب: <strong className="text-indigo-900">{activeLead.marketer_name}</strong>
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleSubmitLeadEstimation}
+                disabled={estimatingLead || !calcResult}
+                className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm rounded-xl shadow-md transition flex items-center gap-2 active:scale-95"
+              >
+                {estimatingLead ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                <span>تایید و ارسال قیمت به بازاریاب (فی {formatToman(calcResult?.unitPrice || 0)})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveLead(null)}
+                className="px-3.5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs rounded-xl transition"
+              >
+                انصراف
+              </button>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={handleSubmitLeadEstimation}
-              disabled={estimatingLead || !calcResult}
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-md transition flex items-center gap-1.5 active:scale-95"
-            >
-              {estimatingLead ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-              <span>تایید و ارسال قیمت به بازاریاب (فی {formatToman(calcResult?.unitPrice || 0)})</span>
-            </button>
+          {/* ATTACHED DIELINE / ARTWORK FILE & MARKETING NOTES BOX */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-3 border-t border-indigo-200/70">
+            {/* File Attachment Box */}
+            <div className="p-3.5 bg-white rounded-2xl border border-indigo-200 flex items-center justify-between gap-3 flex-wrap shadow-2xs">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-9 h-9 rounded-xl bg-teal-50 border border-teal-200 text-teal-700 flex items-center justify-center shrink-0">
+                  <Paperclip className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[11px] text-slate-500 font-bold block">فایل خط تیغ / طرح پیوست بازاریاب:</span>
+                  {activeLead.dieline_filename ? (
+                    <strong className="text-xs font-black text-slate-900 truncate block dir-ltr text-right" title={activeLead.dieline_filename}>
+                      {activeLead.dieline_filename}
+                    </strong>
+                  ) : (
+                    <span className="text-xs text-amber-600 font-bold">فایل خط تیغ توسط بازاریاب پیوست نشده (محاسبه بر اساس ابعاد وارده)</span>
+                  )}
+                </div>
+              </div>
 
-            <button
-              type="button"
-              onClick={() => setActiveLead(null)}
-              className="px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs rounded-xl transition"
-            >
-              انصراف
-            </button>
+              {activeLead.dieline_filename && (
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setPreviewFile({
+                      file_url: activeLead.dieline_file_url,
+                      original_filename: activeLead.dieline_filename
+                    })}
+                    className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-xs active:scale-95"
+                    title="مشاهده مستقیم پیش‌نمایش فایل در داشبورد"
+                  >
+                    <Eye className="w-3.5 h-3.5 text-cyan-300" />
+                    <span>مشاهده فایل</span>
+                  </button>
+
+                  {activeLead.dieline_file_url && (
+                    <a
+                      href={activeLead.dieline_file_url}
+                      download={activeLead.dieline_filename}
+                      className="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-xs active:scale-95"
+                      title="دانلود فایل به کامپیوتر"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>دانلود</span>
+                    </a>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Marketer Notes Box */}
+            <div className="p-3.5 bg-white rounded-2xl border border-indigo-200 flex items-start gap-2.5 shadow-2xs">
+              <div className="w-9 h-9 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-700 flex items-center justify-center shrink-0 mt-0.5">
+                <FileText className="w-4 h-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="text-[11px] text-slate-500 font-bold block">توضیحات و نیازمندی‌های بازاریاب:</span>
+                <p className="text-xs text-slate-700 font-medium leading-relaxed line-clamp-2 mt-0.5">
+                  {activeLead.notes || 'توضیحات خاصی توسط بازاریاب ثبت نشده است.'}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -890,6 +995,14 @@ export default function CalculatorView({ onApplyToProject, initialSpecs, onLeadE
         </div>
 
       </div>
+
+      {/* IN-APP LIVE ASSET PREVIEW MODAL */}
+      {previewFile && (
+        <FilePreviewModal
+          file={previewFile}
+          onClose={() => setPreviewFile(null)}
+        />
+      )}
     </div>
   );
 }
