@@ -24,6 +24,14 @@ echo.
 
 :: 2. Change to root directory
 cd /d "%~dp0\.."
+set "ROOT_DIR=%cd%"
+
+:: Check for existing database & data preservation
+if exist "%ROOT_DIR%\server\factory.db" (
+    echo [INFO] Existing Factory Database detected!
+    echo [Hefze Etelaat] Etelaate ghabli, sefareshat va moshtarian hefz mishavad.
+    echo.
+)
 
 :: 3. Server Dependencies
 echo [1/3] Installing Server Dependencies...
@@ -38,7 +46,7 @@ if %errorlevel% neq 0 (
 :: 4. Check Client Build
 echo.
 echo [2/3] Checking Client Build...
-cd ..\client
+cd "%ROOT_DIR%\client"
 if not exist "dist\index.html" (
     echo Building UI client...
     call npm install --no-audit
@@ -47,7 +55,7 @@ if not exist "dist\index.html" (
     echo Client build verified (dist folder is ready).
 )
 
-cd ..
+cd "%ROOT_DIR%"
 
 :: 5. Open Windows Firewall Port 3001
 echo.

@@ -6,7 +6,7 @@ if os.path.exists(zip_filename):
     os.remove(zip_filename)
 
 with zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED) as zipf:
-    # 1. Add server folder (excluding node_modules)
+    # 1. Add server folder (excluding node_modules and logs)
     for root, dirs, files in os.walk('server'):
         if 'node_modules' in dirs:
             dirs.remove('node_modules')
@@ -26,7 +26,9 @@ with zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED) as zipf:
             path = os.path.join(root, file)
             zipf.write(path, os.path.relpath(path, '.'))
 
-    # 4. Add root package.json and server package.json
+    # 4. Add root update and install convenience shortcuts
+    zipf.write('windows-setup/update.bat', 'update.bat')
+    zipf.write('windows-setup/install.bat', 'install.bat')
     zipf.write('package.json', 'package.json')
     zipf.write('README.md', 'README.md')
 
