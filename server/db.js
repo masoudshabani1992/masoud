@@ -454,6 +454,42 @@ function initDb() {
     db.prepare("ALTER TABLE warehouse_receipts ADD COLUMN status_color TEXT DEFAULT 'white'").run();
   } catch (e) {}
 
+  try {
+    db.prepare("ALTER TABLE marketing_leads ADD COLUMN customer_feedback TEXT").run();
+  } catch (e) {}
+
+  try {
+    db.prepare("ALTER TABLE marketing_leads ADD COLUMN rejection_reason TEXT").run();
+  } catch (e) {}
+
+  try {
+    db.prepare("ALTER TABLE marketing_leads ADD COLUMN followup_logs TEXT").run();
+  } catch (e) {}
+
+  try {
+    db.prepare("ALTER TABLE marketing_leads ADD COLUMN commercial_reviewer_id INTEGER").run();
+  } catch (e) {}
+
+  try {
+    db.prepare("ALTER TABLE marketing_leads ADD COLUMN commercial_reviewer_name TEXT").run();
+  } catch (e) {}
+
+  try {
+    db.prepare("ALTER TABLE marketing_leads ADD COLUMN commercial_notes TEXT").run();
+  } catch (e) {}
+
+  try {
+    db.prepare("ALTER TABLE marketing_leads ADD COLUMN reviewed_at DATETIME").run();
+  } catch (e) {}
+
+  try {
+    db.prepare("ALTER TABLE marketing_leads ADD COLUMN converted_project_id INTEGER").run();
+  } catch (e) {}
+
+  try {
+    db.prepare("ALTER TABLE marketing_leads ADD COLUMN converted_archive_code TEXT").run();
+  } catch (e) {}
+
   // Seed default warehouse receipts matching actual factory Google Sheet
   const checkWarehouse = db.prepare('SELECT COUNT(*) as count FROM warehouse_receipts').get();
   if (checkWarehouse.count === 0) {
