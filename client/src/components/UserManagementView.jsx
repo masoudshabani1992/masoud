@@ -356,13 +356,31 @@ export default function UserManagementView() {
         phone: editingUser.phone,
         password: editPassword,
         permissions: editingUser.permissions,
-        is_active: editingUser.is_active
+        is_active: editingUser.is_active,
+        monthly_target_inquiries: editingUser.monthly_target_inquiries || 20,
+        monthly_target_amount: editingUser.monthly_target_amount || 0,
+        monthly_target_orders: editingUser.monthly_target_orders || 5
       });
       setEditingUser(null);
       setEditPassword('');
       fetchUsers();
     } catch (err) {
       alert('خطا در به‌روزرسانی: ' + err.message);
+    }
+  };
+
+  // Quick Single-Marketer Target Update
+  const handleQuickUpdateMarketerTarget = async (user, targetInquiries, targetAmount = 0) => {
+    try {
+      await api.updateUser(user.id, {
+        ...user,
+        monthly_target_inquiries: parseInt(targetInquiries) || 20,
+        monthly_target_amount: parseFloat(targetAmount) || 0
+      });
+      fetchUsers();
+      alert(`تارگت ماهانه «${user.full_name}» با موفقیت به ${targetInquiries} استعلام در ماه به‌روزرسانی و در داشبورد وی فعال شد.`);
+    } catch (err) {
+      alert('خطا در تنظیم تارگت: ' + err.message);
     }
   };
 
@@ -760,6 +778,7 @@ export default function UserManagementView() {
                     <th className="p-3">نام کاربری</th>
                     <th className="p-3">نقش سازمانی</th>
                     <th className="p-3 text-center">تعداد دسترسی</th>
+                    <th className="p-3 text-center">تارگت ماهانه</th>
                     <th className="p-3 text-center">وضعیت</th>
                     <th className="p-3 text-center rounded-l-xl">عملیات</th>
                   </tr>
@@ -768,6 +787,7 @@ export default function UserManagementView() {
                   {filteredUsers.map((u) => {
                     const matchedRole = ROLES.find((r) => r.id === u.role);
                     const activePermCount = countActivePermissions(u.permissions);
+                    const isMkt = u.role === 'marketer' || u.role === 'sales' || u.department?.includes('بازاریاب');
                     return (
                       <tr key={u.id} className="hover:bg-slate-50/70 transition-colors">
                         <td className="p-3">
@@ -787,6 +807,27 @@ export default function UserManagementView() {
                             <Shield className="w-3 h-3 text-indigo-500" />
                             <span>{activePermCount} ماژول</span>
                           </span>
+                        </td>
+                        <td className="p-3 text-center">
+                          {isMkt ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingUser({
+                                  ...u,
+                                  permissions: u.permissions || ROLE_PRESETS[u.role]?.permissions || {}
+                                });
+                                setEditPassword('');
+                              }}
+                              className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-300 transition"
+                              title="کلیک برای تغییر تارگت بازاریاب"
+                            >
+                              <Target className="w-3.5 h-3.5 text-teal-600" />
+                              <span>{u.monthly_target_inquiries || 20} استعلام/ماه</span>
+                            </button>
+                          ) : (
+                            <span className="text-slate-400 text-[11px]">---</span>
+                          )}
                         </td>
                         <td className="p-3 text-center">
                           <button
@@ -815,7 +856,7 @@ export default function UserManagementView() {
                                 setEditPassword('');
                               }}
                               className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                              title="ویرایش دسترسی‌ها و کلمه عبور"
+                              title="ویرایش دسترسی‌ها، تارگت و کلمه عبور"
                             >
                               <Edit2 className="w-4 h-4" />
                             </button>
@@ -840,6 +881,74 @@ export default function UserManagementView() {
           </div>
         </div>
 
+      </div>
+
+      {/* Dedicated Marketer Targets Management Hub (تعریف و مدیریت تارگت بازاریاب‌ها توسط مدیریت) */}
+      <div className="bg-gradient-to-r from-teal-950 via-slate-900 to-indigo-950 text-white p-6 sm:p-8 rounded-3xl shadow-xl border border-teal-800/50 space-y-5 animate-fadeIn">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-teal-800/60 pb-4">
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-teal-500/20 border border-teal-400/40 flex items-center justify-center text-teal-300 shadow-inner">
+              <Target className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-lg font-black text-white">مرکز تعیین و مدیریت تارگت ماهانه بازاریاب‌ها (تعریف توسط مدیریت)</h3>
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-teal-400/20 text-teal-300 border border-teal-400/40">
+                  {users.filter(u => u.role === 'marketer' || u.department?.includes('بازاریاب') || u.role === 'sales').length} بازاریاب و فروشنده
+                </span>
+              </div>
+              <p className="text-xs text-teal-100/80 mt-0.5 leading-relaxed">
+                تارگت تعیین‌شده در این بخش، بلافاصله در بالای کارتابل و داشبورد بازاریاب با نوار پیشرفت زنده، شاخص مانده تا هدف و نشان‌های پاداش نمایش داده می‌شود.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Marketers Target Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {users.filter(u => u.role === 'marketer' || u.department?.includes('بازاریاب') || u.role === 'sales').map(mkt => (
+            <div key={mkt.id} className="bg-slate-900/90 border border-teal-500/30 rounded-2xl p-4 space-y-3 shadow-md hover:border-teal-400/60 transition-all">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-black text-sm text-white">{mkt.full_name}</h4>
+                  <span className="text-[11px] text-teal-300 font-mono">@{mkt.username}</span>
+                </div>
+                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-teal-500/20 text-teal-300 border border-teal-400/30">
+                  {mkt.department}
+                </span>
+              </div>
+
+              <div className="space-y-1.5 pt-1">
+                <label className="text-[11px] font-bold text-slate-300 block">
+                  تغییر سریع تارگت استعلام (تعداد در ماه):
+                </label>
+                <div className="flex items-center gap-1.5">
+                  {[15, 20, 30, 50].map(val => (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => handleQuickUpdateMarketerTarget(mkt, val, mkt.monthly_target_amount)}
+                      className={`flex-1 py-1.5 rounded-lg text-xs font-black transition ${
+                        (mkt.monthly_target_inquiries || 20) === val
+                          ? 'bg-teal-500 text-slate-950 font-black shadow-sm ring-2 ring-teal-300'
+                          : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700'
+                      }`}
+                    >
+                      {val} عدد
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-800">
+                <span className="text-slate-400">تارگت مصوب فعال:</span>
+                <span className="font-mono font-black text-amber-300 text-sm">
+                  {mkt.monthly_target_inquiries || 20} استعلام / ماه
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Role Access Matrix Guide */}

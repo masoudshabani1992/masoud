@@ -1742,7 +1742,15 @@ app.post('/api/users', authMiddleware, requireCeo, (req, res) => {
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
   const result = insert.run(username, password_hash, full_name, role, department || role, phone || '', permsString, activeVal, targetInq, targetAmt, targetOrd);
-  res.json({ success: true, id: result.lastInsertRowid, message: 'کاربر جدید با سطوح دسترسی و تارگت مشخص با موفقیت ایجاد گردید.' });
+  const newUserId = result.lastInsertRowid;
+
+  // Auto-sync current month target in marketer_targets
+  try {
+    const currentMonthKey = getPersianYearMonth().yearMonth;
+    db.prepare('INSERT INTO marketer_targets (user_id, year_month_fa, target_inquiries, target_amount, target_orders) VALUES (?, ?, ?, ?, ?)').run(newUserId, currentMonthKey, targetInq, targetAmt, targetOrd);
+  } catch (e) {}
+
+  res.json({ success: true, id: newUserId, message: 'کاربر جدید با سطوح دسترسی و تارگت مشخص با موفقیت ایجاد گردید.' });
 });
 
 app.put('/api/users/:id', authMiddleware, requireCeo, (req, res) => {
@@ -1768,6 +1776,17 @@ app.put('/api/users/:id', authMiddleware, requireCeo, (req, res) => {
       WHERE id = ?
     `).run(full_name, role, department, phone || '', permsString, activeVal, targetInq, targetAmt, targetOrd, id);
   }
+
+  // Auto-sync current month target in marketer_targets
+  try {
+    const currentMonthKey = getPersianYearMonth().yearMonth;
+    const existingTarget = db.prepare('SELECT id FROM marketer_targets WHERE user_id = ? AND year_month_fa = ?').get(id, currentMonthKey);
+    if (existingTarget) {
+      db.prepare('UPDATE marketer_targets SET target_inquiries = ?, target_amount = ?, target_orders = ? WHERE id = ?').run(targetInq, targetAmt, targetOrd, existingTarget.id);
+    } else {
+      db.prepare('INSERT INTO marketer_targets (user_id, year_month_fa, target_inquiries, target_amount, target_orders) VALUES (?, ?, ?, ?, ?)').run(id, currentMonthKey, targetInq, targetAmt, targetOrd);
+    }
+  } catch (e) {}
 
   res.json({ success: true, message: 'اطلاعات، سطوح دسترسی و تارگت کاربر با موفقیت ذخیره گردید.' });
 });
