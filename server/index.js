@@ -304,7 +304,9 @@ app.post('/api/marketing/leads', authMiddleware, (req, res) => {
       box_length,
       box_width,
       box_height,
-      notes
+      notes,
+      dieline_file_url,
+      dieline_filename
     } = req.body;
 
     if (!customer_name || !customer_phone || !product_name || !quantity) {
@@ -319,8 +321,9 @@ app.post('/api/marketing/leads', authMiddleware, (req, res) => {
         lead_code, customer_name, customer_phone, product_name, quantity,
         cardboard_type, cardboard_grammage, material_construction, cellophane_type,
         box_length, box_width, box_height, notes,
+        dieline_file_url, dieline_filename,
         status, marketer_id, marketer_name
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending_commercial', ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending_commercial', ?, ?)
     `);
 
     const result = insertStmt.run(
@@ -337,6 +340,8 @@ app.post('/api/marketing/leads', authMiddleware, (req, res) => {
       box_width ? Number(box_width) : null,
       box_height ? Number(box_height) : null,
       notes || '',
+      dieline_file_url || null,
+      dieline_filename || null,
       user.id,
       user.full_name || 'کارشناس بازاریابی'
     );
@@ -379,6 +384,141 @@ app.post('/api/marketing/leads', authMiddleware, (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: 'خطا در ثبت استعلام بازاریابی: ' + err.message });
+  }
+});
+
+// 2.1 Update & Resubmit Incomplete Lead (ویرایش و تکمیل مجدد استعلام توسط بازاریاب)
+app.put('/api/marketing/leads/:id', authMiddleware, (req, res) => {
+  try {
+    const user = req.user;
+    const { id } = req.params;
+    const lead = db.prepare('SELECT * FROM marketing_leads WHERE id = ?').get(id);
+    if (!lead) return res.status(404).json({ error: 'استعلام یافت نشد.' });
+
+    // Marketer can only edit their own leads unless CEO / sales
+    if (user.role === 'marketer' && lead.marketer_id !== user.id) {
+      return res.status(403).json({ error: 'شما مجاز به ویرایش استعلام سایر همکاران نیستید.' });
+    }
+
+    const {
+      customer_name,
+      customer_phone,
+      product_name,
+      quantity,
+      cardboard_type,
+      cardboard_grammage,
+      material_construction,
+      cellophane_type,
+      box_length,
+      box_width,
+      box_height,
+      notes,
+      dieline_file_url,
+      dieline_filename
+    } = req.body;
+
+    db.prepare(`
+      UPDATE marketing_leads
+      SET customer_name = ?,
+          customer_phone = ?,
+          product_name = ?,
+          quantity = ?,
+          cardboard_type = ?,
+          cardboard_grammage = ?,
+          material_construction = ?,
+          cellophane_type = ?,
+          box_length = ?,
+          box_width = ?,
+          box_height = ?,
+          notes = ?,
+          dieline_file_url = COALESCE(?, dieline_file_url),
+          dieline_filename = COALESCE(?, dieline_filename),
+          incomplete_reason = NULL,
+          status = 'pending_commercial',
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).run(
+      customer_name || lead.customer_name,
+      customer_phone || lead.customer_phone,
+      product_name || lead.product_name,
+      quantity ? Number(quantity) : lead.quantity,
+      cardboard_type || lead.cardboard_type,
+      cardboard_grammage ? Number(cardboard_grammage) : lead.cardboard_grammage,
+      material_construction || lead.material_construction,
+      cellophane_type || lead.cellophane_type,
+      box_length ? Number(box_length) : lead.box_length,
+      box_width ? Number(box_width) : lead.box_width,
+      box_height ? Number(box_height) : lead.box_height,
+      notes !== undefined ? notes : lead.notes,
+      dieline_file_url || null,
+      dieline_filename || null,
+      id
+    );
+
+    sendNotification({
+      targetRole: 'sales',
+      title: 'استعلام اصلاح و مجدداً ارسال شد',
+      message: `استعلام «${lead.customer_name}» (${lead.lead_code}) توسط بازاریاب اصلاح، تکمیل و مجدداً جهت برآورد ارسال شد.`,
+      stageNumber: 1,
+      projectId: lead.id,
+      archiveCode: lead.lead_code
+    });
+
+    sendNotification({
+      targetRole: 'estimation',
+      title: 'استعلام اصلاح‌شده در انتظار برآورد',
+      message: `استعلام «${lead.customer_name}» (${lead.lead_code}) با مشخصات جدید در انتظار برآورد قیمت است.`,
+      stageNumber: 2,
+      projectId: lead.id,
+      archiveCode: lead.lead_code
+    });
+
+    res.json({ success: true, message: 'استعلام با موفقیت تکمیل و مجدداً جهت برآورد قیمت ارسال شد.' });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در ویرایش و ارسال مجدد استعلام: ' + err.message });
+  }
+});
+
+// 2.2 Mark Lead as Incomplete / Needs Revision (اعلام نقص مدارک توسط واحد برآورد به بازاریاب)
+app.post('/api/marketing/leads/:id/request-revision', authMiddleware, (req, res) => {
+  try {
+    const user = req.user;
+    if (user.role !== 'sales' && user.role !== 'ceo' && user.role !== 'accounting') {
+      return res.status(403).json({ error: 'تنها واحد برآورد یا مدیریت مجاز به اعلام نقص استعلام هستند.' });
+    }
+
+    const { id } = req.params;
+    const incomplete_reason = (req.body.incomplete_reason || req.body.reason || '').trim();
+    if (!incomplete_reason) {
+      return res.status(400).json({ error: 'لطفاً توضیحات و موارد ناقص را وارد نمایید.' });
+    }
+
+    const lead = db.prepare('SELECT * FROM marketing_leads WHERE id = ?').get(id);
+    if (!lead) return res.status(404).json({ error: 'استعلام یافت نشد.' });
+
+    db.prepare(`
+      UPDATE marketing_leads
+      SET status = 'needs_revision',
+          incomplete_reason = ?,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).run(incomplete_reason, id);
+
+    if (lead.marketer_id) {
+      sendNotification({
+        userId: lead.marketer_id,
+        targetRole: 'marketer',
+        title: '⚠️ استعلام نیازمند اصلاح و تکمیل اطلاعات',
+        message: `استعلام «${lead.customer_name}» (${lead.lead_code}) به دلیل نقص اطلاعات برگشت داده شد: ${incomplete_reason}`,
+        stageNumber: 1,
+        projectId: lead.id,
+        archiveCode: lead.lead_code
+      });
+    }
+
+    res.json({ success: true, message: 'اعلام نقص به بازاریاب با موفقیت ابلاغ شد.' });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در ثبت اعلام نقص: ' + err.message });
   }
 });
 

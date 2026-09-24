@@ -146,6 +146,55 @@ function WarehouseIcon({ className = "w-16 h-16" }) {
   );
 }
 
+function MarketingIcon({ className = "w-16 h-16" }) {
+  return (
+    <svg className={className} viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="32" cy="20" r="7" fill="currentColor" fillOpacity="0.2" />
+      <circle cx="32" cy="20" r="4" />
+      <path d="M18 44c0-7 6.5-11 14-11s14 4 14 11v3H18v-3z" fill="currentColor" fillOpacity="0.3" strokeWidth="2.5" />
+      <path d="M12 28l-6 6 6 6M52 28l6 6-6 6" strokeWidth="2.5" />
+      <circle cx="32" cy="50" r="3" fill="currentColor" />
+    </svg>
+  );
+}
+
+function HrIcon({ className = "w-16 h-16" }) {
+  return (
+    <svg className={className} viewBox="0 0 64 64" fill="currentColor">
+      <circle cx="32" cy="18" r="7" />
+      <path d="M20 40c0-6 5.5-10 12-10s12 4 12 10v4H20v-4z" />
+      <path d="M32 44l3 5 6 1-4 4 1 6-6-3-6 3 1-6-4-4 6-1z" fill="#fef08a" stroke="#ca8a04" strokeWidth="1.5" />
+    </svg>
+  );
+}
+
+function AiIcon({ className = "w-16 h-16" }) {
+  return (
+    <svg className={className} viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="16" y="16" width="32" height="32" rx="8" fill="currentColor" fillOpacity="0.2" strokeWidth="3" />
+      <circle cx="26" cy="30" r="3" fill="currentColor" />
+      <circle cx="38" cy="30" r="3" fill="currentColor" />
+      <path d="M26 40h12" strokeWidth="2.5" />
+      <path d="M32 8v8M32 48v8M8 32h8M48 32h8" strokeWidth="2.5" />
+    </svg>
+  );
+}
+
+function CalcHubIcon({ className = "w-16 h-16" }) {
+  return (
+    <svg className={className} viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="14" y="10" width="36" height="44" rx="6" fill="currentColor" fillOpacity="0.2" strokeWidth="3" />
+      <rect x="20" y="16" width="24" height="10" rx="2" fill="currentColor" fillOpacity="0.3" strokeWidth="2" />
+      <circle cx="22" cy="34" r="2.5" fill="currentColor" />
+      <circle cx="32" cy="34" r="2.5" fill="currentColor" />
+      <circle cx="42" cy="34" r="2.5" fill="currentColor" />
+      <circle cx="22" cy="44" r="2.5" fill="currentColor" />
+      <circle cx="32" cy="44" r="2.5" fill="currentColor" />
+      <circle cx="42" cy="44" r="2.5" fill="currentColor" />
+    </svg>
+  );
+}
+
 export default function DepartmentHubView({
   projects = [],
   onNavigateDepartment,
@@ -675,10 +724,7 @@ export default function DepartmentHubView({
           );
         })()}
 
-        {/* ================= ROW 3, COL 1: EMPTY SLOT (matches original UI) ================= */}
-        <div className="hidden lg:block"></div>
-
-        {/* ================= ROW 3, COL 2: برونسپاری (Out-Source) ================= */}
+        {/* ================= ROW 2, COL 3: برونسپاری (Out-Source) ================= */}
         {(() => {
           const hasAccess = canAccessDepartment(role, 'outsource');
           return (
@@ -718,7 +764,7 @@ export default function DepartmentHubView({
           );
         })()}
 
-        {/* ================= ROW 3, COL 3: ورود انبار مصرفی (Log entry and exit) ================= */}
+        {/* ================= ROW 2, COL 4: ورود انبار مصرفی (Log entry and exit) ================= */}
         {(() => {
           const hasAccess = canAccessDepartment(role, 'warehouse');
           return (
@@ -758,7 +804,7 @@ export default function DepartmentHubView({
           );
         })()}
 
-        {/* ================= ROW 3, COL 4: بازاریابی و استعلام (Marketing & Leads) ================= */}
+        {/* ================= ROW 3, COL 1: بازاریابی و استعلام (Marketing & Leads) ================= */}
         {(() => {
           const hasAccess = role === 'marketer' || role === 'sales' || role === 'ceo' || role === 'secretary';
           return (
@@ -775,42 +821,33 @@ export default function DepartmentHubView({
               }}
               className={`relative h-48 sm:h-56 rounded-2xl p-5 text-white flex flex-col items-center justify-center cursor-pointer transition-all duration-200 hover:scale-[1.03] hover:shadow-2xl border-4 ${
                 hasAccess ? 'border-teal-400/70 ring-4 ring-teal-400/20 shadow-lg' : 'border-teal-900/40 opacity-85'
-              } group overflow-hidden md:col-span-1 lg:col-span-2`}
+              } group overflow-hidden`}
               style={{
                 background: 'radial-gradient(circle at center, #0d9488 0%, #0f766e 50%, #115e59 100%)',
                 boxShadow: '0 10px 25px -5px rgba(13, 148, 136, 0.5), inset 0 0 20px rgba(0,0,0,0.3)'
               }}
             >
-              <div className="flex items-center justify-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center text-teal-200 group-hover:scale-110 transition-transform">
-                  <svg className="w-9 h-9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                    <circle cx="9" cy="7" r="4" />
-                    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                  </svg>
+              {!hasAccess && (
+                <div className="absolute top-3.5 left-3.5 bg-black/40 text-teal-200 p-1.5 rounded-lg backdrop-blur-xs" title="نیازمند دسترسی بازاریابی">
+                  <Lock className="w-4 h-4" />
                 </div>
+              )}
 
-                <div className="text-right">
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-xl sm:text-2xl font-black text-white drop-shadow-sm">واحد بازاریابی و استعلام</h2>
-                    <span className="bg-amber-400 text-slate-950 px-2 py-0.5 rounded-full text-[10px] font-black">
-                      فعال
-                    </span>
-                  </div>
-                  <span className="text-sm font-serif italic font-bold text-teal-100 block mt-0.5">
-                    Marketing & Lead Quotations
-                  </span>
-                  <p className="text-xs text-teal-100/80 mt-1 hidden sm:block">
-                    ثبت استعلام، تارگت ماهانه و پیگیری سرنخ‌های فروش کارخانه
-                  </p>
-                </div>
+              <div className="text-white group-hover:scale-110 transition-transform duration-200 drop-shadow-md">
+                <MarketingIcon className="w-16 h-16 sm:w-20 sm:h-20" />
+              </div>
+
+              <div className="text-center mt-2">
+                <h2 className="text-xl sm:text-2xl font-black text-white drop-shadow-sm">بازاریابی و استعلام</h2>
+                <span className="text-sm sm:text-base font-serif italic font-bold text-teal-200 block -mt-0.5">
+                  Marketing & Leads
+                </span>
               </div>
             </div>
           );
         })()}
 
-        {/* ================= ROW 3, COL 5: منابع انسانی و ارزیابی عملکرد (HR Performance) ================= */}
+        {/* ================= ROW 3, COL 2: منابع انسانی و ارزیابی عملکرد (Human Resources) ================= */}
         {(() => {
           const hasAccess = role === 'ceo' || role === 'secretary' || currentUser?.permissions?.can_manage_users;
           return (
@@ -827,35 +864,96 @@ export default function DepartmentHubView({
               }}
               className={`relative h-48 sm:h-56 rounded-2xl p-5 text-white flex flex-col items-center justify-center cursor-pointer transition-all duration-200 hover:scale-[1.03] hover:shadow-2xl border-4 ${
                 hasAccess ? 'border-amber-400/70 ring-4 ring-amber-400/20 shadow-lg' : 'border-amber-900/40 opacity-85'
-              } group overflow-hidden md:col-span-1 lg:col-span-2`}
+              } group overflow-hidden`}
               style={{
                 background: 'radial-gradient(circle at center, #d97706 0%, #b45309 50%, #451a03 100%)',
                 boxShadow: '0 10px 25px -5px rgba(217, 119, 6, 0.5), inset 0 0 20px rgba(0,0,0,0.3)'
               }}
             >
-              <div className="flex items-center justify-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center text-amber-200 group-hover:scale-110 transition-transform">
-                  <svg className="w-9 h-9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                    <circle cx="9" cy="7" r="4" />
-                    <polyline points="16 11 18 13 22 9" />
-                  </svg>
+              {!hasAccess && (
+                <div className="absolute top-3.5 left-3.5 bg-black/40 text-amber-200 p-1.5 rounded-lg backdrop-blur-xs" title="نیازمند دسترسی مدیریت">
+                  <Lock className="w-4 h-4" />
                 </div>
+              )}
 
-                <div className="text-right">
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-xl sm:text-2xl font-black text-white drop-shadow-sm">منابع انسانی و ارزیابی عملکرد</h2>
-                    <span className="bg-emerald-400 text-slate-950 px-2 py-0.5 rounded-full text-[10px] font-black">
-                      HR & KPI
-                    </span>
-                  </div>
-                  <span className="text-sm font-serif italic font-bold text-amber-100 block mt-0.5">
-                    Human Resources & KPI Evaluation
-                  </span>
-                  <p className="text-xs text-amber-100/80 mt-1 hidden sm:block">
-                    ارزیابی ۵ محوره پرسنل، پاداش بهره‌وری و پرونده دیجیتال کارکنان
-                  </p>
+              <div className="text-white group-hover:scale-110 transition-transform duration-200 drop-shadow-md">
+                <HrIcon className="w-16 h-16 sm:w-20 sm:h-20" />
+              </div>
+
+              <div className="text-center mt-2">
+                <h2 className="text-xl sm:text-2xl font-black text-white drop-shadow-sm">منابع انسانی</h2>
+                <span className="text-sm sm:text-base font-serif italic font-bold text-amber-200 block -mt-0.5">
+                  Human Resources
+                </span>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* ================= ROW 3, COL 3: هوش مصنوعی و بهینه‌سازی (AI Assistant) ================= */}
+        {(() => {
+          const hasAccess = true;
+          return (
+            <div
+              onClick={() => onNavigateDepartment('ai_assistant')}
+              className={`relative h-48 sm:h-56 rounded-2xl p-5 text-white flex flex-col items-center justify-center cursor-pointer transition-all duration-200 hover:scale-[1.03] hover:shadow-2xl border-4 border-indigo-400/70 ring-4 ring-indigo-400/20 shadow-lg group overflow-hidden`}
+              style={{
+                background: 'radial-gradient(circle at center, #6366f1 0%, #4338ca 50%, #1e1b4b 100%)',
+                boxShadow: '0 10px 25px -5px rgba(99, 102, 241, 0.5), inset 0 0 20px rgba(0,0,0,0.3)'
+              }}
+            >
+              <div className="text-white group-hover:scale-110 transition-transform duration-200 drop-shadow-md">
+                <AiIcon className="w-16 h-16 sm:w-20 sm:h-20" />
+              </div>
+
+              <div className="text-center mt-2">
+                <h2 className="text-xl sm:text-2xl font-black text-white drop-shadow-sm">هوش مصنوعی</h2>
+                <span className="text-sm sm:text-base font-serif italic font-bold text-indigo-200 block -mt-0.5">
+                  AI Packaging
+                </span>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* ================= ROW 3, COL 4: ماشین حساب برآورد قیمت (Price Calculator) ================= */}
+        {(() => {
+          const hasAccess = role === 'accounting' || role === 'estimation' || role === 'ceo' || role === 'sales';
+          return (
+            <div
+              onClick={() => {
+                if (!hasAccess && role !== 'ceo') {
+                  setAccessDeniedModal({
+                    targetName: 'برآورد صنعتی قیمت',
+                    userRoleName: currentUser?.department || role
+                  });
+                  return;
+                }
+                onNavigateDepartment('calculator');
+              }}
+              className={`relative h-48 sm:h-56 rounded-2xl p-5 text-white flex flex-col items-center justify-center cursor-pointer transition-all duration-200 hover:scale-[1.03] hover:shadow-2xl border-4 ${
+                hasAccess ? 'border-sky-400/70 ring-4 ring-sky-400/20 shadow-lg' : 'border-sky-900/40 opacity-85'
+              } group overflow-hidden`}
+              style={{
+                background: 'radial-gradient(circle at center, #0284c7 0%, #0369a1 50%, #082f49 100%)',
+                boxShadow: '0 10px 25px -5px rgba(2, 132, 199, 0.5), inset 0 0 20px rgba(0,0,0,0.3)'
+              }}
+            >
+              {!hasAccess && (
+                <div className="absolute top-3.5 left-3.5 bg-black/40 text-sky-200 p-1.5 rounded-lg backdrop-blur-xs" title="نیازمند دسترسی برآورد قیمت">
+                  <Lock className="w-4 h-4" />
                 </div>
+              )}
+
+              <div className="text-white group-hover:scale-110 transition-transform duration-200 drop-shadow-md">
+                <CalcHubIcon className="w-16 h-16 sm:w-20 sm:h-20" />
+              </div>
+
+              <div className="text-center mt-2">
+                <h2 className="text-xl sm:text-2xl font-black text-white drop-shadow-sm">برآورد صنعتی قیمت</h2>
+                <span className="text-sm sm:text-base font-serif italic font-bold text-sky-200 block -mt-0.5">
+                  Cost Estimation
+                </span>
               </div>
             </div>
           );

@@ -287,6 +287,9 @@ function initDb() {
       estimated_total_price REAL,
       estimation_date TEXT,
       estimated_by TEXT,
+      dieline_file_url TEXT,
+      dieline_filename TEXT,
+      incomplete_reason TEXT,
       status TEXT DEFAULT 'pending_estimation',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );

@@ -51,7 +51,7 @@ export default function LoginView() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 flex items-center justify-center p-4 sm:p-6 font-sans">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 flex flex-col items-center justify-center p-4 sm:p-6 font-sans select-none">
       <div className="w-full max-w-4xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden grid grid-cols-1 md:grid-cols-12 animate-in fade-in zoom-in-95 duration-200">
         
         {/* Right Column: Factory Branding & Fast Roles */}
@@ -96,10 +96,6 @@ export default function LoginView() {
                 ))}
               </div>
             </div>
-          </div>
-
-          <div className="text-xs text-amber-300 font-bold text-center pt-4 border-t border-indigo-900/50 mt-4">
-            برنامه نویس: مسعود شعبانی
           </div>
         </div>
 
@@ -175,10 +171,18 @@ export default function LoginView() {
           </form>
         </div>
 
-        {/* Footer Notice */}
-        <div className="w-full text-center text-[12px] text-slate-400 font-medium py-2 space-y-1">
-          <p>همکار گرامی! تمامی اطلاعات این اتوماسیون محرمانه و امانت در اختیار شماست</p>
-          <p className="text-amber-400 font-bold font-mono text-[12px]">برنامه‌نویس: مسعود شعبانی</p>
+        {/* Footer Notice (Spans across full 12 columns horizontally) */}
+        <div className="md:col-span-12 bg-slate-900 text-slate-300 border-t border-slate-800 py-3 px-6 text-[12px] flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span className="font-medium text-slate-200">
+              همکار گرامی! تمامی اطلاعات این اتوماسیون محرمانه و امانت در اختیار شماست
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 text-amber-400 font-bold font-mono text-[12px]">
+            <span className="text-slate-400 font-sans">برنامه‌نویس:</span>
+            <span>مسعود شعبانی</span>
+          </div>
         </div>
 
       </div>

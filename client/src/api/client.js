@@ -83,6 +83,8 @@ export const api = {
   // Marketing Leads (بخش بازاریاب و استعلامات)
   getMarketingLeads: () => apiRequest('/marketing/leads'),
   createMarketingLead: (data) => apiRequest('/marketing/leads', { method: 'POST', body: JSON.stringify(data) }),
+  updateMarketingLead: (id, data) => apiRequest(`/marketing/leads/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  requestMarketingLeadRevision: (id, data) => apiRequest(`/marketing/leads/${id}/request-revision`, { method: 'POST', body: JSON.stringify(data) }),
   estimateMarketingLead: (id, data) => apiRequest(`/marketing/leads/${id}/estimate`, { method: 'PUT', body: JSON.stringify(data) }),
   updateMarketingLeadStatus: (id, data) => apiRequest(`/marketing/leads/${id}/status`, { method: 'PUT', body: JSON.stringify(typeof data === 'string' ? { status: data } : data) }),
   addMarketingLeadFollowup: (id, data) => apiRequest(`/marketing/leads/${id}/followup`, { method: 'POST', body: JSON.stringify(data) }),

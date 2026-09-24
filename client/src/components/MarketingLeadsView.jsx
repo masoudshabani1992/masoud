@@ -44,7 +44,13 @@ import {
   Sliders,
   SlidersHorizontal,
   Gift,
-  Star
+  Star,
+  Upload,
+  Paperclip,
+  Download,
+  Edit3,
+  AlertTriangle,
+  Trash2
 } from 'lucide-react';
 
 const CARDBOARD_TYPES = [
@@ -133,8 +139,35 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
   const [boxWidth, setBoxWidth] = useState('');
   const [boxHeight, setBoxHeight] = useState('');
   const [notes, setNotes] = useState('');
+  const [dielineFileName, setDielineFileName] = useState('');
+  const [dielineFileUrl, setDielineFileUrl] = useState('');
+  const [dielineFileSize, setDielineFileSize] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(null);
+
+  // Edit / Resubmit Incomplete Lead States (تکمیل و ارسال مجدد توسط بازاریاب)
+  const [editingLead, setEditingLead] = useState(null);
+  const [editCustomerName, setEditCustomerName] = useState('');
+  const [editCustomerPhone, setEditCustomerPhone] = useState('');
+  const [editProductName, setEditProductName] = useState('');
+  const [editQuantity, setEditQuantity] = useState(5000);
+  const [editCardboardType, setEditCardboardType] = useState('');
+  const [editCardboardGrammage, setEditCardboardGrammage] = useState(300);
+  const [editMaterialConstruction, setEditMaterialConstruction] = useState('');
+  const [editCellophaneType, setEditCellophaneType] = useState('');
+  const [editBoxLength, setEditBoxLength] = useState('');
+  const [editBoxWidth, setEditBoxWidth] = useState('');
+  const [editBoxHeight, setEditBoxHeight] = useState('');
+  const [editNotes, setEditNotes] = useState('');
+  const [editDielineFileName, setEditDielineFileName] = useState('');
+  const [editDielineFileUrl, setEditDielineFileUrl] = useState('');
+  const [editDielineFileSize, setEditDielineFileSize] = useState('');
+  const [updatingLead, setUpdatingLead] = useState(false);
+
+  // Commercial Revision Request Modal (اعلام نقص مدارک توسط واحد برآورد)
+  const [revisionModalLead, setRevisionModalLead] = useState(null);
+  const [revisionReason, setRevisionReason] = useState('');
+  const [sendingRevision, setSendingRevision] = useState(false);
 
   // Modals State
   const [selectedLeadForDetail, setSelectedLeadForDetail] = useState(null);
@@ -192,6 +225,120 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
     fetchTargetStats();
   }, []);
 
+  // File Upload Handler (for Dieline / Artwork)
+  const handleFileUpload = (e, isEdit = false) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 25 * 1024 * 1024) {
+      alert('حجم فایل انتخابی بیش از حد مجاز (۲۵ مگابایت) است.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (uploadEvent) => {
+      const dataUrl = uploadEvent.target.result;
+      const sizeKb = (file.size / 1024).toFixed(1);
+      if (isEdit) {
+        setEditDielineFileName(file.name);
+        setEditDielineFileUrl(dataUrl);
+        setEditDielineFileSize(sizeKb);
+      } else {
+        setDielineFileName(file.name);
+        setDielineFileUrl(dataUrl);
+        setDielineFileSize(sizeKb);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Open Edit & Resubmit Modal (for Marketer when lead is incomplete)
+  const handleOpenEditModal = (lead) => {
+    setEditingLead(lead);
+    setEditCustomerName(lead.customer_name || '');
+    setEditCustomerPhone(lead.customer_phone || '');
+    setEditProductName(lead.product_name || '');
+    setEditQuantity(lead.quantity || 5000);
+    setEditCardboardType(lead.cardboard_type || 'ایندربرد بهداشتی (Ivory/FBB)');
+    setEditCardboardGrammage(lead.cardboard_grammage || 300);
+    setEditMaterialConstruction(lead.material_construction || 'مقوای تک‌لا (بدون سینگل)');
+    setEditCellophaneType(lead.cellophane_type || 'سلفون مات حرارتی');
+    setEditBoxLength(lead.box_length !== null ? String(lead.box_length) : '');
+    setEditBoxWidth(lead.box_width !== null ? String(lead.box_width) : '');
+    setEditBoxHeight(lead.box_height !== null ? String(lead.box_height) : '');
+    setEditNotes(lead.notes || '');
+    setEditDielineFileName(lead.dieline_filename || '');
+    setEditDielineFileUrl(lead.dieline_file_url || '');
+    setEditDielineFileSize('');
+  };
+
+  // Submit Edit & Resubmit
+  const handleUpdateAndResubmitLead = async (e) => {
+    e.preventDefault();
+    if (!editCustomerName || !editCustomerPhone || !editProductName || !editQuantity) {
+      alert('لطفاً فیلدهای ضروری را تکمیل فرمایید.');
+      return;
+    }
+
+    setUpdatingLead(true);
+    try {
+      const res = await api.updateMarketingLead(editingLead.id, {
+        customer_name: editCustomerName,
+        customer_phone: editCustomerPhone,
+        product_name: editProductName,
+        quantity: Number(editQuantity),
+        cardboard_type: editCardboardType,
+        cardboard_grammage: Number(editCardboardGrammage),
+        material_construction: editMaterialConstruction,
+        cellophane_type: editCellophaneType,
+        box_length: editBoxLength ? Number(editBoxLength) : null,
+        box_width: editBoxWidth ? Number(editBoxWidth) : null,
+        box_height: editBoxHeight ? Number(editBoxHeight) : null,
+        notes: editNotes,
+        dieline_filename: editDielineFileName || null,
+        dieline_file_url: editDielineFileUrl || null
+      });
+
+      if (res.success) {
+        alert(res.message);
+        setEditingLead(null);
+        fetchLeads();
+      }
+    } catch (err) {
+      alert(err.message || 'خطا در ویرایش استعلام.');
+    } finally {
+      setUpdatingLead(false);
+    }
+  };
+
+  // Submit Revision Request (Commercial Manager sends back as incomplete)
+  const handleRequestRevision = async (e) => {
+    e.preventDefault();
+    if (!revisionReason.trim()) {
+      alert('لطفاً دلیل و موارد نقص اطلاعات را وارد فرمایید.');
+      return;
+    }
+
+    setSendingRevision(true);
+    try {
+      const res = await api.requestMarketingLeadRevision(revisionModalLead.id, {
+        incomplete_reason: revisionReason.trim()
+      });
+
+      if (res.success) {
+        alert(res.message);
+        setRevisionModalLead(null);
+        setEstimatingLead(null);
+        setRevisionReason('');
+        fetchLeads();
+      }
+    } catch (err) {
+      alert(err.message || 'خطا در اعلام نقص اطلاعات.');
+    } finally {
+      setSendingRevision(false);
+    }
+  };
+
   // Handle Submit Form
   const handleSubmitLead = async (e) => {
     e.preventDefault();
@@ -215,7 +362,9 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
         box_length: boxLength ? Number(boxLength) : null,
         box_width: boxWidth ? Number(boxWidth) : null,
         box_height: boxHeight ? Number(boxHeight) : null,
-        notes: notes
+        notes: notes,
+        dieline_filename: dielineFileName || null,
+        dieline_file_url: dielineFileUrl || null
       });
 
       if (res.success) {
@@ -232,6 +381,9 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
         setBoxWidth('');
         setBoxHeight('');
         setNotes('');
+        setDielineFileName('');
+        setDielineFileUrl('');
+        setDielineFileSize('');
         fetchLeads();
         setActiveTab('leads_list');
       }
@@ -393,6 +545,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
   // Calculate Metrics
   const totalLeads = leads.length;
   const pendingCount = leads.filter(l => l.status === 'pending_commercial').length;
+  const needsRevisionCount = leads.filter(l => l.status === 'needs_revision').length;
   const estimatedCount = leads.filter(l => l.status === 'estimated').length;
   const approvedCount = leads.filter(l => l.status === 'customer_approved').length;
   const convertedCount = leads.filter(l => l.status === 'converted_to_order').length;
@@ -883,6 +1036,27 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
           </div>
         </button>
 
+        {/* Needs Revision (Rose / Amber Alert) */}
+        {needsRevisionCount > 0 && (
+          <button
+            onClick={() => setStatusFilter(statusFilter === 'needs_revision' ? 'all' : 'needs_revision')}
+            className={`p-4 rounded-2xl border text-right transition-all flex flex-col justify-between animate-pulse ${
+              statusFilter === 'needs_revision'
+                ? 'bg-rose-50 border-rose-500 ring-2 ring-rose-400 shadow-md'
+                : 'bg-rose-50/50 border-rose-200 hover:border-rose-300 shadow-xs'
+            }`}
+          >
+            <div className="flex items-center justify-between text-rose-800 text-xs font-bold">
+              <span>نیازمند اصلاح مشخصات</span>
+              <AlertTriangle className="w-4 h-4 text-rose-600" />
+            </div>
+            <div className="mt-2 flex items-baseline justify-between">
+              <span className="text-xl font-black text-rose-950 font-mono">{needsRevisionCount}</span>
+              <span className="text-[10px] text-rose-700 font-bold">اقدام بازاریاب</span>
+            </div>
+          </button>
+        )}
+
         {/* Customer Approved (Sky) */}
         <button
           onClick={() => setStatusFilter(statusFilter === 'customer_approved' ? 'all' : 'customer_approved')}
@@ -963,6 +1137,19 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                 <Clock className="w-3.5 h-3.5" />
                 <span>در انتظار برآورد ({pendingCount})</span>
               </button>
+              {needsRevisionCount > 0 && (
+                <button
+                  onClick={() => setStatusFilter('needs_revision')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition flex items-center gap-1 animate-pulse ${
+                    statusFilter === 'needs_revision'
+                      ? 'bg-rose-600 text-white font-black'
+                      : 'bg-rose-50 text-rose-800 hover:bg-rose-100'
+                  }`}
+                >
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                  <span>نیازمند اصلاح ({needsRevisionCount})</span>
+                </button>
+              )}
               <button
                 onClick={() => setStatusFilter('estimated')}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition flex items-center gap-1 ${
@@ -1041,6 +1228,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
             <div className="grid grid-cols-1 gap-4">
               {filteredLeads.map((lead) => {
                 const isPending = lead.status === 'pending_commercial';
+                const isNeedsRevision = lead.status === 'needs_revision';
                 const isEstimated = lead.status === 'estimated';
                 const isApproved = lead.status === 'customer_approved';
                 const isConverted = lead.status === 'converted_to_order';
@@ -1053,7 +1241,14 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                   </span>
                 );
 
-                if (isEstimated) {
+                if (isNeedsRevision) {
+                  statusBadge = (
+                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-950 border border-rose-300 flex items-center gap-1.5 animate-pulse">
+                      <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
+                      <span>⚠️ ناقص - نیازمند اصلاح و تکمیل مشخصات</span>
+                    </span>
+                  );
+                } else if (isEstimated) {
                   statusBadge = (
                     <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-900 border border-emerald-300 flex items-center gap-1.5">
                       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
@@ -1182,8 +1377,12 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                         ) : (
                           <div className="flex flex-col items-center justify-center h-full text-center text-slate-400 space-y-1 py-2">
                             <Clock className="w-5 h-5 text-amber-500" />
-                            <span className="text-xs font-bold text-amber-800">در حال محاسبه قیمت توسط واحد برآورد</span>
-                            <span className="text-[10px] text-slate-400">به محض تعیین قیمت در این قسمت نمایش داده خواهد شد</span>
+                            <span className="text-xs font-bold text-amber-800">
+                              {isNeedsRevision ? 'نیازمند تکمیل اطلاعات توسط بازاریاب' : 'در حال محاسبه قیمت توسط واحد برآورد'}
+                            </span>
+                            <span className="text-[10px] text-slate-400">
+                              {isNeedsRevision ? 'لطفاً موارد اعلامی را بررسی و مجدداً ارسال نمایید' : 'به محض تعیین قیمت در این قسمت نمایش داده خواهد شد'}
+                            </span>
                           </div>
                         )}
 
@@ -1198,6 +1397,41 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                         )}
                       </div>
                     </div>
+
+                    {/* Incomplete Reason Warning Callout */}
+                    {lead.incomplete_reason && (
+                      <div className="bg-rose-50/90 border border-rose-300 rounded-2xl p-3.5 text-xs text-rose-950 flex items-start gap-3">
+                        <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5 animate-pulse" />
+                        <div className="space-y-1">
+                          <strong className="font-black text-rose-900 block">نقص اطلاعات اعلام شده توسط واحد برآورد / مدیریت:</strong>
+                          <p className="text-slate-800 leading-relaxed font-medium">{lead.incomplete_reason}</p>
+                          <div className="pt-1 text-[11px] text-rose-700 font-bold">
+                            جهت اصلاح ابعاد، نوع متریال یا پیوست خط تیغ صحیح، روی دکمه «تکمیل و ارسال مجدد جهت برآورد» در پایین کلیک فرمایید.
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Dieline Attachment Box (if uploaded) */}
+                    {lead.dieline_filename && (
+                      <div className="p-3 bg-teal-50/80 border border-teal-200 rounded-2xl flex items-center justify-between text-xs flex-wrap gap-2">
+                        <div className="flex items-center gap-2">
+                          <Paperclip className="w-4 h-4 text-teal-700 shrink-0" />
+                          <span className="text-slate-600 font-bold">فایل خط تیغ / طرح پیوست:</span>
+                          <strong className="text-teal-950 font-black">{lead.dieline_filename}</strong>
+                        </div>
+                        {lead.dieline_file_url && (
+                          <a
+                            href={lead.dieline_file_url}
+                            download={lead.dieline_filename}
+                            className="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-xs"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                            <span>دانلود فایل خط تیغ</span>
+                          </a>
+                        )}
+                      </div>
+                    )}
 
                     {/* Progress Timeline Stepper */}
                     <div className="pt-2 border-t border-slate-100">
@@ -1308,6 +1542,18 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
 
                       {/* Right Actions */}
                       <div className="flex items-center gap-2 flex-wrap">
+                        {/* Marketer: Edit and Resubmit Lead (When Incomplete / Needs Revision or Pending) */}
+                        {(isNeedsRevision || isPending) && (
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEditModal(lead)}
+                            className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-sm active:scale-95"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                            <span>تکمیل و ارسال مجدد جهت برآورد</span>
+                          </button>
+                        )}
+
                         {/* Marketer: Confirm Customer Acceptance */}
                         {isEstimated && (
                           <button
@@ -1611,6 +1857,57 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                 onChange={(e) => setNotes(e.target.value)}
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-bold text-slate-800 focus:outline-none focus:border-teal-500"
               />
+            </div>
+          </div>
+
+          {/* Section 4: Dieline & Artwork Upload (Optional) */}
+          <div className="space-y-3 pt-2">
+            <h3 className="text-xs font-black text-slate-700 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-teal-600" />
+              ۴. پیوست فایل خط تیغ، قالب یا طرح چاپی (اختیاری)
+            </h3>
+
+            <div className="border-2 border-dashed border-slate-200 hover:border-teal-500 rounded-2xl p-4 sm:p-6 text-center transition bg-slate-50/50">
+              <input
+                type="file"
+                id="dieline-upload-input"
+                accept=".pdf,.ai,.eps,.cdr,.dxf,.svg,.jpg,.jpeg,.png,.zip"
+                onChange={(e) => handleFileUpload(e, false)}
+                className="hidden"
+              />
+              {dielineFileName ? (
+                <div className="flex items-center justify-between bg-teal-50 border border-teal-200 rounded-2xl p-3.5 max-w-lg mx-auto">
+                  <div className="flex items-center gap-3">
+                    <Paperclip className="w-5 h-5 text-teal-600 shrink-0" />
+                    <div className="text-right">
+                      <div className="font-bold text-xs text-teal-950 truncate max-w-xs">{dielineFileName}</div>
+                      <div className="text-[10px] text-teal-700 font-mono">{dielineFileSize ? `${dielineFileSize} KB` : 'پیوست شده'}</div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDielineFileName('');
+                      setDielineFileUrl('');
+                      setDielineFileSize('');
+                    }}
+                    className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl text-xs transition"
+                    title="حذف فایل"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <label htmlFor="dieline-upload-input" className="cursor-pointer flex flex-col items-center space-y-2 py-2">
+                  <Upload className="w-8 h-8 text-teal-600 stroke-[1.75]" />
+                  <span className="text-xs font-bold text-slate-800">
+                    جهت آپلود فایل خط تیغ، قالب، PDF یا عکس جعبه کلیک نمایید
+                  </span>
+                  <span className="text-[11px] text-slate-400">
+                    فرمت‌های مجاز: PDF, AI, CDR, EPS, DXF, SVG, JPG, PNG, ZIP (حداکثر ۲۵ مگابایت)
+                  </span>
+                </label>
+              )}
             </div>
           </div>
 
@@ -1936,23 +2233,39 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
               <button
                 type="button"
-                onClick={() => setEstimatingLead(null)}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs"
+                onClick={() => {
+                  const leadToRevise = estimatingLead;
+                  setEstimatingLead(null);
+                  setRevisionModalLead(leadToRevise);
+                  setRevisionReason('');
+                }}
+                className="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl font-bold text-xs border border-rose-200 transition flex items-center gap-1.5"
               >
-                انصراف
+                <AlertTriangle className="w-4 h-4 text-rose-600" />
+                <span>اعلام نقص اطلاعات به بازاریاب</span>
               </button>
-              <button
-                type="button"
-                disabled={estimatingLoading}
-                onClick={handleSubmitEstimate}
-                className="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl font-black text-xs shadow-md transition flex items-center gap-1.5"
-              >
-                {estimatingLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                <span>ثبت برآورد و اعلام به کارتابل بازاریاب</span>
-              </button>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEstimatingLead(null)}
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs"
+                >
+                  انصراف
+                </button>
+                <button
+                  type="button"
+                  disabled={estimatingLoading}
+                  onClick={handleSubmitEstimate}
+                  className="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl font-black text-xs shadow-md transition flex items-center gap-1.5"
+                >
+                  {estimatingLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                  <span>ثبت برآورد و اعلام به کارتابل بازاریاب</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -2078,6 +2391,329 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                 >
                   {savingTarget ? <RefreshCw className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
                   <span>ذخیره و ابلاغ تارگت به بازاریاب</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 5: MARKETER EDIT & RESUBMIT LEAD (تکمیل و ارسال مجدد استعلام توسط بازاریاب) */}
+      {editingLead && (
+        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-5 animate-scaleUp my-8 max-h-[90vh] overflow-y-auto" dir="rtl">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2 text-amber-600 font-black text-sm">
+                <Edit3 className="w-5 h-5 text-amber-500" />
+                <span>ویرایش و تکمیل مشخصات استعلام ({editingLead.lead_code})</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingLead(null)}
+                className="text-slate-400 hover:text-slate-600 p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Incomplete Reason Banner if present */}
+            {editingLead.incomplete_reason && (
+              <div className="bg-rose-50 border border-rose-300 rounded-2xl p-4 text-xs text-rose-950 flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <strong className="font-bold text-rose-900 block">نقص اطلاعات اعلام شده توسط واحد برآورد / مدیریت:</strong>
+                  <p className="text-slate-800 leading-relaxed font-medium">{editingLead.incomplete_reason}</p>
+                </div>
+              </div>
+            )}
+
+            <form onSubmit={handleUpdateAndResubmitLead} className="space-y-4 text-xs">
+              {/* Customer Info */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">
+                    نام کامل مشتری / شرکت: <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editCustomerName}
+                    onChange={(e) => setEditCustomerName(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold text-slate-800 focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">
+                    شماره تماس مستقیم: <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    dir="ltr"
+                    value={editCustomerPhone}
+                    onChange={(e) => setEditCustomerPhone(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold text-slate-800 focus:outline-none focus:border-amber-500 text-left font-mono"
+                  />
+                </div>
+              </div>
+
+              {/* Product and Quantity */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">
+                    نام محصول / عنوان جعبه: <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editProductName}
+                    onChange={(e) => setEditProductName(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold text-slate-800 focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">
+                    تیراژ سفارش (عدد): <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="100"
+                    step="500"
+                    required
+                    value={editQuantity}
+                    onChange={(e) => setEditQuantity(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-black text-slate-800 focus:outline-none focus:border-amber-500 font-mono"
+                  />
+                </div>
+              </div>
+
+              {/* Material Specs */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">نوع مقوا:</label>
+                  <select
+                    value={editCardboardType}
+                    onChange={(e) => setEditCardboardType(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2 font-bold text-slate-800 focus:outline-none focus:border-amber-500 text-xs"
+                  >
+                    {CARDBOARD_TYPES.map((t) => (
+                      <option key={t} value={t}>{t}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">گرماژ مقوا:</label>
+                  <select
+                    value={editCardboardGrammage}
+                    onChange={(e) => setEditCardboardGrammage(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2 font-bold text-slate-800 focus:outline-none focus:border-amber-500 text-xs"
+                  >
+                    {GRAMMAGES.map((g) => (
+                      <option key={g.value} value={g.value}>{g.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">سلفون و روکش:</label>
+                  <select
+                    value={editCellophaneType}
+                    onChange={(e) => setEditCellophaneType(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2 font-bold text-slate-800 focus:outline-none focus:border-amber-500 text-xs"
+                  >
+                    {CELLOPHANE_TYPES.map((cp) => (
+                      <option key={cp} value={cp}>{cp}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Material Construction */}
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">ساختار جنس:</label>
+                <select
+                  value={editMaterialConstruction}
+                  onChange={(e) => setEditMaterialConstruction(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2 font-bold text-slate-800 focus:outline-none focus:border-amber-500 text-xs"
+                >
+                  {MATERIAL_CONSTRUCTIONS.map((mc) => (
+                    <option key={mc} value={mc}>{mc}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Dimensions */}
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">طول (L):</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    placeholder="طول"
+                    value={editBoxLength}
+                    onChange={(e) => setEditBoxLength(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2 font-bold text-slate-800 focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">عرض (W):</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    placeholder="عرض"
+                    value={editBoxWidth}
+                    onChange={(e) => setEditBoxWidth(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2 font-bold text-slate-800 focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">ارتفاع (H):</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    placeholder="ارتفاع"
+                    value={editBoxHeight}
+                    onChange={(e) => setEditBoxHeight(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2 font-bold text-slate-800 focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+              </div>
+
+              {/* Dieline Attachment in Edit Modal */}
+              <div className="space-y-1.5">
+                <label className="font-bold text-slate-700 block">پیوست فایل خط تیغ، قالب یا عکس جعبه:</label>
+                <input
+                  type="file"
+                  id="edit-dieline-upload"
+                  accept=".pdf,.ai,.eps,.cdr,.dxf,.svg,.jpg,.jpeg,.png,.zip"
+                  onChange={(e) => handleFileUpload(e, true)}
+                  className="hidden"
+                />
+                {editDielineFileName ? (
+                  <div className="flex items-center justify-between bg-teal-50 border border-teal-200 rounded-xl p-2.5">
+                    <div className="flex items-center gap-2">
+                      <Paperclip className="w-4 h-4 text-teal-600 shrink-0" />
+                      <span className="font-bold text-teal-950 truncate max-w-xs">{editDielineFileName}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditDielineFileName('');
+                        setEditDielineFileUrl('');
+                        setEditDielineFileSize('');
+                      }}
+                      className="p-1 text-rose-600 hover:bg-rose-100 rounded-lg transition"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <label
+                    htmlFor="edit-dieline-upload"
+                    className="cursor-pointer flex items-center justify-center gap-2 p-3 bg-slate-50 border border-dashed border-slate-300 rounded-xl hover:border-amber-500 text-slate-600 hover:text-amber-700 font-bold transition"
+                  >
+                    <Upload className="w-4 h-4 text-amber-600" />
+                    <span>آپلود فایل خط تیغ / قالب جدید (PDF, AI, CDR, DXF, SVG, JPG, ZIP)</span>
+                  </label>
+                )}
+              </div>
+
+              {/* Notes */}
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">توضیحات تکمیلی:</label>
+                <textarea
+                  rows="2"
+                  placeholder="توضیحات تکمیلی مشتری یا پاسخ به نقص اعلامی..."
+                  value={editNotes}
+                  onChange={(e) => setEditNotes(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-800 focus:outline-none focus:border-amber-500"
+                />
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingLead(null)}
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs"
+                >
+                  انصراف
+                </button>
+                <button
+                  type="submit"
+                  disabled={updatingLead}
+                  className="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl font-black text-xs shadow-md transition flex items-center gap-1.5 active:scale-95"
+                >
+                  {updatingLead ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  <span>تکمیل مشخصات و ارسال مجدد جهت برآورد قیمت</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 6: COMMERCIAL REVISION REQUEST (اعلام نقص اطلاعات توسط مدیر بازرگانی) */}
+      {revisionModalLead && (
+        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-scaleUp" dir="rtl">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2 text-rose-600 font-black text-sm">
+                <AlertTriangle className="w-5 h-5 text-rose-600" />
+                <span>اعلام نقص اطلاعات به بازاریاب ({revisionModalLead.lead_code})</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setRevisionModalLead(null)}
+                className="text-slate-400 hover:text-slate-600 p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-3 bg-rose-50/60 border border-rose-200 rounded-2xl text-xs space-y-1 text-slate-800">
+              <div className="flex justify-between">
+                <span className="text-slate-500">مشتری:</span>
+                <strong className="text-slate-900">{revisionModalLead.customer_name} ({revisionModalLead.product_name})</strong>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">بازاریاب مربوطه:</span>
+                <strong className="text-rose-800 font-bold">{revisionModalLead.marketer_name || 'کارشناس بازاریابی'}</strong>
+              </div>
+            </div>
+
+            <form onSubmit={handleRequestRevision} className="space-y-3 text-xs">
+              <div>
+                <label className="font-bold text-slate-800 block mb-1">
+                  شرح موارد نقص اطلاعات و درخواست اصلاح: <span className="text-rose-500">*</span>
+                </label>
+                <textarea
+                  rows="4"
+                  required
+                  placeholder="مثال: لطفاً ابعاد دقیق عطف جعبه مشخص گردد و فایل خط تیغ با فرمت وکتور یا PDF پیوست شود..."
+                  value={revisionReason}
+                  onChange={(e) => setRevisionReason(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 font-bold text-slate-900 focus:outline-none focus:border-rose-500 leading-relaxed"
+                />
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setRevisionModalLead(null)}
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs"
+                >
+                  انصراف
+                </button>
+                <button
+                  type="submit"
+                  disabled={requestingRevision}
+                  className="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-black text-xs shadow-md transition flex items-center gap-1.5 active:scale-95"
+                >
+                  {requestingRevision ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  <span>ثبت نقص و عودت به کارتابل بازاریاب</span>
                 </button>
               </div>
             </form>
