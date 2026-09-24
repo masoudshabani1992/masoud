@@ -475,8 +475,8 @@ export default function DepartmentHubView({
 
       </div>
 
-      {/* Main 8-Department Grid (Exact 3 Columns x 3 Rows Structure) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+      {/* Main 12-Department Grid (Exact 4 Columns x 3 Rows Symmetrical Structure) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 sm:gap-6">
         
         {/* ================= ROW 1, COL 1: طراحی (Designer) ================= */}
         {(() => {

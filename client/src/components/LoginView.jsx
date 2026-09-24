@@ -172,19 +172,33 @@ export default function LoginView() {
         </div>
 
         {/* Footer Notice (Spans across full 12 columns horizontally) */}
-        <div className="md:col-span-12 bg-slate-900 text-slate-300 border-t border-slate-800 py-3 px-6 text-[12px] flex items-center justify-between flex-wrap gap-2">
+        <div className="md:col-span-12 bg-slate-900 text-slate-300 border-t border-slate-800 py-3.5 px-6 text-[12px] flex flex-row items-center justify-between flex-wrap sm:flex-nowrap gap-3">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span className="font-medium text-slate-200">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+            <span className="font-bold text-slate-100 text-xs sm:text-sm">
               همکار گرامی! تمامی اطلاعات این اتوماسیون محرمانه و امانت در اختیار شماست
             </span>
           </div>
-          <div className="flex items-center gap-1.5 text-amber-400 font-bold font-mono text-[12px]">
-            <span className="text-slate-400 font-sans">برنامه‌نویس:</span>
-            <span>مسعود شعبانی</span>
+          <div className="flex items-center gap-1.5 text-amber-400 font-black font-mono text-xs sm:text-sm shrink-0">
+            <span className="text-slate-400 font-sans font-bold">برنامه‌نویس:</span>
+            <span className="text-amber-300">مسعود شعبانی</span>
           </div>
         </div>
 
+      </div>
+
+      {/* Standalone Horizontal Page Footer for Extra Clarity */}
+      <div className="w-full max-w-4xl mt-4 bg-slate-900/80 backdrop-blur-md text-slate-300 border border-slate-800 rounded-2xl py-3 px-6 text-[12px] flex flex-row items-center justify-between flex-wrap sm:flex-nowrap gap-3 shadow-lg">
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+          <span className="font-medium text-slate-200 text-xs">
+            همکار گرامی! تمامی اطلاعات این اتوماسیون محرمانه و امانت در اختیار شماست
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5 text-amber-400 font-bold font-mono text-xs shrink-0">
+          <span className="text-slate-400 font-sans">برنامه‌نویس:</span>
+          <span>مسعود شعبانی</span>
+        </div>
       </div>
     </div>
   );
