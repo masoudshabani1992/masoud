@@ -32,7 +32,10 @@ import {
   Eye,
   EyeOff,
   UserX,
-  Zap
+  Zap,
+  Target,
+  Flame,
+  Trophy
 } from 'lucide-react';
 
 export const ALL_PERMISSION_MODULES = [
@@ -237,6 +240,9 @@ export default function UserManagementView() {
     role: 'sales',
     department: 'واحد بازرگانی',
     phone: '',
+    monthly_target_inquiries: 20,
+    monthly_target_amount: 0,
+    monthly_target_orders: 5,
     is_active: true,
     permissions: { ...ROLE_PRESETS.sales.permissions }
   });
@@ -565,6 +571,43 @@ export default function UserManagementView() {
                       onChange={(e) => setNewUser({ ...newUser, phone: e.target.value })}
                       className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-mono text-center text-xs focus:bg-white"
                     />
+                  </div>
+                </div>
+
+                {/* Target Inputs for Marketers & Sales */}
+                <div className="p-3.5 bg-gradient-to-r from-teal-50 to-indigo-50 border border-teal-200 rounded-xl space-y-2">
+                  <div className="flex items-center justify-between text-xs font-black text-teal-950">
+                    <div className="flex items-center gap-1.5">
+                      <Target className="w-4 h-4 text-teal-600" />
+                      <span>تارگت و هدف‌گذاری ماهانه (استعلام و فروش):</span>
+                    </div>
+                    <span className="text-[10px] text-teal-700 font-bold">هدف ماه جاری</span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2.5 pt-1">
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-slate-700">تارگت استعلام (تعداد در ماه):</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="500"
+                        placeholder="20"
+                        value={newUser.monthly_target_inquiries || 20}
+                        onChange={(e) => setNewUser({ ...newUser, monthly_target_inquiries: parseInt(e.target.value) || 20 })}
+                        className="w-full bg-white border border-teal-300 rounded-xl p-2 font-mono font-black text-center text-xs focus:ring-2 focus:ring-teal-400"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-slate-700">تارگت فروش (تومان اختیاری):</label>
+                      <input
+                        type="number"
+                        step="1000000"
+                        placeholder="0"
+                        value={newUser.monthly_target_amount || ''}
+                        onChange={(e) => setNewUser({ ...newUser, monthly_target_amount: parseFloat(e.target.value) || 0 })}
+                        className="w-full bg-white border border-teal-300 rounded-xl p-2 font-mono font-black text-center text-xs focus:ring-2 focus:ring-teal-400"
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -930,6 +973,39 @@ export default function UserManagementView() {
                         {r.name}
                       </button>
                     ))}
+                  </div>
+                </div>
+
+                {/* Target Inputs in Edit Modal */}
+                <div className="p-3 bg-gradient-to-r from-teal-50 to-indigo-50 border border-teal-200 rounded-xl space-y-1.5">
+                  <div className="flex items-center justify-between text-xs font-black text-teal-950">
+                    <div className="flex items-center gap-1.5">
+                      <Target className="w-4 h-4 text-teal-600" />
+                      <span>تارگت و هدف‌گذاری ماهانه استعلام و فروش:</span>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-slate-700">تارگت استعلام (تعداد در ماه):</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="500"
+                        value={editingUser.monthly_target_inquiries || 20}
+                        onChange={(e) => setEditingUser({ ...editingUser, monthly_target_inquiries: parseInt(e.target.value) || 20 })}
+                        className="w-full bg-white border border-teal-300 rounded-xl p-2 font-mono font-black text-center text-xs focus:ring-2 focus:ring-teal-400"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-slate-700">تارگت فروش (تومان اختیاری):</label>
+                      <input
+                        type="number"
+                        step="1000000"
+                        value={editingUser.monthly_target_amount || ''}
+                        onChange={(e) => setEditingUser({ ...editingUser, monthly_target_amount: parseFloat(e.target.value) || 0 })}
+                        className="w-full bg-white border border-teal-300 rounded-xl p-2 font-mono font-black text-center text-xs focus:ring-2 focus:ring-teal-400"
+                      />
+                    </div>
                   </div>
                 </div>
 

@@ -16,7 +16,25 @@ function initDb() {
       department TEXT NOT NULL,
       phone TEXT,
       avatar TEXT,
+      permissions TEXT,
+      is_active INTEGER DEFAULT 1,
+      monthly_target_inquiries INTEGER DEFAULT 20,
+      monthly_target_amount REAL DEFAULT 0,
+      monthly_target_orders INTEGER DEFAULT 5,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS marketer_targets (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      year_month_fa TEXT NOT NULL,
+      target_inquiries INTEGER DEFAULT 20,
+      target_amount REAL DEFAULT 0,
+      target_orders INTEGER DEFAULT 5,
+      notes TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(user_id, year_month_fa),
+      FOREIGN KEY (user_id) REFERENCES users(id)
     );
 
     CREATE TABLE IF NOT EXISTS customers (

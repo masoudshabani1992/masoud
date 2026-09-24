@@ -35,7 +35,16 @@ import {
   ArrowUpRight,
   ExternalLink,
   ChevronDown,
-  Info
+  Info,
+  Target,
+  Flame,
+  Trophy,
+  Zap,
+  BarChart3,
+  Sliders,
+  SlidersHorizontal,
+  Gift,
+  Star
 } from 'lucide-react';
 
 const CARDBOARD_TYPES = [
@@ -97,6 +106,20 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
+  // Marketer Target & KPI States
+  const [targetStats, setTargetStats] = useState(null);
+  const [targetLoading, setTargetLoading] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState('');
+  const [selectedMarketerId, setSelectedMarketerId] = useState('');
+  const [showTargetEditModal, setShowTargetEditModal] = useState(false);
+  const [targetFormUser, setTargetFormUser] = useState(null);
+  const [editTargetInquiries, setEditTargetInquiries] = useState(20);
+  const [editTargetAmount, setEditTargetAmount] = useState(0);
+  const [editTargetOrders, setEditTargetOrders] = useState(5);
+  const [editTargetNotes, setEditTargetNotes] = useState('');
+  const [savingTarget, setSavingTarget] = useState(false);
+  const [viewScope, setViewScope] = useState('dashboard'); // 'dashboard' | 'leaderboard'
+
   // New Lead Form States
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
@@ -146,8 +169,27 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
     }
   };
 
+  // Fetch Marketer Target Stats
+  const fetchTargetStats = async (marketerId = null, month = null) => {
+    setTargetLoading(true);
+    try {
+      const params = {};
+      if (marketerId) params.marketer_id = marketerId;
+      if (month) params.month = month;
+      const res = await api.getMarketerTargetStats(params);
+      if (res && res.success) {
+        setTargetStats(res);
+      }
+    } catch (err) {
+      console.error('Error fetching target stats:', err);
+    } finally {
+      setTargetLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchLeads();
+    fetchTargetStats();
   }, []);
 
   // Handle Submit Form
@@ -302,8 +344,36 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
         rejection_reason: rejectionReason
       });
       fetchLeads();
+      fetchTargetStats(selectedMarketerId, selectedMonth);
     } catch (err) {
       alert(err.message || 'خطا در تغییر وضعیت.');
+    }
+  };
+
+  // Save / Update Target (Commercial Manager / CEO)
+  const handleSaveTarget = async (e) => {
+    e.preventDefault();
+    if (!targetFormUser) return;
+
+    setSavingTarget(true);
+    try {
+      const res = await api.updateMarketerTarget(targetFormUser.id, {
+        target_inquiries: Number(editTargetInquiries) || 20,
+        target_amount: Number(editTargetAmount) || 0,
+        target_orders: Number(editTargetOrders) || 5,
+        year_month_fa: selectedMonth || targetStats?.current_period?.yearMonth,
+        notes: editTargetNotes
+      });
+
+      if (res.success) {
+        alert(res.message);
+        setShowTargetEditModal(false);
+        fetchTargetStats(selectedMarketerId, selectedMonth);
+      }
+    } catch (err) {
+      alert(err.message || 'خطا در ثبت تارگت.');
+    } finally {
+      setSavingTarget(false);
     }
   };
 
@@ -363,9 +433,12 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
           <div className="flex items-center gap-2 bg-slate-950/60 p-1.5 rounded-2xl border border-white/10 backdrop-blur-sm shrink-0">
             <button
               type="button"
-              onClick={() => setActiveTab('leads_list')}
+              onClick={() => {
+                setActiveTab('leads_list');
+                setViewScope('dashboard');
+              }}
               className={`px-4 py-2 rounded-xl text-xs font-black transition flex items-center gap-1.5 ${
-                activeTab === 'leads_list'
+                activeTab === 'leads_list' && viewScope === 'dashboard'
                   ? 'bg-teal-500 text-slate-950 shadow-md ring-2 ring-teal-400'
                   : 'text-slate-300 hover:text-white'
               }`}
@@ -373,6 +446,24 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
               <FileText className="w-4 h-4" />
               <span>استعلام‌های من ({totalLeads})</span>
             </button>
+
+            {isCommercialOrCeo && (
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab('leads_list');
+                  setViewScope('leaderboard');
+                }}
+                className={`px-4 py-2 rounded-xl text-xs font-black transition flex items-center gap-1.5 ${
+                  viewScope === 'leaderboard'
+                    ? 'bg-indigo-600 text-white shadow-md ring-2 ring-indigo-400'
+                    : 'text-slate-300 hover:text-white'
+                }`}
+              >
+                <Trophy className="w-4 h-4 text-amber-300" />
+                <span>رتبه‌بندی تیم بازاریابی</span>
+              </button>
+            )}
 
             <button
               type="button"
@@ -389,6 +480,356 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
           </div>
         </div>
       </div>
+
+      {/* ================= 🎯 MARKETER MONTHLY TARGET & KPI TRACKER ================= */}
+      {viewScope === 'dashboard' && (
+        <div className="bg-white rounded-3xl p-6 sm:p-7 border-2 border-teal-200 shadow-md space-y-5 relative overflow-hidden animate-fadeIn">
+          {/* Top Row: Month, Marketer, Target Goal & Management Actions */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-teal-100 pb-4">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-teal-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-teal-100 shrink-0">
+                <Target className="w-6 h-6" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h2 className="text-base sm:text-lg font-black text-slate-900">
+                    هدف‌گذاری و تارگت استعلام ماهانه ({targetStats?.current_period?.fullMonthText || 'ماه جاری'})
+                  </h2>
+                  {targetStats?.kpi?.is_target_achieved ? (
+                    <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1 animate-pulse">
+                      <Trophy className="w-3.5 h-3.5 text-amber-600" />
+                      <span>تارگت محقق شد! 🎉</span>
+                    </span>
+                  ) : (
+                    <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1">
+                      <Flame className="w-3.5 h-3.5 text-amber-600" />
+                      <span>در حال تلاش برای تکمیل تارگت</span>
+                    </span>
+                  )}
+                </div>
+                <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-2 flex-wrap">
+                  <span>کارشناس: <strong className="text-slate-800">{targetStats?.marketer?.full_name || currentUser?.fullName || 'بازاریاب'}</strong></span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                  <span>تارگت مصوب مدیریت: <strong className="text-teal-700 font-black">{targetStats?.targets?.inquiries || 20} استعلام قیمت در ماه</strong></span>
+                </div>
+              </div>
+            </div>
+
+            {/* Management Controls & Month Selector */}
+            <div className="flex items-center gap-2 flex-wrap">
+              {/* Filter by Marketer (for CEO / Sales) */}
+              {isCommercialOrCeo && targetStats?.all_marketers_leaderboard?.length > 1 && (
+                <select
+                  value={selectedMarketerId}
+                  onChange={(e) => {
+                    const mId = e.target.value;
+                    setSelectedMarketerId(mId);
+                    fetchTargetStats(mId, selectedMonth);
+                  }}
+                  className="px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:border-teal-500"
+                >
+                  <option value="">نمایش خودم / همه</option>
+                  {targetStats.all_marketers_leaderboard.map((m) => (
+                    <option key={m.user_id} value={m.user_id}>
+                      {m.full_name} ({m.achieved_inquiries}/{m.target_inquiries} استعلام)
+                    </option>
+                  ))}
+                </select>
+              )}
+
+              {/* Month Selector */}
+              {targetStats?.history_months?.length > 0 && (
+                <select
+                  value={selectedMonth || targetStats?.current_period?.yearMonth}
+                  onChange={(e) => {
+                    const m = e.target.value;
+                    setSelectedMonth(m);
+                    fetchTargetStats(selectedMarketerId, m);
+                  }}
+                  className="px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:border-teal-500"
+                >
+                  {targetStats.history_months.map((h) => (
+                    <option key={h.year_month} value={h.year_month}>
+                      {h.full_title} ({h.achieved_inquiries} استعلام)
+                    </option>
+                  ))}
+                </select>
+              )}
+
+              {/* CEO / Commercial Target Edit Button */}
+              {isCommercialOrCeo && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const currentTargetUser = targetStats?.marketer?.id
+                      ? { id: targetStats.marketer.id, name: targetStats.marketer.full_name }
+                      : { id: currentUser?.id, name: currentUser?.fullName };
+                    setTargetFormUser(currentTargetUser);
+                    setEditTargetInquiries(targetStats?.targets?.inquiries || 20);
+                    setEditTargetAmount(targetStats?.targets?.amount || 0);
+                    setEditTargetOrders(targetStats?.targets?.orders || 5);
+                    setShowTargetEditModal(true);
+                  }}
+                  className="px-3 py-1.5 bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-300 rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-xs"
+                >
+                  <Sliders className="w-3.5 h-3.5 text-teal-600" />
+                  <span>تنظیم تارگت بازاریاب</span>
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Progress Bar & Milestone Visualizer */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs font-bold text-slate-700">
+              <div className="flex items-center gap-2">
+                <span className="text-slate-500">پیشرفت تارگت استعلام این ماه:</span>
+                <span className="font-mono font-black text-slate-900 text-sm">
+                  {targetStats?.achieved?.total_inquiries || 0} از {targetStats?.targets?.inquiries || 20} استعلام
+                </span>
+              </div>
+              <div className="flex items-center gap-1 font-mono font-black text-sm text-teal-700">
+                <span>{targetStats?.kpi?.progress_percent || 0}٪</span>
+                <span className="text-[11px] font-sans font-bold text-slate-400">تحقق یافته</span>
+              </div>
+            </div>
+
+            {/* Big Progress Bar */}
+            <div className="w-full bg-slate-100 rounded-2xl h-4 p-0.5 border border-slate-200 overflow-hidden relative">
+              <div
+                className={`h-full rounded-xl transition-all duration-700 shadow-sm ${
+                  (targetStats?.kpi?.progress_percent || 0) >= 100
+                    ? 'bg-gradient-to-r from-emerald-500 via-teal-500 to-green-500'
+                    : (targetStats?.kpi?.progress_percent || 0) >= 60
+                    ? 'bg-gradient-to-r from-teal-500 to-indigo-600'
+                    : 'bg-gradient-to-r from-amber-400 to-orange-500'
+                }`}
+                style={{ width: `${Math.min(100, targetStats?.kpi?.progress_percent || 0)}%` }}
+              />
+            </div>
+
+            {/* Visual Goal Markers (25%, 50%, 75%, 100%) */}
+            <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 px-1 pt-0.5">
+              <span>۰</span>
+              <span>{Math.round((targetStats?.targets?.inquiries || 20) * 0.25)} استعلام</span>
+              <span>{Math.round((targetStats?.targets?.inquiries || 20) * 0.5)} استعلام (نیمی از مسیر)</span>
+              <span>{Math.round((targetStats?.targets?.inquiries || 20) * 0.75)} استعلام</span>
+              <span className="font-black text-teal-700">🎯 تارگت نهایی ({targetStats?.targets?.inquiries || 20})</span>
+            </div>
+          </div>
+
+          {/* 4 Detail Metric Badges */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+            {/* Metric 1: Remaining Needed */}
+            <div className={`p-3.5 rounded-2xl border text-right transition flex items-center justify-between ${
+              targetStats?.kpi?.remaining_inquiries === 0
+                ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                : 'bg-amber-50/70 border-amber-200 text-amber-900'
+            }`}>
+              <div>
+                <div className="text-[11px] font-bold text-slate-500">مانده تا تکمیل تارگت:</div>
+                <div className="text-lg font-black font-mono mt-0.5">
+                  {targetStats?.kpi?.remaining_inquiries === 0 ? '۰ (تکمیل شد)' : `${targetStats?.kpi?.remaining_inquiries || 0} استعلام`}
+                </div>
+              </div>
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+                targetStats?.kpi?.remaining_inquiries === 0 ? 'bg-emerald-200 text-emerald-800' : 'bg-amber-200 text-amber-800'
+              }`}>
+                <Target className="w-5 h-5" />
+              </div>
+            </div>
+
+            {/* Metric 2: Daily Pace Needed */}
+            <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 text-right flex items-center justify-between">
+              <div>
+                <div className="text-[11px] font-bold text-slate-500">سرعت روزانه مورد نیاز:</div>
+                <div className="text-lg font-black font-mono text-slate-900 mt-0.5">
+                  {targetStats?.kpi?.daily_pace_needed || 0} <span className="text-xs font-sans font-bold text-slate-400">استعلام/روز</span>
+                </div>
+              </div>
+              <div className="w-9 h-9 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-black">
+                <Zap className="w-5 h-5" />
+              </div>
+            </div>
+
+            {/* Metric 3: Converted to Orders */}
+            <div className="p-3.5 bg-teal-50/70 rounded-2xl border border-teal-200 text-right flex items-center justify-between">
+              <div>
+                <div className="text-[11px] font-bold text-teal-800">سفارشات قطعی شده:</div>
+                <div className="text-lg font-black font-mono text-teal-950 mt-0.5">
+                  {targetStats?.achieved?.converted || 0} <span className="text-xs font-sans font-bold text-teal-700">سفارش کارخانه</span>
+                </div>
+              </div>
+              <div className="w-9 h-9 rounded-xl bg-teal-200 text-teal-800 flex items-center justify-center">
+                <CheckCircle2 className="w-5 h-5" />
+              </div>
+            </div>
+
+            {/* Metric 4: Approved Value */}
+            <div className="p-3.5 bg-purple-50/70 rounded-2xl border border-purple-200 text-right flex items-center justify-between">
+              <div>
+                <div className="text-[11px] font-bold text-purple-800">مبلغ استعلام تایید شده:</div>
+                <div className="text-base font-black font-mono text-purple-950 mt-0.5 truncate">
+                  {(targetStats?.achieved?.approved_sales_amount || 0).toLocaleString('fa-IR')} <span className="text-[10px] font-sans font-bold">تومان</span>
+                </div>
+              </div>
+              <div className="w-9 h-9 rounded-xl bg-purple-200 text-purple-800 flex items-center justify-center">
+                <DollarSign className="w-5 h-5" />
+              </div>
+            </div>
+          </div>
+
+          {/* Motivational Banner */}
+          <div className={`p-3 rounded-2xl border flex items-center gap-3 text-xs font-bold ${
+            (targetStats?.kpi?.progress_percent || 0) >= 100
+              ? 'bg-gradient-to-r from-emerald-100 via-teal-100 to-green-100 border-emerald-300 text-emerald-950'
+              : (targetStats?.kpi?.progress_percent || 0) >= 50
+              ? 'bg-gradient-to-r from-teal-50 to-indigo-50 border-teal-200 text-teal-950'
+              : 'bg-amber-50 border-amber-200 text-amber-950'
+          }`}>
+            {(targetStats?.kpi?.progress_percent || 0) >= 100 ? (
+              <>
+                <Trophy className="w-5 h-5 text-amber-600 shrink-0 animate-bounce" />
+                <span>
+                  <strong>تبریک ویژه همکار گرامی!</strong> شما تارگت {targetStats?.targets?.inquiries} استعلامی ماه {targetStats?.current_period?.monthName} را به طور کامل تکمیل کردید و واجد شرایط دریافت بالاترین ضریب پاداش فروش شدید.
+                </span>
+              </>
+            ) : (targetStats?.kpi?.progress_percent || 0) >= 50 ? (
+              <>
+                <Flame className="w-5 h-5 text-amber-600 shrink-0" />
+                <span>
+                  <strong>عملکرد عالی!</strong> بیش از نیمی از مسیر تارگت ماهانه را با موفقیت طی کرده‌اید. تنها <strong>{targetStats?.kpi?.remaining_inquiries} استعلام دیگر</strong> تا پاداش ماهانه باقیست.
+                </span>
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-5 h-5 text-teal-600 shrink-0" />
+                <span>
+                  <strong>شروع پرانرژی ماه {targetStats?.current_period?.monthName}:</strong> با ثبت روزانه <strong>{targetStats?.kpi?.daily_pace_needed || 1} استعلام قیمت</strong> با مشتریان صنعتی، به راحتی تارگت ۲۰ موردی این ماه محقق خواهد شد.
+                </span>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ================= 🏆 TEAM LEADERBOARD VIEW ================= */}
+      {viewScope === 'leaderboard' && (
+        <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-md space-y-4 animate-fadeIn">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex items-center gap-2">
+              <Trophy className="w-5 h-5 text-amber-500" />
+              <h3 className="text-base font-black text-slate-800">
+                جدول رتبه‌بندی و ارزیابی تارگت کارشناسان بازاریابی ({targetStats?.current_period?.fullMonthText || 'ماه جاری'})
+              </h3>
+            </div>
+            <button
+              type="button"
+              onClick={() => setViewScope('dashboard')}
+              className="text-xs font-bold text-teal-700 hover:text-teal-900"
+            >
+              ← بازگشت به داشبورد استعلامات
+            </button>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-right text-xs">
+              <thead>
+                <tr className="border-b border-slate-200 bg-slate-50 text-slate-700 font-black">
+                  <th className="p-3 rounded-r-xl">رتبه</th>
+                  <th className="p-3">نام بازاریاب</th>
+                  <th className="p-3 text-center">تارگت ماهانه</th>
+                  <th className="p-3 text-center">استعلام ثبت شده</th>
+                  <th className="p-3 text-center">درصد تحقق</th>
+                  <th className="p-3 text-center">مانده تا هدف</th>
+                  <th className="p-3 text-center">سفارش قطعی</th>
+                  <th className="p-3 text-center">مبلغ فروش تایید شده</th>
+                  <th className="p-3 text-center rounded-l-xl">عملیات</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {targetStats?.all_marketers_leaderboard?.map((m, idx) => (
+                  <tr key={m.user_id} className="hover:bg-slate-50/80 transition-colors">
+                    <td className="p-3 font-mono font-black text-slate-700">
+                      <div className="flex items-center gap-1.5">
+                        {idx === 0 && <span className="text-amber-500">🥇</span>}
+                        {idx === 1 && <span className="text-slate-400">🥈</span>}
+                        {idx === 2 && <span className="text-amber-700">🥉</span>}
+                        <span>{idx + 1}</span>
+                      </div>
+                    </td>
+                    <td className="p-3">
+                      <div className="font-black text-slate-900">{m.full_name}</div>
+                      <div className="text-[11px] text-slate-400">@{m.username} {m.phone ? `| ${m.phone}` : ''}</div>
+                    </td>
+                    <td className="p-3 text-center font-mono font-bold text-slate-800">
+                      {m.target_inquiries} استعلام
+                    </td>
+                    <td className="p-3 text-center font-mono font-black text-teal-700 text-sm">
+                      {m.achieved_inquiries}
+                    </td>
+                    <td className="p-3 text-center">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <div className="w-16 bg-slate-100 rounded-full h-2 overflow-hidden">
+                          <div
+                            className={`h-full ${
+                              m.progress_percent >= 100 ? 'bg-emerald-500' : m.progress_percent >= 50 ? 'bg-teal-500' : 'bg-amber-500'
+                            }`}
+                            style={{ width: `${Math.min(100, m.progress_percent)}%` }}
+                          />
+                        </div>
+                        <span className="font-mono font-bold text-xs">{m.progress_percent}٪</span>
+                      </div>
+                    </td>
+                    <td className="p-3 text-center font-mono font-bold">
+                      {m.remaining_inquiries === 0 ? (
+                        <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md font-bold">تکمیل شد ✓</span>
+                      ) : (
+                        <span className="text-amber-700">{m.remaining_inquiries} عدد</span>
+                      )}
+                    </td>
+                    <td className="p-3 text-center font-mono font-black text-indigo-700">
+                      {m.converted_orders}
+                    </td>
+                    <td className="p-3 text-center font-mono font-bold text-purple-900">
+                      {m.achieved_amount > 0 ? `${m.achieved_amount.toLocaleString('fa-IR')} تومان` : '---'}
+                    </td>
+                    <td className="p-3 text-center">
+                      <div className="flex items-center justify-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedMarketerId(m.user_id);
+                            fetchTargetStats(m.user_id, selectedMonth);
+                            setViewScope('dashboard');
+                          }}
+                          className="px-2.5 py-1 bg-teal-50 hover:bg-teal-100 text-teal-800 rounded-lg text-xs font-bold transition"
+                        >
+                          مشاهده کارتابل
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setTargetFormUser({ id: m.user_id, name: m.full_name });
+                            setEditTargetInquiries(m.target_inquiries || 20);
+                            setEditTargetAmount(m.target_amount || 0);
+                            setEditTargetOrders(5);
+                            setShowTargetEditModal(true);
+                          }}
+                          className="p-1 text-slate-500 hover:text-slate-800 rounded-lg transition"
+                          title="ویرایش تارگت"
+                        >
+                          <Sliders className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Marketer Performance & Status Counters */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -1513,6 +1954,133 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                 <span>ثبت برآورد و اعلام به کارتابل بازاریاب</span>
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 4: MARKETER MONTHLY TARGET CONFIGURATION (تنظیم تارگت بازاریاب توسط مدیریت) */}
+      {showTargetEditModal && (
+        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-scaleUp" dir="rtl">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2 text-teal-700 font-black text-sm">
+                <Target className="w-5 h-5 text-teal-600" />
+                <span>تعیین تارگت ماهانه بازاریاب: {targetFormUser?.name}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowTargetEditModal(false)}
+                className="text-slate-400 hover:text-slate-600 p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveTarget} className="space-y-4 text-xs">
+              <div className="p-3 bg-teal-50 border border-teal-200 rounded-2xl text-teal-950 space-y-1">
+                <div className="font-bold">
+                  دوره اعمال تارگت: <strong className="text-teal-900 font-black">{selectedMonth || targetStats?.current_period?.fullMonthText || 'ماه جاری'}</strong>
+                </div>
+                <div className="text-[11px] text-teal-800 leading-relaxed">
+                  تارگت تعیین‌شده در بالای کارتابل بازاریاب به صورت لحظه‌ای با نوار پیشرفت، نشان‌های انگیزشی و درصد تحقق نمایش داده خواهد شد.
+                </div>
+              </div>
+
+              <div>
+                <label className="font-bold text-slate-800 block mb-1">
+                  تعداد استعلام قیمت هدف در ماه (تارگت ورودی): <span className="text-rose-500">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    min="1"
+                    max="500"
+                    required
+                    placeholder="مثال: 20"
+                    value={editTargetInquiries}
+                    onChange={(e) => setEditTargetInquiries(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-sm font-black text-slate-900 focus:outline-none focus:border-teal-500 font-mono text-center"
+                  />
+                  <span className="absolute left-3 top-2.5 text-slate-400 text-xs">استعلام / ماه</span>
+                </div>
+                <div className="flex items-center gap-1.5 mt-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setEditTargetInquiries(15)}
+                    className="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold"
+                  >
+                    ۱۵ استعلام
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditTargetInquiries(20)}
+                    className="px-2 py-0.5 rounded bg-teal-100 hover:bg-teal-200 text-teal-900 text-[10px] font-bold"
+                  >
+                    ۲۰ استعلام (پیش‌فرض)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditTargetInquiries(30)}
+                    className="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold"
+                  >
+                    ۳۰ استعلام
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditTargetInquiries(50)}
+                    className="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold"
+                  >
+                    ۵۰ استعلام (پرتلاش)
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="font-bold text-slate-800 block mb-1">
+                  تارگت مبلغ فروش کل استعلامات (تومان - اختیاری):
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    step="1000000"
+                    placeholder="مثال: 150000000"
+                    value={editTargetAmount}
+                    onChange={(e) => setEditTargetAmount(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-black text-slate-900 focus:outline-none focus:border-teal-500 font-mono text-center"
+                  />
+                  <span className="absolute left-3 top-2 text-slate-400 text-[10px]">تومان</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="font-bold text-slate-800 block mb-1">یادداشت و شرایط پاداش تحقق تارگت:</label>
+                <textarea
+                  rows="2"
+                  placeholder="مثال: در صورت ثبت ۲۰ استعلام و تبدیل حداقل ۳ مورد به سفارش، ۱۰ درصد پاداش تعلق می‌گیرد."
+                  value={editTargetNotes}
+                  onChange={(e) => setEditTargetNotes(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-teal-500"
+                />
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowTargetEditModal(false)}
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs"
+                >
+                  انصراف
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingTarget}
+                  className="px-5 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-black text-xs shadow-md transition flex items-center gap-1.5"
+                >
+                  {savingTarget ? <RefreshCw className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                  <span>ذخیره و ابلاغ تارگت به بازاریاب</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

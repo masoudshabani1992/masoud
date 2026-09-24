@@ -540,6 +540,31 @@ app.post('/api/marketing/leads/:id/followup', authMiddleware, (req, res) => {
   }
 });
 
+// Helper for Persian Year-Month calculations
+function getPersianYearMonth(dateInput = new Date()) {
+  try {
+    const d = new Date(dateInput);
+    if (isNaN(d.getTime())) return { yearMonth: '1405/07', monthName: 'مهر', year: '1405', fullMonthText: 'مهر ۱۴۰۵' };
+    
+    const formatter = new Intl.DateTimeFormat('fa-IR-u-nu-latn', { year: 'numeric', month: '2-digit' });
+    const parts = formatter.formatToParts(d);
+    const year = parts.find(p => p.type === 'year')?.value || '1405';
+    const month = parts.find(p => p.type === 'month')?.value || '07';
+    
+    const monthFormatter = new Intl.DateTimeFormat('fa-IR', { month: 'long' });
+    const monthName = monthFormatter.format(d);
+    
+    return {
+      yearMonth: `${year}/${month}`,
+      monthName,
+      year,
+      fullMonthText: `${monthName} ${year}`
+    };
+  } catch (e) {
+    return { yearMonth: '1405/07', monthName: 'مهر', year: '1405', fullMonthText: 'مهر ۱۴۰۵' };
+  }
+}
+
 // 5. Convert Lead to Factory ERP Project
 app.post('/api/marketing/leads/:id/convert-to-project', authMiddleware, (req, res) => {
   try {
@@ -622,6 +647,215 @@ app.post('/api/marketing/leads/:id/convert-to-project', authMiddleware, (req, re
     });
   } catch (err) {
     res.status(500).json({ error: 'خطا در تبدیل استعلام به سفارش: ' + err.message });
+  }
+});
+
+// ================= MARKETER MONTHLY TARGETS & KPI =================
+app.get('/api/marketing/target-stats', authMiddleware, (req, res) => {
+  try {
+    const user = req.user;
+    const requestedMarketerId = req.query.marketer_id ? parseInt(req.query.marketer_id) : (user.role === 'marketer' ? user.id : null);
+    const targetUserId = requestedMarketerId || user.id;
+
+    const currentPeriod = getPersianYearMonth(new Date());
+    const monthKey = req.query.month || currentPeriod.yearMonth;
+
+    // 1. Fetch user target settings
+    const targetUser = db.prepare('SELECT id, username, full_name, role, department, monthly_target_inquiries, monthly_target_amount, monthly_target_orders FROM users WHERE id = ?').get(targetUserId);
+    
+    // Check if custom target exists for this specific month in marketer_targets table
+    const monthTargetRecord = db.prepare('SELECT * FROM marketer_targets WHERE user_id = ? AND year_month_fa = ?').get(targetUserId, monthKey);
+
+    const targetInquiries = monthTargetRecord?.target_inquiries || targetUser?.monthly_target_inquiries || 20;
+    const targetAmount = monthTargetRecord?.target_amount || targetUser?.monthly_target_amount || 0;
+    const targetOrders = monthTargetRecord?.target_orders || targetUser?.monthly_target_orders || 5;
+
+    // 2. Query all leads submitted by this marketer
+    let leadsQuery = 'SELECT * FROM marketing_leads';
+    let queryParams = [];
+
+    if (user.role === 'marketer' || requestedMarketerId) {
+      leadsQuery += ' WHERE marketer_id = ?';
+      queryParams.push(targetUserId);
+    }
+    const allLeads = db.prepare(leadsQuery).all(...queryParams);
+
+    // Filter leads belonging to the selected Persian month
+    const currentMonthLeads = allLeads.filter(l => {
+      const leadPeriod = getPersianYearMonth(l.created_at);
+      return leadPeriod.yearMonth === monthKey;
+    });
+
+    const totalInquiriesMonth = currentMonthLeads.length;
+    const pendingMonth = currentMonthLeads.filter(l => l.status === 'pending_estimation').length;
+    const estimatedMonth = currentMonthLeads.filter(l => l.status === 'estimated').length;
+    const approvedMonth = currentMonthLeads.filter(l => l.status === 'customer_approved').length;
+    const convertedMonth = currentMonthLeads.filter(l => l.status === 'converted' || l.converted_project_id || l.status === 'converted_to_order').length;
+    const rejectedMonth = currentMonthLeads.filter(l => l.status === 'rejected' || l.status === 'cancelled').length;
+
+    const totalSalesAmountMonth = currentMonthLeads.reduce((sum, l) => sum + (Number(l.estimated_total_price) || 0), 0);
+    const approvedSalesAmountMonth = currentMonthLeads
+      .filter(l => ['customer_approved', 'converted', 'converted_to_order'].includes(l.status))
+      .reduce((sum, l) => sum + (Number(l.estimated_total_price) || 0), 0);
+
+    const progressPercent = targetInquiries > 0 ? Math.min(100, Math.round((totalInquiriesMonth / targetInquiries) * 100)) : 0;
+    const remainingInquiries = Math.max(0, targetInquiries - totalInquiriesMonth);
+    const isTargetAchieved = totalInquiriesMonth >= targetInquiries;
+
+    // Calculate approximate remaining days in Persian month
+    const now = new Date();
+    const dayFormatter = new Intl.DateTimeFormat('fa-IR-u-nu-latn', { day: 'numeric' });
+    const currentDayFa = parseInt(dayFormatter.format(now)) || 15;
+    const daysInFaMonth = 30; // standard month length
+    const daysRemaining = Math.max(1, daysInFaMonth - currentDayFa);
+    const dailyPaceNeeded = remainingInquiries > 0 ? Number((remainingInquiries / daysRemaining).toFixed(1)) : 0;
+
+    // 3. Historical performance for the last 6 months
+    const historyMonths = [];
+    for (let i = 0; i < 6; i++) {
+      const pastDate = new Date();
+      pastDate.setMonth(pastDate.getMonth() - i);
+      const p = getPersianYearMonth(pastDate);
+      
+      const pLeads = allLeads.filter(l => getPersianYearMonth(l.created_at).yearMonth === p.yearMonth);
+      const pTarget = db.prepare('SELECT target_inquiries FROM marketer_targets WHERE user_id = ? AND year_month_fa = ?').get(targetUserId, p.yearMonth);
+      const tInq = pTarget?.target_inquiries || targetUser?.monthly_target_inquiries || 20;
+
+      historyMonths.push({
+        year_month: p.yearMonth,
+        month_name: p.monthName,
+        full_title: p.fullMonthText,
+        target_inquiries: tInq,
+        achieved_inquiries: pLeads.length,
+        approved_inquiries: pLeads.filter(l => ['customer_approved', 'converted', 'converted_to_order'].includes(l.status)).length,
+        total_amount: pLeads.reduce((s, l) => s + (Number(l.estimated_total_price) || 0), 0),
+        achieved_percent: tInq > 0 ? Math.min(100, Math.round((pLeads.length / tInq) * 100)) : 0,
+        is_achieved: pLeads.length >= tInq
+      });
+    }
+
+    // 4. If CEO or Sales: also provide Leaderboard of all Marketers
+    let allMarketersSummary = [];
+    if (user.role === 'ceo' || user.role === 'sales' || user.role === 'accounting') {
+      const marketersList = db.prepare("SELECT id, username, full_name, phone, monthly_target_inquiries, monthly_target_amount, is_active FROM users WHERE role = 'marketer' OR department LIKE '%بازاریاب%'").all();
+      
+      allMarketersSummary = marketersList.map(m => {
+        const mCustomTarget = db.prepare('SELECT * FROM marketer_targets WHERE user_id = ? AND year_month_fa = ?').get(m.id, monthKey);
+        const mTargetInq = mCustomTarget?.target_inquiries || m.monthly_target_inquiries || 20;
+        const mTargetAmt = mCustomTarget?.target_amount || m.monthly_target_amount || 0;
+
+        const mLeads = db.prepare('SELECT * FROM marketing_leads WHERE marketer_id = ?').all(m.id);
+        const mMonthLeads = mLeads.filter(l => getPersianYearMonth(l.created_at).yearMonth === monthKey);
+
+        const mAchieved = mMonthLeads.length;
+        const mApproved = mMonthLeads.filter(l => ['customer_approved', 'converted', 'converted_to_order'].includes(l.status)).length;
+        const mConverted = mMonthLeads.filter(l => l.converted_project_id || l.status === 'converted_to_order').length;
+        const mAmt = mMonthLeads.reduce((s, l) => s + (Number(l.estimated_total_price) || 0), 0);
+
+        return {
+          user_id: m.id,
+          username: m.username,
+          full_name: m.full_name,
+          phone: m.phone,
+          is_active: m.is_active !== 0,
+          target_inquiries: mTargetInq,
+          target_amount: mTargetAmt,
+          achieved_inquiries: mAchieved,
+          approved_inquiries: mApproved,
+          converted_orders: mConverted,
+          achieved_amount: mAmt,
+          progress_percent: mTargetInq > 0 ? Math.min(100, Math.round((mAchieved / mTargetInq) * 100)) : 0,
+          remaining_inquiries: Math.max(0, mTargetInq - mAchieved),
+          is_target_achieved: mAchieved >= mTargetInq
+        };
+      });
+    }
+
+    res.json({
+      success: true,
+      current_period: currentPeriod,
+      selected_month: monthKey,
+      marketer: {
+        id: targetUser?.id,
+        username: targetUser?.username,
+        full_name: targetUser?.full_name,
+        role: targetUser?.role
+      },
+      targets: {
+        inquiries: targetInquiries,
+        amount: targetAmount,
+        orders: targetOrders
+      },
+      achieved: {
+        total_inquiries: totalInquiriesMonth,
+        pending_estimation: pendingMonth,
+        estimated: estimatedMonth,
+        approved: approvedMonth,
+        converted: convertedMonth,
+        rejected: rejectedMonth,
+        total_sales_amount: totalSalesAmountMonth,
+        approved_sales_amount: approvedSalesAmountMonth
+      },
+      kpi: {
+        progress_percent: progressPercent,
+        remaining_inquiries: remainingInquiries,
+        is_target_achieved: isTargetAchieved,
+        days_remaining_in_month: daysRemaining,
+        daily_pace_needed: dailyPaceNeeded,
+        conversion_rate: totalInquiriesMonth > 0 ? Math.round((approvedMonth / totalInquiriesMonth) * 100) : 0
+      },
+      history_months: historyMonths,
+      all_marketers_leaderboard: allMarketersSummary
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در محاسبه آمار تارگت بازاریاب: ' + err.message });
+  }
+});
+
+// Update Marketer Monthly Target (تنظیم تارگت ماهانه توسط مدیر بازرگانی یا مدیرعامل)
+app.put('/api/marketing/targets/:user_id', authMiddleware, (req, res) => {
+  try {
+    const user = req.user;
+    if (user.role !== 'ceo' && user.role !== 'sales') {
+      return res.status(403).json({ error: 'تنها مدیریت عامل و مدیر بازرگانی مجاز به تعیین تارگت هستند.' });
+    }
+
+    const targetUserId = parseInt(req.params.user_id);
+    const { target_inquiries, target_amount, target_orders, year_month_fa, notes } = req.body;
+
+    const inqTarget = parseInt(target_inquiries) || 20;
+    const amtTarget = parseFloat(target_amount) || 0;
+    const ordTarget = parseInt(target_orders) || 5;
+
+    const currentMonthKey = year_month_fa || getPersianYearMonth().yearMonth;
+
+    // 1. Update user default target
+    db.prepare(`
+      UPDATE users SET monthly_target_inquiries = ?, monthly_target_amount = ?, monthly_target_orders = ?
+      WHERE id = ?
+    `).run(inqTarget, amtTarget, ordTarget, targetUserId);
+
+    // 2. Upsert into marketer_targets table for the specific month
+    const existing = db.prepare('SELECT id FROM marketer_targets WHERE user_id = ? AND year_month_fa = ?').get(targetUserId, currentMonthKey);
+    if (existing) {
+      db.prepare(`
+        UPDATE marketer_targets
+        SET target_inquiries = ?, target_amount = ?, target_orders = ?, notes = ?, created_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+      `).run(inqTarget, amtTarget, ordTarget, notes || '', existing.id);
+    } else {
+      db.prepare(`
+        INSERT INTO marketer_targets (user_id, year_month_fa, target_inquiries, target_amount, target_orders, notes)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `).run(targetUserId, currentMonthKey, inqTarget, amtTarget, ordTarget, notes || '');
+    }
+
+    res.json({
+      success: true,
+      message: `تارگت ماهانه بازاریاب برای ماه ${currentMonthKey} با موفقیت به ${inqTarget} استعلام تنظیم گردید.`
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در ثبت تارگت ماهانه بازاریاب: ' + err.message });
   }
 });
 
@@ -1471,17 +1705,20 @@ function requireRoles(...allowed) {
 
 // ================= USER MANAGEMENT & RBAC =================
 app.get('/api/users', authMiddleware, requireCeo, (req, res) => {
-  const users = db.prepare('SELECT id, username, full_name, role, department, phone, permissions, is_active, created_at FROM users ORDER BY id ASC').all();
+  const users = db.prepare('SELECT id, username, full_name, role, department, phone, permissions, is_active, monthly_target_inquiries, monthly_target_amount, monthly_target_orders, created_at FROM users ORDER BY id ASC').all();
   const enriched = users.map(u => ({
     ...u,
     is_active: u.is_active !== 0,
+    monthly_target_inquiries: u.monthly_target_inquiries || 20,
+    monthly_target_amount: u.monthly_target_amount || 0,
+    monthly_target_orders: u.monthly_target_orders || 5,
     permissions: resolveUserPermissions(u)
   }));
   res.json({ users: enriched, default_presets: DEFAULT_ROLE_PERMISSIONS });
 });
 
 app.post('/api/users', authMiddleware, requireCeo, (req, res) => {
-  const { username, password, full_name, role, department, phone, permissions, is_active } = req.body;
+  const { username, password, full_name, role, department, phone, permissions, is_active, monthly_target_inquiries, monthly_target_amount, monthly_target_orders } = req.body;
   if (!username || !password || !full_name || !role) {
     return res.status(400).json({ error: 'تمامی فیلدهای الزامی (نام، نام کاربری، رمز و نقش) را پر کنید' });
   }
@@ -1496,37 +1733,43 @@ app.post('/api/users', authMiddleware, requireCeo, (req, res) => {
 
   const permsString = permissions ? (typeof permissions === 'string' ? permissions : JSON.stringify(permissions)) : JSON.stringify(DEFAULT_ROLE_PERMISSIONS[role] || {});
   const activeVal = is_active === false ? 0 : 1;
+  const targetInq = parseInt(monthly_target_inquiries) || 20;
+  const targetAmt = parseFloat(monthly_target_amount) || 0;
+  const targetOrd = parseInt(monthly_target_orders) || 5;
 
   const insert = db.prepare(`
-    INSERT INTO users (username, password_hash, full_name, role, department, phone, permissions, is_active)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO users (username, password_hash, full_name, role, department, phone, permissions, is_active, monthly_target_inquiries, monthly_target_amount, monthly_target_orders)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
-  const result = insert.run(username, password_hash, full_name, role, department || role, phone || '', permsString, activeVal);
-  res.json({ success: true, id: result.lastInsertRowid, message: 'کاربر جدید با سطوح دسترسی مشخص با موفقیت ایجاد گردید.' });
+  const result = insert.run(username, password_hash, full_name, role, department || role, phone || '', permsString, activeVal, targetInq, targetAmt, targetOrd);
+  res.json({ success: true, id: result.lastInsertRowid, message: 'کاربر جدید با سطوح دسترسی و تارگت مشخص با موفقیت ایجاد گردید.' });
 });
 
 app.put('/api/users/:id', authMiddleware, requireCeo, (req, res) => {
-  const { full_name, role, department, phone, password, permissions, is_active } = req.body;
+  const { full_name, role, department, phone, password, permissions, is_active, monthly_target_inquiries, monthly_target_amount, monthly_target_orders } = req.body;
   const id = req.params.id;
 
   const permsString = permissions ? (typeof permissions === 'string' ? permissions : JSON.stringify(permissions)) : null;
   const activeVal = is_active === false ? 0 : 1;
+  const targetInq = monthly_target_inquiries !== undefined ? parseInt(monthly_target_inquiries) || 20 : 20;
+  const targetAmt = monthly_target_amount !== undefined ? parseFloat(monthly_target_amount) || 0 : 0;
+  const targetOrd = monthly_target_orders !== undefined ? parseInt(monthly_target_orders) || 5 : 5;
 
   if (password && password.trim().length > 0) {
     const salt = bcrypt.genSaltSync(10);
     const password_hash = bcrypt.hashSync(password, salt);
     db.prepare(`
-      UPDATE users SET full_name = ?, role = ?, department = ?, phone = ?, password_hash = ?, permissions = COALESCE(?, permissions), is_active = ?
+      UPDATE users SET full_name = ?, role = ?, department = ?, phone = ?, password_hash = ?, permissions = COALESCE(?, permissions), is_active = ?, monthly_target_inquiries = ?, monthly_target_amount = ?, monthly_target_orders = ?
       WHERE id = ?
-    `).run(full_name, role, department, phone || '', password_hash, permsString, activeVal, id);
+    `).run(full_name, role, department, phone || '', password_hash, permsString, activeVal, targetInq, targetAmt, targetOrd, id);
   } else {
     db.prepare(`
-      UPDATE users SET full_name = ?, role = ?, department = ?, phone = ?, permissions = COALESCE(?, permissions), is_active = ?
+      UPDATE users SET full_name = ?, role = ?, department = ?, phone = ?, permissions = COALESCE(?, permissions), is_active = ?, monthly_target_inquiries = ?, monthly_target_amount = ?, monthly_target_orders = ?
       WHERE id = ?
-    `).run(full_name, role, department, phone || '', permsString, activeVal, id);
+    `).run(full_name, role, department, phone || '', permsString, activeVal, targetInq, targetAmt, targetOrd, id);
   }
 
-  res.json({ success: true, message: 'اطلاعات و سطوح دسترسی کاربر با موفقیت ذخیره گردید.' });
+  res.json({ success: true, message: 'اطلاعات، سطوح دسترسی و تارگت کاربر با موفقیت ذخیره گردید.' });
 });
 
 app.delete('/api/users/:id', authMiddleware, requireCeo, (req, res) => {

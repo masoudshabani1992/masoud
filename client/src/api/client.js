@@ -87,6 +87,11 @@ export const api = {
   updateMarketingLeadStatus: (id, data) => apiRequest(`/marketing/leads/${id}/status`, { method: 'PUT', body: JSON.stringify(typeof data === 'string' ? { status: data } : data) }),
   addMarketingLeadFollowup: (id, data) => apiRequest(`/marketing/leads/${id}/followup`, { method: 'POST', body: JSON.stringify(data) }),
   convertMarketingLeadToProject: (id) => apiRequest(`/marketing/leads/${id}/convert-to-project`, { method: 'POST' }),
+  getMarketerTargetStats: (params = {}) => {
+    const q = new URLSearchParams(params).toString();
+    return apiRequest(`/marketing/target-stats${q ? `?${q}` : ''}`);
+  },
+  updateMarketerTarget: (userId, data) => apiRequest(`/marketing/targets/${userId}`, { method: 'PUT', body: JSON.stringify(data) }),
 
   // License Management
   getLicenseStatus: () => apiRequest('/license/status'),
