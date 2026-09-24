@@ -67,7 +67,10 @@ function licenseGuard(req, res, next) {
   if (
     !req.path.startsWith('/api') ||
     req.path.startsWith('/api/license') ||
-    req.path === '/download-setup'
+    req.path === '/download-setup' ||
+    req.path === '/download-manual' ||
+    req.path === '/download-manual-pdf' ||
+    req.path === '/download-manual-md'
   ) {
     return next();
   }
@@ -2674,6 +2677,35 @@ app.get('/download-setup', (req, res) => {
     res.download(zipPath, 'box-factory-windows-setup.zip');
   } else {
     res.status(404).send('فایل ستاپ یافت نشد');
+  }
+});
+
+// Download Training Manual PDF
+app.get('/download-manual', (req, res) => {
+  const pdfPath = path.join(__dirname, '..', 'TRAINING_MANUAL.pdf');
+  if (fs.existsSync(pdfPath)) {
+    res.download(pdfPath, 'Arman-Amiran-Factory-Training-Manual.pdf');
+  } else {
+    res.status(404).send('فایل دفترچه راهنما یافت نشد');
+  }
+});
+
+app.get('/download-manual-pdf', (req, res) => {
+  const pdfPath = path.join(__dirname, '..', 'TRAINING_MANUAL.pdf');
+  if (fs.existsSync(pdfPath)) {
+    res.download(pdfPath, 'Arman-Amiran-Factory-Training-Manual.pdf');
+  } else {
+    res.status(404).send('فایل دفترچه راهنما یافت نشد');
+  }
+});
+
+// Download Training Manual Markdown
+app.get('/download-manual-md', (req, res) => {
+  const mdPath = path.join(__dirname, '..', 'TRAINING_MANUAL.md');
+  if (fs.existsSync(mdPath)) {
+    res.download(mdPath, 'TRAINING_MANUAL.md');
+  } else {
+    res.status(404).send('فایل متنی راهنما یافت نشد');
   }
 });
 
