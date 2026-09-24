@@ -103,10 +103,10 @@ export default function MyTasksInbox({
             <Search className="w-5 h-5 text-indigo-600 absolute right-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="جستجو در وظایف من: نام سفارش، کد آرشیو، نام مشتری..."
+              placeholder="جستجو در وظایف: نام مشتری، شماره موبایل، نام محصول، کد آرشیو/سفارش..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pr-11 pl-10 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+              className="w-full pr-11 pl-10 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-bold bg-slate-50/50 focus:bg-white"
             />
             {searchTerm && (
               <button

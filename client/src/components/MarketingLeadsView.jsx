@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
 import FilePreviewModal from './FilePreviewModal';
+import { matchProduct } from '../utils/helpers';
 import {
   Users,
   Send,
@@ -534,13 +535,15 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
 
   // Filter Leads
   const filteredLeads = leads.filter((l) => {
-    const matchesSearch =
-      !searchTerm ||
-      (l.customer_name && l.customer_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (l.product_name && l.product_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (l.customer_phone && l.customer_phone.includes(searchTerm)) ||
-      (l.lead_code && l.lead_code.toLowerCase().includes(searchTerm.toLowerCase()));
+    // 1. Marketer Privacy Isolation
+    if (isMarketer && l.marketer_id && currentUser?.id && l.marketer_id !== currentUser.id) {
+      return false;
+    }
 
+    // 2. Comprehensive Search Filter (مشتری، موبایل، محصول، پرونده)
+    const matchesSearch = matchProduct(l, searchTerm);
+
+    // 3. Status Filter
     const matchesStatus = statusFilter === 'all' || l.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -1188,21 +1191,31 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
               </button>
             </div>
 
-            <div className="flex items-center gap-2 w-full md:w-80">
+            <div className="flex items-center gap-2 w-full md:w-96">
               <div className="relative flex-1">
-                <Search className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
+                <Search className="w-4 h-4 text-teal-600 absolute right-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
-                  placeholder="جستجو در کد MKT، مشتری، تلفن..."
+                  placeholder="جستجو: نام مشتری، شماره موبایل، محصول، کد MKT/پرونده..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-3 pr-9 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:bg-white focus:border-teal-500 focus:outline-none"
+                  className="w-full pl-8 pr-9 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:bg-white focus:border-teal-500 focus:outline-none transition-all shadow-2xs"
                 />
+                {searchTerm && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchTerm('')}
+                    className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 rounded-full"
+                    title="پاک کردن جستجو"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
               <button
                 type="button"
                 onClick={fetchLeads}
-                className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition"
+                className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition shadow-2xs"
                 title="بروزرسانی داده‌ها"
               >
                 <RefreshCw className="w-4 h-4" />

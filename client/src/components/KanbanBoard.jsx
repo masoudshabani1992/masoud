@@ -66,7 +66,7 @@ export default function KanbanBoard({
             <Search className="w-5 h-5 text-indigo-600 absolute right-4 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="جستجوی سریع در کل خط تولید: نام کار، کد آرشیو (مثلاً 7542)، کد سفارش، نام مشتری، نوع مقوا..."
+              placeholder="جستجوی سریع: نام مشتری، شماره موبایل، نام محصول یا شماره پرونده (کد آرشیو)..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pr-12 pl-10 py-3 text-xs sm:text-sm rounded-2xl border-2 border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all font-medium bg-slate-50/50"

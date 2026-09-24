@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { api } from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import { matchProduct } from '../utils/helpers';
 import {
   Layers,
   FileSpreadsheet,
@@ -135,6 +136,11 @@ export default function ProductionOrderView({ onOpenNewProject }) {
       alert('خطا در تغییر وضعیت: ' + err.message);
     }
   };
+
+  // Live filter orders with matchProduct
+  const filteredOrders = useMemo(() => {
+    return orders.filter((ord) => matchProduct(ord, searchQuery));
+  }, [orders, searchQuery]);
 
   const handleCreateOrder = async (e) => {
     e.preventDefault();
@@ -356,20 +362,30 @@ export default function ProductionOrderView({ onOpenNewProject }) {
         </div>
 
         {/* Search Bar */}
-        <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 w-full md:w-80">
+        <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 w-full md:w-96">
           <div className="relative flex-1">
-            <Search className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-indigo-500 absolute right-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="جستجو در مشتری، عنوان، کد سفارش..."
+              placeholder="جستجو: نام مشتری، شماره موبایل، محصول، پرونده/سفارش..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-3 pr-9 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:border-indigo-500 focus:outline-none transition-all"
+              className="w-full pl-8 pr-9 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:bg-white focus:border-indigo-500 focus:outline-none transition-all shadow-2xs"
             />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => { setSearchQuery(''); }}
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 rounded-full"
+                title="پاک کردن جستجو"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
           <button
             type="submit"
-            className="px-3 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition-all"
+            className="px-3.5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-black transition-all shadow-xs"
           >
             جستجو
           </button>
@@ -377,7 +393,7 @@ export default function ProductionOrderView({ onOpenNewProject }) {
             <button
               type="button"
               onClick={() => setSelectedColor('all')}
-              className="px-2.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition-all"
+              className="px-2.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all whitespace-nowrap"
               title="نمایش همه رنگ‌ها"
             >
               همه رنگ‌ها
@@ -393,11 +409,11 @@ export default function ProductionOrderView({ onOpenNewProject }) {
             <RefreshCw className="w-8 h-8 animate-spin text-indigo-500" />
             <p className="text-sm font-bold">در حال بارگذاری دستورات تولید...</p>
           </div>
-        ) : orders.length === 0 ? (
+        ) : filteredOrders.length === 0 ? (
           <div className="p-16 text-center space-y-3 text-slate-400">
             <Box className="w-12 h-12 mx-auto text-slate-300 stroke-[1.5]" />
-            <p className="text-base font-bold text-slate-600">هیچ سفارش یا دستور تولیدی با این فیلتر یافت نشد.</p>
-            <p className="text-xs text-slate-400">می‌توانید با دکمه بالا یک دستور تولید جدید صادر نمایید.</p>
+            <p className="text-base font-bold text-slate-600">هیچ سفارش یا دستور تولیدی با این مشخصات یافت نشد.</p>
+            <p className="text-xs text-slate-400">می‌توانید عبارت جستجو را تغییر داده یا با دکمه بالا دستور تولید جدید صادر نمایید.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -417,7 +433,7 @@ export default function ProductionOrderView({ onOpenNewProject }) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700 font-medium">
-                {orders.map((ord, idx) => {
+                {filteredOrders.map((ord, idx) => {
                   let rowBg = 'hover:bg-slate-50/80';
                   let statusBadge = (
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-800 border border-slate-300 text-[11px] font-bold">

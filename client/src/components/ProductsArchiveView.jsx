@@ -70,7 +70,12 @@ export default function ProductsArchiveView({
   // Filtered & Sorted Projects
   const filteredProjects = useMemo(() => {
     return projects.filter((p) => {
-      // 1. Universal Search Filter
+      // 0. Marketer isolation
+      if (role === 'marketer' && currentUser?.id && p.created_by && p.created_by !== currentUser.id) {
+        return false;
+      }
+
+      // 1. Universal Search Filter (نام مشتری، موبایل، محصول، پرونده)
       const matchesSearch = matchProduct(p, searchTerm);
       if (!matchesSearch) return false;
 
@@ -173,10 +178,10 @@ export default function ProductsArchiveView({
           <Search className="w-5 h-5 text-indigo-600 absolute right-4 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="جستجوی سریع: نام کار، کد آرشیو (مثلاً 4821)، کد رهگیری، نام مشتری، نوع مقوا (ایندربرد/پشت طوسی)، ساختار و ابعاد..."
+            placeholder="جستجوی جامع: نام مشتری، شماره موبایل، نام محصول یا شماره پرونده (کد آرشیو / کد سفارش)..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pr-12 pl-12 py-3.5 text-sm rounded-xl border-2 border-indigo-100 focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all font-medium bg-slate-50/50 focus:bg-white"
+            className="w-full pr-12 pl-12 py-3.5 text-sm rounded-xl border-2 border-indigo-100 focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all font-bold bg-slate-50/50 focus:bg-white shadow-2xs"
           />
           {searchTerm && (
             <button

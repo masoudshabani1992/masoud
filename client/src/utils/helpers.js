@@ -325,13 +325,34 @@ export function matchProduct(project, searchTerm) {
   if (!term) return true;
 
   const fields = [
+    // ۱. نام محصول / عنوان کار / عنوان خدمات
     project.title,
-    project.tracking_code,
+    project.product_name,
+    project.product_title,
+    project.service_title,
+    project.name,
+
+    // ۲. نام مشتری / نام شرکت / شخص رابط
+    project.customer_name,
+    project.company_name,
+    project.contact_person,
+    project.marketer_name,
+
+    // ۳. شماره موبایل / شماره تلفن
+    project.customer_phone,
+    project.phone,
+    project.mobile,
+    project.emergency_phone,
+
+    // ۴. شماره پرونده / شماره سفارش / کد رهگیری / کد استعلام / شناسه
     project.archive_code,
     project.order_code,
+    project.tracking_code,
+    project.lead_code,
     project.customer_code,
-    project.customer_name,
-    project.customer_phone,
+    project.id ? String(project.id) : '',
+
+    // مشخصات تکمیلی و ابعاد
     project.box_type,
     project.box_structure,
     project.cardboard_type,
@@ -341,6 +362,7 @@ export function matchProduct(project, searchTerm) {
     project.sheet_category,
     project.blade_type,
     project.general_notes,
+    project.notes,
     project.length_mm ? String(project.length_mm) : '',
     project.width_mm ? String(project.width_mm) : '',
     project.height_mm ? String(project.height_mm) : ''

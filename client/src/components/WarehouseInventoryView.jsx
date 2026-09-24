@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { api } from '../api/client';
+import { matchProduct } from '../utils/helpers';
 import {
   Package,
   FileSpreadsheet,
@@ -23,7 +24,8 @@ import {
   Clock,
   CreditCard,
   XCircle,
-  ArrowUpDown
+  ArrowUpDown,
+  X
 } from 'lucide-react';
 
 export default function WarehouseInventoryView({ initialCategory = 'cardboard' }) {
@@ -156,6 +158,10 @@ export default function WarehouseInventoryView({ initialCategory = 'cardboard' }
       alert('خطا در ذخیره وضعیت: ' + err.message);
     }
   };
+
+  const filteredReceipts = useMemo(() => {
+    return receipts.filter((rec) => matchProduct(rec, searchQuery));
+  }, [receipts, searchQuery]);
 
   const handleExportExcel = () => {
     window.open('/api/warehouse-receipts/export-excel', '_blank');
@@ -428,20 +434,30 @@ export default function WarehouseInventoryView({ initialCategory = 'cardboard' }
         </div>
 
         {/* Search Bar */}
-        <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 w-full md:w-80">
+        <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 w-full md:w-96">
           <div className="relative flex-1">
-            <Search className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-sky-600 absolute right-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder={`جستجو در ${currentCategoryMeta.label}...`}
+              placeholder={`جستجو در ${currentCategoryMeta.label}: تامین‌کننده، مشتری، پرونده...`}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-3 pr-9 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:border-sky-500 focus:outline-none transition-all"
+              className="w-full pl-8 pr-9 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:bg-white focus:border-sky-500 focus:outline-none transition-all shadow-2xs"
             />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 rounded-full"
+                title="پاک کردن جستجو"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
           <button
             type="submit"
-            className="px-3 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition-all"
+            className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all shadow-xs"
           >
             جستجو
           </button>
@@ -455,7 +471,7 @@ export default function WarehouseInventoryView({ initialCategory = 'cardboard' }
             <RefreshCw className="w-8 h-8 animate-spin text-sky-500" />
             <p className="text-sm font-bold">در حال بارگذاری دفاتر انبار...</p>
           </div>
-        ) : receipts.length === 0 ? (
+        ) : filteredReceipts.length === 0 ? (
           <div className="p-16 text-center space-y-3 text-slate-400">
             <Package className="w-12 h-12 mx-auto text-slate-300 stroke-[1.5]" />
             <p className="text-base font-bold text-slate-600">هیچ رکوردی در بخش «{currentCategoryMeta.label}» با این مشخصات یافت نشد.</p>
@@ -484,7 +500,7 @@ export default function WarehouseInventoryView({ initialCategory = 'cardboard' }
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700 font-medium">
-                {receipts.map((rec, idx) => {
+                {filteredReceipts.map((rec, idx) => {
                   const totalR = (rec.received_qty_1 || 0) + (rec.received_qty_2 || 0);
                   const diff = totalR - (rec.required_qty || 0);
 

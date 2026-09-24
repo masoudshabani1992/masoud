@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { api } from '../api/client';
+import { matchProduct } from '../utils/helpers';
 import {
   Scissors,
   Plus,
@@ -15,7 +16,8 @@ import {
   ArrowUpDown,
   RefreshCw,
   Layers,
-  FileText
+  FileText,
+  X
 } from 'lucide-react';
 
 export default function TollServicesView() {
@@ -73,6 +75,10 @@ export default function TollServicesView() {
     setSelectedStatusColor(order.status_color || 'white');
     setShowStatusModal(true);
   };
+
+  const filteredOrders = useMemo(() => {
+    return orders.filter((ord) => matchProduct(ord, searchQuery));
+  }, [orders, searchQuery]);
 
   const handleQuickColorChange = async (order, newColor) => {
     try {
@@ -263,20 +269,30 @@ export default function TollServicesView() {
           )}
         </div>
 
-        <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 w-full md:w-80">
+        <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 w-full md:w-96">
           <div className="relative flex-1">
-            <Search className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-amber-600 absolute right-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="جستجو در همکار، عنوان خدمات، کد..."
+              placeholder="جستجو: نام مشتری، شماره موبایل، نوع خدمت، کد..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-3 pr-9 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none"
+              className="w-full pl-8 pr-9 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:bg-white focus:border-amber-500 focus:outline-none transition-all shadow-2xs"
             />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 rounded-full"
+                title="پاک کردن جستجو"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
           <button
             type="submit"
-            className="px-3 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold"
+            className="px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs"
           >
             جستجو
           </button>
@@ -290,10 +306,10 @@ export default function TollServicesView() {
             <RefreshCw className="w-8 h-8 animate-spin text-amber-600" />
             <p className="text-sm font-bold">در حال بارگذاری سفارشات خدماتی...</p>
           </div>
-        ) : orders.length === 0 ? (
+        ) : filteredOrders.length === 0 ? (
           <div className="p-16 text-center space-y-3 text-slate-400">
             <Scissors className="w-12 h-12 mx-auto text-slate-300 stroke-[1.5]" />
-            <p className="text-base font-bold text-slate-600">هیچ سفارش خدماتی یافت نشد.</p>
+            <p className="text-base font-bold text-slate-600">هیچ سفارش خدماتی با این مشخصات یافت نشد.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -312,7 +328,7 @@ export default function TollServicesView() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700 font-medium">
-                {orders.map((ord) => {
+                {filteredOrders.map((ord) => {
                   let badge = (
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-300 text-[10px] font-bold">
                       <span className="w-2 h-2 rounded-full bg-white border border-slate-400" />

@@ -380,31 +380,38 @@ app.post('/api/dieline/montage', authMiddleware, (req, res) => {
 app.get('/api/marketing/leads', authMiddleware, (req, res) => {
   try {
     const user = req.user;
-    let leads;
-    if (user.role === 'marketer') {
-      leads = db.prepare(`
-        SELECT l.*,
-               p.current_stage as project_current_stage,
-               p.status as project_status,
-               p.order_code as project_order_code,
-               p.archive_code as project_archive_code
-        FROM marketing_leads l
-        LEFT JOIN projects p ON l.converted_project_id = p.id
-        WHERE l.marketer_id = ?
-        ORDER BY l.id DESC
-      `).all(user.id);
-    } else {
-      leads = db.prepare(`
-        SELECT l.*,
-               p.current_stage as project_current_stage,
-               p.status as project_status,
-               p.order_code as project_order_code,
-               p.archive_code as project_archive_code
-        FROM marketing_leads l
-        LEFT JOIN projects p ON l.converted_project_id = p.id
-        ORDER BY l.id DESC
-      `).all();
+    const { search, status } = req.query;
+    let query = `
+      SELECT l.*,
+             p.current_stage as project_current_stage,
+             p.status as project_status,
+             p.order_code as project_order_code,
+             p.archive_code as project_archive_code
+      FROM marketing_leads l
+      LEFT JOIN projects p ON l.converted_project_id = p.id
+      WHERE 1=1
+    `;
+    const params = [];
+
+    // Marketers strictly see ONLY their own inquiries
+    if (user.role === 'marketer' || user.role === 'marketing') {
+      query += ' AND l.marketer_id = ?';
+      params.push(user.id);
     }
+
+    if (status && status !== 'all') {
+      query += ' AND l.status = ?';
+      params.push(status);
+    }
+
+    if (search) {
+      const s = `%${search.trim()}%`;
+      query += ' AND (l.customer_name LIKE ? OR l.customer_phone LIKE ? OR l.product_name LIKE ? OR l.lead_code LIKE ? OR p.archive_code LIKE ? OR p.order_code LIKE ?)';
+      params.push(s, s, s, s, s, s);
+    }
+
+    query += ' ORDER BY l.id DESC';
+    const leads = db.prepare(query).all(...params);
 
     // Parse JSON followup_logs
     const enrichedLeads = leads.map(lead => {
@@ -1182,9 +1189,19 @@ app.put('/api/marketing/targets/:user_id', authMiddleware, (req, res) => {
 // 1. Get Production Orders List
 app.get('/api/production-orders', authMiddleware, (req, res) => {
   try {
+    const user = req.user;
     const { color, category, search } = req.query;
     let query = 'SELECT * FROM production_orders WHERE 1=1';
     const params = [];
+
+    // Marketers strictly see only their own customer orders
+    if (user.role === 'marketer' || user.role === 'marketing') {
+      query += ` AND (
+        customer_phone IN (SELECT customer_phone FROM marketing_leads WHERE marketer_id = ?)
+        OR customer_name IN (SELECT customer_name FROM marketing_leads WHERE marketer_id = ?)
+      )`;
+      params.push(user.id, user.id);
+    }
 
     if (color && color !== 'all') {
       query += ' AND status_color = ?';
@@ -1195,18 +1212,28 @@ app.get('/api/production-orders', authMiddleware, (req, res) => {
       params.push(category);
     }
     if (search) {
-      query += ' AND (customer_name LIKE ? OR product_title LIKE ? OR order_code LIKE ? OR archive_code LIKE ?)';
-      const s = `%${search}%`;
-      params.push(s, s, s, s);
+      query += ' AND (customer_name LIKE ? OR customer_phone LIKE ? OR product_title LIKE ? OR order_code LIKE ? OR archive_code LIKE ?)';
+      const s = `%${search.trim()}%`;
+      params.push(s, s, s, s, s);
     }
 
     query += ' ORDER BY id DESC';
     const orders = db.prepare(query).all(...params);
 
-    const whiteCount = db.prepare("SELECT COUNT(*) as c FROM production_orders WHERE status_color = 'white'").get().c || 0;
-    const yellowCount = db.prepare("SELECT COUNT(*) as c FROM production_orders WHERE status_color = 'yellow'").get().c || 0;
-    const redCount = db.prepare("SELECT COUNT(*) as c FROM production_orders WHERE status_color = 'red'").get().c || 0;
-    const greenCount = db.prepare("SELECT COUNT(*) as c FROM production_orders WHERE status_color = 'green'").get().c || 0;
+    let countWhere = 'WHERE 1=1';
+    const countParams = [];
+    if (user.role === 'marketer' || user.role === 'marketing') {
+      countWhere += ` AND (
+        customer_phone IN (SELECT customer_phone FROM marketing_leads WHERE marketer_id = ?)
+        OR customer_name IN (SELECT customer_name FROM marketing_leads WHERE marketer_id = ?)
+      )`;
+      countParams.push(user.id, user.id);
+    }
+
+    const whiteCount = db.prepare(`SELECT COUNT(*) as c FROM production_orders ${countWhere} AND status_color = 'white'`).get(...countParams)?.c || 0;
+    const yellowCount = db.prepare(`SELECT COUNT(*) as c FROM production_orders ${countWhere} AND status_color = 'yellow'`).get(...countParams)?.c || 0;
+    const redCount = db.prepare(`SELECT COUNT(*) as c FROM production_orders ${countWhere} AND status_color = 'red'`).get(...countParams)?.c || 0;
+    const greenCount = db.prepare(`SELECT COUNT(*) as c FROM production_orders ${countWhere} AND status_color = 'green'`).get(...countParams)?.c || 0;
 
     res.json({
       success: true,
@@ -1540,17 +1567,28 @@ app.get('/api/warehouse-receipts/export-excel', authMiddleware, (req, res) => {
 // 1. Get Digital Orders
 app.get('/api/digital-orders', authMiddleware, (req, res) => {
   try {
+    const user = req.user;
     const { color, search } = req.query;
     let query = 'SELECT * FROM digital_orders WHERE 1=1';
     const params = [];
+
+    // Marketer isolation
+    if (user.role === 'marketer' || user.role === 'marketing') {
+      query += ` AND (
+        customer_phone IN (SELECT customer_phone FROM marketing_leads WHERE marketer_id = ?)
+        OR customer_name IN (SELECT customer_name FROM marketing_leads WHERE marketer_id = ?)
+      )`;
+      params.push(user.id, user.id);
+    }
+
     if (color && color !== 'all') {
       query += ' AND status_color = ?';
       params.push(color);
     }
     if (search) {
-      query += ' AND (customer_name LIKE ? OR title LIKE ? OR order_code LIKE ?)';
-      const s = `%${search}%`;
-      params.push(s, s, s);
+      query += ' AND (customer_name LIKE ? OR customer_phone LIKE ? OR title LIKE ? OR order_code LIKE ?)';
+      const s = `%${search.trim()}%`;
+      params.push(s, s, s, s);
     }
     query += ' ORDER BY id DESC';
     const orders = db.prepare(query).all(...params);
@@ -1609,17 +1647,28 @@ app.put('/api/digital-orders/:id/status-color', authMiddleware, (req, res) => {
 // 1. Get Toll Service Orders
 app.get('/api/service-orders', authMiddleware, (req, res) => {
   try {
+    const user = req.user;
     const { color, search } = req.query;
     let query = 'SELECT * FROM toll_service_orders WHERE 1=1';
     const params = [];
+
+    // Marketer isolation
+    if (user.role === 'marketer' || user.role === 'marketing') {
+      query += ` AND (
+        customer_phone IN (SELECT customer_phone FROM marketing_leads WHERE marketer_id = ?)
+        OR customer_name IN (SELECT customer_name FROM marketing_leads WHERE marketer_id = ?)
+      )`;
+      params.push(user.id, user.id);
+    }
+
     if (color && color !== 'all') {
       query += ' AND status_color = ?';
       params.push(color);
     }
     if (search) {
-      query += ' AND (customer_name LIKE ? OR service_title LIKE ? OR order_code LIKE ?)';
-      const s = `%${search}%`;
-      params.push(s, s, s);
+      query += ' AND (customer_name LIKE ? OR customer_phone LIKE ? OR service_title LIKE ? OR order_code LIKE ?)';
+      const s = `%${search.trim()}%`;
+      params.push(s, s, s, s);
     }
     query += ' ORDER BY id DESC';
     const orders = db.prepare(query).all(...params);
@@ -2448,15 +2497,49 @@ app.put('/api/materials/:id', authMiddleware, requireRoles('accounting', 'estima
 
 // ================= CUSTOMERS =================
 app.get('/api/customers', authMiddleware, (req, res) => {
-  const customers = db.prepare('SELECT * FROM customers ORDER BY id DESC').all();
+  const { search } = req.query;
+  const user = req.user;
+  let query = 'SELECT * FROM customers WHERE 1=1';
+  const params = [];
+
+  // Marketers can ONLY see their own customers
+  if (user.role === 'marketer' || user.role === 'marketing') {
+    query += ` AND (
+      phone IN (SELECT customer_phone FROM marketing_leads WHERE marketer_id = ?)
+      OR company_name IN (SELECT customer_name FROM marketing_leads WHERE marketer_id = ?)
+      OR id IN (SELECT customer_id FROM projects WHERE created_by = ? OR assigned_to = ?)
+    )`;
+    params.push(user.id, user.id, user.id, user.id);
+  }
+
+  if (search) {
+    const s = `%${search.trim()}%`;
+    query += ' AND (company_name LIKE ? OR contact_person LIKE ? OR phone LIKE ? OR customer_code LIKE ?)';
+    params.push(s, s, s, s);
+  }
+
+  query += ' ORDER BY id DESC';
+  const customers = db.prepare(query).all(...params);
   res.json({ customers });
 });
 
 // ================= PROJECTS / ORDERS =================
 app.get('/api/projects', authMiddleware, (req, res) => {
   const { stage, search, priority, status } = req.query;
+  const user = req.user;
   let query = 'SELECT * FROM projects WHERE 1=1';
   const params = [];
+
+  // Marketers can ONLY see their own registered or assigned projects/customers
+  if (user.role === 'marketer' || user.role === 'marketing') {
+    query += ` AND (
+      created_by = ? 
+      OR assigned_to = ? 
+      OR customer_phone IN (SELECT customer_phone FROM marketing_leads WHERE marketer_id = ?)
+      OR customer_name IN (SELECT customer_name FROM marketing_leads WHERE marketer_id = ?)
+    )`;
+    params.push(user.id, user.id, user.id, user.id);
+  }
 
   if (stage) {
     query += ' AND current_stage = ?';
