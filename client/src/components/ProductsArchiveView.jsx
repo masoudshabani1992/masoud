@@ -1,4 +1,6 @@
 import React, { useState, useMemo } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { api } from '../api/client';
 import { STAGES, BOX_TYPES, formatToman, formatNumber, formatDateFa, matchProduct } from '../utils/helpers';
 import {
   Search,
@@ -22,7 +24,8 @@ import {
   Phone,
   Tag,
   SlidersHorizontal,
-  Download
+  Download,
+  Trash2
 } from 'lucide-react';
 
 export default function ProductsArchiveView({
@@ -32,12 +35,37 @@ export default function ProductsArchiveView({
   onReorderProject,
   onRefresh
 }) {
+  const { currentUser, role } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStage, setSelectedStage] = useState('all');
   const [selectedBoxType, setSelectedBoxType] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all'); // 'all', 'in_progress', 'completed'
   const [selectedPriority, setSelectedPriority] = useState('all');
   const [sortBy, setSortBy] = useState('newest'); // 'newest', 'oldest', 'quantity_desc', 'price_desc'
+  const [deletingId, setDeletingId] = useState(null);
+
+  const isCeoOrAdmin = role === 'ceo' || currentUser?.permissions?.can_manage_users || currentUser?.permissions?.can_delete_projects;
+
+  const handleDelete = async (proj, e) => {
+    e.stopPropagation();
+    const confirmDelete = window.confirm(
+      `هشدار مدیریتی:\nآیا از حذف کامل پرونده «${proj.title}» (کد آرشیو: ${proj.archive_code || proj.tracking_code}) اطمینان دارید؟`
+    );
+    if (!confirmDelete) return;
+
+    setDeletingId(proj.id);
+    try {
+      const res = await api.deleteProject(proj.id);
+      if (res.success) {
+        alert(res.message || 'پرونده با موفقیت حذف گردید.');
+        if (onRefresh) onRefresh();
+      }
+    } catch (err) {
+      alert('خطا در حذف پرونده: ' + err.message);
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   // Filtered & Sorted Projects
   const filteredProjects = useMemo(() => {
@@ -400,6 +428,17 @@ export default function ProductsArchiveView({
                               title="تکرار / ثبت سفارش جدید با مشخصات این محصول"
                             >
                               <Copy className="w-4 h-4" />
+                            </button>
+                          )}
+
+                          {isCeoOrAdmin && (
+                            <button
+                              disabled={deletingId === proj.id}
+                              onClick={(e) => handleDelete(proj, e)}
+                              className="p-2 text-rose-600 hover:bg-rose-100 rounded-lg transition-colors border border-rose-200"
+                              title="حذف دائمی پرونده توسط مدیریت"
+                            >
+                              <Trash2 className="w-4 h-4" />
                             </button>
                           )}
                         </div>

@@ -33,7 +33,8 @@ import {
   Calculator,
   Lock,
   CreditCard,
-  Handshake
+  Handshake,
+  Trash2
 } from 'lucide-react';
 
 export default function ProjectDetailsModal({ projectId, onClose, onUpdated, onPrintTicket }) {
@@ -45,6 +46,31 @@ export default function ProjectDetailsModal({ projectId, onClose, onUpdated, onP
   const [actionLoading, setActionLoading] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [showRejectForm, setShowRejectForm] = useState(false);
+
+  // Management Deletion Permission
+  const isCeoOrAdmin = role === 'ceo' || currentUser?.permissions?.can_manage_users || currentUser?.permissions?.can_delete_projects;
+
+  const handleDeleteProject = async () => {
+    if (!project) return;
+    const confirmDelete = window.confirm(
+      `هشدار مدیریتی:\nآیا از حذف کامل و دائمی پرونده «${project.title}» (کد آرشیو: ${project.archive_code || project.tracking_code}) اطمینان دارید؟\nتمامی لاگ‌ها، پیوست‌ها و مراحل این سفارش به صورت کامل حذف خواهند شد.`
+    );
+    if (!confirmDelete) return;
+
+    setActionLoading(true);
+    try {
+      const res = await api.deleteProject(project.id);
+      if (res.success) {
+        alert(res.message || 'پرونده با موفقیت حذف گردید.');
+        onClose();
+        if (onUpdated) onUpdated();
+      }
+    } catch (err) {
+      alert('خطا در حذف پرونده: ' + err.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   // Form states for stage 3
   const [depositAmount, setDepositAmount] = useState('');
@@ -161,6 +187,20 @@ export default function ProjectDetailsModal({ projectId, onClose, onUpdated, onP
                 <span>چاپ برگه کارگاه</span>
               </button>
             )}
+
+            {isCeoOrAdmin && project && (
+              <button
+                type="button"
+                disabled={actionLoading}
+                onClick={handleDeleteProject}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-950/70 hover:bg-rose-700 text-rose-300 hover:text-white text-xs font-bold rounded-xl border border-rose-800/80 transition-colors"
+                title="حذف دائمی این پرونده توسط مدیریت"
+              >
+                <Trash2 className="w-4 h-4 text-rose-400" />
+                <span className="hidden sm:inline">حذف پرونده</span>
+              </button>
+            )}
+
             <button
               onClick={onClose}
               className="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition-colors"

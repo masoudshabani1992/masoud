@@ -28,6 +28,7 @@ import WarehouseInventoryView from './components/WarehouseInventoryView';
 import DigitalPrintView from './components/DigitalPrintView';
 import TollServicesView from './components/TollServicesView';
 import HumanResourcesView from './components/HumanResourcesView';
+import StorageManagerView from './components/StorageManagerView';
 import ErrorBoundary from './components/ErrorBoundary';
 import { playNotificationSound } from './utils/helpers';
 
@@ -417,6 +418,9 @@ export default function App() {
 
           {/* User Management Panel */}
           {activeTab === 'users' && <UserManagementView />}
+
+          {/* Storage Files & Folders Manager */}
+          {activeTab === 'storage' && <StorageManagerView />}
 
           {/* Human Resources & Performance Evaluation System (HR) */}
           {activeTab === 'hr' && <HumanResourcesView />}

@@ -398,6 +398,24 @@ function initDb() {
       notes TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
+
+    -- 5. جدول فایل‌ها و پیوست‌های استوریج (User Storage & File Attachments)
+    CREATE TABLE IF NOT EXISTS storage_files (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER,
+      username TEXT NOT NULL DEFAULT 'general',
+      user_full_name TEXT,
+      original_filename TEXT NOT NULL,
+      stored_filename TEXT NOT NULL,
+      relative_path TEXT NOT NULL,
+      file_url TEXT NOT NULL,
+      file_size_bytes INTEGER DEFAULT 0,
+      mime_type TEXT,
+      category TEXT DEFAULT 'general', -- 'dieline', 'artwork', 'migration', 'invoice', 'photo', 'general'
+      related_entity_type TEXT, -- 'marketing_lead', 'project', 'customer', 'receipt'
+      related_entity_id INTEGER,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
   `);
 
   // Seed default users

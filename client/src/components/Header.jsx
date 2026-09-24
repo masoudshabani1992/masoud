@@ -32,7 +32,8 @@ import {
   Film,
   Maximize2,
   Droplet,
-  Award
+  Award,
+  HardDrive
 } from 'lucide-react';
 
 export default function Header({
@@ -679,6 +680,21 @@ export default function Header({
               >
                 <Award className="w-4 h-4 text-amber-600" />
                 <span>ارزیابی عملکرد (HR)</span>
+              </button>
+            )}
+
+            {/* 13. فایل‌ها و پوشه Storage */}
+            {(isCeo || canManageUsers || role === 'sales' || role === 'marketer' || role === 'design') && (
+              <button
+                onClick={() => setActiveTab('storage')}
+                className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border ${
+                  activeTab === 'storage'
+                    ? 'bg-cyan-700 text-white border-cyan-800 shadow-md ring-2 ring-cyan-400'
+                    : 'bg-cyan-50 text-cyan-900 hover:text-cyan-950 hover:bg-cyan-100 border-cyan-300 shadow-xs'
+                }`}
+              >
+                <HardDrive className="w-4 h-4 text-cyan-600" />
+                <span>پوشه Storage</span>
               </button>
             )}
 

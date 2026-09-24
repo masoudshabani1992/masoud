@@ -48,6 +48,129 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
+// ================= PHYSICAL USER STORAGE SYSTEM =================
+// فولدری بنام Storage در کنار فولدرهای پروژه که هر فایل در فولدر اختصاصی نام کاربر اتوماسیون ذخیره می‌شود
+const ROOT_STORAGE_DIR = path.join(__dirname, '..', 'storage');
+if (!fs.existsSync(ROOT_STORAGE_DIR)) {
+  fs.mkdirSync(ROOT_STORAGE_DIR, { recursive: true });
+}
+
+// Helper to ensure user folder in Storage (e.g. storage/sales, storage/marketer, storage/designer, storage/ceo, ...)
+function getUserStorageDir(username = 'general') {
+  const cleanUser = String(username || 'general').replace(/[^a-zA-Z0-9_\u0600-\u06FF-]/g, '_');
+  const userDir = path.join(ROOT_STORAGE_DIR, cleanUser);
+  if (!fs.existsSync(userDir)) {
+    fs.mkdirSync(userDir, { recursive: true });
+  }
+  return { userDir, cleanUser };
+}
+
+// Helper to save buffer to Storage and database
+function saveFileBufferToStorage({
+  username = 'general',
+  userId = null,
+  userFullName = null,
+  originalFilename = 'file.bin',
+  buffer,
+  mimeType = 'application/octet-stream',
+  category = 'general',
+  relatedEntityType = null,
+  relatedEntityId = null
+}) {
+  const { userDir, cleanUser } = getUserStorageDir(username);
+  const ext = path.extname(originalFilename) || '';
+  const baseName = path.basename(originalFilename, ext).replace(/[^a-zA-Z0-9_\u0600-\u06FF-]/g, '_').substring(0, 50);
+  const storedFilename = `${Date.now()}_${baseName}${ext}`;
+  const absolutePath = path.join(userDir, storedFilename);
+
+  fs.writeFileSync(absolutePath, buffer);
+
+  const relativePath = path.join(cleanUser, storedFilename);
+  const fileUrl = `/api/storage/${cleanUser}/${storedFilename}`;
+  const fileSize = buffer.length;
+
+  try {
+    const info = db.prepare(`
+      INSERT INTO storage_files (
+        user_id, username, user_full_name, original_filename, stored_filename,
+        relative_path, file_url, file_size_bytes, mime_type, category,
+        related_entity_type, related_entity_id
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      userId,
+      cleanUser,
+      userFullName,
+      originalFilename,
+      storedFilename,
+      relativePath,
+      fileUrl,
+      fileSize,
+      mimeType,
+      category,
+      relatedEntityType,
+      relatedEntityId
+    );
+
+    return {
+      id: info.lastInsertRowid,
+      original_filename: originalFilename,
+      stored_filename: storedFilename,
+      file_url: fileUrl,
+      relative_path: relativePath,
+      file_size_bytes: fileSize,
+      mime_type: mimeType,
+      username: cleanUser
+    };
+  } catch (err) {
+    console.error('Error recording storage file to DB:', err);
+    return {
+      original_filename: originalFilename,
+      stored_filename: storedFilename,
+      file_url: fileUrl,
+      relative_path: relativePath,
+      file_size_bytes: fileSize,
+      mime_type: mimeType,
+      username: cleanUser
+    };
+  }
+}
+
+// Helper to save DataURL (base64) to Storage
+function saveDataUrlToStorage({
+  username = 'general',
+  userId = null,
+  userFullName = null,
+  originalFilename = 'file.pdf',
+  dataUrl,
+  category = 'dieline',
+  relatedEntityType = null,
+  relatedEntityId = null
+}) {
+  if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:')) {
+    return { file_url: dataUrl, filename: originalFilename };
+  }
+
+  const matches = dataUrl.match(/^data:([A-Za-z-+\/0-9.]+);base64,(.+)$/);
+  if (!matches || matches.length !== 3) {
+    return { file_url: dataUrl, filename: originalFilename };
+  }
+
+  const mimeType = matches[1];
+  const buffer = Buffer.from(matches[2], 'base64');
+
+  return saveFileBufferToStorage({
+    username,
+    userId,
+    userFullName,
+    originalFilename,
+    buffer,
+    mimeType,
+    category,
+    relatedEntityType,
+    relatedEntityId
+  });
+}
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadDir),
   filename: (req, file, cb) => {
@@ -57,9 +180,26 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage, limits: { fileSize: 50 * 1024 * 1024 } });
 
+// Multer engine to store directly into user-specific folder in Storage
+const userStorageEngine = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const username = req.user?.username || req.body?.username || 'general';
+    const { userDir } = getUserStorageDir(username);
+    cb(null, userDir);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    const base = path.basename(file.originalname, ext).replace(/[^a-zA-Z0-9_\u0600-\u06FF-]/g, '_').substring(0, 50);
+    cb(null, `${Date.now()}_${base}${ext}`);
+  }
+});
+const userUpload = multer({ storage: userStorageEngine, limits: { fileSize: 50 * 1024 * 1024 } });
+
 app.use(cors());
-app.use(express.json({ limit: '20mb' }));
+app.use(express.json({ limit: '50mb' }));
 app.use('/uploads', express.static(uploadDir));
+app.use('/storage', express.static(ROOT_STORAGE_DIR));
+app.use('/api/storage', express.static(ROOT_STORAGE_DIR));
 
 // ================= OFFLINE HARDWARE LICENSE GUARD =================
 function licenseGuard(req, res, next) {
@@ -316,6 +456,24 @@ app.post('/api/marketing/leads', authMiddleware, (req, res) => {
     const leadCount = db.prepare('SELECT COUNT(*) as count FROM marketing_leads').get();
     const leadCode = `MKT-${101 + (leadCount.count || 0)}`;
 
+    let finalDielineUrl = dieline_file_url || null;
+    let finalDielineFilename = dieline_filename || null;
+
+    // Save dieline file to physical Storage/<username>/ folder
+    if (dieline_file_url && dieline_file_url.startsWith('data:')) {
+      const saved = saveDataUrlToStorage({
+        username: user.username || 'marketer',
+        userId: user.id,
+        userFullName: user.full_name || user.fullName || 'کارشناس بازاریابی',
+        originalFilename: dieline_filename || 'dieline_die.pdf',
+        dataUrl: dieline_file_url,
+        category: 'dieline',
+        relatedEntityType: 'marketing_lead'
+      });
+      finalDielineUrl = saved.file_url;
+      finalDielineFilename = saved.original_filename;
+    }
+
     const insertStmt = db.prepare(`
       INSERT INTO marketing_leads (
         lead_code, customer_name, customer_phone, product_name, quantity,
@@ -340,8 +498,8 @@ app.post('/api/marketing/leads', authMiddleware, (req, res) => {
       box_width ? Number(box_width) : null,
       box_height ? Number(box_height) : null,
       notes || '',
-      dieline_file_url || null,
-      dieline_filename || null,
+      finalDielineUrl,
+      finalDielineFilename,
       user.id,
       user.full_name || 'کارشناس بازاریابی'
     );
@@ -417,6 +575,24 @@ app.put('/api/marketing/leads/:id', authMiddleware, (req, res) => {
       dieline_filename
     } = req.body;
 
+    let finalDielineUrl = dieline_file_url;
+    let finalDielineFilename = dieline_filename;
+
+    if (dieline_file_url && dieline_file_url.startsWith('data:')) {
+      const saved = saveDataUrlToStorage({
+        username: user.username || 'marketer',
+        userId: user.id,
+        userFullName: user.full_name || user.fullName || 'کارشناس بازاریابی',
+        originalFilename: dieline_filename || 'dieline_file_v2.pdf',
+        dataUrl: dieline_file_url,
+        category: 'dieline',
+        relatedEntityType: 'marketing_lead',
+        relatedEntityId: Number(id)
+      });
+      finalDielineUrl = saved.file_url;
+      finalDielineFilename = saved.original_filename;
+    }
+
     db.prepare(`
       UPDATE marketing_leads
       SET customer_name = ?,
@@ -450,8 +626,8 @@ app.put('/api/marketing/leads/:id', authMiddleware, (req, res) => {
       box_width ? Number(box_width) : lead.box_width,
       box_height ? Number(box_height) : lead.box_height,
       notes !== undefined ? notes : lead.notes,
-      dieline_file_url || null,
-      dieline_filename || null,
+      finalDielineUrl || null,
+      finalDielineFilename || null,
       id
     );
 
@@ -2350,6 +2526,57 @@ app.get('/api/projects/:id', authMiddleware, (req, res) => {
   res.json({ project });
 });
 
+// DELETE Project (حذف کامل پرونده توسط مدیریت کارخانه)
+app.delete('/api/projects/:id', authMiddleware, (req, res) => {
+  try {
+    const user = req.user;
+    const isCeoOrAdmin = user.role === 'ceo' || user.permissions?.can_manage_users || user.permissions?.can_delete_projects;
+    if (!isCeoOrAdmin) {
+      return res.status(403).json({ error: 'تنها مدیریت عامل یا کاربران دارای دسترسی حذف پرونده مجاز به حذف سفارش هستند.' });
+    }
+
+    const { id } = req.params;
+    const project = db.prepare('SELECT * FROM projects WHERE id = ?').get(id);
+    if (!project) {
+      return res.status(404).json({ error: 'پرونده سفارش مورد نظر یافت نشد.' });
+    }
+
+    // Delete associated workflow logs, comments, files, and purchase orders
+    db.prepare('DELETE FROM workflow_logs WHERE project_id = ?').run(id);
+    db.prepare('DELETE FROM project_comments WHERE project_id = ?').run(id);
+    db.prepare('DELETE FROM project_files WHERE project_id = ?').run(id);
+    db.prepare('DELETE FROM purchase_orders WHERE project_id = ?').run(id);
+    db.prepare('DELETE FROM projects WHERE id = ?').run(id);
+
+    // Update any linked marketing lead
+    db.prepare(`
+      UPDATE marketing_leads
+      SET converted_project_id = NULL,
+          converted_archive_code = NULL,
+          status = 'customer_approved',
+          updated_at = CURRENT_TIMESTAMP
+      WHERE converted_project_id = ?
+    `).run(id);
+
+    // Send notification to CEO & personnel
+    sendNotification({
+      targetRole: 'ceo',
+      title: '🗑️ حذف پرونده سفارش',
+      message: `پرونده «${project.title}» (کد آرشیو: ${project.archive_code || id}) توسط ${user.fullName || user.username} حذف گردید.`,
+      stageNumber: project.current_stage || 1,
+      projectId: id,
+      archiveCode: project.archive_code
+    });
+
+    res.json({
+      success: true,
+      message: `پرونده «${project.title}» (کد آرشیو: ${project.archive_code || id}) با موفقیت از سیستم حذف گردید.`
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در حذف پرونده: ' + err.message });
+  }
+});
+
 // Create Full Box Order with Exact Matrix Parameters (مانند نرم‌افزار امیران)
 app.post('/api/projects', authMiddleware, (req, res) => {
   try {
@@ -2538,6 +2765,21 @@ app.post('/api/migration/parse-file', authMiddleware, upload.single('file'), (re
     const fileBuffer = fs.readFileSync(filePath);
     const ext = path.extname(req.file.originalname).toLowerCase();
 
+    // Archive copy into Storage/<username>/ folder
+    try {
+      saveFileBufferToStorage({
+        username: req.user?.username || 'admin',
+        userId: req.user?.id || null,
+        userFullName: req.user?.fullName || 'مدیریت',
+        originalFilename: req.file.originalname,
+        buffer: fileBuffer,
+        mimeType: req.file.mimetype || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        category: 'migration'
+      });
+    } catch (e) {
+      console.error('Could not archive migration file to storage:', e);
+    }
+
     let parsedSheets = {};
 
     if (ext === '.json') {
@@ -2653,6 +2895,133 @@ app.post('/api/migration/clear-demo-data', authMiddleware, requireCeo, (req, res
     res.json({ success: true, message: 'داده‌های تستی حذف شدند' });
   } catch (err) {
     res.status(400).json({ error: 'خطا در حذف داده‌های تستی: ' + err.message });
+  }
+});
+
+// ================= USER STORAGE & FILE ARCHIVE =================
+
+// Upload file to user storage
+app.post('/api/storage/upload', authMiddleware, userUpload.single('file'), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'هیچ فایلی جهت آپلود ارسال نشده است.' });
+    }
+
+    const user = req.user;
+    const username = user?.username || 'general';
+    const category = req.body?.category || 'general';
+    const relatedEntityType = req.body?.related_entity_type || null;
+    const relatedEntityId = req.body?.related_entity_id ? Number(req.body.related_entity_id) : null;
+
+    const mimeType = req.file.mimetype || 'application/octet-stream';
+    const originalFilename = req.file.originalname;
+
+    const relativePath = path.relative(ROOT_STORAGE_DIR, req.file.path).replace(/\\/g, '/');
+    const fileUrl = `/api/storage/${relativePath}`;
+
+    const info = db.prepare(`
+      INSERT INTO storage_files (
+        user_id, username, user_full_name, original_filename, stored_filename,
+        relative_path, file_url, file_size_bytes, mime_type, category,
+        related_entity_type, related_entity_id
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      user.id || null,
+      username,
+      user.fullName || user.full_name || username,
+      originalFilename,
+      path.basename(req.file.path),
+      relativePath,
+      fileUrl,
+      req.file.size,
+      mimeType,
+      category,
+      relatedEntityType,
+      relatedEntityId
+    );
+
+    res.json({
+      success: true,
+      file_id: info.lastInsertRowid,
+      file_url: fileUrl,
+      filename: originalFilename,
+      stored_filename: path.basename(req.file.path),
+      size_bytes: req.file.size,
+      username: username,
+      message: `فایل با موفقیت در پوشه کاربر (${username}) در Storage ذخیره شد.`
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در آپلود و ذخیره‌سازی فایل: ' + err.message });
+  }
+});
+
+// List files in Storage
+app.get('/api/storage/files', authMiddleware, (req, res) => {
+  try {
+    const { username, category, search } = req.query;
+    let query = 'SELECT * FROM storage_files WHERE 1=1';
+    const params = [];
+
+    // Marketers only see their own files unless CEO/Sales
+    if (req.user.role === 'marketer' && req.user.role !== 'ceo') {
+      query += ' AND (username = ? OR username = "general")';
+      params.push(req.user.username);
+    } else if (username && username !== 'all') {
+      query += ' AND username = ?';
+      params.push(username);
+    }
+
+    if (category && category !== 'all') {
+      query += ' AND category = ?';
+      params.push(category);
+    }
+
+    if (search) {
+      const s = `%${search.trim()}%`;
+      query += ' AND (original_filename LIKE ? OR username LIKE ? OR user_full_name LIKE ?)';
+      params.push(s, s, s);
+    }
+
+    query += ' ORDER BY id DESC';
+    const files = db.prepare(query).all(...params);
+
+    const usersWithFiles = db.prepare(`
+      SELECT username, COUNT(*) as file_count, SUM(file_size_bytes) as total_size
+      FROM storage_files
+      GROUP BY username
+    `).all();
+
+    res.json({
+      success: true,
+      files,
+      user_folders: usersWithFiles,
+      storage_root_path: ROOT_STORAGE_DIR
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در واکشی فایل‌ها: ' + err.message });
+  }
+});
+
+// Delete file from Storage
+app.delete('/api/storage/files/:id', authMiddleware, (req, res) => {
+  try {
+    const file = db.prepare('SELECT * FROM storage_files WHERE id = ?').get(req.params.id);
+    if (!file) return res.status(404).json({ error: 'فایل یافت نشد.' });
+
+    if (req.user.role !== 'ceo' && req.user.username !== file.username && !req.user.permissions?.can_manage_users) {
+      return res.status(403).json({ error: 'شما مجاز به حذف این فایل نیستید.' });
+    }
+
+    const absolutePath = path.join(ROOT_STORAGE_DIR, file.relative_path);
+    if (fs.existsSync(absolutePath)) {
+      try { fs.unlinkSync(absolutePath); } catch (e) {}
+    }
+
+    db.prepare('DELETE FROM storage_files WHERE id = ?').run(req.params.id);
+
+    res.json({ success: true, message: 'فایل با موفقیت از Storage حذف گردید.' });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در حذف فایل: ' + err.message });
   }
 });
 

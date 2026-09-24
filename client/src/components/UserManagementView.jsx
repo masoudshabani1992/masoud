@@ -105,10 +105,11 @@ export const ALL_PERMISSION_MODULES = [
     ]
   },
   {
-    category: '۷. مدیریت سیستم و پشتیبان‌گیری',
+    category: '۷. مدیریت سیستم، حذف پرونده و Storage',
     icon: Shield,
     color: 'border-rose-300 bg-rose-50/50 text-rose-900',
     permissions: [
+      { key: 'can_delete_projects', label: 'امکان حذف کامل پرونده‌ها و سفارشات', desc: 'دسترسی به دکمه حذف دائمی پرونده‌ها از آرشیو و سیستم' },
       { key: 'can_manage_users', label: 'مدیریت پرسنل و سطوح دسترسی', desc: 'تعریف کاربر جدید، تنظیم سطح دسترسی و ریست رمز' },
       { key: 'can_view_migration', label: 'مرکز مهاجرت داده‌ها و بک‌آپ', desc: 'ایمپورت اکسل نرم‌افزار قبلی، پشتیبان و ریستور' }
     ]

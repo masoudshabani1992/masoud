@@ -131,6 +131,7 @@ export const api = {
   },
   getProject: (id) => apiRequest(`/projects/${id}`),
   createProject: (data) => apiRequest('/projects', { method: 'POST', body: JSON.stringify(data) }),
+  deleteProject: (id) => apiRequest(`/projects/${id}`, { method: 'DELETE' }),
   advanceStage: (id, stageData, comment) => apiRequest(`/projects/${id}/advance-stage`, { method: 'POST', body: JSON.stringify({ stageData, comment }) }),
   rejectStage: (id, targetStage, reason) => apiRequest(`/projects/${id}/reject-stage`, { method: 'POST', body: JSON.stringify({ targetStage, reason }) }),
   addComment: (id, message) => apiRequest(`/projects/${id}/comments`, { method: 'POST', body: JSON.stringify({ message }) }),
@@ -153,6 +154,21 @@ export const api = {
   exportFullBackup: () => apiRequest('/migration/export-full'),
   restoreFullBackup: (backupData) => apiRequest('/migration/restore-full', { method: 'POST', body: JSON.stringify(backupData) }),
   clearDemoData: () => apiRequest('/migration/clear-demo-data', { method: 'POST' }),
+
+  // Storage & File Management (پوشه فایل‌های کاربران و اتوماسیون)
+  uploadToStorage: (file, category = 'general', relatedEntityType = null, relatedEntityId = null) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (category) formData.append('category', category);
+    if (relatedEntityType) formData.append('related_entity_type', relatedEntityType);
+    if (relatedEntityId) formData.append('related_entity_id', String(relatedEntityId));
+    return apiRequest('/storage/upload', { method: 'POST', body: formData });
+  },
+  getStorageFiles: (params = {}) => {
+    const q = new URLSearchParams(params).toString();
+    return apiRequest(`/storage/files${q ? `?${q}` : ''}`);
+  },
+  deleteStorageFile: (id) => apiRequest(`/storage/files/${id}`, { method: 'DELETE' }),
 
   // Notifications & Alerts
   getNotifications: () => apiRequest('/notifications'),
