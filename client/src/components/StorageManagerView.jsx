@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
+import FilePreviewModal from './FilePreviewModal';
 import {
   HardDrive,
   Folder,
@@ -20,7 +21,8 @@ import {
   Layers,
   Paperclip,
   Sparkles,
-  ShieldAlert
+  ShieldAlert,
+  Eye
 } from 'lucide-react';
 
 export default function StorageManagerView() {
@@ -34,6 +36,7 @@ export default function StorageManagerView() {
   const [uploading, setUploading] = useState(false);
   const [uploadCategory, setUploadCategory] = useState('general');
   const [uploadSuccess, setUploadSuccess] = useState(null);
+  const [previewFile, setPreviewFile] = useState(null);
 
   const fetchStorageFiles = async () => {
     setLoading(true);
@@ -315,10 +318,20 @@ export default function StorageManagerView() {
                     {/* Actions */}
                     <td className="py-3 px-4 text-center">
                       <div className="flex items-center justify-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setPreviewFile(file)}
+                          className="px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-xs active:scale-95"
+                          title="مشاهده مستقیم فایل در داشبورد"
+                        >
+                          <Eye className="w-3.5 h-3.5 text-cyan-300" />
+                          <span>مشاهده</span>
+                        </button>
+
                         <a
                           href={file.file_url}
                           download={file.original_filename}
-                          className="px-2.5 py-1.5 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-xs"
+                          className="px-2.5 py-1.5 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-xs active:scale-95"
                           title="دانلود فایل از Storage"
                         >
                           <Download className="w-3.5 h-3.5" />
@@ -353,6 +366,14 @@ export default function StorageManagerView() {
             </table>
           </div>
         </div>
+      )}
+
+      {/* IN-APP LIVE ASSET PREVIEW MODAL */}
+      {previewFile && (
+        <FilePreviewModal
+          file={previewFile}
+          onClose={() => setPreviewFile(null)}
+        />
       )}
     </div>
   );

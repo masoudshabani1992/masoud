@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
+import FilePreviewModal from './FilePreviewModal';
 import {
   Users,
   Send,
@@ -50,7 +51,8 @@ import {
   Download,
   Edit3,
   AlertTriangle,
-  Trash2
+  Trash2,
+  Eye
 } from 'lucide-react';
 
 const CARDBOARD_TYPES = [
@@ -173,6 +175,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
   const [selectedLeadForDetail, setSelectedLeadForDetail] = useState(null);
   const [selectedLeadForFollowup, setSelectedLeadForFollowup] = useState(null);
   const [selectedLeadForPrint, setSelectedLeadForPrint] = useState(null);
+  const [previewFile, setPreviewFile] = useState(null);
   
   // Follow-up Form
   const [followupNote, setFollowupNote] = useState('');
@@ -1421,14 +1424,30 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                           <strong className="text-teal-950 font-black">{lead.dieline_filename}</strong>
                         </div>
                         {lead.dieline_file_url && (
-                          <a
-                            href={lead.dieline_file_url}
-                            download={lead.dieline_filename}
-                            className="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-xs"
-                          >
-                            <Download className="w-3.5 h-3.5" />
-                            <span>دانلود فایل خط تیغ</span>
-                          </a>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setPreviewFile({
+                                file_url: lead.dieline_file_url,
+                                original_filename: lead.dieline_filename
+                              })}
+                              className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-xs active:scale-95"
+                              title="مشاهده مستقیم فایل در داشبورد"
+                            >
+                              <Eye className="w-3.5 h-3.5 text-cyan-300" />
+                              <span>مشاهده فایل</span>
+                            </button>
+
+                            <a
+                              href={lead.dieline_file_url}
+                              download={lead.dieline_filename}
+                              className="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-xs active:scale-95"
+                              title="دانلود فایل به سیستم"
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                              <span>دانلود</span>
+                            </a>
+                          </div>
                         )}
                       </div>
                     )}
@@ -2719,6 +2738,14 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
             </form>
           </div>
         </div>
+      )}
+
+      {/* IN-APP LIVE FILE PREVIEW MODAL */}
+      {previewFile && (
+        <FilePreviewModal
+          file={previewFile}
+          onClose={() => setPreviewFile(null)}
+        />
       )}
     </div>
   );

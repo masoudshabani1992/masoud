@@ -683,8 +683,8 @@ export default function Header({
               </button>
             )}
 
-            {/* 13. فایل‌ها و پوشه Storage */}
-            {(isCeo || canManageUsers || role === 'sales' || role === 'marketer' || role === 'design') && (
+            {/* 13. فایل‌ها و پوشه Storage (مختص مدیریت کارخانه و ادمین) */}
+            {(isCeo || canManageUsers) && (
               <button
                 onClick={() => setActiveTab('storage')}
                 className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border ${
