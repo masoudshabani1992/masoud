@@ -5,12 +5,22 @@ zip_filename = 'box-factory-windows-setup.zip'
 if os.path.exists(zip_filename):
     os.remove(zip_filename)
 
+EXCLUDED_SERVER_FILES = {
+    'factory.db',
+    'factory.db-journal',
+    'license.lic'
+}
+
 with zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED) as zipf:
-    # 1. Add server folder (excluding node_modules and logs)
+    # 1. Add server folder (excluding node_modules, active production database, and user uploads)
     for root, dirs, files in os.walk('server'):
         if 'node_modules' in dirs:
             dirs.remove('node_modules')
+        if 'uploads' in dirs:
+            dirs.remove('uploads')
         for file in files:
+            if file in EXCLUDED_SERVER_FILES or file.endswith('.log') or file.endswith('.tmp'):
+                continue
             path = os.path.join(root, file)
             zipf.write(path, os.path.relpath(path, '.'))
 
@@ -28,6 +38,7 @@ with zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED) as zipf:
 
     # 4. Add root update and install convenience shortcuts
     zipf.write('windows-setup/update.bat', 'update.bat')
+    zipf.write('windows-setup/update.ps1', 'update.ps1')
     zipf.write('windows-setup/install.bat', 'install.bat')
     zipf.write('package.json', 'package.json')
     zipf.write('README.md', 'README.md')

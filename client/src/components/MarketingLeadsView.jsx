@@ -536,7 +536,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
   // Filter Leads
   const filteredLeads = leads.filter((l) => {
     // 1. Marketer Privacy Isolation
-    if (isMarketer && l.marketer_id && currentUser?.id && l.marketer_id !== currentUser.id) {
+    if (isMarketer && l.marketer_id && currentUser?.id && l.marketer_id !== currentUser.id && l.marketer_name !== currentUser?.fullName && l.marketer_name !== currentUser?.username) {
       return false;
     }
 

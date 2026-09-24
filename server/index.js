@@ -393,10 +393,10 @@ app.get('/api/marketing/leads', authMiddleware, (req, res) => {
     `;
     const params = [];
 
-    // Marketers strictly see ONLY their own inquiries
+    // Marketers strictly see their own inquiries (or general inquiries assigned)
     if (user.role === 'marketer' || user.role === 'marketing') {
-      query += ' AND l.marketer_id = ?';
-      params.push(user.id);
+      query += ' AND (l.marketer_id = ? OR l.marketer_name = ? OR l.marketer_name LIKE ? OR l.marketer_id IS NULL)';
+      params.push(user.id, user.fullName || user.full_name || 'کارشناس بازاریابی', `%${user.username}%`);
     }
 
     if (status && status !== 'all') {
