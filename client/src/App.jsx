@@ -27,6 +27,7 @@ import ProductionOrderView from './components/ProductionOrderView';
 import WarehouseInventoryView from './components/WarehouseInventoryView';
 import DigitalPrintView from './components/DigitalPrintView';
 import TollServicesView from './components/TollServicesView';
+import HumanResourcesView from './components/HumanResourcesView';
 import ErrorBoundary from './components/ErrorBoundary';
 import { playNotificationSound } from './utils/helpers';
 
@@ -39,6 +40,7 @@ const TAB_PERMISSION_MAP = {
   dashboard: 'can_view_dashboard',
   materials: 'can_view_material_prices',
   users: 'can_manage_users',
+  hr: 'can_manage_users',
   migration: 'can_view_migration',
   dieline_generator: 'can_view_studio',
   '3d_studio': 'can_view_studio',
@@ -415,6 +417,9 @@ export default function App() {
 
           {/* User Management Panel */}
           {activeTab === 'users' && <UserManagementView />}
+
+          {/* Human Resources & Performance Evaluation System (HR) */}
+          {activeTab === 'hr' && <HumanResourcesView />}
 
           {/* Data Migration & Import Center */}
           {activeTab === 'migration' && <DataMigrationView onRefreshData={fetchProjects} />}

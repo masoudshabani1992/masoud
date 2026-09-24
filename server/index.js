@@ -1703,6 +1703,310 @@ function requireRoles(...allowed) {
   };
 }
 
+// ================= HR & PERFORMANCE EVALUATION =================
+app.get('/api/hr/employees', authMiddleware, (req, res) => {
+  try {
+    const { department, search } = req.query;
+    
+    let query = `
+      SELECT u.id, u.username, u.full_name, u.role, u.department, u.phone, u.is_active,
+             u.monthly_target_inquiries, u.monthly_target_amount, u.created_at,
+             ep.personnel_code, ep.national_id, ep.hire_date_fa, ep.contract_type,
+             ep.job_title, ep.base_salary, ep.emergency_phone, ep.education, ep.skills, ep.status as employee_status
+      FROM users u
+      LEFT JOIN employee_profiles ep ON u.id = ep.user_id
+      WHERE 1=1
+    `;
+    const params = [];
+
+    if (department && department !== 'all') {
+      query += ' AND (u.department LIKE ? OR u.role = ? OR ep.department LIKE ?)';
+      params.push(`%${department}%`, department, `%${department}%`);
+    }
+
+    if (search) {
+      query += ' AND (u.full_name LIKE ? OR u.username LIKE ? OR ep.personnel_code LIKE ? OR ep.national_id LIKE ? OR u.phone LIKE ?)';
+      const s = `%${search}%`;
+      params.push(s, s, s, s, s);
+    }
+
+    query += ' ORDER BY u.id ASC';
+    const employees = db.prepare(query).all(...params);
+
+    const currentMonthKey = getPersianYearMonth().yearMonth;
+    const currentMonthSlash = String(currentMonthKey).replace('-', '/');
+    const currentMonthDash = String(currentMonthKey).replace('/', '-');
+
+    const enriched = employees.map(emp => {
+      const latestEval = db.prepare(`
+        SELECT * FROM hr_evaluations
+        WHERE user_id = ?
+        ORDER BY id DESC LIMIT 1
+      `).get(emp.id);
+
+      const allEvalsCount = db.prepare('SELECT COUNT(*) as c, AVG(total_score) as avg_score FROM hr_evaluations WHERE user_id = ?').get(emp.id);
+      const currentMonthEval = db.prepare('SELECT * FROM hr_evaluations WHERE user_id = ? AND (period_fa = ? OR period_fa = ?)').get(emp.id, currentMonthSlash, currentMonthDash);
+
+      return {
+        ...emp,
+        is_active: emp.is_active !== 0,
+        job_title: emp.job_title || ROLES.find(r => r.id === emp.role)?.name || 'پرسنل کارخانه',
+        department: emp.department || 'واحد کارخانه‌ای',
+        personnel_code: emp.personnel_code || `EMP-10${emp.id < 10 ? '0' + emp.id : emp.id}`,
+        latest_evaluation: latestEval || null,
+        current_month_evaluated: Boolean(currentMonthEval),
+        evaluations_count: allEvalsCount?.c || 0,
+        average_score: allEvalsCount?.avg_score ? Math.round(allEvalsCount.avg_score) : null
+      };
+    });
+
+    res.json({ success: true, employees: enriched, current_period: getPersianYearMonth() });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در دریافت لیست پرسنل: ' + err.message });
+  }
+});
+
+app.get('/api/hr/employees/:id', authMiddleware, (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const user = db.prepare('SELECT id, username, full_name, role, department, phone, is_active, monthly_target_inquiries, monthly_target_amount, created_at FROM users WHERE id = ?').get(id);
+    if (!user) return res.status(404).json({ error: 'کارمند یافت نشد.' });
+
+    let profile = db.prepare('SELECT * FROM employee_profiles WHERE user_id = ?').get(id);
+    if (!profile) {
+      const pcode = `EMP-10${id < 10 ? '0' + id : id}`;
+      db.prepare(`
+        INSERT INTO employee_profiles (user_id, personnel_code, job_title, department, base_salary)
+        VALUES (?, ?, ?, ?, ?)
+      `).run(id, pcode, ROLES.find(r => r.id === user.role)?.name || 'پرسنل', user.department || 'کارخانه', 15000000);
+      profile = db.prepare('SELECT * FROM employee_profiles WHERE user_id = ?').get(id);
+    }
+
+    const evaluations = db.prepare('SELECT * FROM hr_evaluations WHERE user_id = ? ORDER BY id DESC').all(id);
+    const disciplinaryLogs = db.prepare('SELECT * FROM hr_disciplinary_logs WHERE user_id = ? ORDER BY id DESC').all(id);
+
+    res.json({
+      success: true,
+      user,
+      profile,
+      evaluations,
+      disciplinary_logs: disciplinaryLogs
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در دریافت پرونده پرسنل: ' + err.message });
+  }
+});
+
+app.put('/api/hr/employees/:id', authMiddleware, requireRoles('ceo', 'sales'), (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const {
+      job_title, department, base_salary, national_id, hire_date_fa,
+      contract_type, emergency_phone, education, skills, status, personnel_code
+    } = req.body;
+
+    const existing = db.prepare('SELECT id FROM employee_profiles WHERE user_id = ?').get(id);
+    if (existing) {
+      db.prepare(`
+        UPDATE employee_profiles SET
+          job_title = ?, department = ?, base_salary = ?, national_id = ?,
+          hire_date_fa = ?, contract_type = ?, emergency_phone = ?, education = ?,
+          skills = ?, status = ?, personnel_code = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE user_id = ?
+      `).run(
+        job_title || '', department || '', parseFloat(base_salary) || 0, national_id || '',
+        hire_date_fa || '', contract_type || 'full_time', emergency_phone || '', education || '',
+        skills || '', status || 'active', personnel_code || `EMP-10${id}`, id
+      );
+    } else {
+      db.prepare(`
+        INSERT INTO employee_profiles (
+          user_id, personnel_code, national_id, hire_date_fa, contract_type,
+          job_title, department, base_salary, emergency_phone, education, skills, status
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        id, personnel_code || `EMP-10${id}`, national_id || '', hire_date_fa || '', contract_type || 'full_time',
+        job_title || '', department || '', parseFloat(base_salary) || 0, emergency_phone || '',
+        education || '', skills || '', status || 'active'
+      );
+    }
+
+    res.json({ success: true, message: 'پرونده پرسنلی با موفقیت به‌روزرسانی شد.' });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در ذخیره پرونده پرسنلی: ' + err.message });
+  }
+});
+
+app.post('/api/hr/evaluations', authMiddleware, requireRoles('ceo', 'sales'), (req, res) => {
+  try {
+    const evaluator = req.user;
+    const {
+      user_id, period_fa, score_quality, score_speed, score_target,
+      score_discipline, score_teamwork, strengths, improvements, feedback_notes, bonus_percent
+    } = req.body;
+
+    if (!user_id) return res.status(400).json({ error: 'انتخاب پرسنل الزامی است.' });
+
+    const q = Math.max(0, Math.min(100, Number(score_quality) || 0));
+    const s = Math.max(0, Math.min(100, Number(score_speed) || 0));
+    const t = Math.max(0, Math.min(100, Number(score_target) || 0));
+    const d = Math.max(0, Math.min(100, Number(score_discipline) || 0));
+    const tw = Math.max(0, Math.min(100, Number(score_teamwork) || 0));
+
+    const totalScore = Math.round((q + s + t + d + tw) / 5);
+    const grade = totalScore >= 90 ? 'A+' : totalScore >= 75 ? 'A' : totalScore >= 60 ? 'B' : 'C';
+
+    const empProfile = db.prepare('SELECT base_salary FROM employee_profiles WHERE user_id = ?').get(user_id);
+    const baseSal = empProfile?.base_salary || 0;
+    const bPercent = Number(bonus_percent) || 0;
+    const bonusAmount = (baseSal * bPercent) / 100;
+
+    const currentPeriod = period_fa || getPersianYearMonth().yearMonth;
+
+    const existing = db.prepare('SELECT id FROM hr_evaluations WHERE user_id = ? AND period_fa = ?').get(user_id, currentPeriod);
+
+    let evalId;
+    if (existing) {
+      db.prepare(`
+        UPDATE hr_evaluations SET
+          evaluator_id = ?, evaluator_name = ?, score_quality = ?, score_speed = ?,
+          score_target = ?, score_discipline = ?, score_teamwork = ?, total_score = ?,
+          performance_grade = ?, strengths = ?, improvements = ?, feedback_notes = ?,
+          bonus_percent = ?, bonus_amount = ?, evaluation_date = CURRENT_TIMESTAMP
+        WHERE id = ?
+      `).run(
+        evaluator.id, evaluator.fullName || evaluator.full_name || 'مدیریت',
+        q, s, t, d, tw, totalScore, grade, strengths || '', improvements || '',
+        feedback_notes || '', bPercent, bonusAmount, existing.id
+      );
+      evalId = existing.id;
+    } else {
+      const result = db.prepare(`
+        INSERT INTO hr_evaluations (
+          user_id, evaluator_id, evaluator_name, period_fa, score_quality,
+          score_speed, score_target, score_discipline, score_teamwork, total_score,
+          performance_grade, strengths, improvements, feedback_notes, bonus_percent, bonus_amount
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        user_id, evaluator.id, evaluator.fullName || evaluator.full_name || 'مدیریت',
+        currentPeriod, q, s, t, d, tw, totalScore, grade, strengths || '',
+        improvements || '', feedback_notes || '', bPercent, bonusAmount
+      );
+      evalId = result.lastInsertRowid;
+    }
+
+    const evaluatedUser = db.prepare('SELECT full_name, role FROM users WHERE id = ?').get(user_id);
+    if (evaluatedUser) {
+      db.prepare(`
+        INSERT INTO notifications (user_id, role, title, message)
+        VALUES (?, ?, ?, ?)
+      `).run(
+        user_id, evaluatedUser.role,
+        'ثبت ارزیابی عملکرد ماهانه',
+        `نتیجه ارزیابی عملکرد شما در دوره ${currentPeriod} با نمره کل ${totalScore} (سطح ${grade}) توسط مدیریت ثبت گردید.`
+      );
+    }
+
+    res.json({
+      success: true,
+      evaluation_id: evalId,
+      total_score: totalScore,
+      performance_grade: grade,
+      bonus_amount: bonusAmount,
+      message: `ارزیابی عملکرد «${evaluatedUser?.full_name}» با نمره کل ${totalScore} و گرید ${grade} با موفقیت ثبت گردید.`
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در ثبت ارزیابی عملکرد: ' + err.message });
+  }
+});
+
+app.post('/api/hr/disciplinary-logs', authMiddleware, requireRoles('ceo', 'sales'), (req, res) => {
+  try {
+    const { user_id, type, title, description, date_fa } = req.body;
+    if (!user_id || !title) return res.status(400).json({ error: 'کارمند و عنوان الزامی هستند.' });
+
+    const issuer = req.user.fullName || req.user.full_name || 'مدیریت عامل';
+    const dDate = date_fa || getPersianYearMonth().yearMonth;
+
+    db.prepare(`
+      INSERT INTO hr_disciplinary_logs (user_id, type, title, description, issued_by, date_fa)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run(user_id, type || 'commendation', title, description || '', issuer, dDate);
+
+    res.json({ success: true, message: 'مورد تشویقی / انضباطی با موفقیت در پرونده کارمند ثبت شد.' });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در ثبت مورد انضباطی: ' + err.message });
+  }
+});
+
+app.get('/api/hr/department-stats', authMiddleware, (req, res) => {
+  try {
+    const currentPeriod = getPersianYearMonth();
+    const rawPeriod = req.query.period || currentPeriod.yearMonth;
+    const periodSlash = String(rawPeriod).replace('-', '/');
+    const periodDash = String(rawPeriod).replace('/', '-');
+
+    const totalEmployees = db.prepare('SELECT COUNT(*) as c FROM users').get().c;
+    const activeEmployees = db.prepare('SELECT COUNT(*) as c FROM users WHERE is_active = 1').get().c;
+
+    const currentPeriodEvals = db.prepare(`
+      SELECT e.*, u.full_name, u.role, u.department
+      FROM hr_evaluations e
+      JOIN users u ON e.user_id = u.id
+      WHERE e.period_fa = ? OR e.period_fa = ?
+      ORDER BY e.total_score DESC
+    `).all(periodSlash, periodDash);
+
+    const evaluatedCount = currentPeriodEvals.length;
+    const avgScore = evaluatedCount > 0
+      ? Math.round(currentPeriodEvals.reduce((s, e) => s + e.total_score, 0) / evaluatedCount)
+      : 0;
+
+    const totalBonusMonth = currentPeriodEvals.reduce((s, e) => s + (e.bonus_amount || 0), 0);
+
+    const depts = [
+      { id: 'design', name: 'واحد طراحی و آتلیه', color: 'from-amber-500 to-yellow-600' },
+      { id: 'marketer', name: 'واحد بازاریابی و فروش', color: 'from-teal-500 to-emerald-600' },
+      { id: 'production', name: 'واحد تولید و چاپ', color: 'from-indigo-500 to-blue-600' },
+      { id: 'warehouse', name: 'واحد انبارداری و تدارکات', color: 'from-sky-500 to-cyan-600' },
+      { id: 'accounting', name: 'واحد مالی و برآورد', color: 'from-emerald-500 to-teal-600' },
+      { id: 'secretary', name: 'امور دفتری و اداری', color: 'from-purple-500 to-pink-600' }
+    ];
+
+    const departmentMatrix = depts.map(d => {
+      const deptEvals = currentPeriodEvals.filter(e => e.role === d.id || e.department?.includes(d.name.split(' ')[1]));
+      const deptUsersCount = db.prepare('SELECT COUNT(*) as c FROM users WHERE role = ? OR department LIKE ?').get(d.id, `%${d.id}%`).c;
+      const deptAvg = deptEvals.length > 0 ? Math.round(deptEvals.reduce((s, e) => s + e.total_score, 0) / deptEvals.length) : null;
+      
+      return {
+        ...d,
+        total_staff: deptUsersCount,
+        evaluated_staff: deptEvals.length,
+        average_score: deptAvg,
+        top_scorer: deptEvals[0] ? { name: deptEvals[0].full_name, score: deptEvals[0].total_score, grade: deptEvals[0].performance_grade } : null
+      };
+    });
+
+    res.json({
+      success: true,
+      current_period: currentPeriod,
+      selected_period: rawPeriod,
+      kpis: {
+        total_employees: totalEmployees,
+        active_employees: activeEmployees,
+        evaluated_count: evaluatedCount,
+        pending_evaluation_count: Math.max(0, activeEmployees - evaluatedCount),
+        factory_average_score: avgScore,
+        total_bonus_awarded: totalBonusMonth
+      },
+      top_performers: currentPeriodEvals.slice(0, 5),
+      department_matrix: departmentMatrix
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در محاسبه آمار منابع انسانی: ' + err.message });
+  }
+});
+
 // ================= USER MANAGEMENT & RBAC =================
 app.get('/api/users', authMiddleware, requireCeo, (req, res) => {
   const users = db.prepare('SELECT id, username, full_name, role, department, phone, permissions, is_active, monthly_target_inquiries, monthly_target_amount, monthly_target_orders, created_at FROM users ORDER BY id ASC').all();

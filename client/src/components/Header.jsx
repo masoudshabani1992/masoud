@@ -31,7 +31,8 @@ import {
   Scroll,
   Film,
   Maximize2,
-  Droplet
+  Droplet,
+  Award
 } from 'lucide-react';
 
 export default function Header({
@@ -663,6 +664,21 @@ export default function Header({
               >
                 <Users className="w-4 h-4 text-purple-600" />
                 <span>مدیریت پرسنل و دسترسی‌ها</span>
+              </button>
+            )}
+
+            {/* 12. منابع انسانی و ارزیابی عملکرد (HR) */}
+            {(isCeo || canManageUsers) && (
+              <button
+                onClick={() => setActiveTab('hr')}
+                className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border ${
+                  activeTab === 'hr'
+                    ? 'bg-amber-500 text-slate-950 border-amber-600 shadow-md ring-2 ring-amber-400'
+                    : 'bg-amber-50 text-amber-900 hover:text-amber-950 hover:bg-amber-100 border-amber-300 shadow-xs'
+                }`}
+              >
+                <Award className="w-4 h-4 text-amber-600" />
+                <span>ارزیابی عملکرد (HR)</span>
               </button>
             )}
 

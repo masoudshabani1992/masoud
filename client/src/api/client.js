@@ -93,6 +93,20 @@ export const api = {
   },
   updateMarketerTarget: (userId, data) => apiRequest(`/marketing/targets/${userId}`, { method: 'PUT', body: JSON.stringify(data) }),
 
+  // Human Resources & Performance Evaluation (منابع انسانی و ارزیابی عملکرد)
+  getHrEmployees: (params = {}) => {
+    const q = new URLSearchParams(params).toString();
+    return apiRequest(`/hr/employees${q ? `?${q}` : ''}`);
+  },
+  getHrEmployee: (id) => apiRequest(`/hr/employees/${id}`),
+  updateHrEmployee: (id, data) => apiRequest(`/hr/employees/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  submitHrEvaluation: (data) => apiRequest('/hr/evaluations', { method: 'POST', body: JSON.stringify(data) }),
+  submitHrDisciplinaryLog: (data) => apiRequest('/hr/disciplinary-logs', { method: 'POST', body: JSON.stringify(data) }),
+  getHrDepartmentStats: (params = {}) => {
+    const q = new URLSearchParams(params).toString();
+    return apiRequest(`/hr/department-stats${q ? `?${q}` : ''}`);
+  },
+
   // License Management
   getLicenseStatus: () => apiRequest('/license/status'),
   activateLicense: (licenseKey) => apiRequest('/license/activate', { method: 'POST', body: JSON.stringify({ licenseKey }) }),

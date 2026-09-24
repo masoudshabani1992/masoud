@@ -37,6 +37,61 @@ function initDb() {
       FOREIGN KEY (user_id) REFERENCES users(id)
     );
 
+    CREATE TABLE IF NOT EXISTS employee_profiles (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER UNIQUE NOT NULL,
+      personnel_code TEXT UNIQUE,
+      national_id TEXT,
+      hire_date_fa TEXT,
+      contract_type TEXT DEFAULT 'full_time',
+      job_title TEXT NOT NULL,
+      department TEXT NOT NULL,
+      base_salary REAL DEFAULT 0,
+      emergency_phone TEXT,
+      education TEXT,
+      skills TEXT,
+      status TEXT DEFAULT 'active',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS hr_evaluations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      evaluator_id INTEGER NOT NULL,
+      evaluator_name TEXT NOT NULL,
+      period_fa TEXT NOT NULL,
+      score_quality REAL NOT NULL,
+      score_speed REAL NOT NULL,
+      score_target REAL NOT NULL,
+      score_discipline REAL NOT NULL,
+      score_teamwork REAL NOT NULL,
+      total_score REAL NOT NULL,
+      performance_grade TEXT NOT NULL,
+      strengths TEXT,
+      improvements TEXT,
+      feedback_notes TEXT,
+      bonus_percent REAL DEFAULT 0,
+      bonus_amount REAL DEFAULT 0,
+      evaluation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id),
+      FOREIGN KEY (evaluator_id) REFERENCES users(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS hr_disciplinary_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      type TEXT NOT NULL,
+      title TEXT NOT NULL,
+      description TEXT NOT NULL,
+      issued_by TEXT NOT NULL,
+      date_fa TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    );
+
     CREATE TABLE IF NOT EXISTS customers (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       customer_code TEXT UNIQUE,
