@@ -33,7 +33,8 @@ import {
   Maximize2,
   Droplet,
   Award,
-  HardDrive
+  HardDrive,
+  Search
 } from 'lucide-react';
 
 export default function Header({
@@ -43,6 +44,7 @@ export default function Header({
   unreadNotificationsCount = 0,
   onOpenNotifications,
   onOpenLicense,
+  onOpenSearch,
   licenseInfo
 }) {
   const { currentUser, role, switchRole, logout, hasPermission } = useAuth();
@@ -199,6 +201,21 @@ export default function Header({
             >
               <Box className="w-4 h-4 text-amber-600" />
               <span>استودیو طراحی امیران</span>
+            </button>
+          )}
+
+          {/* Universal Search & Command Palette Button */}
+          {onOpenSearch && (
+            <button
+              onClick={onOpenSearch}
+              className="flex items-center gap-2 px-3 py-2 bg-slate-50 hover:bg-slate-100 hover:text-indigo-600 border border-slate-200 rounded-xl transition text-slate-700 font-bold text-xs shadow-xs"
+              title="جستجوی سریع همه بخش‌ها و پرونده‌ها (Ctrl + K)"
+            >
+              <Search className="w-4 h-4 text-indigo-600" />
+              <span className="hidden md:inline">جستجو...</span>
+              <kbd className="hidden lg:inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono text-slate-400 bg-white border border-slate-200 rounded">
+                Ctrl K
+              </kbd>
             </button>
           )}
 

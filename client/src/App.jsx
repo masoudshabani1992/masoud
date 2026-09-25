@@ -29,6 +29,8 @@ import DigitalPrintView from './components/DigitalPrintView';
 import TollServicesView from './components/TollServicesView';
 import HumanResourcesView from './components/HumanResourcesView';
 import StorageManagerView from './components/StorageManagerView';
+import CommandPaletteModal from './components/CommandPaletteModal';
+import FloatingQuickDock from './components/FloatingQuickDock';
 import ErrorBoundary from './components/ErrorBoundary';
 import { playNotificationSound } from './utils/helpers';
 
@@ -101,6 +103,19 @@ export default function App() {
   const [unreadNotifCount, setUnreadNotifCount] = useState(0);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [showLicenseModal, setShowLicenseModal] = useState(false);
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
+
+  // Global Ctrl+K / Cmd+K Command Palette Listener
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setShowCommandPalette((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Selected Lead to load into price calculator / estimation
   const [selectedLeadSpecs, setSelectedLeadSpecs] = useState(null);
@@ -341,6 +356,7 @@ export default function App() {
         unreadNotificationsCount={unreadNotifCount}
         onOpenNotifications={() => setShowNotificationModal(true)}
         onOpenLicense={() => setShowLicenseModal(true)}
+        onOpenSearch={() => setShowCommandPalette(true)}
         licenseInfo={licenseState.license}
       />
 
@@ -604,6 +620,23 @@ export default function App() {
             license: newLic
           }));
         }}
+      />
+
+      {/* Floating Quick Action Dock (Always accessible on right side) */}
+      <FloatingQuickDock
+        activeTab={activeTab}
+        onNavigate={(tab) => navigateTab(tab)}
+        onOpenSearch={() => setShowCommandPalette(true)}
+      />
+
+      {/* Universal Search & Command Palette Modal (Ctrl + K) */}
+      <CommandPaletteModal
+        isOpen={showCommandPalette}
+        onClose={() => setShowCommandPalette(false)}
+        onNavigate={(tab) => navigateTab(tab)}
+        onOpenNewOrder={() => navigateTab('new_order')}
+        onSelectProject={(projId) => setSelectedProjectId(projId)}
+        projects={projects}
       />
     </div>
   );
