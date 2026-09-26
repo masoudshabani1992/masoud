@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from './context/AuthContext';
 import { api } from './api/client';
 import Header from './components/Header';
+import Sidebar from './components/Sidebar';
 import LoginView from './components/LoginView';
 import DepartmentHubView from './components/DepartmentHubView';
 import KanbanBoard from './components/KanbanBoard';
@@ -107,6 +108,8 @@ export default function App() {
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [showLicenseModal, setShowLicenseModal] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   // Global Ctrl+K / Cmd+K Command Palette Listener
   useEffect(() => {
@@ -461,9 +464,10 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col font-sans w-full text-slate-800">
-      {/* Universal Header */}
-      <Header
+    <div className="min-h-screen bg-slate-100 flex font-sans w-full text-slate-800" dir="rtl">
+      
+      {/* Right-Hand Navigation Sidebar (Vision UI & PicGen SaaS Style) */}
+      <Sidebar
         activeTab={activeTab}
         setActiveTab={(tab) => navigateTab(tab)}
         myPendingCount={myPendingTasksCount}
@@ -472,16 +476,39 @@ export default function App() {
         onOpenLicense={openLicenseModal}
         onOpenSearch={openSearchModal}
         licenseInfo={licenseState.license}
+        collapsed={sidebarCollapsed}
+        setCollapsed={setSidebarCollapsed}
+        mobileOpen={mobileSidebarOpen}
+        setMobileOpen={setMobileSidebarOpen}
       />
 
-      {/* Main Content Area Wrapped with Error Boundary */}
-      <main
-        className={
-          activeTab === 'dieline_generator' || activeTab === '3d_studio'
-            ? 'flex-1 w-full h-[calc(100vh-64px)] max-h-[calc(100vh-64px)] overflow-hidden p-2 sm:p-3'
-            : 'flex-1 w-full max-w-[2200px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6'
-        }
+      {/* Main Content Column with Dynamic Right Margin for Sidebar */}
+      <div
+        className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out ${
+          sidebarCollapsed ? 'lg:mr-20' : 'lg:mr-72'
+        }`}
       >
+        {/* Universal Top App Bar */}
+        <Header
+          activeTab={activeTab}
+          setActiveTab={(tab) => navigateTab(tab)}
+          myPendingCount={myPendingTasksCount}
+          unreadNotificationsCount={unreadNotifCount}
+          onOpenNotifications={openNotificationsModal}
+          onOpenLicense={openLicenseModal}
+          onOpenSearch={openSearchModal}
+          licenseInfo={licenseState.license}
+          onToggleMobileSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+        />
+
+        {/* Main Content Area Wrapped with Error Boundary */}
+        <main
+          className={
+            activeTab === 'dieline_generator' || activeTab === '3d_studio'
+              ? 'flex-1 w-full h-[calc(100vh-64px)] max-h-[calc(100vh-64px)] overflow-hidden p-2 sm:p-3'
+              : 'flex-1 w-full max-w-[2200px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6'
+          }
+        >
         <ErrorBoundary onReset={() => navigateTab('hub')}>
           
           {/* Department Hub (Landing Screen) */}
@@ -681,7 +708,7 @@ export default function App() {
       </main>
 
       {/* Universal Page Footer */}
-      <footer className="w-full py-2 px-4 sm:px-6 bg-slate-900 text-slate-300 border-t border-slate-800 text-[12px] flex items-center justify-between flex-wrap gap-2 z-30 shrink-0 select-none">
+      <footer className="w-full py-2.5 px-4 sm:px-6 bg-slate-900 text-slate-300 border-t border-slate-800 text-[12px] flex items-center justify-between flex-wrap gap-2 z-30 shrink-0 select-none">
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
           <span className="font-medium text-slate-200">
@@ -693,6 +720,7 @@ export default function App() {
           <span>مسعود شعبانی</span>
         </div>
       </footer>
+      </div>
 
       {/* Project Details Modal */}
       {selectedProjectId && (
