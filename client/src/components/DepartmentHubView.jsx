@@ -206,7 +206,6 @@ export default function DepartmentHubView({
 }) {
   const { currentUser, role } = useAuth();
   const [accessDeniedModal, setAccessDeniedModal] = useState(null);
-  const [viewMode, setViewMode] = useState('canvas'); // 'canvas' (n8n pipeline canvas) or 'tiles' (12-tile department grid)
 
   // Compute pending items per department based on 10-stage pipeline
   const designCount = projects.filter((p) => p.current_stage === 5).length;
@@ -297,57 +296,54 @@ export default function DepartmentHubView({
         </div>
       </div>
 
-      {/* View Switcher Bar: n8n Pipeline Canvas vs 12-Tile Pastel Hub */}
-      <div className="bg-white p-2.5 rounded-2xl border border-slate-200/90 shadow-xs flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setViewMode('canvas')}
-            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-black transition flex items-center gap-2 ${
-              viewMode === 'canvas'
-                ? 'bg-gradient-to-r from-amber-200 via-orange-200 to-rose-200 text-slate-950 border border-amber-300 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-            }`}
-            title="بوم گرافیکی تعاملی اتوماسیون کارخانه به سبک n8n"
-          >
-            <Workflow className="w-4 h-4 text-amber-800" />
-            <span>بوم گرافیکی پایپ‌لاین کارخانه (n8n Enterprise)</span>
-          </button>
-
-          <button
-            onClick={() => setViewMode('tiles')}
-            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-black transition flex items-center gap-2 ${
-              viewMode === 'tiles'
-                ? 'bg-indigo-600 text-white shadow-xs'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-            }`}
-            title="پرتال سنتی کاشی‌های ۱۲ دپارتمان"
-          >
-            <LayoutGrid className="w-4 h-4" />
-            <span>پرتال کاشی‌های دپارتمان (۱۲ دپارتمان)</span>
-          </button>
+      {/* 1. INTERACTIVE n8n ENTERPRISE FACTORY PIPELINE CANVAS */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between px-2">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+            <h2 className="text-sm sm:text-base font-black text-slate-900">
+              بوم گرافیکی تعاملی و جریان زنده نودهای کارخانه (n8n Enterprise Pipeline)
+            </h2>
+          </div>
+          <span className="text-xs font-bold text-slate-400 font-sans hidden sm:inline">
+            Interactive MIS Architecture
+          </span>
         </div>
 
-        <div className="text-xs text-slate-500 font-bold hidden md:flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span>مرکز مدیریت یکپارچه کارخانه جعبه‌سازی و کارتن‌سازی</span>
-        </div>
-      </div>
-
-      {/* VIEW MODE 1: n8n PIPELINE CANVAS */}
-      {viewMode === 'canvas' && (
         <FactoryHubPipelineCanvas
           projects={projects}
           onNavigateDepartment={onNavigateDepartment}
           onOpenNewOrder={onOpenNewOrder}
           onOpenArchive={onOpenArchive}
         />
-      )}
+      </div>
 
-      {/* VIEW MODE 2: CLASSIC PASTEL TILES & CENTERS */}
-      {viewMode === 'tiles' && (
-        <>
-          {/* Two Core Centers: ۱. دستور تولید | ۲. انبار */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      {/* 2. PREVIOUS CLASSIC DEPARTMENT CENTERS & 12-TILE PORTAL (قرارگیری زیر جریان زنده نودها) */}
+      <div className="space-y-6 pt-4 border-t-2 border-slate-200/80">
+        
+        {/* Section Header for Department Tiles */}
+        <div className="flex items-center justify-between px-2">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-800 flex items-center justify-center font-black">
+              <LayoutGrid className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-sm sm:text-base font-black text-slate-900">
+                پرتال سریع دپارتمان‌ها و مراکز عملیاتی کارخانه
+              </h2>
+              <p className="text-[11px] text-slate-500 font-medium">
+                دسترسی مستقیم به کارتابل‌های اختصاصی و دفاتر ثبت تولید و انبار
+              </p>
+            </div>
+          </div>
+          
+          <div className="text-xs font-bold text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-xl border border-indigo-200">
+            ۱۲ دپارتمان فعال
+          </div>
+        </div>
+
+        {/* Two Core Centers: ۱. دستور تولید | ۲. انبار */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         
         {/* Card 1: مرکز دستور تولید (۱.تولید | ۲.دیجیتال | ۳.خدماتی) */}
         <div className="bg-white rounded-3xl p-6 border border-indigo-200/80 shadow-sm space-y-4">
@@ -949,8 +945,7 @@ export default function DepartmentHubView({
         })()}
 
       </div>
-        </>
-      )}
+      </div>
 
       {/* Access Denied Modal Alert */}
       {accessDeniedModal && (
