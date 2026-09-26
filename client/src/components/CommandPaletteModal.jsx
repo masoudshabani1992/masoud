@@ -102,11 +102,11 @@ export default function CommandPaletteModal({
     },
     {
       id: 'dieline_generator',
-      title: 'استودیو خط تیغ و طراحی ۳بعدی امیران',
-      subtitle: 'ترسیم خط تیغ پارامتریک و خروجی CorelDRAW و AI',
+      title: 'استودیو طراحی امیران',
+      subtitle: 'ترسیم خط تیغ پارامتریک، خروجی CorelDRAW و AI و موکاپ سه‌بعدی',
       category: 'ماژول‌ها',
       icon: Compass,
-      color: 'text-cyan-600 bg-cyan-50',
+      color: 'text-amber-600 bg-amber-50',
       action: () => onNavigate('dieline_generator'),
       visible: hasPermission('can_view_studio')
     },
@@ -132,11 +132,11 @@ export default function CommandPaletteModal({
     },
     {
       id: 'ai_assistant',
-      title: 'دستیار هوش مصنوعی کارخانه (AI Packaging Assistant)',
+      title: 'دستیار هوش مصنوعی کارخانه',
       subtitle: 'استخراج هوشمند سفارش از پیام مشتری و چیدمان شیت',
-      category: 'ابزارها',
+      category: 'ماژول‌ها',
       icon: Sparkles,
-      color: 'text-rose-600 bg-rose-50',
+      color: 'text-purple-600 bg-purple-50',
       action: () => onNavigate('ai_assistant'),
       visible: hasPermission('can_view_ai')
     },
@@ -151,30 +151,40 @@ export default function CommandPaletteModal({
       visible: hasPermission('can_view_my_tasks')
     },
     {
-      id: 'hr',
-      title: 'مدیریت منابع انسانی و ارزیابی پرسنل',
-      subtitle: 'ثبت پرونده پرسنلی و ارزیابی عملکرد ۵ محوره',
-      category: 'مدیریت',
-      icon: UserCheck,
-      color: 'text-amber-600 bg-amber-50',
-      action: () => onNavigate('hr'),
-      visible: role === 'ceo' || hasPermission('can_manage_users')
-    },
-    {
       id: 'users',
-      title: 'مدیریت کاربران و دسترسی‌ها',
+      title: 'مدیریت پرسنل و دسترسی‌ها',
       subtitle: 'تنظیم رمز عبور، نقش‌ها و تارگت بازاریاب‌ها',
-      category: 'مدیریت',
+      category: 'تنظیمات اتوماسیون',
       icon: Users,
       color: 'text-indigo-600 bg-indigo-50',
       action: () => onNavigate('users'),
       visible: role === 'ceo' || hasPermission('can_manage_users')
     },
     {
+      id: 'hr',
+      title: 'ارزیابی عملکرد پرسنل (HR)',
+      subtitle: 'ثبت پرونده پرسنلی و ارزیابی عملکرد ۵ محوره',
+      category: 'تنظیمات اتوماسیون',
+      icon: UserCheck,
+      color: 'text-amber-600 bg-amber-50',
+      action: () => onNavigate('hr'),
+      visible: role === 'ceo' || hasPermission('can_manage_users')
+    },
+    {
+      id: 'storage',
+      title: 'پوشه Storage و مدیریت فایل‌ها',
+      subtitle: 'مرکز نگهداری و دانلود مستقیم فایل‌های خط تیغ و آرشیو گرافیکی',
+      category: 'تنظیمات اتوماسیون',
+      icon: HardDrive,
+      color: 'text-cyan-600 bg-cyan-50',
+      action: () => onNavigate('storage'),
+      visible: role === 'ceo' || hasPermission('can_manage_users')
+    },
+    {
       id: 'logs',
-      title: 'مرکز ممیزی و تاریخچه لاگ کاربران (Audit Trail)',
+      title: 'لاگ و ممیزی کاربران (Audit Trail)',
       subtitle: 'مشاهده لحظه‌ای تمامی اقدامات، ورودها، سفارشات، برآوردها و تغییرات پرسنل',
-      category: 'مدیریت',
+      category: 'تنظیمات اتوماسیون',
       icon: ShieldAlert,
       color: 'text-rose-600 bg-rose-50',
       action: () => onNavigate('logs'),

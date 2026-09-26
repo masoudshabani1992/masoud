@@ -9,33 +9,24 @@ import {
   Inbox,
   BarChart3,
   Layers,
-  Globe,
   UserCheck,
   Building2,
   Bell,
-  Download,
-  FilePlus2,
   Users,
   LogOut,
   ShieldCheck,
   LayoutGrid,
-  ArrowRightLeft,
   Sparkles,
   Box,
-  Crown,
-  FileSpreadsheet,
   Package,
-  Printer,
-  Scissors,
   ChevronDown,
-  Scroll,
-  Film,
-  Maximize2,
-  Droplet,
   Award,
   HardDrive,
   Search,
-  Activity
+  Activity,
+  Settings,
+  Key,
+  ShieldAlert
 } from 'lucide-react';
 
 export default function Header({
@@ -53,9 +44,11 @@ export default function Header({
   // Dropdowns state
   const [showProdDropdown, setShowProdDropdown] = useState(false);
   const [showWhDropdown, setShowWhDropdown] = useState(false);
+  const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
   
   const prodRef = useRef(null);
   const whRef = useRef(null);
+  const settingsRef = useRef(null);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -64,6 +57,9 @@ export default function Header({
       }
       if (whRef.current && !whRef.current.contains(event.target)) {
         setShowWhDropdown(false);
+      }
+      if (settingsRef.current && !settingsRef.current.contains(event.target)) {
+        setShowSettingsDropdown(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
@@ -100,9 +96,11 @@ export default function Header({
   const canDashboard = hasPermission('can_view_dashboard');
   const canCreateOrder = hasPermission('can_create_order');
   const canManageUsers = hasPermission('can_manage_users');
+  const canSettings = isCeo || canManageUsers;
 
   const isProdActive = ['production_orders', 'production_orders_offset', 'digital_orders', 'production_orders_digital', 'service_orders', 'production_orders_service'].includes(activeTab);
   const isWhActive = ['warehouse_inventory', 'warehouse_cardboard', 'warehouse_sheet_carton', 'warehouse_single_face', 'warehouse_cellophane', 'warehouse_pvc_film', 'warehouse_ink'].includes(activeTab);
+  const isSettingsActive = ['users', 'hr', 'storage', 'logs'].includes(activeTab);
 
   return (
     <header className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm no-print w-full">
@@ -112,7 +110,7 @@ export default function Header({
           <div className="flex items-center gap-2.5">
             <Building2 className="w-5 h-5 text-amber-400" />
             <span className="font-black text-amber-300 text-sm sm:text-base">اتوماسیون تولید (MIS) شرکت آرمان امیران</span>
-            <span className="hidden lg:inline text-slate-400 text-xs">| پلتفرم یکپارچه مدیریت فرآیند ۹ مرحله‌ای تولید کارتن و جعبه</span>
+            <span className="hidden lg:inline text-slate-400 text-xs">| پلتفرم یکپارچه مدیریت فرآیند تولید کارتن و جعبه</span>
           </div>
 
           {/* Role Switcher - ONLY for CEO / Admin */}
@@ -177,43 +175,15 @@ export default function Header({
         {/* Action Buttons & Logout */}
         <div className="flex items-center gap-2.5 flex-wrap">
           
-          {/* License Status Badge Button */}
-          {isCeo && (
-            <button
-              onClick={onOpenLicense}
-              className="flex items-center gap-1.5 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-xl transition text-emerald-800 font-bold text-xs shadow-xs"
-              title="مشاهده اطلاعات لایسنس و قفل سخت‌افزاری"
-            >
-              <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span className="hidden sm:inline">لایسنس معتبر</span>
-            </button>
-          )}
-
-          {/* Amiran Design Studio Fast Access Button */}
-          {canStudio && (
-            <button
-              onClick={() => setActiveTab('dieline_generator')}
-              className={`flex items-center gap-1.5 px-3.5 py-2 text-xs font-black rounded-xl transition-all shadow-xs border ${
-                activeTab === 'dieline_generator' || activeTab === '3d_studio'
-                  ? 'bg-gradient-to-r from-amber-500 to-indigo-600 text-white border-amber-600 shadow-md ring-2 ring-amber-400'
-                  : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300'
-              }`}
-              title="استودیو طراحی امیران: تولید نقشه خط تیغ و رندرینگ ۳ بعدی"
-            >
-              <Box className="w-4 h-4 text-amber-600" />
-              <span>استودیو طراحی امیران</span>
-            </button>
-          )}
-
           {/* Universal Search & Command Palette Button */}
           {onOpenSearch && (
             <button
               onClick={onOpenSearch}
-              className="flex items-center gap-2 px-3 py-2 bg-slate-50 hover:bg-slate-100 hover:text-indigo-600 border border-slate-200 rounded-xl transition text-slate-700 font-bold text-xs shadow-xs"
+              className="flex items-center gap-2 px-3.5 py-2.5 bg-slate-50 hover:bg-slate-100 hover:text-indigo-600 border border-slate-200 rounded-xl transition text-slate-700 font-bold text-xs sm:text-sm shadow-xs"
               title="جستجوی سریع همه بخش‌ها و پرونده‌ها (Ctrl + K)"
             >
               <Search className="w-4 h-4 text-indigo-600" />
-              <span className="hidden md:inline">جستجو...</span>
+              <span>جستجو...</span>
               <kbd className="hidden lg:inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono text-slate-400 bg-white border border-slate-200 rounded">
                 Ctrl K
               </kbd>
@@ -298,7 +268,7 @@ export default function Header({
               </button>
             )}
 
-            {/* 2. دستور تولید (Production Order Main Dropdown) */}
+            {/* 2. دستور تولید (Production Main Dropdown: تولید، دیجیتال، خدماتی) */}
             {canProdDropdown && (
               <div className="relative" ref={prodRef}>
                 <button
@@ -306,14 +276,15 @@ export default function Header({
                   onClick={() => {
                     setShowProdDropdown(!showProdDropdown);
                     setShowWhDropdown(false);
+                    setShowSettingsDropdown(false);
                   }}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border shadow-xs ${
                     isProdActive
-                      ? 'bg-indigo-700 text-white border-indigo-800 shadow-md ring-2 ring-indigo-400'
-                      : 'bg-white text-indigo-900 hover:bg-indigo-50 border-indigo-200 hover:border-indigo-300'
+                      ? 'bg-indigo-600 text-white border-indigo-700 shadow-md ring-2 ring-indigo-400'
+                      : 'bg-white text-slate-800 hover:bg-slate-50 border-slate-200'
                   }`}
                 >
-                  <FileSpreadsheet className={`w-4 h-4 ${isProdActive ? 'text-amber-300' : 'text-indigo-600'}`} />
+                  <Layers className={`w-4 h-4 ${isProdActive ? 'text-amber-300' : 'text-indigo-600'}`} />
                   <span>دستور تولید</span>
                   <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${showProdDropdown ? 'rotate-180' : ''}`} />
                 </button>
@@ -412,6 +383,7 @@ export default function Header({
                   onClick={() => {
                     setShowWhDropdown(!showWhDropdown);
                     setShowProdDropdown(false);
+                    setShowSettingsDropdown(false);
                   }}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border shadow-xs ${
                     isWhActive
@@ -467,8 +439,8 @@ export default function Header({
                       >
                         <div className="w-6 h-6 rounded-md bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-[11px]">۲</div>
                         <div>
-                          <div className="font-bold text-slate-900">۲. ورق</div>
-                          <div className="text-[10px] text-slate-400">ورق ۳ لایه و ۵ لایه کارتن (E/B/C Flute)</div>
+                          <div className="font-bold text-slate-900">۲. ورق کارتن</div>
+                          <div className="text-[10px] text-slate-400">ورق ۳ لایه و ۵ لایه E, B, C, BC فلوت</div>
                         </div>
                       </button>
                     )}
@@ -488,8 +460,8 @@ export default function Header({
                       >
                         <div className="w-6 h-6 rounded-md bg-teal-100 text-teal-700 flex items-center justify-center font-bold text-[11px]">۳</div>
                         <div>
-                          <div className="font-bold text-slate-900">۳. سینگل</div>
-                          <div className="text-[10px] text-slate-400">رول و شیت سینگل فلوت بهداشتی و صنعتی</div>
+                          <div className="font-bold text-slate-900">۳. سینگل فلوت</div>
+                          <div className="text-[10px] text-slate-400">رول و شیت سینگل فیس E و B فلوت</div>
                         </div>
                       </button>
                     )}
@@ -591,22 +563,23 @@ export default function Header({
               </button>
             )}
 
-            {/* 6. استودیو طراحی امیران */}
+            {/* 6. استودیو طراحی امیران (تنها و یکتای بخش طراحی) */}
             {canStudio && (
               <button
                 onClick={() => setActiveTab('dieline_generator')}
                 className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border ${
                   activeTab === 'dieline_generator' || activeTab === '3d_studio'
-                    ? 'bg-amber-500 text-slate-950 border-amber-600 shadow-md ring-2 ring-amber-400'
-                    : 'bg-white text-slate-700 hover:text-amber-700 hover:bg-amber-50 border-slate-200 shadow-xs'
+                    ? 'bg-amber-500 text-slate-950 border-amber-600 shadow-md ring-2 ring-amber-400 font-black'
+                    : 'bg-amber-50 text-amber-950 hover:bg-amber-100 border-amber-300 shadow-xs'
                 }`}
+                title="استودیو طراحی امیران: تولید خط تیغ پارامتریک و موکاپ سه‌بعدی"
               >
-                <Box className="w-4 h-4 text-amber-500" />
-                <span>طراحی امیران</span>
+                <Box className="w-4 h-4 text-amber-700" />
+                <span>استودیو طراحی امیران</span>
               </button>
             )}
 
-            {/* 7. هوش مصنوعی */}
+            {/* 7. دستیار هوش مصنوعی (یکتای بخش هوش مصنوعی) */}
             {canAi && (
               <button
                 onClick={() => setActiveTab('ai_assistant')}
@@ -615,9 +588,10 @@ export default function Header({
                     ? 'bg-gradient-to-r from-purple-700 to-indigo-700 text-amber-300 border-purple-800 shadow-md ring-2 ring-purple-400'
                     : 'bg-purple-50 text-purple-900 hover:text-purple-950 hover:bg-purple-100 border-purple-200 shadow-xs'
                 }`}
+                title="دستیار هوش مصنوعی کارخانه: استخراج سفارشات و چیدمان شیت"
               >
                 <Sparkles className="w-4 h-4 text-purple-600 animate-pulse" />
-                <span>هوش مصنوعی</span>
+                <span>دستیار هوش مصنوعی</span>
               </button>
             )}
 
@@ -671,64 +645,130 @@ export default function Header({
               </button>
             )}
 
-            {/* 11. پرسنل (مدیرعامل / دسترسی کاربران) */}
-            {canManageUsers && (
-              <button
-                onClick={() => setActiveTab('users')}
-                className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border ${
-                  activeTab === 'users'
-                    ? 'bg-indigo-600 text-white border-indigo-700 shadow-md ring-2 ring-indigo-400'
-                    : 'bg-white text-slate-700 hover:text-indigo-600 hover:bg-slate-50 border-slate-200 shadow-xs'
-                }`}
-              >
-                <Users className="w-4 h-4 text-purple-600" />
-                <span>مدیریت پرسنل و دسترسی‌ها</span>
-              </button>
-            )}
+            {/* 11. تنظیمات اتوماسیون (منوی کشویی تجمیع‌شده: لایسنس، پرسنل، ارزیابی، استوریج، لاگ) */}
+            {canSettings && (
+              <div className="relative mr-auto" ref={settingsRef}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowSettingsDropdown(!showSettingsDropdown);
+                    setShowProdDropdown(false);
+                    setShowWhDropdown(false);
+                  }}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border shadow-xs ${
+                    isSettingsActive
+                      ? 'bg-slate-900 text-amber-300 border-slate-950 shadow-md ring-2 ring-amber-400'
+                      : 'bg-white text-slate-800 hover:bg-slate-50 border-slate-300 hover:border-slate-400'
+                  }`}
+                >
+                  <Settings className={`w-4 h-4 ${isSettingsActive ? 'text-amber-400 animate-spin-slow' : 'text-slate-600'}`} />
+                  <span>تنظیمات اتوماسیون</span>
+                  <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${showSettingsDropdown ? 'rotate-180' : ''}`} />
+                </button>
 
-            {/* 12. منابع انسانی و ارزیابی عملکرد (HR) */}
-            {(isCeo || canManageUsers) && (
-              <button
-                onClick={() => setActiveTab('hr')}
-                className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border ${
-                  activeTab === 'hr'
-                    ? 'bg-amber-500 text-slate-950 border-amber-600 shadow-md ring-2 ring-amber-400'
-                    : 'bg-amber-50 text-amber-900 hover:text-amber-950 hover:bg-amber-100 border-amber-300 shadow-xs'
-                }`}
-              >
-                <Award className="w-4 h-4 text-amber-600" />
-                <span>ارزیابی عملکرد (HR)</span>
-              </button>
-            )}
+                {/* Dropdown Menu: ۱. لایسنس | ۲. مدیریت پرسنل و دسترسی‌ها | ۳. ارزیابی عملکرد | ۴. پوشه Storage | ۵. لاگ و ممیزی کاربران */}
+                {showSettingsDropdown && (
+                  <div className="absolute top-full left-0 sm:right-auto sm:left-0 mt-2 w-80 bg-white rounded-2xl shadow-2xl border-2 border-slate-300 py-2 z-50 animate-fadeIn space-y-1">
+                    <div className="px-3.5 py-1.5 text-[11px] font-bold text-slate-400 border-b border-slate-100 flex items-center justify-between">
+                      <span>تنظیمات و مدیریت سامانه:</span>
+                      <span className="text-[10px] bg-amber-50 text-amber-800 font-bold px-2 py-0.5 rounded border border-amber-200">مدیریت عامل</span>
+                    </div>
 
-            {/* 13. فایل‌ها و پوشه Storage (مختص مدیریت کارخانه و ادمین) */}
-            {(isCeo || canManageUsers) && (
-              <button
-                onClick={() => setActiveTab('storage')}
-                className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border ${
-                  activeTab === 'storage'
-                    ? 'bg-cyan-700 text-white border-cyan-800 shadow-md ring-2 ring-cyan-400'
-                    : 'bg-cyan-50 text-cyan-900 hover:text-cyan-950 hover:bg-cyan-100 border-cyan-300 shadow-xs'
-                }`}
-              >
-                <HardDrive className="w-4 h-4 text-cyan-600" />
-                <span>پوشه Storage</span>
-              </button>
-            )}
+                    {/* 1. لایسنس */}
+                    <button
+                      onClick={() => {
+                        setShowSettingsDropdown(false);
+                        if (onOpenLicense) onOpenLicense();
+                      }}
+                      className="w-full text-right px-3.5 py-2.5 text-xs font-bold transition-colors flex items-center gap-3 hover:bg-slate-50 text-slate-700"
+                    >
+                      <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center font-bold shrink-0">
+                        <Key className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="font-black text-slate-900">۱. لایسنس سرور</div>
+                        <div className="text-[10px] text-slate-400">اطلاعات قفل سخت‌افزاری و وضعیت اعتبار</div>
+                      </div>
+                    </button>
 
-            {/* 14. گزارش ممیزی و لاگ سیستم (مختص مدیرعامل) */}
-            {(isCeo || canManageUsers) && (
-              <button
-                onClick={() => setActiveTab('logs')}
-                className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border ${
-                  activeTab === 'logs'
-                    ? 'bg-gradient-to-r from-slate-900 to-indigo-900 text-amber-300 border-slate-900 shadow-md ring-2 ring-amber-400'
-                    : 'bg-slate-900/5 hover:bg-slate-900/10 text-slate-800 border-slate-300 shadow-xs'
-                }`}
-              >
-                <Activity className="w-4 h-4 text-amber-500" />
-                <span>لاگ و ممیزی کاربران</span>
-              </button>
+                    {/* 2. مدیریت پرسنل و دسترسی‌ها */}
+                    <button
+                      onClick={() => {
+                        setActiveTab('users');
+                        setShowSettingsDropdown(false);
+                      }}
+                      className={`w-full text-right px-3.5 py-2.5 text-xs font-bold transition-colors flex items-center gap-3 ${
+                        activeTab === 'users' ? 'bg-indigo-50 text-indigo-950 font-black' : 'hover:bg-slate-50 text-slate-700'
+                      }`}
+                    >
+                      <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center justify-center font-bold shrink-0">
+                        <Users className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="font-black text-slate-900">۲. مدیریت پرسنل و دسترسی‌ها</div>
+                        <div className="text-[10px] text-slate-400">تعریف کاربران، رمز عبور، نقش‌ها و تارگت</div>
+                      </div>
+                    </button>
+
+                    {/* 3. ارزیابی عملکرد */}
+                    <button
+                      onClick={() => {
+                        setActiveTab('hr');
+                        setShowSettingsDropdown(false);
+                      }}
+                      className={`w-full text-right px-3.5 py-2.5 text-xs font-bold transition-colors flex items-center gap-3 ${
+                        activeTab === 'hr' ? 'bg-amber-50 text-amber-950 font-black' : 'hover:bg-slate-50 text-slate-700'
+                      }`}
+                    >
+                      <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-700 border border-amber-200 flex items-center justify-center font-bold shrink-0">
+                        <Award className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="font-black text-slate-900">۳. ارزیابی عملکرد (HR)</div>
+                        <div className="text-[10px] text-slate-400">پرونده پرسنلی و ارزیابی ۵ محوره</div>
+                      </div>
+                    </button>
+
+                    {/* 4. پوشه Storage */}
+                    <button
+                      onClick={() => {
+                        setActiveTab('storage');
+                        setShowSettingsDropdown(false);
+                      }}
+                      className={`w-full text-right px-3.5 py-2.5 text-xs font-bold transition-colors flex items-center gap-3 ${
+                        activeTab === 'storage' ? 'bg-cyan-50 text-cyan-950 font-black' : 'hover:bg-slate-50 text-slate-700'
+                      }`}
+                    >
+                      <div className="w-8 h-8 rounded-xl bg-cyan-50 text-cyan-700 border border-cyan-200 flex items-center justify-center font-bold shrink-0">
+                        <HardDrive className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="font-black text-slate-900">۴. پوشه Storage</div>
+                        <div className="text-[10px] text-slate-400">مدیریت فایل‌ها، خط تیغ و آرشیو</div>
+                      </div>
+                    </button>
+
+                    {/* 5. لاگ و ممیزی کاربران */}
+                    <button
+                      onClick={() => {
+                        setActiveTab('logs');
+                        setShowSettingsDropdown(false);
+                      }}
+                      className={`w-full text-right px-3.5 py-2.5 text-xs font-bold transition-colors flex items-center gap-3 ${
+                        activeTab === 'logs' ? 'bg-rose-50 text-rose-950 font-black' : 'hover:bg-slate-50 text-slate-700'
+                      }`}
+                    >
+                      <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 flex items-center justify-center font-bold shrink-0">
+                        <Activity className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="font-black text-slate-900">۵. لاگ و ممیزی کاربران</div>
+                        <div className="text-[10px] text-slate-400">ثبت تمام فعالیت‌ها، تغییرات و ورودها</div>
+                      </div>
+                    </button>
+                  </div>
+                )}
+              </div>
             )}
 
           </div>

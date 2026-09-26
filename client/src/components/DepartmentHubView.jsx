@@ -268,22 +268,6 @@ export default function DepartmentHubView({
 
         <div className="flex items-center gap-3 flex-wrap">
           <button
-            onClick={() => onNavigateDepartment('dieline_generator')}
-            className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black rounded-xl text-xs sm:text-sm shadow-md transition-all flex items-center gap-2"
-          >
-            <Boxes className="w-4 h-4 text-slate-950" />
-            <span>استودیو Pacdora 3D و خط تیغ</span>
-          </button>
-
-          <button
-            onClick={() => onNavigateDepartment('ai_assistant')}
-            className="px-4 py-2 bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-600 hover:to-indigo-600 text-white font-black rounded-xl text-xs sm:text-sm shadow-md transition-all flex items-center gap-2"
-          >
-            <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
-            <span>دستیار هوش مصنوعی و بهینه‌ساز فرم‌بندی</span>
-          </button>
-
-          <button
             onClick={() => onNavigateDepartment('migration')}
             className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl text-xs sm:text-sm shadow-md transition-all flex items-center gap-2"
           >
@@ -509,9 +493,9 @@ export default function DepartmentHubView({
               </div>
 
               <div className="text-center mt-2">
-                <h2 className="text-xl sm:text-2xl font-black text-slate-950 drop-shadow-sm">طراحی</h2>
+                <h2 className="text-xl sm:text-2xl font-black text-slate-950 drop-shadow-sm">استودیو طراحی امیران</h2>
                 <span className="text-sm sm:text-base font-serif italic font-bold text-amber-950 block -mt-0.5">
-                  Designer
+                  Design Studio
                 </span>
               </div>
             </div>
@@ -907,9 +891,9 @@ export default function DepartmentHubView({
               </div>
 
               <div className="text-center mt-2">
-                <h2 className="text-xl sm:text-2xl font-black text-white drop-shadow-sm">هوش مصنوعی</h2>
+                <h2 className="text-xl sm:text-2xl font-black text-white drop-shadow-sm">دستیار هوش مصنوعی</h2>
                 <span className="text-sm sm:text-base font-serif italic font-bold text-indigo-200 block -mt-0.5">
-                  AI Packaging
+                  AI Assistant
                 </span>
               </div>
             </div>
