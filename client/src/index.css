@@ -92,6 +92,34 @@
     inset 0 1px 0 rgba(255, 255, 255, 1);
 }
 
+/* Marketing Emerald / Green Button for "سفارش جدید" */
+.btn-marketing-green {
+  background: linear-gradient(135deg, #10b981 0%, #0d9488 50%, #059669 100%);
+  color: #ffffff;
+  border-radius: 1rem;
+  border: 1px solid #059669;
+  box-shadow: 
+    0 1px 0 rgba(255, 255, 255, 0.35) inset,
+    0 3px 0 #047857,
+    0 6px 18px rgba(16, 185, 129, 0.28);
+  transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.btn-marketing-green:hover {
+  background: linear-gradient(135deg, #34d399 0%, #14b8a6 50%, #10b981 100%);
+  transform: translateY(-1.5px);
+  box-shadow: 
+    0 1px 0 rgba(255, 255, 255, 0.45) inset,
+    0 4px 0 #047857,
+    0 8px 22px rgba(16, 185, 129, 0.35);
+}
+.btn-marketing-green:active {
+  transform: translateY(2px);
+  box-shadow: 
+    0 1px 0 rgba(0, 0, 0, 0.1) inset,
+    0 1px 0 #047857,
+    0 2px 6px rgba(16, 185, 129, 0.2);
+}
+
 /* Pastel Peach / Butter Button for "سفارش جدید" */
 .btn-pastel-peach {
   background: linear-gradient(135deg, #fef08a 0%, #fed7aa 50%, #fde047 100%);

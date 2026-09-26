@@ -170,15 +170,15 @@ export default function RightSidebar({
             </button>
           )}
 
-          {/* Quick New Order Button: "سفارش جدید" in Pastel Peach / Butter */}
+          {/* Quick New Order Button: "سفارش جدید" in Marketing Emerald Green */}
           {canCreateOrder && (
             <button
               onClick={() => handleNavClick('new_order')}
-              className={`w-full py-2.5 px-3.5 btn-pastel-peach flex items-center justify-center gap-2 text-xs font-black transition-all ${
-                activeTab === 'new_order' ? 'ring-2 ring-amber-400 font-black' : ''
+              className={`w-full py-2.5 px-3.5 btn-marketing-green flex items-center justify-center gap-2 text-xs font-black transition-all ${
+                activeTab === 'new_order' ? 'ring-2 ring-emerald-300 font-black' : ''
               }`}
             >
-              <PlusCircle className="w-4 h-4 text-amber-900" />
+              <PlusCircle className="w-4 h-4 text-emerald-100" />
               <span>سفارش جدید</span>
             </button>
           )}

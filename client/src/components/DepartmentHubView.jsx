@@ -285,9 +285,9 @@ export default function DepartmentHubView({
 
           <button
             onClick={onOpenNewOrder}
-            className="px-4 py-2.5 btn-pastel-peach text-amber-950 font-black rounded-xl text-xs sm:text-sm shadow-sm transition-all flex items-center gap-2"
+            className="px-4 py-2.5 btn-marketing-green text-white font-black rounded-xl text-xs sm:text-sm shadow-md transition-all flex items-center gap-2"
           >
-            <PlusCircle className="w-4 h-4 text-amber-900" />
+            <PlusCircle className="w-4 h-4 text-emerald-100" />
             <span>سفارش جدید</span>
           </button>
         </div>
