@@ -35,6 +35,7 @@ import Packaging3DStudioView from './Packaging3DStudioView';
 import { exportDielineToPdf } from '../utils/pdfExport';
 import { exportDielineToDxf } from '../utils/dxfExport';
 import { exportDielineToAi } from '../utils/aiExport';
+import { exportDielineToCdr } from '../utils/cdrExport';
 
 const MODEL_CATEGORIES = [
   { id: 'all', name: 'همه مدل‌ها (۲۲)', icon: '✨' },
@@ -203,6 +204,17 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
   };
 
   // Exporters
+  const handleDownloadCdr = async () => {
+    await exportDielineToCdr(dielineData, {
+      modelName: activeModel.name,
+      length: lengthMm,
+      width: widthMm,
+      height: heightMm,
+      thickness: thicknessMm,
+      material: activeMat.farsiName
+    });
+  };
+
   const handleDownloadAi = () => {
     exportDielineToAi(dielineData, {
       modelName: activeModel.name,
@@ -328,8 +340,19 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
         </div>
 
         {/* Right: Quick Action & Download Buttons */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 flex-wrap">
           
+          {/* Download CDR (CorelDRAW) */}
+          <button
+            type="button"
+            onClick={handleDownloadCdr}
+            className="flex items-center gap-1 px-2.5 py-1 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/40 rounded-lg text-xs font-black transition active:scale-95 shadow-xs"
+            title="دانلود فایل وکتور CorelDRAW با پسوند .CDR و هیرلاین ۰.۰۷۶mm برای لیزر"
+          >
+            <Download className="w-3.5 h-3.5 text-emerald-400" />
+            <span>کرل‌دراو CDR</span>
+          </button>
+
           {/* Download AI (Illustrator) */}
           <button
             type="button"
@@ -367,7 +390,7 @@ export default function DielineGeneratorView({ onTransferToOrder }) {
           <button
             type="button"
             onClick={handleDownloadSvg}
-            className="flex items-center gap-1 px-2.5 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg text-xs font-bold transition active:scale-95"
+            className="flex items-center gap-1 px-2.5 py-1 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/30 rounded-lg text-xs font-bold transition active:scale-95"
             title="دانلود فایل SVG"
           >
             <Download className="w-3.5 h-3.5" />

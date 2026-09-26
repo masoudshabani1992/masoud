@@ -78,7 +78,7 @@ export const ALL_PERMISSION_MODULES = [
     icon: Box,
     color: 'border-amber-300 bg-amber-50/50 text-amber-900',
     permissions: [
-      { key: 'can_view_studio', label: 'استودیو طراحی امیران (۲D و ۳D)', desc: 'تولید نقشه خط تیغ، رندرینگ ۳ بعدی و خروجی DXF/PDF/AI' },
+      { key: 'can_view_studio', label: 'استودیو طراحی امیران (۲D و ۳D)', desc: 'تولید نقشه خط تیغ، رندرینگ ۳ بعدی و خروجی CDR/AI/DXF/PDF' },
       { key: 'can_view_ai', label: 'دستیار هوش مصنوعی و بازرسی خط تیغ', desc: 'استخراج هوشمند، بهینه‌ساز فرم‌بندی و بازرسی پرواز' }
     ]
   },

@@ -36,6 +36,11 @@ import {
   createMarbleTexture,
   createWoodTexture
 } from '../utils/proceduralTextures';
+import { api } from '../api/client';
+import { exportDielineToCdr } from '../utils/cdrExport';
+import { exportDielineToAi } from '../utils/aiExport';
+import { exportDielineToDxf } from '../utils/dxfExport';
+import { exportDielineToPdf } from '../utils/pdfExport';
 
 // 1. Packaging Model Library matching Pacdora Categories (100% Persian)
 const MODEL_CATEGORIES = [
@@ -221,6 +226,56 @@ export default function Packaging3DStudioView({ onSwitchTo2DDieline, onTransferT
     link.click();
 
     setTimeout(() => setIsExporting(false), 800);
+  };
+
+  // Direct Vector CAD Exporters from 3D View
+  const handleDownloadVector = async (format) => {
+    try {
+      const res = await api.getDieline({
+        box_type: selectedModelId,
+        length: lengthMm,
+        width: widthMm,
+        height: heightMm,
+        sheet_thickness: thicknessMm
+      });
+      const dielineData = res?.dieline;
+      if (!dielineData) {
+        alert('خطا در دریافت اطلاعات وکتور خط تیغ.');
+        return;
+      }
+      const opts = {
+        modelName: activeModel.name,
+        length: lengthMm,
+        width: widthMm,
+        height: heightMm,
+        thickness: thicknessMm,
+        material: activeMat.farsiName
+      };
+
+      if (format === 'cdr') {
+        await exportDielineToCdr(dielineData, opts);
+      } else if (format === 'ai') {
+        exportDielineToAi(dielineData, opts);
+      } else if (format === 'dxf') {
+        exportDielineToDxf(dielineData, opts);
+      } else if (format === 'pdf') {
+        await exportDielineToPdf({
+          svgString: dielineData.svg_content || dielineData.svg,
+          boxName: activeModel.name,
+          dimensions: { l: lengthMm, w: widthMm, h: heightMm },
+          thicknessMm: thicknessMm,
+          materialName: activeMat.farsiName,
+          ruleCutMeters: dielineData.totalCutMm ? (dielineData.totalCutMm / 1000).toFixed(2) : 1.5,
+          ruleCreaseMeters: dielineData.totalCreaseMm ? (dielineData.totalCreaseMm / 1000).toFixed(2) : 2.0,
+          flatWidthMm: dielineData.flatDimensions?.flatWidthMm || 380,
+          flatHeightMm: dielineData.flatDimensions?.flatHeightMm || 390,
+          filename: `استودیو-امیران-${activeModel.name}-${lengthMm}x${widthMm}x${heightMm}mm.pdf`
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      alert('خطا در دانلود فایل: ' + err.message);
+    }
   };
 
   // Camera Angle Helpers
@@ -1226,11 +1281,12 @@ export default function Packaging3DStudioView({ onSwitchTo2DDieline, onTransferT
               <div className="space-y-1">
                 <h3 className="text-xs font-black text-white flex items-center gap-1.5">
                   <Download className="w-4 h-4 text-amber-400" />
-                  <span>خروجی رندر و استودیو</span>
+                  <span>خروجی رندر و فایل‌های قالب</span>
                 </h3>
-                <p className="text-[11px] text-slate-400">دریافت تصاویر تبلیغاتی با بالاترین کیفیت</p>
+                <p className="text-[11px] text-slate-400">دریافت رندرهای 4K و فایل‌های وکتور CorelDRAW/CAD</p>
               </div>
 
+              {/* 4K Render Button */}
               <button
                 type="button"
                 onClick={handleExport4KRender}
@@ -1238,8 +1294,62 @@ export default function Packaging3DStudioView({ onSwitchTo2DDieline, onTransferT
                 className="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 rounded-2xl text-xs font-black shadow-lg shadow-amber-500/20 transition flex items-center justify-center gap-2"
               >
                 <Camera className="w-4 h-4" />
-                <span>{isExporting ? 'در حال پردازش رندر 4K...' : 'رندر با رزولوشن 4K (3840×2160)'}</span>
+                <span>{isExporting ? 'در حال پردازش رندر 4K...' : 'رندر تصویری با کیفیت 4K (3840×2160)'}</span>
               </button>
+
+              {/* Vector Dieline CAD Exporters */}
+              <div className="pt-2 border-t border-slate-800 space-y-2">
+                <div className="text-[11px] font-bold text-slate-400 flex items-center justify-between">
+                  <span>دانلود مستقیم قالب خط تیغ:</span>
+                  <span className="text-[10px] text-amber-400 font-mono">1:1 Metric Hairline</span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  {/* CorelDRAW CDR */}
+                  <button
+                    type="button"
+                    onClick={() => handleDownloadVector('cdr')}
+                    className="p-2.5 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/40 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 active:scale-95 shadow-xs"
+                    title="دانلود فایل وکتور CorelDRAW با پسوند .CDR و هیرلاین لیزری"
+                  >
+                    <Download className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>کرل‌دراو (.CDR)</span>
+                  </button>
+
+                  {/* Adobe Illustrator AI */}
+                  <button
+                    type="button"
+                    onClick={() => handleDownloadVector('ai')}
+                    className="p-2.5 bg-orange-500/15 hover:bg-orange-500/25 text-orange-300 border border-orange-500/40 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 active:scale-95"
+                    title="دانلود فایل وکتور ایلوستریتور (.AI)"
+                  >
+                    <Download className="w-3.5 h-3.5 text-orange-400" />
+                    <span>ایلوستریتور (.AI)</span>
+                  </button>
+
+                  {/* AutoCAD DXF */}
+                  <button
+                    type="button"
+                    onClick={() => handleDownloadVector('dxf')}
+                    className="p-2.5 bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/40 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 active:scale-95"
+                    title="دانلود فایل اتوکد DXF برای دستگاه لیزر"
+                  >
+                    <Download className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>اتوکد (.DXF)</span>
+                  </button>
+
+                  {/* Vector PDF */}
+                  <button
+                    type="button"
+                    onClick={() => handleDownloadVector('pdf')}
+                    className="p-2.5 bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/40 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 active:scale-95"
+                    title="دانلود فایل وکتور PDF با شناسنامه"
+                  >
+                    <Download className="w-3.5 h-3.5 text-rose-400" />
+                    <span>پی‌دی‌اف (.PDF)</span>
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>

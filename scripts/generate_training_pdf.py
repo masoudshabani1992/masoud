@@ -256,7 +256,7 @@ def build_pdf(filename="TRAINING_MANUAL.pdf"):
         [Paragraph(fa("بخش / ماژول"), style_table_header), Paragraph(fa("نقش و کاربرد در خط تولید کارخانه"), style_table_header)],
         [Paragraph(fa("دستور تولید ۳ مرحله‌ای"), style_table_cell), Paragraph(fa("مدیریت سالن با سیستم رنگی: سفید (صف تولید)، زرد (مالی)، سبز (بایگانی)"), style_table_cell)],
         [Paragraph(fa("انبارداری ۶ گانه متریال"), style_table_cell), Paragraph(fa("دفاتر ورود و مصرف مقوا (پارت ۱ و ۲)، ورق، سینگل، سلفون، طلق و مرکب"), style_table_cell)],
-        [Paragraph(fa("استودیو طراحی امیران"), style_table_cell), Paragraph(fa("طراحی پارامتریک ۷ مدل جعبه، خروجی DXF لیزر دایکات، AI و شبیه‌ساز ۳D"), style_table_cell)],
+        [Paragraph(fa("استودیو طراحی امیران"), style_table_cell), Paragraph(fa("طراحی پارامتریک جعبه، خروجی‌های CDR / DXF / AI / PDF / SVG و شبیه‌ساز ۳D"), style_table_cell)],
         [Paragraph(fa("کارتابل بازاریابی و تارگت"), style_table_cell), Paragraph(fa("ثبت استعلام، کنترل تارگت ماهانه بازاریاب‌ها و شاخص پیشرفت فروش"), style_table_cell)],
         [Paragraph(fa("سیستم منابع انسانی (HR)"), style_table_cell), Paragraph(fa("ارزیابی ۵ محوره عملکرد، محاسبه خودکار گرید A+/A/B و پاداش بهره‌وری"), style_table_cell)],
         [Paragraph(fa("دستیار هوش مصنوعی"), style_table_cell), Paragraph(fa("استخراج هوشمند NLP، بهینه‌سازی چیدمان فرم (Nesting) و بازرسی خط تیغ"), style_table_cell)],
@@ -378,10 +378,11 @@ def build_pdf(filename="TRAINING_MANUAL.pdf"):
     story.append(Spacer(1, 0.15 * cm))
 
     dieline_points = [
-        "پشتیبانی از ۷ مدل جعبه استاندارد (درب دارویی Tuck End، ته قفلی، قفل اتوماتیک، کیبوردی Mailer و کشویی).",
+        "پشتیبانی از مدل‌های استاندارد جعبه (دارویی Tuck End، ته قفلی، قفل اتوماتیک، کیبوردی Mailer و کشویی).",
         "ابعاد منحصراً در مقیاس میلی‌متر (mm) با امکان تایپ آزادانه و بلادرنگ طول، عرض و ارتفاع.",
+        "خروجی CorelDRAW (.CDR) با تفکیک لایه‌ها و هیرلاین ۰.۰۷۶mm استاندارد دستگاه‌های لیزر قالب‌سازی.",
         "خروجی AutoCAD DXF R12 با تفکیک لایه‌های CUT_LINE (برش) و CREASE_LINE (خط تا) جهت دستگاه لیزر.",
-        "خروجی Adobe Illustrator (.AI) و PDF برداری ۱:۱ با کادر مشخصات فنی چاپخانه.",
+        "خروجی Adobe Illustrator (.AI)، وکتور SVG و PDF با کادر مشخصات فنی چاپخانه.",
         "شبیه‌ساز سه‌بعدی ۳D WebGL با قابلیت تاشوندگی ۰ تا ۱۰۰ درصد و متریال واقعی مقوای ایندربرد و کرافت."
     ]
     for dp in dieline_points:
