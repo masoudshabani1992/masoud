@@ -1840,6 +1840,22 @@ function logActivity(req, {
   }
 }
 
+// ================= AUTOMATIC 30-DAY LOG PURGE (حذف خودکار لاگ‌های بالای ۳۰ روز) =================
+function autoPurgeOldLogs() {
+  try {
+    const info = db.prepare("DELETE FROM activity_logs WHERE created_at < datetime('now', '-30 days')").run();
+    if (info.changes > 0) {
+      console.log(`🧹 Auto-purged ${info.changes} activity logs older than 30 days.`);
+    }
+  } catch (err) {
+    console.error('Error during auto-purging old activity logs:', err);
+  }
+}
+
+// Initial purge on startup and scheduled daily purge
+autoPurgeOldLogs();
+setInterval(autoPurgeOldLogs, 24 * 60 * 60 * 1000);
+
 const STAGES = {
   1: { id: 1, key: 'COMMERCE', name: '۱. بازرگانی و تعریف سفارش', role: 'sales', desc: 'ثبت کد آرشیو، مشخصات فنی و تیراژ' },
   2: { id: 2, key: 'PRICE_ESTIMATION', name: '۲. استعلام و برآورد قیمت روز', role: 'estimation', desc: 'محاسبه قیمت مقوا، سینگل، چاپ و خدمات' },
@@ -2893,15 +2909,49 @@ app.get('/api/projects', authMiddleware, (req, res) => {
   let query = 'SELECT * FROM projects WHERE 1=1';
   const params = [];
 
-  // Marketers can ONLY see their own registered or assigned projects/customers
-  if (user.role === 'marketer' || user.role === 'marketing') {
-    query += ` AND (
-      created_by = ? 
-      OR assigned_to = ? 
-      OR customer_phone IN (SELECT customer_phone FROM marketing_leads WHERE marketer_id = ?)
-      OR customer_name IN (SELECT customer_name FROM marketing_leads WHERE marketer_id = ?)
-    )`;
-    params.push(user.id, user.id, user.id, user.id);
+  // Role-based Department Isolation in Archive & Project Lists
+  const isCeoOrFullAdmin = user.role === 'ceo' || user.role === 'admin' || user.permissions?.can_manage_users;
+  
+  if (!isCeoOrFullAdmin) {
+    if (user.role === 'marketer' || user.role === 'marketing') {
+      // Marketers can ONLY see their own registered or assigned projects/customers
+      query += ` AND (
+        created_by = ? 
+        OR assigned_to = ? 
+        OR customer_phone IN (SELECT customer_phone FROM marketing_leads WHERE marketer_id = ?)
+        OR customer_name IN (SELECT customer_name FROM marketing_leads WHERE marketer_id = ?)
+      )`;
+      params.push(user.id, user.id, user.id, user.id);
+    } else if (user.role === 'sales') {
+      // Sales / Commerce: sales stages 1, 3, 6, 8 or created/assigned to sales
+      query += ` AND (current_stage IN (1, 3, 6, 8) OR created_by = ? OR assigned_to = ?)`;
+      params.push(user.id, user.id);
+    } else if (user.role === 'secretary') {
+      // Secretary: reception stages 1, 3 or created by secretary
+      query += ` AND (current_stage IN (1, 3) OR created_by = ?)`;
+      params.push(user.id);
+    } else if (user.role === 'design' || user.role === 'designer') {
+      // Designer: design stages 4, 5, 6 or assigned to designer
+      query += ` AND (current_stage IN (4, 5, 6) OR assigned_to = ?)`;
+      params.push(user.id);
+    } else if (user.role === 'mockup') {
+      // Mockup: mockup stages 7, 8 or assigned to mockup
+      query += ` AND (current_stage IN (7, 8) OR assigned_to = ?)`;
+      params.push(user.id);
+    } else if (user.role === 'procurement' || user.role === 'warehouse') {
+      // Procurement / Warehouse: stages 8, 9, 10
+      query += ` AND (current_stage IN (8, 9, 10) OR assigned_to = ?)`;
+      params.push(user.id);
+    } else if (user.role === 'production') {
+      // Production: stages 10, 11
+      query += ` AND (current_stage IN (10, 11) OR assigned_to = ?)`;
+      params.push(user.id);
+    } else if (user.role === 'estimation' || user.role === 'accounting') {
+      // Estimation / Accounting: stages 1, 2, 3, 4
+      query += ` AND current_stage IN (1, 2, 3, 4)`;
+    } else if (user.role === 'customer') {
+      query += ` AND current_stage IN (3, 6, 8)`;
+    }
   }
 
   if (stage) {

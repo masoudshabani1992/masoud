@@ -211,10 +211,13 @@ export default function AuditLogsView() {
               <Activity className="w-7 h-7" />
             </div>
             <div>
-              <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center gap-2">
+              <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center gap-2 flex-wrap">
                 <span>مرکز ممیزی و تاریخچه فعالیت کاربران</span>
                 <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-400 text-slate-950">
                   Audit Trail
+                </span>
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  ⚡ پاکسازی خودکار هر ۳۰ روز
                 </span>
               </h1>
               <p className="text-xs sm:text-sm text-slate-300 mt-0.5">

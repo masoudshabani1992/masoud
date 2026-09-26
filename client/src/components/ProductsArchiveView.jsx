@@ -70,9 +70,53 @@ export default function ProductsArchiveView({
   // Filtered & Sorted Projects
   const filteredProjects = useMemo(() => {
     return projects.filter((p) => {
-      // 0. Marketer isolation
-      if (role === 'marketer' && currentUser?.id && p.created_by && p.created_by !== currentUser.id) {
-        return false;
+      // 0. Department Role Isolation (هر سطح کاربری فقط پرونده‌های مربوط به قسمت خود را می‌بیند)
+      if (!isCeoOrAdmin) {
+        if (role === 'marketer' || role === 'marketing') {
+          // بازاریاب: فقط پرونده‌ها و مشتریان ثبت‌شده توسط خودش
+          if (currentUser?.id && p.created_by && p.created_by !== currentUser.id && p.assigned_to !== currentUser.id) {
+            return false;
+          }
+        } else if (role === 'sales') {
+          // بازرگانی و فروش: مراحل ۱، ۳، ۶، ۸ یا پرونده‌های تحت اقدام فروش
+          if (![1, 3, 6, 8].includes(p.current_stage) && p.created_by !== currentUser?.id && p.assigned_to !== currentUser?.id) {
+            return false;
+          }
+        } else if (role === 'secretary') {
+          // دبیرخانه و پذیرش: مرحله ۱ و ۳ یا ثبت‌شده توسط دبیرخانه
+          if (![1, 3].includes(p.current_stage) && p.created_by !== currentUser?.id) {
+            return false;
+          }
+        } else if (role === 'design' || role === 'designer') {
+          // طراحی و آتلیه: مراحل ۴، ۵، ۶ (تایید مدیر، طراحی خط تیغ و تایید طرح)
+          if (![4, 5, 6].includes(p.current_stage) && p.assigned_to !== currentUser?.id) {
+            return false;
+          }
+        } else if (role === 'mockup') {
+          // ماکت‌سازی: مراحل ۷، ۸ (ساخت ماکت و تایید ماکت)
+          if (![7, 8].includes(p.current_stage) && p.assigned_to !== currentUser?.id) {
+            return false;
+          }
+        } else if (role === 'procurement' || role === 'warehouse') {
+          // خرید و انبار: مراحل ۸، ۹، ۱۰ (خرید متریال، تخلیه انبار)
+          if (![8, 9, 10].includes(p.current_stage) && p.assigned_to !== currentUser?.id) {
+            return false;
+          }
+        } else if (role === 'production') {
+          // تولید و چاپ: مراحل ۱۰، ۱۱ (خط تولید، چاپ، لامینت، دایکات و تکمیل)
+          if (![10, 11].includes(p.current_stage) && p.assigned_to !== currentUser?.id) {
+            return false;
+          }
+        } else if (role === 'estimation' || role === 'accounting') {
+          // برآورد و مالی: مراحل ۱، ۲، ۳، ۴
+          if (![1, 2, 3, 4].includes(p.current_stage)) {
+            return false;
+          }
+        } else if (role === 'customer') {
+          if (![3, 6, 8].includes(p.current_stage)) {
+            return false;
+          }
+        }
       }
 
       // 1. Universal Search Filter (نام مشتری، موبایل، محصول، پرونده)
@@ -317,9 +361,13 @@ export default function ProductsArchiveView({
                       className="hover:bg-indigo-50/40 transition-colors group"
                     >
                       {/* Codes Column */}
-                      <td className="py-3 px-4 font-mono">
+                      <td
+                        className="py-3 px-4 font-mono cursor-pointer"
+                        onClick={() => onSelectProject(proj)}
+                        title="کلیک جهت مشاهده پرونده و گردش کار ۹ مرحله"
+                      >
                         <div className="flex flex-col gap-1">
-                          <span className="font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100 inline-block w-fit">
+                          <span className="font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-2 py-0.5 rounded border border-indigo-100 inline-block w-fit transition-colors">
                             {proj.archive_code ? `کد: ${proj.archive_code}` : proj.tracking_code}
                           </span>
                           {proj.order_code && (
@@ -330,10 +378,15 @@ export default function ProductsArchiveView({
                         </div>
                       </td>
 
-                      {/* Product Title */}
-                      <td className="py-3 px-4">
-                        <div className="font-extrabold text-slate-900 text-sm group-hover:text-indigo-600 transition-colors">
-                          {proj.title}
+                      {/* Product Title (کلیک جهت باز شدن پرونده و مراحل) */}
+                      <td
+                        className="py-3 px-4 cursor-pointer"
+                        onClick={() => onSelectProject(proj)}
+                        title="کلیک جهت باز شدن پرونده، مشخصات فنی و مراحل گردش‌کار"
+                      >
+                        <div className="font-extrabold text-slate-900 text-sm text-indigo-900 group-hover:text-indigo-600 group-hover:underline transition-all flex items-center gap-1.5">
+                          <span>{proj.title}</span>
+                          <Eye className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 text-indigo-500 transition-opacity" />
                         </div>
                         <div className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1">
                           <span className="bg-slate-100 px-1.5 py-0.5 rounded text-slate-700">
