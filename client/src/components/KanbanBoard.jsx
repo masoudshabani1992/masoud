@@ -61,12 +61,12 @@ export default function KanbanBoard({
     <div className="w-full space-y-6 animate-fade-in">
       {/* Consolidated Dashboard / Kanban / Archive Unified Subtab Bar */}
       {onNavigateTab && (
-        <div className="bg-white p-2.5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between flex-wrap gap-2">
+        <div className="bg-white p-2.5 rounded-2xl border border-slate-200/90 shadow-xs flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-1.5 flex-wrap">
             <button
               type="button"
               onClick={() => onNavigateTab('dashboard')}
-              className="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-700 hover:text-purple-700 hover:bg-slate-100 transition flex items-center gap-2"
+              className="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:text-purple-800 hover:bg-purple-50/60 transition flex items-center gap-2"
             >
               <BarChart3 className="w-4 h-4 text-purple-600" />
               <span>۱. داشبورد و آمار تحلیلی</span>
@@ -75,16 +75,16 @@ export default function KanbanBoard({
             <button
               type="button"
               onClick={() => onNavigateTab('kanban')}
-              className="px-4 py-2 rounded-xl text-xs sm:text-sm font-black bg-indigo-700 text-white shadow-md shadow-indigo-200 flex items-center gap-2 ring-2 ring-indigo-400"
+              className="px-4 py-2 rounded-xl text-xs sm:text-sm font-black bg-indigo-100 text-indigo-950 border border-indigo-300/80 shadow-2xs flex items-center gap-2"
             >
-              <Kanban className="w-4 h-4 text-amber-300" />
+              <Kanban className="w-4 h-4 text-indigo-700" />
               <span>۲. گردش کار ۱۰ مرحله (کانبان)</span>
             </button>
 
             <button
               type="button"
               onClick={() => onNavigateTab('archive')}
-              className="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-700 hover:text-amber-700 hover:bg-slate-100 transition flex items-center gap-2"
+              className="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:text-amber-800 hover:bg-amber-50/60 transition flex items-center gap-2"
             >
               <Boxes className="w-4 h-4 text-amber-600" />
               <span>۳. آرشیو و جستجوی سفارشات</span>

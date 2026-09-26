@@ -68,6 +68,20 @@ export default function FloatingQuickDock({
               <kbd className="text-[10px] bg-indigo-950 px-1.5 py-0.5 rounded font-mono text-indigo-300">Ctrl+K</kbd>
             </button>
 
+            {/* New Order */}
+            {hasPermission('can_create_order') && (
+              <button
+                onClick={() => {
+                  setIsOpen(false);
+                  onNavigate('new_order');
+                }}
+                className="w-full p-2.5 rounded-2xl flex items-center gap-2 hover:bg-slate-800 text-amber-300 transition"
+              >
+                <PlusCircle className="w-4 h-4 text-amber-400" />
+                <span>سفارش جدید</span>
+              </button>
+            )}
+
             {/* New Marketing Lead */}
             {canMarketing && (
               <button

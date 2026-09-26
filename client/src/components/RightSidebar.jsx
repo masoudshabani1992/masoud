@@ -109,13 +109,13 @@ export default function RightSidebar({
       {isOpenMobile && (
         <div
           onClick={onCloseMobile}
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-40 lg:hidden animate-fade-in"
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-40 lg:hidden animate-fade-in"
         />
       )}
 
-      {/* Main Right Sidebar Container */}
+      {/* Main Right Sidebar Container with Soft Pastel Border & Background */}
       <aside
-        className={`fixed lg:sticky top-0 right-0 h-screen w-72 bg-white/95 backdrop-blur-xl border-l border-slate-200/90 shadow-xl z-50 flex flex-col justify-between transition-transform duration-300 ease-in-out ${
+        className={`fixed lg:sticky top-0 right-0 h-screen w-72 bg-white/95 backdrop-blur-xl border-l border-slate-200/90 shadow-sm z-50 flex flex-col justify-between transition-transform duration-300 ease-in-out ${
           isOpenMobile ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'
         }`}
       >
@@ -128,17 +128,17 @@ export default function RightSidebar({
               onClick={() => { if (canHub) handleNavClick('hub'); }}
               className="flex items-center gap-3 cursor-pointer group select-none"
             >
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-500 via-indigo-600 to-indigo-700 flex items-center justify-center text-white shadow-lg shadow-indigo-500/25 ring-2 ring-white group-hover:scale-105 transition-transform duration-200 icon-box-3d">
-                <Boxes className="w-6 h-6 animate-float" />
+              <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-200 via-violet-200 to-indigo-200 flex items-center justify-center text-indigo-900 shadow-sm border border-indigo-200/60 group-hover:scale-105 transition-transform duration-200 icon-box-3d">
+                <Boxes className="w-6 h-6 text-indigo-800 animate-float" />
               </div>
               <div>
-                <h1 className="font-black text-slate-900 text-sm tracking-tight group-hover:text-indigo-600 transition-colors">
+                <h1 className="font-black text-slate-800 text-sm tracking-tight group-hover:text-indigo-600 transition-colors">
                   شرکت آرمان امیران
                 </h1>
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                   <span className="text-[11px] font-bold text-slate-500">اتوماسیون تولید (MIS)</span>
-                  <span className="px-1.5 py-0.2 rounded-md text-[10px] font-black bg-indigo-50 text-indigo-700 border border-indigo-100">
+                  <span className="px-1.5 py-0.2 rounded-md text-[10px] font-black bg-purple-50 text-purple-700 border border-purple-200">
                     v2.5
                   </span>
                 </div>
@@ -158,10 +158,10 @@ export default function RightSidebar({
           {onOpenSearch && (
             <button
               onClick={onOpenSearch}
-              className="w-full flex items-center justify-between px-3 py-2 bg-slate-50 hover:bg-indigo-50/60 border border-slate-200/90 hover:border-indigo-300 rounded-xl text-slate-500 hover:text-indigo-700 transition-all text-xs font-bold shadow-2xs group"
+              className="w-full flex items-center justify-between px-3 py-2 bg-slate-50/80 hover:bg-violet-50/70 border border-slate-200 hover:border-violet-300 rounded-xl text-slate-600 hover:text-violet-800 transition-all text-xs font-bold shadow-2xs group"
             >
               <div className="flex items-center gap-2">
-                <Search className="w-4 h-4 text-slate-400 group-hover:text-indigo-600 transition-colors" />
+                <Search className="w-4 h-4 text-slate-400 group-hover:text-violet-600 transition-colors" />
                 <span>جستجوی سریع...</span>
               </div>
               <kbd className="px-1.5 py-0.5 text-[10px] font-mono text-slate-400 bg-white border border-slate-200 rounded shadow-2xs">
@@ -170,29 +170,29 @@ export default function RightSidebar({
             </button>
           )}
 
-          {/* Quick New Order 3D Button */}
+          {/* Quick New Order Button: "سفارش جدید" in Pastel Peach / Butter */}
           {canCreateOrder && (
             <button
               onClick={() => handleNavClick('new_order')}
-              className={`w-full py-2.5 px-3.5 btn-3d-amber flex items-center justify-center gap-2 text-xs font-black rounded-xl transition-all ${
-                activeTab === 'new_order' ? 'ring-2 ring-amber-500' : ''
+              className={`w-full py-2.5 px-3.5 btn-pastel-peach flex items-center justify-center gap-2 text-xs font-black transition-all ${
+                activeTab === 'new_order' ? 'ring-2 ring-amber-400 font-black' : ''
               }`}
             >
-              <PlusCircle className="w-4 h-4 text-slate-900" />
-              <span>ثبت سفارش صنعتی جدید</span>
+              <PlusCircle className="w-4 h-4 text-amber-900" />
+              <span>سفارش جدید</span>
             </button>
           )}
 
         </div>
 
-        {/* Scrollable Navigation Items */}
+        {/* Scrollable Navigation Items in Pastel Colors */}
         <div className="flex-1 overflow-y-auto px-3 py-3 space-y-4">
           
           {/* GROUP 1: میز کار و عملیات */}
           <div className="space-y-1">
             <div className="px-3 py-1 text-[10px] font-black text-slate-400 tracking-wider flex items-center justify-between">
               <span>میز کار و عملیات</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+              <span className="w-1.5 h-1.5 rounded-full bg-violet-300" />
             </div>
 
             {/* صفحه اصلی */}
@@ -201,13 +201,13 @@ export default function RightSidebar({
                 onClick={() => handleNavClick('hub')}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                   activeTab === 'hub'
-                    ? 'bg-gradient-to-l from-indigo-600 to-indigo-700 text-white shadow-md shadow-indigo-200 font-black'
-                    : 'text-slate-700 hover:bg-slate-100 hover:text-indigo-700'
+                    ? 'bg-violet-100 text-violet-950 font-black border border-violet-300/80 shadow-2xs'
+                    : 'text-slate-700 hover:bg-violet-50/60 hover:text-violet-900'
                 }`}
               >
                 <div className="flex items-center gap-2.5">
                   <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
-                    activeTab === 'hub' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600 group-hover:text-indigo-600'
+                    activeTab === 'hub' ? 'bg-violet-200 text-violet-900' : 'bg-slate-100 text-slate-600'
                   }`}>
                     <LayoutGrid className="w-4 h-4" />
                   </div>
@@ -222,20 +222,20 @@ export default function RightSidebar({
                 onClick={() => handleNavClick('my_tasks')}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                   activeTab === 'my_tasks'
-                    ? 'bg-gradient-to-l from-indigo-600 to-indigo-700 text-white shadow-md shadow-indigo-200 font-black'
-                    : 'text-slate-700 hover:bg-slate-100 hover:text-indigo-700'
+                    ? 'bg-cyan-100 text-cyan-950 font-black border border-cyan-300/80 shadow-2xs'
+                    : 'text-slate-700 hover:bg-cyan-50/60 hover:text-cyan-900'
                 }`}
               >
                 <div className="flex items-center gap-2.5">
                   <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
-                    activeTab === 'my_tasks' ? 'bg-white/20 text-white' : 'bg-cyan-50 text-cyan-700'
+                    activeTab === 'my_tasks' ? 'bg-cyan-200 text-cyan-900' : 'bg-cyan-50 text-cyan-700'
                   }`}>
                     <Inbox className="w-4 h-4" />
                   </div>
                   <span>وظایف من</span>
                 </div>
                 {myPendingCount > 0 && (
-                  <span className="bg-rose-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse shadow-xs">
+                  <span className="bg-rose-400 text-rose-950 text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse shadow-2xs border border-rose-300">
                     {myPendingCount}
                   </span>
                 )}
@@ -248,13 +248,13 @@ export default function RightSidebar({
                 onClick={() => handleNavClick('marketing')}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                   activeTab === 'marketing'
-                    ? 'bg-gradient-to-l from-teal-600 to-emerald-600 text-white shadow-md shadow-teal-200 font-black'
-                    : 'text-slate-700 hover:bg-teal-50/60 hover:text-teal-800'
+                    ? 'bg-emerald-100 text-emerald-950 font-black border border-emerald-300/80 shadow-2xs'
+                    : 'text-slate-700 hover:bg-emerald-50/60 hover:text-emerald-900'
                 }`}
               >
                 <div className="flex items-center gap-2.5">
                   <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
-                    activeTab === 'marketing' ? 'bg-white/20 text-white' : 'bg-teal-50 text-teal-700'
+                    activeTab === 'marketing' ? 'bg-emerald-200 text-emerald-900' : 'bg-emerald-50 text-emerald-700'
                   }`}>
                     <Users className="w-4 h-4" />
                   </div>
@@ -264,11 +264,11 @@ export default function RightSidebar({
             )}
           </div>
 
-          {/* GROUP 2: خط تولید و دستور کار */}
+          {/* GROUP 2: خط تولید و انبار */}
           <div className="space-y-1">
             <div className="px-3 py-1 text-[10px] font-black text-slate-400 tracking-wider flex items-center justify-between">
               <span>خط تولید و انبار</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+              <span className="w-1.5 h-1.5 rounded-full bg-indigo-300" />
             </div>
 
             {/* دستور تولید Dropdown */}
@@ -278,13 +278,13 @@ export default function RightSidebar({
                   onClick={() => toggleSubmenu('prod')}
                   className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                     isProdActive
-                      ? 'bg-indigo-50 text-indigo-900 font-black border border-indigo-200 shadow-2xs'
-                      : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
+                      ? 'bg-indigo-50 text-indigo-950 font-black border border-indigo-200 shadow-2xs'
+                      : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
                     <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
-                      isProdActive ? 'bg-indigo-600 text-white' : 'bg-indigo-50 text-indigo-600'
+                      isProdActive ? 'bg-indigo-200 text-indigo-900' : 'bg-indigo-50 text-indigo-700'
                     }`}>
                       <Layers className="w-4 h-4" />
                     </div>
@@ -303,15 +303,15 @@ export default function RightSidebar({
                         onClick={() => handleNavClick('production_orders')}
                         className={`w-full text-right px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between ${
                           activeTab === 'production_orders' || activeTab === 'production_orders_offset'
-                            ? 'bg-indigo-600 text-white shadow-xs font-black'
-                            : 'text-slate-600 hover:bg-indigo-50 hover:text-indigo-900'
+                            ? 'bg-indigo-100 text-indigo-950 font-black border border-indigo-200 shadow-2xs'
+                            : 'text-slate-600 hover:bg-indigo-50/60 hover:text-indigo-900'
                         }`}
                       >
                         <div className="flex items-center gap-2">
                           <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
                           <span>۱. تولید (افست)</span>
                         </div>
-                        <span className="text-[10px] opacity-75">۳ رنگ</span>
+                        <span className="text-[10px] bg-indigo-50 text-indigo-700 px-1 rounded">۳ رنگ</span>
                       </button>
                     )}
 
@@ -320,15 +320,15 @@ export default function RightSidebar({
                         onClick={() => handleNavClick('digital_orders')}
                         className={`w-full text-right px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between ${
                           activeTab === 'digital_orders' || activeTab === 'production_orders_digital'
-                            ? 'bg-purple-600 text-white shadow-xs font-black'
-                            : 'text-slate-600 hover:bg-purple-50 hover:text-purple-900'
+                            ? 'bg-purple-100 text-purple-950 font-black border border-purple-200 shadow-2xs'
+                            : 'text-slate-600 hover:bg-purple-50/60 hover:text-purple-900'
                         }`}
                       >
                         <div className="flex items-center gap-2">
                           <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
                           <span>۲. دیجیتال</span>
                         </div>
-                        <Printer className="w-3.5 h-3.5 opacity-70" />
+                        <Printer className="w-3.5 h-3.5 text-purple-600" />
                       </button>
                     )}
 
@@ -337,15 +337,15 @@ export default function RightSidebar({
                         onClick={() => handleNavClick('service_orders')}
                         className={`w-full text-right px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between ${
                           activeTab === 'service_orders' || activeTab === 'production_orders_service'
-                            ? 'bg-amber-500 text-slate-950 shadow-xs font-black'
-                            : 'text-slate-600 hover:bg-amber-50 hover:text-amber-900'
+                            ? 'bg-amber-100 text-amber-950 font-black border border-amber-200 shadow-2xs'
+                            : 'text-slate-600 hover:bg-amber-50/60 hover:text-amber-900'
                         }`}
                       >
                         <div className="flex items-center gap-2">
                           <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
                           <span>۳. خدماتی</span>
                         </div>
-                        <Scissors className="w-3.5 h-3.5 opacity-70" />
+                        <Scissors className="w-3.5 h-3.5 text-amber-600" />
                       </button>
                     )}
                   </div>
@@ -361,12 +361,12 @@ export default function RightSidebar({
                   className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                     isWhActive
                       ? 'bg-sky-50 text-sky-950 font-black border border-sky-200 shadow-2xs'
-                      : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
+                      : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
                     <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
-                      isWhActive ? 'bg-sky-600 text-white' : 'bg-sky-50 text-sky-600'
+                      isWhActive ? 'bg-sky-200 text-sky-900' : 'bg-sky-50 text-sky-700'
                     }`}>
                       <Package className="w-4 h-4" />
                     </div>
@@ -385,12 +385,12 @@ export default function RightSidebar({
                         onClick={() => handleNavClick('warehouse_cardboard')}
                         className={`w-full text-right px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-between ${
                           activeTab === 'warehouse_cardboard' || activeTab === 'warehouse_inventory'
-                            ? 'bg-sky-600 text-white font-black shadow-xs'
-                            : 'text-slate-600 hover:bg-sky-50 hover:text-sky-900'
+                            ? 'bg-sky-100 text-sky-950 font-black border border-sky-200 shadow-2xs'
+                            : 'text-slate-600 hover:bg-sky-50/60 hover:text-sky-900'
                         }`}
                       >
                         <span>۱. مقوا (شیت)</span>
-                        <span className="text-[10px] opacity-75">ایندربرد</span>
+                        <span className="text-[10px] text-sky-700">ایندربرد</span>
                       </button>
                     )}
 
@@ -399,12 +399,12 @@ export default function RightSidebar({
                         onClick={() => handleNavClick('warehouse_sheet_carton')}
                         className={`w-full text-right px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-between ${
                           activeTab === 'warehouse_sheet_carton'
-                            ? 'bg-amber-500 text-slate-950 font-black shadow-xs'
-                            : 'text-slate-600 hover:bg-amber-50 hover:text-amber-900'
+                            ? 'bg-amber-100 text-amber-950 font-black border border-amber-200 shadow-2xs'
+                            : 'text-slate-600 hover:bg-amber-50/60 hover:text-amber-900'
                         }`}
                       >
                         <span>۲. ورق کارتن</span>
-                        <span className="text-[10px] opacity-75">۳ و ۵ لایه</span>
+                        <span className="text-[10px] text-amber-700">۳ و ۵ لایه</span>
                       </button>
                     )}
 
@@ -413,12 +413,12 @@ export default function RightSidebar({
                         onClick={() => handleNavClick('warehouse_single_face')}
                         className={`w-full text-right px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-between ${
                           activeTab === 'warehouse_single_face'
-                            ? 'bg-teal-600 text-white font-black shadow-xs'
-                            : 'text-slate-600 hover:bg-teal-50 hover:text-teal-900'
+                            ? 'bg-teal-100 text-teal-950 font-black border border-teal-200 shadow-2xs'
+                            : 'text-slate-600 hover:bg-teal-50/60 hover:text-teal-900'
                         }`}
                       >
                         <span>۳. سینگل فلوت</span>
-                        <span className="text-[10px] opacity-75">E/B</span>
+                        <span className="text-[10px] text-teal-700">E/B</span>
                       </button>
                     )}
 
@@ -427,12 +427,12 @@ export default function RightSidebar({
                         onClick={() => handleNavClick('warehouse_cellophane')}
                         className={`w-full text-right px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-between ${
                           activeTab === 'warehouse_cellophane'
-                            ? 'bg-indigo-600 text-white font-black shadow-xs'
-                            : 'text-slate-600 hover:bg-indigo-50 hover:text-indigo-900'
+                            ? 'bg-indigo-100 text-indigo-950 font-black border border-indigo-200 shadow-2xs'
+                            : 'text-slate-600 hover:bg-indigo-50/60 hover:text-indigo-900'
                         }`}
                       >
                         <span>۴. سلفون</span>
-                        <span className="text-[10px] opacity-75">حرارتی</span>
+                        <span className="text-[10px] text-indigo-700">حرارتی</span>
                       </button>
                     )}
 
@@ -441,12 +441,12 @@ export default function RightSidebar({
                         onClick={() => handleNavClick('warehouse_pvc_film')}
                         className={`w-full text-right px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-between ${
                           activeTab === 'warehouse_pvc_film'
-                            ? 'bg-purple-600 text-white font-black shadow-xs'
-                            : 'text-slate-600 hover:bg-purple-50 hover:text-purple-900'
+                            ? 'bg-purple-100 text-purple-950 font-black border border-purple-200 shadow-2xs'
+                            : 'text-slate-600 hover:bg-purple-50/60 hover:text-purple-900'
                         }`}
                       >
                         <span>۵. طلق PVC</span>
-                        <span className="text-[10px] opacity-75">پنجره</span>
+                        <span className="text-[10px] text-purple-700">پنجره</span>
                       </button>
                     )}
 
@@ -455,12 +455,12 @@ export default function RightSidebar({
                         onClick={() => handleNavClick('warehouse_ink')}
                         className={`w-full text-right px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-between ${
                           activeTab === 'warehouse_ink'
-                            ? 'bg-rose-600 text-white font-black shadow-xs'
-                            : 'text-slate-600 hover:bg-rose-50 hover:text-rose-900'
+                            ? 'bg-rose-100 text-rose-950 font-black border border-rose-200 shadow-2xs'
+                            : 'text-slate-600 hover:bg-rose-50/60 hover:text-rose-900'
                         }`}
                       >
-                        <span>۶. مرکب افست</span>
-                        <span className="text-[10px] opacity-75">CMYK</span>
+                        <span>۶. مرکب چاپ</span>
+                        <span className="text-[10px] text-rose-700">CMYK</span>
                       </button>
                     )}
                   </div>
@@ -473,7 +473,7 @@ export default function RightSidebar({
           <div className="space-y-1">
             <div className="px-3 py-1 text-[10px] font-black text-slate-400 tracking-wider flex items-center justify-between">
               <span>گردش کار و آمار</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+              <span className="w-1.5 h-1.5 rounded-full bg-purple-300" />
             </div>
 
             {/* داشبورد و آرشیو Dropdown */}
@@ -484,12 +484,12 @@ export default function RightSidebar({
                   className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                     isDashActive
                       ? 'bg-purple-50 text-purple-950 font-black border border-purple-200 shadow-2xs'
-                      : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
+                      : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
                     <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
-                      isDashActive ? 'bg-purple-600 text-white' : 'bg-purple-50 text-purple-600'
+                      isDashActive ? 'bg-purple-200 text-purple-900' : 'bg-purple-50 text-purple-700'
                     }`}>
                       <BarChart3 className="w-4 h-4" />
                     </div>
@@ -508,12 +508,12 @@ export default function RightSidebar({
                         onClick={() => handleNavClick('dashboard')}
                         className={`w-full text-right px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between ${
                           activeTab === 'dashboard'
-                            ? 'bg-purple-700 text-white shadow-xs font-black'
-                            : 'text-slate-600 hover:bg-purple-50 hover:text-purple-900'
+                            ? 'bg-purple-100 text-purple-950 font-black border border-purple-200 shadow-2xs'
+                            : 'text-slate-600 hover:bg-purple-50/60 hover:text-purple-900'
                         }`}
                       >
                         <div className="flex items-center gap-2">
-                          <BarChart3 className="w-3.5 h-3.5" />
+                          <BarChart3 className="w-3.5 h-3.5 text-purple-700" />
                           <span>۱. آمار تحلیلی</span>
                         </div>
                       </button>
@@ -524,15 +524,15 @@ export default function RightSidebar({
                         onClick={() => handleNavClick('kanban')}
                         className={`w-full text-right px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between ${
                           activeTab === 'kanban'
-                            ? 'bg-indigo-600 text-white shadow-xs font-black'
-                            : 'text-slate-600 hover:bg-indigo-50 hover:text-indigo-900'
+                            ? 'bg-indigo-100 text-indigo-950 font-black border border-indigo-200 shadow-2xs'
+                            : 'text-slate-600 hover:bg-indigo-50/60 hover:text-indigo-900'
                         }`}
                       >
                         <div className="flex items-center gap-2">
-                          <Kanban className="w-3.5 h-3.5" />
+                          <Kanban className="w-3.5 h-3.5 text-indigo-700" />
                           <span>۲. گردش کار ۱۰ مرحله</span>
                         </div>
-                        <span className="text-[10px] bg-amber-400 text-slate-950 px-1.5 py-0.2 rounded font-black">کانبان</span>
+                        <span className="text-[10px] bg-amber-200 text-amber-900 px-1.5 py-0.2 rounded font-bold">کانبان</span>
                       </button>
                     )}
 
@@ -541,12 +541,12 @@ export default function RightSidebar({
                         onClick={() => handleNavClick('archive')}
                         className={`w-full text-right px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between ${
                           activeTab === 'archive'
-                            ? 'bg-amber-500 text-slate-950 shadow-xs font-black'
-                            : 'text-slate-600 hover:bg-amber-50 hover:text-amber-900'
+                            ? 'bg-amber-100 text-amber-950 font-black border border-amber-200 shadow-2xs'
+                            : 'text-slate-600 hover:bg-amber-50/60 hover:text-amber-900'
                         }`}
                       >
                         <div className="flex items-center gap-2">
-                          <Boxes className="w-3.5 h-3.5" />
+                          <Boxes className="w-3.5 h-3.5 text-amber-700" />
                           <span>۳. آرشیو و جستجو</span>
                         </div>
                       </button>
@@ -561,7 +561,7 @@ export default function RightSidebar({
           <div className="space-y-1">
             <div className="px-3 py-1 text-[10px] font-black text-slate-400 tracking-wider flex items-center justify-between">
               <span>استودیو و طراحی</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-300" />
             </div>
 
             {/* استودیو طراحی امیران */}
@@ -570,21 +570,21 @@ export default function RightSidebar({
                 onClick={() => handleNavClick('dieline_generator')}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                   activeTab === 'dieline_generator' || activeTab === '3d_studio'
-                    ? 'bg-gradient-to-l from-amber-500 to-amber-600 text-slate-950 shadow-md shadow-amber-200 font-black'
-                    : 'text-slate-700 hover:bg-amber-50/70 hover:text-amber-900'
+                    ? 'bg-amber-100 text-amber-950 font-black border border-amber-300/80 shadow-2xs'
+                    : 'text-slate-700 hover:bg-amber-50/60 hover:text-amber-900'
                 }`}
               >
                 <div className="flex items-center gap-2.5">
                   <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
                     activeTab === 'dieline_generator' || activeTab === '3d_studio'
-                      ? 'bg-white/30 text-slate-950'
+                      ? 'bg-amber-200 text-amber-900'
                       : 'bg-amber-50 text-amber-700'
                   }`}>
                     <Box className="w-4 h-4" />
                   </div>
                   <span>استودیو طراحی امیران</span>
                 </div>
-                <span className="text-[10px] font-mono px-1 py-0.2 bg-amber-100/60 rounded text-amber-800">3D</span>
+                <span className="text-[10px] font-mono px-1.5 py-0.2 bg-amber-200/80 rounded text-amber-900 font-bold">3D</span>
               </button>
             )}
 
@@ -594,19 +594,19 @@ export default function RightSidebar({
                 onClick={() => handleNavClick('ai_assistant')}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                   activeTab === 'ai_assistant'
-                    ? 'bg-gradient-to-l from-purple-700 via-indigo-700 to-indigo-800 text-amber-300 shadow-md shadow-purple-200 font-black'
-                    : 'text-purple-900 hover:bg-purple-50/70 hover:text-purple-950'
+                    ? 'bg-fuchsia-100 text-fuchsia-950 font-black border border-fuchsia-300/80 shadow-2xs'
+                    : 'text-slate-700 hover:bg-fuchsia-50/60 hover:text-fuchsia-900'
                 }`}
               >
                 <div className="flex items-center gap-2.5">
                   <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
-                    activeTab === 'ai_assistant' ? 'bg-white/20 text-amber-300' : 'bg-purple-100 text-purple-700'
+                    activeTab === 'ai_assistant' ? 'bg-fuchsia-200 text-fuchsia-900' : 'bg-fuchsia-50 text-fuchsia-700'
                   }`}>
                     <Sparkles className="w-4 h-4 animate-pulse" />
                   </div>
                   <span>دستیار هوش مصنوعی</span>
                 </div>
-                <span className="text-[10px] font-bold px-1.5 py-0.2 bg-purple-100 text-purple-800 rounded">AI</span>
+                <span className="text-[10px] font-bold px-1.5 py-0.2 bg-fuchsia-200 text-fuchsia-900 rounded">AI</span>
               </button>
             )}
 
@@ -616,13 +616,13 @@ export default function RightSidebar({
                 onClick={() => handleNavClick('calculator')}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                   activeTab === 'calculator'
-                    ? 'bg-gradient-to-l from-amber-500 to-amber-600 text-slate-950 shadow-md shadow-amber-200 font-black'
-                    : 'text-slate-700 hover:bg-amber-50/60 hover:text-amber-900'
+                    ? 'bg-orange-100 text-orange-950 font-black border border-orange-300/80 shadow-2xs'
+                    : 'text-slate-700 hover:bg-orange-50/60 hover:text-orange-900'
                 }`}
               >
                 <div className="flex items-center gap-2.5">
                   <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
-                    activeTab === 'calculator' ? 'bg-white/30 text-slate-950' : 'bg-amber-50 text-amber-700'
+                    activeTab === 'calculator' ? 'bg-orange-200 text-orange-900' : 'bg-orange-50 text-orange-700'
                   }`}>
                     <Calculator className="w-4 h-4" />
                   </div>
@@ -632,7 +632,7 @@ export default function RightSidebar({
             )}
           </div>
 
-          {/* GROUP 5: تنظیمات اتوماسیون (مختص مدیرعامل و ادمین) */}
+          {/* GROUP 5: تنظیمات اتوماسیون */}
           {canSettings && (
             <div className="space-y-1">
               <div className="px-3 py-1 text-[10px] font-black text-slate-400 tracking-wider flex items-center justify-between">
@@ -645,20 +645,20 @@ export default function RightSidebar({
                   onClick={() => toggleSubmenu('settings')}
                   className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                     isSettingsActive
-                      ? 'bg-slate-900 text-amber-300 font-black shadow-md'
-                      : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
+                      ? 'bg-slate-100 text-slate-900 font-black border border-slate-300 shadow-2xs'
+                      : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
                     <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
-                      isSettingsActive ? 'bg-slate-800 text-amber-400' : 'bg-slate-100 text-slate-700'
+                      isSettingsActive ? 'bg-slate-200 text-slate-900' : 'bg-slate-100 text-slate-700'
                     }`}>
                       <Settings className="w-4 h-4" />
                     </div>
                     <span>تنظیمات اتوماسیون</span>
                   </div>
                   <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
-                    openSubmenu === 'settings' ? 'rotate-180 text-amber-400' : ''
+                    openSubmenu === 'settings' ? 'rotate-180 text-slate-700' : ''
                   }`} />
                 </button>
 
@@ -678,40 +678,40 @@ export default function RightSidebar({
                     <button
                       onClick={() => handleNavClick('users')}
                       className={`w-full text-right px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
-                        activeTab === 'users' ? 'bg-indigo-600 text-white font-black' : 'text-slate-600 hover:bg-indigo-50 hover:text-indigo-900'
+                        activeTab === 'users' ? 'bg-indigo-100 text-indigo-950 font-black' : 'text-slate-600 hover:bg-indigo-50 hover:text-indigo-900'
                       }`}
                     >
-                      <Users className="w-3.5 h-3.5" />
+                      <Users className="w-3.5 h-3.5 text-indigo-700" />
                       <span>۲. مدیریت پرسنل</span>
                     </button>
 
                     <button
                       onClick={() => handleNavClick('hr')}
                       className={`w-full text-right px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
-                        activeTab === 'hr' ? 'bg-amber-500 text-slate-950 font-black' : 'text-slate-600 hover:bg-amber-50 hover:text-amber-900'
+                        activeTab === 'hr' ? 'bg-amber-100 text-amber-950 font-black' : 'text-slate-600 hover:bg-amber-50 hover:text-amber-900'
                       }`}
                     >
-                      <Award className="w-3.5 h-3.5" />
+                      <Award className="w-3.5 h-3.5 text-amber-700" />
                       <span>۳. ارزیابی عملکرد HR</span>
                     </button>
 
                     <button
                       onClick={() => handleNavClick('storage')}
                       className={`w-full text-right px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
-                        activeTab === 'storage' ? 'bg-cyan-600 text-white font-black' : 'text-slate-600 hover:bg-cyan-50 hover:text-cyan-900'
+                        activeTab === 'storage' ? 'bg-cyan-100 text-cyan-950 font-black' : 'text-slate-600 hover:bg-cyan-50 hover:text-cyan-900'
                       }`}
                     >
-                      <HardDrive className="w-3.5 h-3.5" />
+                      <HardDrive className="w-3.5 h-3.5 text-cyan-700" />
                       <span>۴. پوشه Storage</span>
                     </button>
 
                     <button
                       onClick={() => handleNavClick('logs')}
                       className={`w-full text-right px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
-                        activeTab === 'logs' ? 'bg-rose-600 text-white font-black' : 'text-slate-600 hover:bg-rose-50 hover:text-rose-900'
+                        activeTab === 'logs' ? 'bg-rose-100 text-rose-950 font-black' : 'text-slate-600 hover:bg-rose-50 hover:text-rose-900'
                       }`}
                     >
-                      <Activity className="w-3.5 h-3.5" />
+                      <Activity className="w-3.5 h-3.5 text-rose-700" />
                       <span>۵. لاگ و ممیزی</span>
                     </button>
                   </div>
@@ -723,13 +723,13 @@ export default function RightSidebar({
         </div>
 
         {/* Footer User Profile & Quick Actions */}
-        <div className="p-3.5 border-t border-slate-200/90 bg-slate-50/80 space-y-2.5">
+        <div className="p-3.5 border-t border-slate-100 bg-slate-50/80 space-y-2.5">
           
           {/* Quick Role Switcher for CEO */}
           {isCeo && (
             <div className="bg-slate-900 text-white p-2 rounded-xl text-xs space-y-1.5 shadow-sm">
               <div className="flex items-center justify-between text-[10px] text-slate-400 font-bold">
-                <span className="flex items-center gap-1 text-cyan-400">
+                <span className="flex items-center gap-1 text-cyan-300">
                   <UserCheck className="w-3 h-3" />
                   <span>سوئیچ سریع نقش (مدیرعامل):</span>
                 </span>
@@ -741,7 +741,7 @@ export default function RightSidebar({
                     onClick={() => switchRole(r.id)}
                     className={`py-0.5 text-[9px] font-black rounded transition-all truncate ${
                       role === r.id
-                        ? 'bg-amber-400 text-slate-950 ring-1 ring-white shadow-xs'
+                        ? 'bg-amber-300 text-slate-950 ring-1 ring-white shadow-xs'
                         : 'text-slate-300 hover:bg-slate-800 hover:text-white'
                     }`}
                     title={r.name}
@@ -756,14 +756,14 @@ export default function RightSidebar({
           {/* Logged in User Card */}
           <div className="flex items-center justify-between bg-white p-2.5 rounded-xl border border-slate-200/90 shadow-2xs">
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white font-black flex items-center justify-center text-xs shrink-0 shadow-xs">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-violet-200 to-indigo-200 text-indigo-950 font-black flex items-center justify-center text-xs shrink-0 border border-indigo-200 shadow-2xs">
                 {currentUser?.fullName?.charAt(0) || currentUser?.username?.charAt(0) || 'U'}
               </div>
               <div className="min-w-0">
                 <div className="font-black text-xs text-slate-800 truncate">
                   {currentUser?.fullName || currentUser?.full_name}
                 </div>
-                <div className="text-[10px] font-bold text-indigo-600 truncate">
+                <div className="text-[10px] font-bold text-violet-700 truncate">
                   {currentUser?.department || ROLES.find(r => r.id === role)?.name}
                 </div>
               </div>

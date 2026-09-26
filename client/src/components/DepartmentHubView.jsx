@@ -230,12 +230,12 @@ export default function DepartmentHubView({
   return (
     <div className="w-full max-w-[1400px] mx-auto py-2 sm:py-6 px-2 sm:px-4 space-y-6 select-none animate-in fade-in zoom-in-95 duration-200">
       
-      {/* Top Header Section Matching the User's MIS Screenshot */}
-      <div className="bg-slate-200/90 border-2 border-slate-300 rounded-2xl p-4 sm:p-6 text-center space-y-2 shadow-sm">
-        <h1 className="text-2xl sm:text-4xl font-black text-slate-950 tracking-tight">
+      {/* Top Header Section with Soft Pastel Gradient */}
+      <div className="bg-gradient-to-r from-violet-50/80 via-white to-amber-50/80 border border-slate-200/90 rounded-3xl p-5 sm:p-7 text-center space-y-2 shadow-sm">
+        <h1 className="text-2xl sm:text-4xl font-black text-slate-800 tracking-tight">
           اتوماسیون تولید (MIS) شرکت آرمان امیران
         </h1>
-        <p className="text-xs sm:text-sm font-medium text-slate-700 tracking-wide font-sans">
+        <p className="text-xs sm:text-sm font-semibold text-slate-500 tracking-wide font-sans">
           Production automation system of Arman Amiran Company
         </p>
         
@@ -243,10 +243,10 @@ export default function DepartmentHubView({
         <div className="pt-2 flex justify-center">
           <div
             onClick={onOpenArchive}
-            className="w-48 bg-white border-2 border-slate-400 rounded-lg py-1 px-4 text-center cursor-pointer hover:border-indigo-600 transition-all shadow-inner group"
+            className="w-48 bg-white border border-slate-300 rounded-2xl py-1 px-4 text-center cursor-pointer hover:border-violet-500 hover:shadow-md transition-all group"
             title="کلیک برای مشاهده لیست کامل سفارشات فعال کارخانه"
           >
-            <span className="font-mono text-xl sm:text-2xl font-black text-slate-900 group-hover:text-indigo-700">
+            <span className="font-mono text-xl sm:text-2xl font-black text-violet-800 group-hover:text-violet-950">
               {totalActiveOrders || 82}
             </span>
           </div>
@@ -285,10 +285,10 @@ export default function DepartmentHubView({
 
           <button
             onClick={onOpenNewOrder}
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs sm:text-sm shadow-md shadow-indigo-100 transition-all flex items-center gap-2"
+            className="px-4 py-2.5 btn-pastel-peach text-amber-950 font-black rounded-xl text-xs sm:text-sm shadow-sm transition-all flex items-center gap-2"
           >
-            <PlusCircle className="w-4 h-4" />
-            <span>ثبت سفارش جدید</span>
+            <PlusCircle className="w-4 h-4 text-amber-900" />
+            <span>سفارش جدید</span>
           </button>
         </div>
       </div>
@@ -297,20 +297,20 @@ export default function DepartmentHubView({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         
         {/* Card 1: مرکز دستور تولید (۱.تولید | ۲.دیجیتال | ۳.خدماتی) */}
-        <div className="bg-white rounded-3xl p-6 border-2 border-indigo-200 shadow-sm space-y-4">
+        <div className="bg-white rounded-3xl p-6 border border-indigo-200/80 shadow-sm space-y-4">
           <div className="flex items-center justify-between border-b border-indigo-100 pb-3">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-md shadow-indigo-200">
-                <FileSpreadsheet className="w-6 h-6" />
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-100 to-violet-200 text-indigo-900 flex items-center justify-center shadow-xs border border-indigo-200">
+                <FileSpreadsheet className="w-6 h-6 text-indigo-700" />
               </div>
               <div>
-                <h2 className="text-lg font-black text-slate-900">دستور تولید کارخانه</h2>
+                <h2 className="text-lg font-black text-slate-800">دستور تولید کارخانه</h2>
                 <p className="text-xs text-slate-500">مدیریت سفارشات تولید، دیجیتال و کارهای خدماتی</p>
               </div>
             </div>
             <button
               onClick={() => onNavigateDepartment('production_orders')}
-              className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-black transition"
+              className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-black transition border border-indigo-200/60"
             >
               مشاهده کل کارتابل ←
             </button>
@@ -320,63 +320,63 @@ export default function DepartmentHubView({
             {/* 1. تولید */}
             <button
               onClick={() => onNavigateDepartment('production_orders')}
-              className="p-3.5 bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 rounded-2xl text-right transition-all group"
+              className="p-3.5 bg-slate-50/70 hover:bg-indigo-50/60 border border-slate-200/80 hover:border-indigo-300 rounded-2xl text-right transition-all group"
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-black text-xs">۱</span>
+                <span className="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-800 flex items-center justify-center font-black text-xs">۱</span>
                 <div className="flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-slate-400" />
+                  <span className="w-2 h-2 rounded-full bg-slate-300" />
                   <span className="w-2 h-2 rounded-full bg-amber-400" />
-                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <span className="w-2 h-2 rounded-full bg-emerald-400" />
                 </div>
               </div>
-              <h3 className="font-black text-xs text-slate-900 group-hover:text-indigo-800">۱. تولید (افست)</h3>
+              <h3 className="font-black text-xs text-slate-800 group-hover:text-indigo-800">۱. تولید (افست)</h3>
               <p className="text-[10px] text-slate-500 mt-0.5">۳ رنگ: سفید، زرد، سبز + اکسل ۳ شیت</p>
             </button>
 
             {/* 2. دیجیتال */}
             <button
               onClick={() => onNavigateDepartment('digital_orders')}
-              className="p-3.5 bg-slate-50 hover:bg-purple-50 border border-slate-200 hover:border-purple-300 rounded-2xl text-right transition-all group"
+              className="p-3.5 bg-slate-50/70 hover:bg-purple-50/60 border border-slate-200/80 hover:border-purple-300 rounded-2xl text-right transition-all group"
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="w-7 h-7 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center font-black text-xs">۲</span>
+                <span className="w-7 h-7 rounded-lg bg-purple-100 text-purple-800 flex items-center justify-center font-black text-xs">۲</span>
                 <Printer className="w-4 h-4 text-purple-600" />
               </div>
-              <h3 className="font-black text-xs text-slate-900 group-hover:text-purple-800">۲. دیجیتال</h3>
+              <h3 className="font-black text-xs text-slate-800 group-hover:text-purple-800">۲. دیجیتال</h3>
               <p className="text-[10px] text-slate-500 mt-0.5">چاپ با دستگاه‌های دیجیتال و فوری</p>
             </button>
 
             {/* 3. خدماتی */}
             <button
               onClick={() => onNavigateDepartment('service_orders')}
-              className="p-3.5 bg-slate-50 hover:bg-amber-50 border border-slate-200 hover:border-amber-300 rounded-2xl text-right transition-all group"
+              className="p-3.5 bg-slate-50/70 hover:bg-amber-50/60 border border-slate-200/80 hover:border-amber-300 rounded-2xl text-right transition-all group"
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center font-black text-xs">۳</span>
+                <span className="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center font-black text-xs">۳</span>
                 <Scissors className="w-4 h-4 text-amber-600" />
               </div>
-              <h3 className="font-black text-xs text-slate-900 group-hover:text-amber-800">۳. خدماتی</h3>
+              <h3 className="font-black text-xs text-slate-800 group-hover:text-amber-800">۳. خدماتی</h3>
               <p className="text-[10px] text-slate-500 mt-0.5">تنها دایکات و سلفون روی جعبه مشتری</p>
             </button>
           </div>
         </div>
 
         {/* Card 2: مرکز انبار (۱.مقوا | ۲.ورق | ۳.سینگل | ۴.سلفون | ۵.طلق | ۶.مرکب) */}
-        <div className="bg-white rounded-3xl p-6 border-2 border-sky-200 shadow-sm space-y-4">
+        <div className="bg-white rounded-3xl p-6 border border-sky-200/80 shadow-sm space-y-4">
           <div className="flex items-center justify-between border-b border-sky-100 pb-3">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-sky-600 text-white flex items-center justify-center shadow-md shadow-sky-200">
-                <Package className="w-6 h-6" />
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-100 to-blue-200 text-sky-900 flex items-center justify-center shadow-xs border border-sky-200">
+                <Package className="w-6 h-6 text-sky-700" />
               </div>
               <div>
-                <h2 className="text-lg font-black text-slate-900">انبار مرکزی کارخانه</h2>
+                <h2 className="text-lg font-black text-slate-800">انبار مرکزی کارخانه</h2>
                 <p className="text-xs text-slate-500">دفاتر ورودی متریال، کسری/مازاد و اکسل ۶ شیت</p>
               </div>
             </div>
             <button
               onClick={() => onNavigateDepartment('warehouse_inventory')}
-              className="px-3 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-700 rounded-xl text-xs font-black transition"
+              className="px-3 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-700 rounded-xl text-xs font-black transition border border-sky-200/60"
             >
               مشاهده کل انبار ←
             </button>
@@ -386,11 +386,11 @@ export default function DepartmentHubView({
             {/* 1. مقوا */}
             <button
               onClick={() => onNavigateDepartment('warehouse_cardboard')}
-              className="p-2.5 bg-slate-50 hover:bg-sky-50 border border-slate-200 hover:border-sky-300 rounded-xl text-right transition-all group flex items-center gap-2"
+              className="p-2.5 bg-slate-50/70 hover:bg-sky-50/60 border border-slate-200/80 hover:border-sky-300 rounded-xl text-right transition-all group flex items-center gap-2"
             >
               <span className="w-6 h-6 rounded-lg bg-sky-100 text-sky-800 flex items-center justify-center font-black text-xs shrink-0">۱</span>
               <div>
-                <h4 className="font-bold text-xs text-slate-900 group-hover:text-sky-800">۱. مقوا</h4>
+                <h4 className="font-bold text-xs text-slate-800 group-hover:text-sky-800">۱. مقوا</h4>
                 <p className="text-[9px] text-slate-400">ایندربرد / طوسی</p>
               </div>
             </button>
@@ -398,11 +398,11 @@ export default function DepartmentHubView({
             {/* 2. ورق */}
             <button
               onClick={() => onNavigateDepartment('warehouse_sheet_carton')}
-              className="p-2.5 bg-slate-50 hover:bg-amber-50 border border-slate-200 hover:border-amber-300 rounded-xl text-right transition-all group flex items-center gap-2"
+              className="p-2.5 bg-slate-50/70 hover:bg-amber-50/60 border border-slate-200/80 hover:border-amber-300 rounded-xl text-right transition-all group flex items-center gap-2"
             >
               <span className="w-6 h-6 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center font-black text-xs shrink-0">۲</span>
               <div>
-                <h4 className="font-bold text-xs text-slate-900 group-hover:text-amber-800">۲. ورق</h4>
+                <h4 className="font-bold text-xs text-slate-800 group-hover:text-amber-800">۲. ورق</h4>
                 <p className="text-[9px] text-slate-400">ورق ۳ و ۵ لایه</p>
               </div>
             </button>
@@ -410,11 +410,11 @@ export default function DepartmentHubView({
             {/* 3. سینگل */}
             <button
               onClick={() => onNavigateDepartment('warehouse_single_face')}
-              className="p-2.5 bg-slate-50 hover:bg-teal-50 border border-slate-200 hover:border-teal-300 rounded-xl text-right transition-all group flex items-center gap-2"
+              className="p-2.5 bg-slate-50/70 hover:bg-teal-50/60 border border-slate-200/80 hover:border-teal-300 rounded-xl text-right transition-all group flex items-center gap-2"
             >
               <span className="w-6 h-6 rounded-lg bg-teal-100 text-teal-800 flex items-center justify-center font-black text-xs shrink-0">۳</span>
               <div>
-                <h4 className="font-bold text-xs text-slate-900 group-hover:text-teal-800">۳. سینگل</h4>
+                <h4 className="font-bold text-xs text-slate-800 group-hover:text-teal-800">۳. سینگل</h4>
                 <p className="text-[9px] text-slate-400">رول / شیت فلوت</p>
               </div>
             </button>
@@ -422,11 +422,11 @@ export default function DepartmentHubView({
             {/* 4. سلفون */}
             <button
               onClick={() => onNavigateDepartment('warehouse_cellophane')}
-              className="p-2.5 bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 rounded-xl text-right transition-all group flex items-center gap-2"
+              className="p-2.5 bg-slate-50/70 hover:bg-indigo-50/60 border border-slate-200/80 hover:border-indigo-300 rounded-xl text-right transition-all group flex items-center gap-2"
             >
               <span className="w-6 h-6 rounded-lg bg-indigo-100 text-indigo-800 flex items-center justify-center font-black text-xs shrink-0">۴</span>
               <div>
-                <h4 className="font-bold text-xs text-slate-900 group-hover:text-indigo-800">۴. سلفون</h4>
+                <h4 className="font-bold text-xs text-slate-800 group-hover:text-indigo-800">۴. سلفون</h4>
                 <p className="text-[9px] text-slate-400">مات / براق / مخملی</p>
               </div>
             </button>
@@ -434,11 +434,11 @@ export default function DepartmentHubView({
             {/* 5. طلق */}
             <button
               onClick={() => onNavigateDepartment('warehouse_pvc_film')}
-              className="p-2.5 bg-slate-50 hover:bg-purple-50 border border-slate-200 hover:border-purple-300 rounded-xl text-right transition-all group flex items-center gap-2"
+              className="p-2.5 bg-slate-50/70 hover:bg-purple-50/60 border border-slate-200/80 hover:border-purple-300 rounded-xl text-right transition-all group flex items-center gap-2"
             >
               <span className="w-6 h-6 rounded-lg bg-purple-100 text-purple-800 flex items-center justify-center font-black text-xs shrink-0">۵</span>
               <div>
-                <h4 className="font-bold text-xs text-slate-900 group-hover:text-purple-800">۵. طلق</h4>
+                <h4 className="font-bold text-xs text-slate-800 group-hover:text-purple-800">۵. طلق</h4>
                 <p className="text-[9px] text-slate-400">PVC / PET پنجره</p>
               </div>
             </button>
@@ -446,11 +446,11 @@ export default function DepartmentHubView({
             {/* 6. مرکب */}
             <button
               onClick={() => onNavigateDepartment('warehouse_ink')}
-              className="p-2.5 bg-slate-50 hover:bg-rose-50 border border-slate-200 hover:border-rose-300 rounded-xl text-right transition-all group flex items-center gap-2"
+              className="p-2.5 bg-slate-50/70 hover:bg-rose-50/60 border border-slate-200/80 hover:border-rose-300 rounded-xl text-right transition-all group flex items-center gap-2"
             >
               <span className="w-6 h-6 rounded-lg bg-rose-100 text-rose-800 flex items-center justify-center font-black text-xs shrink-0">۶</span>
               <div>
-                <h4 className="font-bold text-xs text-slate-900 group-hover:text-rose-800">۶. مرکب</h4>
+                <h4 className="font-bold text-xs text-slate-800 group-hover:text-rose-800">۶. مرکب</h4>
                 <p className="text-[9px] text-slate-400">CMYK / پنتون / ورنی</p>
               </div>
             </button>
@@ -459,7 +459,7 @@ export default function DepartmentHubView({
 
       </div>
 
-      {/* Main 12-Department Grid (Exact 4 Columns x 3 Rows Symmetrical Structure) */}
+      {/* Main 12-Department Grid (Exact 4 Columns x 3 Rows Symmetrical Structure with Pastel Styling) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 sm:gap-6">
         
         {/* ================= ROW 1, COL 1: طراحی (Designer) ================= */}
@@ -468,33 +468,29 @@ export default function DepartmentHubView({
           return (
             <div
               onClick={() => handleTileClick('design', 'طراحی', 'kanban', 5)}
-              className={`relative h-48 sm:h-56 rounded-2xl p-5 text-slate-900 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 hover:scale-[1.03] hover:shadow-2xl border-4 ${
-                hasAccess ? 'border-amber-600/70 ring-4 ring-amber-400/20 shadow-lg' : 'border-amber-900/30 opacity-85'
+              className={`relative h-48 sm:h-56 rounded-3xl p-5 text-amber-950 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 hover:scale-[1.03] hover:shadow-xl border-2 bg-gradient-to-br from-amber-100 via-yellow-100/80 to-amber-200/90 ${
+                hasAccess ? 'border-amber-300 ring-4 ring-amber-200/40 shadow-sm' : 'border-amber-200/60 opacity-80'
               } group overflow-hidden`}
-              style={{
-                background: 'radial-gradient(circle at center, #facc15 0%, #ca8a04 55%, #854d0e 100%)',
-                boxShadow: '0 10px 25px -5px rgba(202, 138, 4, 0.5), inset 0 0 20px rgba(0,0,0,0.2)'
-              }}
             >
               {!hasAccess && (
-                <div className="absolute top-3.5 left-3.5 bg-black/40 text-amber-100 p-1.5 rounded-lg backdrop-blur-xs" title="نیازمند دسترسی واحد طراحی">
+                <div className="absolute top-3.5 left-3.5 bg-amber-950/10 text-amber-900 p-1.5 rounded-xl backdrop-blur-xs" title="نیازمند دسترسی واحد طراحی">
                   <Lock className="w-4 h-4" />
                 </div>
               )}
 
               {designCount > 0 && (
-                <div className="absolute top-3.5 right-3.5 bg-yellow-300 text-slate-950 border-2 border-yellow-100 font-black font-mono text-xs sm:text-sm px-2.5 py-0.5 rounded-md shadow-md animate-pulse">
+                <div className="absolute top-3.5 right-3.5 bg-amber-300 text-amber-950 border border-amber-400 font-black font-mono text-xs sm:text-sm px-2.5 py-0.5 rounded-lg shadow-2xs animate-pulse">
                   {designCount}
                 </div>
               )}
 
-              <div className="text-slate-950 group-hover:scale-110 transition-transform duration-200 drop-shadow-md">
+              <div className="text-amber-800 group-hover:scale-110 transition-transform duration-200">
                 <DesignerIcon className="w-16 h-16 sm:w-20 sm:h-20" />
               </div>
 
               <div className="text-center mt-2">
-                <h2 className="text-xl sm:text-2xl font-black text-slate-950 drop-shadow-sm">استودیو طراحی امیران</h2>
-                <span className="text-sm sm:text-base font-serif italic font-bold text-amber-950 block -mt-0.5">
+                <h2 className="text-xl sm:text-2xl font-black text-amber-950">استودیو طراحی امیران</h2>
+                <span className="text-xs sm:text-sm font-bold text-amber-800 block -mt-0.5">
                   Design Studio
                 </span>
               </div>
@@ -508,33 +504,29 @@ export default function DepartmentHubView({
           return (
             <div
               onClick={() => handleTileClick('ceo', 'مدیریت عامل', 'dashboard')}
-              className={`relative h-48 sm:h-56 rounded-2xl p-5 text-white flex flex-col items-center justify-center cursor-pointer transition-all duration-200 hover:scale-[1.03] hover:shadow-2xl border-4 ${
-                hasAccess ? 'border-amber-500/70 ring-4 ring-amber-500/20 shadow-lg' : 'border-amber-950/40 opacity-85'
+              className={`relative h-48 sm:h-56 rounded-3xl p-5 text-orange-950 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 hover:scale-[1.03] hover:shadow-xl border-2 bg-gradient-to-br from-orange-100 via-amber-100/80 to-orange-200/90 ${
+                hasAccess ? 'border-orange-300 ring-4 ring-orange-200/40 shadow-sm' : 'border-orange-200/60 opacity-80'
               } group overflow-hidden`}
-              style={{
-                background: 'radial-gradient(circle at center, #b45309 0%, #92400e 50%, #451a03 100%)',
-                boxShadow: '0 10px 25px -5px rgba(146, 64, 14, 0.5), inset 0 0 20px rgba(0,0,0,0.3)'
-              }}
             >
               {!hasAccess && (
-                <div className="absolute top-3.5 left-3.5 bg-black/40 text-amber-200 p-1.5 rounded-lg backdrop-blur-xs" title="نیازمند دسترسی مدیریت عامل">
+                <div className="absolute top-3.5 left-3.5 bg-orange-950/10 text-orange-900 p-1.5 rounded-xl backdrop-blur-xs" title="نیازمند دسترسی مدیریت عامل">
                   <Lock className="w-4 h-4" />
                 </div>
               )}
 
               {ceoCount > 0 && (
-                <div className="absolute top-3.5 right-3.5 bg-amber-300 text-slate-950 font-black font-mono text-xs sm:text-sm px-2.5 py-0.5 rounded-md shadow-md">
+                <div className="absolute top-3.5 right-3.5 bg-orange-300 text-orange-950 border border-orange-400 font-black font-mono text-xs sm:text-sm px-2.5 py-0.5 rounded-lg shadow-2xs">
                   {ceoCount}
                 </div>
               )}
 
-              <div className="text-white group-hover:scale-110 transition-transform duration-200 drop-shadow-md">
+              <div className="text-orange-800 group-hover:scale-110 transition-transform duration-200">
                 <CeoIcon className="w-16 h-16 sm:w-20 sm:h-20" />
               </div>
 
               <div className="text-center mt-2">
-                <h2 className="text-xl sm:text-2xl font-black text-white drop-shadow-sm">مدیر عامل</h2>
-                <span className="text-sm sm:text-base font-serif italic font-bold text-amber-200 block -mt-0.5">
+                <h2 className="text-xl sm:text-2xl font-black text-orange-950">مدیر عامل</h2>
+                <span className="text-xs sm:text-sm font-bold text-orange-800 block -mt-0.5">
                   CEO
                 </span>
               </div>
@@ -548,33 +540,29 @@ export default function DepartmentHubView({
           return (
             <div
               onClick={() => handleTileClick('sales', 'بازرگانی', 'kanban', 1)}
-              className={`relative h-48 sm:h-56 rounded-2xl p-5 text-white flex flex-col items-center justify-center cursor-pointer transition-all duration-200 hover:scale-[1.03] hover:shadow-2xl border-4 ${
-                hasAccess ? 'border-purple-400/70 ring-4 ring-purple-400/20 shadow-lg' : 'border-purple-950/40 opacity-85'
+              className={`relative h-48 sm:h-56 rounded-3xl p-5 text-purple-950 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 hover:scale-[1.03] hover:shadow-xl border-2 bg-gradient-to-br from-purple-100 via-violet-100/80 to-purple-200/90 ${
+                hasAccess ? 'border-purple-300 ring-4 ring-purple-200/40 shadow-sm' : 'border-purple-200/60 opacity-80'
               } group overflow-hidden`}
-              style={{
-                background: 'radial-gradient(circle at center, #9333ea 0%, #7e22ce 50%, #3b0764 100%)',
-                boxShadow: '0 10px 25px -5px rgba(126, 34, 206, 0.5), inset 0 0 20px rgba(0,0,0,0.3)'
-              }}
             >
               {!hasAccess && (
-                <div className="absolute top-3.5 left-3.5 bg-black/40 text-purple-200 p-1.5 rounded-lg backdrop-blur-xs" title="نیازمند دسترسی بازرگانی">
+                <div className="absolute top-3.5 left-3.5 bg-purple-950/10 text-purple-900 p-1.5 rounded-xl backdrop-blur-xs" title="نیازمند دسترسی بازرگانی">
                   <Lock className="w-4 h-4" />
                 </div>
               )}
 
               {salesCount > 0 && (
-                <div className="absolute top-3.5 right-3.5 bg-purple-300 text-slate-950 font-black font-mono text-xs sm:text-sm px-2.5 py-0.5 rounded-md shadow-md">
+                <div className="absolute top-3.5 right-3.5 bg-purple-300 text-purple-950 border border-purple-400 font-black font-mono text-xs sm:text-sm px-2.5 py-0.5 rounded-lg shadow-2xs">
                   {salesCount}
                 </div>
               )}
 
-              <div className="text-white group-hover:scale-110 transition-transform duration-200 drop-shadow-md">
+              <div className="text-purple-800 group-hover:scale-110 transition-transform duration-200">
                 <BusinessIcon className="w-16 h-16 sm:w-20 sm:h-20" />
               </div>
 
               <div className="text-center mt-2">
-                <h2 className="text-xl sm:text-2xl font-black text-white drop-shadow-sm">بازرگانی</h2>
-                <span className="text-sm sm:text-base font-serif italic font-bold text-purple-200 block -mt-0.5">
+                <h2 className="text-xl sm:text-2xl font-black text-purple-950">بازرگانی</h2>
+                <span className="text-xs sm:text-sm font-bold text-purple-800 block -mt-0.5">
                   Business
                 </span>
               </div>
@@ -594,33 +582,29 @@ export default function DepartmentHubView({
                 }
                 if (onOpenNewOrder) onOpenNewOrder();
               }}
-              className={`relative h-48 sm:h-56 rounded-2xl p-5 text-white flex flex-col items-center justify-center cursor-pointer transition-all duration-200 hover:scale-[1.03] hover:shadow-2xl border-4 ${
-                hasAccess ? 'border-rose-500/70 ring-4 ring-rose-400/20 shadow-lg' : 'border-rose-950/40 opacity-85'
+              className={`relative h-48 sm:h-56 rounded-3xl p-5 text-rose-950 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 hover:scale-[1.03] hover:shadow-xl border-2 bg-gradient-to-br from-rose-100 via-pink-100/80 to-rose-200/90 ${
+                hasAccess ? 'border-rose-300 ring-4 ring-rose-200/40 shadow-sm' : 'border-rose-200/60 opacity-80'
               } group overflow-hidden`}
-              style={{
-                background: 'radial-gradient(circle at center, #991b1b 0%, #881337 50%, #4c0519 100%)',
-                boxShadow: '0 10px 25px -5px rgba(136, 19, 55, 0.5), inset 0 0 20px rgba(0,0,0,0.3)'
-              }}
             >
               {!hasAccess && (
-                <div className="absolute top-3.5 left-3.5 bg-black/40 text-rose-200 p-1.5 rounded-lg backdrop-blur-xs" title="نیازمند دسترسی مسئول دفتر">
+                <div className="absolute top-3.5 left-3.5 bg-rose-950/10 text-rose-900 p-1.5 rounded-xl backdrop-blur-xs" title="نیازمند دسترسی مسئول دفتر">
                   <Lock className="w-4 h-4" />
                 </div>
               )}
 
               {secretaryCount > 0 && (
-                <div className="absolute top-3.5 right-3.5 bg-rose-300 text-slate-950 font-black font-mono text-xs sm:text-sm px-2.5 py-0.5 rounded-md shadow-md">
+                <div className="absolute top-3.5 right-3.5 bg-rose-300 text-rose-950 border border-rose-400 font-black font-mono text-xs sm:text-sm px-2.5 py-0.5 rounded-lg shadow-2xs">
                   {secretaryCount}
                 </div>
               )}
 
-              <div className="text-white group-hover:scale-110 transition-transform duration-200 drop-shadow-md">
+              <div className="text-rose-800 group-hover:scale-110 transition-transform duration-200">
                 <SecretaryIcon className="w-16 h-16 sm:w-20 sm:h-20" />
               </div>
 
               <div className="text-center mt-2">
-                <h2 className="text-xl sm:text-2xl font-black text-white drop-shadow-sm">مسئول دفتر</h2>
-                <span className="text-sm sm:text-base font-serif italic font-bold text-rose-200 block -mt-0.5">
+                <h2 className="text-xl sm:text-2xl font-black text-rose-950">مسئول دفتر</h2>
+                <span className="text-xs sm:text-sm font-bold text-rose-800 block -mt-0.5">
                   the secretary
                 </span>
               </div>
@@ -634,33 +618,29 @@ export default function DepartmentHubView({
           return (
             <div
               onClick={() => handleTileClick('accounting', 'حسابداری و مالی', 'calculator')}
-              className={`relative h-48 sm:h-56 rounded-2xl p-5 text-white flex flex-col items-center justify-center cursor-pointer transition-all duration-200 hover:scale-[1.03] hover:shadow-2xl border-4 ${
-                hasAccess ? 'border-sky-400/70 ring-4 ring-sky-400/20 shadow-lg' : 'border-sky-950/40 opacity-85'
+              className={`relative h-48 sm:h-56 rounded-3xl p-5 text-sky-950 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 hover:scale-[1.03] hover:shadow-xl border-2 bg-gradient-to-br from-sky-100 via-blue-100/80 to-sky-200/90 ${
+                hasAccess ? 'border-sky-300 ring-4 ring-sky-200/40 shadow-sm' : 'border-sky-200/60 opacity-80'
               } group overflow-hidden`}
-              style={{
-                background: 'radial-gradient(circle at center, #0284c7 0%, #0369a1 50%, #082f49 100%)',
-                boxShadow: '0 10px 25px -5px rgba(3, 105, 161, 0.5), inset 0 0 20px rgba(0,0,0,0.3)'
-              }}
             >
               {!hasAccess && (
-                <div className="absolute top-3.5 left-3.5 bg-black/40 text-sky-200 p-1.5 rounded-lg backdrop-blur-xs" title="نیازمند دسترسی حسابداری">
+                <div className="absolute top-3.5 left-3.5 bg-sky-950/10 text-sky-900 p-1.5 rounded-xl backdrop-blur-xs" title="نیازمند دسترسی حسابداری">
                   <Lock className="w-4 h-4" />
                 </div>
               )}
 
               {accountingCount > 0 && (
-                <div className="absolute top-3.5 right-3.5 bg-sky-300 text-slate-950 font-black font-mono text-xs sm:text-sm px-2.5 py-0.5 rounded-md shadow-md">
+                <div className="absolute top-3.5 right-3.5 bg-sky-300 text-sky-950 border border-sky-400 font-black font-mono text-xs sm:text-sm px-2.5 py-0.5 rounded-lg shadow-2xs">
                   {accountingCount}
                 </div>
               )}
 
-              <div className="text-white group-hover:scale-110 transition-transform duration-200 drop-shadow-md">
+              <div className="text-sky-800 group-hover:scale-110 transition-transform duration-200">
                 <AccountingIcon className="w-16 h-16 sm:w-20 sm:h-20" />
               </div>
 
               <div className="text-center mt-2">
-                <h2 className="text-xl sm:text-2xl font-black text-white drop-shadow-sm">حسابداری</h2>
-                <span className="text-sm sm:text-base font-serif italic font-bold text-sky-200 block -mt-0.5">
+                <h2 className="text-xl sm:text-2xl font-black text-sky-950">حسابداری</h2>
+                <span className="text-xs sm:text-sm font-bold text-sky-800 block -mt-0.5">
                   Accounting
                 </span>
               </div>
@@ -674,33 +654,29 @@ export default function DepartmentHubView({
           return (
             <div
               onClick={() => handleTileClick('production', 'تولید', 'kanban', 10)}
-              className={`relative h-48 sm:h-56 rounded-2xl p-5 text-white flex flex-col items-center justify-center cursor-pointer transition-all duration-200 hover:scale-[1.03] hover:shadow-2xl border-4 ${
-                hasAccess ? 'border-emerald-400/70 ring-4 ring-emerald-400/20 shadow-lg' : 'border-emerald-950/40 opacity-85'
+              className={`relative h-48 sm:h-56 rounded-3xl p-5 text-emerald-950 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 hover:scale-[1.03] hover:shadow-xl border-2 bg-gradient-to-br from-emerald-100 via-teal-100/80 to-emerald-200/90 ${
+                hasAccess ? 'border-emerald-300 ring-4 ring-emerald-200/40 shadow-sm' : 'border-emerald-200/60 opacity-80'
               } group overflow-hidden`}
-              style={{
-                background: 'radial-gradient(circle at center, #16a34a 0%, #15803d 50%, #052e16 100%)',
-                boxShadow: '0 10px 25px -5px rgba(21, 128, 61, 0.5), inset 0 0 20px rgba(0,0,0,0.3)'
-              }}
             >
               {!hasAccess && (
-                <div className="absolute top-3.5 left-3.5 bg-black/40 text-emerald-200 p-1.5 rounded-lg backdrop-blur-xs" title="نیازمند دسترسی سالن تولید">
+                <div className="absolute top-3.5 left-3.5 bg-emerald-950/10 text-emerald-900 p-1.5 rounded-xl backdrop-blur-xs" title="نیازمند دسترسی سالن تولید">
                   <Lock className="w-4 h-4" />
                 </div>
               )}
 
               {productionCount > 0 && (
-                <div className="absolute top-3.5 right-3.5 bg-emerald-300 text-slate-950 font-black font-mono text-xs sm:text-sm px-2.5 py-0.5 rounded-md shadow-md">
+                <div className="absolute top-3.5 right-3.5 bg-emerald-300 text-emerald-950 border border-emerald-400 font-black font-mono text-xs sm:text-sm px-2.5 py-0.5 rounded-lg shadow-2xs">
                   {productionCount}
                 </div>
               )}
 
-              <div className="text-white group-hover:scale-110 transition-transform duration-200 drop-shadow-md">
+              <div className="text-emerald-800 group-hover:scale-110 transition-transform duration-200">
                 <ProductionIcon className="w-16 h-16 sm:w-20 sm:h-20" />
               </div>
 
               <div className="text-center mt-2">
-                <h2 className="text-xl sm:text-2xl font-black text-white drop-shadow-sm">تولید</h2>
-                <span className="text-sm sm:text-base font-serif italic font-bold text-emerald-200 block -mt-0.5">
+                <h2 className="text-xl sm:text-2xl font-black text-emerald-950">تولید</h2>
+                <span className="text-xs sm:text-sm font-bold text-emerald-800 block -mt-0.5">
                   Production
                 </span>
               </div>
@@ -708,39 +684,35 @@ export default function DepartmentHubView({
           );
         })()}
 
-        {/* ================= ROW 2, COL 3: برونسپاری (Out-Source) ================= */}
+        {/* ================= ROW 2, COL 4: برونسپاری (Out-Source) ================= */}
         {(() => {
           const hasAccess = canAccessDepartment(role, 'outsource');
           return (
             <div
               onClick={() => handleTileClick('outsource', 'برونسپاری', 'kanban', 7)}
-              className={`relative h-48 sm:h-56 rounded-2xl p-5 text-white flex flex-col items-center justify-center cursor-pointer transition-all duration-200 hover:scale-[1.03] hover:shadow-2xl border-4 ${
-                hasAccess ? 'border-pink-400/70 ring-4 ring-pink-400/20 shadow-lg' : 'border-purple-950/40 opacity-85'
+              className={`relative h-48 sm:h-56 rounded-3xl p-5 text-fuchsia-950 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 hover:scale-[1.03] hover:shadow-xl border-2 bg-gradient-to-br from-fuchsia-100 via-pink-100/80 to-purple-200/90 ${
+                hasAccess ? 'border-fuchsia-300 ring-4 ring-fuchsia-200/40 shadow-sm' : 'border-fuchsia-200/60 opacity-80'
               } group overflow-hidden`}
-              style={{
-                background: 'radial-gradient(circle at center, #a855f7 0%, #701a75 50%, #3b0764 100%)',
-                boxShadow: '0 10px 25px -5px rgba(112, 26, 117, 0.5), inset 0 0 20px rgba(0,0,0,0.3)'
-              }}
             >
               {!hasAccess && (
-                <div className="absolute top-3.5 left-3.5 bg-black/40 text-pink-200 p-1.5 rounded-lg backdrop-blur-xs" title="نیازمند دسترسی برونسپاری">
+                <div className="absolute top-3.5 left-3.5 bg-fuchsia-950/10 text-fuchsia-900 p-1.5 rounded-xl backdrop-blur-xs" title="نیازمند دسترسی برونسپاری">
                   <Lock className="w-4 h-4" />
                 </div>
               )}
 
               {outsourceCount > 0 && (
-                <div className="absolute top-3.5 right-3.5 bg-pink-300 text-slate-950 font-black font-mono text-xs sm:text-sm px-2.5 py-0.5 rounded-md shadow-md">
+                <div className="absolute top-3.5 right-3.5 bg-fuchsia-300 text-fuchsia-950 border border-fuchsia-400 font-black font-mono text-xs sm:text-sm px-2.5 py-0.5 rounded-lg shadow-2xs">
                   {outsourceCount}
                 </div>
               )}
 
-              <div className="text-white group-hover:scale-110 transition-transform duration-200 drop-shadow-md">
+              <div className="text-fuchsia-800 group-hover:scale-110 transition-transform duration-200">
                 <OutsourceIcon className="w-16 h-16 sm:w-20 sm:h-20" />
               </div>
 
               <div className="text-center mt-2">
-                <h2 className="text-xl sm:text-2xl font-black text-white drop-shadow-sm">برونسپاری</h2>
-                <span className="text-sm sm:text-base font-serif italic font-bold text-purple-200 block -mt-0.5">
+                <h2 className="text-xl sm:text-2xl font-black text-fuchsia-950">برونسپاری</h2>
+                <span className="text-xs sm:text-sm font-bold text-fuchsia-800 block -mt-0.5">
                   Out-Source
                 </span>
               </div>
@@ -748,39 +720,35 @@ export default function DepartmentHubView({
           );
         })()}
 
-        {/* ================= ROW 2, COL 4: ورود انبار مصرفی (Log entry and exit) ================= */}
+        {/* ================= ROW 3, COL 1: ورود انبار مصرفی (Log entry and exit) ================= */}
         {(() => {
           const hasAccess = canAccessDepartment(role, 'warehouse');
           return (
             <div
               onClick={() => handleTileClick('warehouse', 'ورود انبار مصرفی', 'kanban', 9)}
-              className={`relative h-48 sm:h-56 rounded-2xl p-5 text-white flex flex-col items-center justify-center cursor-pointer transition-all duration-200 hover:scale-[1.03] hover:shadow-2xl border-4 ${
-                hasAccess ? 'border-slate-400/70 ring-4 ring-slate-400/20 shadow-lg' : 'border-slate-800/40 opacity-85'
+              className={`relative h-48 sm:h-56 rounded-3xl p-5 text-slate-800 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 hover:scale-[1.03] hover:shadow-xl border-2 bg-gradient-to-br from-slate-100 via-gray-100/80 to-slate-200/90 ${
+                hasAccess ? 'border-slate-300 ring-4 ring-slate-200/40 shadow-sm' : 'border-slate-200/60 opacity-80'
               } group overflow-hidden`}
-              style={{
-                background: 'radial-gradient(circle at center, #64748b 0%, #475569 50%, #0f172a 100%)',
-                boxShadow: '0 10px 25px -5px rgba(71, 85, 105, 0.5), inset 0 0 20px rgba(0,0,0,0.3)'
-              }}
             >
               {!hasAccess && (
-                <div className="absolute top-3.5 left-3.5 bg-black/40 text-slate-300 p-1.5 rounded-lg backdrop-blur-xs" title="نیازمند دسترسی انبار">
+                <div className="absolute top-3.5 left-3.5 bg-slate-900/10 text-slate-700 p-1.5 rounded-xl backdrop-blur-xs" title="نیازمند دسترسی انبار">
                   <Lock className="w-4 h-4" />
                 </div>
               )}
 
               {warehouseCount > 0 && (
-                <div className="absolute top-3.5 right-3.5 bg-slate-200 text-slate-950 font-black font-mono text-xs sm:text-sm px-2.5 py-0.5 rounded-md shadow-md">
+                <div className="absolute top-3.5 right-3.5 bg-slate-300 text-slate-950 border border-slate-400 font-black font-mono text-xs sm:text-sm px-2.5 py-0.5 rounded-lg shadow-2xs">
                   {warehouseCount}
                 </div>
               )}
 
-              <div className="text-white group-hover:scale-110 transition-transform duration-200 drop-shadow-md">
+              <div className="text-slate-700 group-hover:scale-110 transition-transform duration-200">
                 <WarehouseIcon className="w-16 h-16 sm:w-20 sm:h-20" />
               </div>
 
               <div className="text-center mt-2">
-                <h2 className="text-xl sm:text-2xl font-black text-white drop-shadow-sm">ورود انبار مصرفی</h2>
-                <span className="text-sm sm:text-base font-serif italic font-bold text-slate-300 block -mt-0.5">
+                <h2 className="text-xl sm:text-2xl font-black text-slate-800">ورود انبار مصرفی</h2>
+                <span className="text-xs sm:text-sm font-bold text-slate-600 block -mt-0.5">
                   Log entry and exit
                 </span>
               </div>
@@ -788,7 +756,7 @@ export default function DepartmentHubView({
           );
         })()}
 
-        {/* ================= ROW 3, COL 1: بازاریابی و استعلام (Marketing & Leads) ================= */}
+        {/* ================= ROW 3, COL 2: بازاریابی و استعلام (Marketing & Leads) ================= */}
         {(() => {
           const hasAccess = role === 'marketer' || role === 'sales' || role === 'ceo' || role === 'secretary';
           return (
@@ -803,27 +771,23 @@ export default function DepartmentHubView({
                 }
                 onNavigateDepartment('marketing');
               }}
-              className={`relative h-48 sm:h-56 rounded-2xl p-5 text-white flex flex-col items-center justify-center cursor-pointer transition-all duration-200 hover:scale-[1.03] hover:shadow-2xl border-4 ${
-                hasAccess ? 'border-teal-400/70 ring-4 ring-teal-400/20 shadow-lg' : 'border-teal-900/40 opacity-85'
+              className={`relative h-48 sm:h-56 rounded-3xl p-5 text-teal-950 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 hover:scale-[1.03] hover:shadow-xl border-2 bg-gradient-to-br from-teal-100 via-emerald-100/80 to-teal-200/90 ${
+                hasAccess ? 'border-teal-300 ring-4 ring-teal-200/40 shadow-sm' : 'border-teal-200/60 opacity-80'
               } group overflow-hidden`}
-              style={{
-                background: 'radial-gradient(circle at center, #0d9488 0%, #0f766e 50%, #115e59 100%)',
-                boxShadow: '0 10px 25px -5px rgba(13, 148, 136, 0.5), inset 0 0 20px rgba(0,0,0,0.3)'
-              }}
             >
               {!hasAccess && (
-                <div className="absolute top-3.5 left-3.5 bg-black/40 text-teal-200 p-1.5 rounded-lg backdrop-blur-xs" title="نیازمند دسترسی بازاریابی">
+                <div className="absolute top-3.5 left-3.5 bg-teal-950/10 text-teal-900 p-1.5 rounded-xl backdrop-blur-xs" title="نیازمند دسترسی بازاریابی">
                   <Lock className="w-4 h-4" />
                 </div>
               )}
 
-              <div className="text-white group-hover:scale-110 transition-transform duration-200 drop-shadow-md">
+              <div className="text-teal-800 group-hover:scale-110 transition-transform duration-200">
                 <MarketingIcon className="w-16 h-16 sm:w-20 sm:h-20" />
               </div>
 
               <div className="text-center mt-2">
-                <h2 className="text-xl sm:text-2xl font-black text-white drop-shadow-sm">بازاریابی و استعلام</h2>
-                <span className="text-sm sm:text-base font-serif italic font-bold text-teal-200 block -mt-0.5">
+                <h2 className="text-xl sm:text-2xl font-black text-teal-950">بازاریابی و استعلام</h2>
+                <span className="text-xs sm:text-sm font-bold text-teal-800 block -mt-0.5">
                   Marketing & Leads
                 </span>
               </div>
@@ -831,7 +795,7 @@ export default function DepartmentHubView({
           );
         })()}
 
-        {/* ================= ROW 3, COL 2: منابع انسانی و ارزیابی عملکرد (Human Resources) ================= */}
+        {/* ================= ROW 3, COL 3: منابع انسانی و ارزیابی عملکرد (Human Resources) ================= */}
         {(() => {
           const hasAccess = role === 'ceo' || role === 'secretary' || currentUser?.permissions?.can_manage_users;
           return (
@@ -846,27 +810,23 @@ export default function DepartmentHubView({
                 }
                 onNavigateDepartment('hr');
               }}
-              className={`relative h-48 sm:h-56 rounded-2xl p-5 text-white flex flex-col items-center justify-center cursor-pointer transition-all duration-200 hover:scale-[1.03] hover:shadow-2xl border-4 ${
-                hasAccess ? 'border-amber-400/70 ring-4 ring-amber-400/20 shadow-lg' : 'border-amber-900/40 opacity-85'
+              className={`relative h-48 sm:h-56 rounded-3xl p-5 text-amber-950 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 hover:scale-[1.03] hover:shadow-xl border-2 bg-gradient-to-br from-amber-100 via-orange-100/80 to-amber-200/90 ${
+                hasAccess ? 'border-amber-300 ring-4 ring-amber-200/40 shadow-sm' : 'border-amber-200/60 opacity-80'
               } group overflow-hidden`}
-              style={{
-                background: 'radial-gradient(circle at center, #d97706 0%, #b45309 50%, #451a03 100%)',
-                boxShadow: '0 10px 25px -5px rgba(217, 119, 6, 0.5), inset 0 0 20px rgba(0,0,0,0.3)'
-              }}
             >
               {!hasAccess && (
-                <div className="absolute top-3.5 left-3.5 bg-black/40 text-amber-200 p-1.5 rounded-lg backdrop-blur-xs" title="نیازمند دسترسی مدیریت">
+                <div className="absolute top-3.5 left-3.5 bg-amber-950/10 text-amber-900 p-1.5 rounded-xl backdrop-blur-xs" title="نیازمند دسترسی مدیریت">
                   <Lock className="w-4 h-4" />
                 </div>
               )}
 
-              <div className="text-white group-hover:scale-110 transition-transform duration-200 drop-shadow-md">
+              <div className="text-amber-800 group-hover:scale-110 transition-transform duration-200">
                 <HrIcon className="w-16 h-16 sm:w-20 sm:h-20" />
               </div>
 
               <div className="text-center mt-2">
-                <h2 className="text-xl sm:text-2xl font-black text-white drop-shadow-sm">منابع انسانی</h2>
-                <span className="text-sm sm:text-base font-serif italic font-bold text-amber-200 block -mt-0.5">
+                <h2 className="text-xl sm:text-2xl font-black text-amber-950">منابع انسانی</h2>
+                <span className="text-xs sm:text-sm font-bold text-amber-800 block -mt-0.5">
                   Human Resources
                 </span>
               </div>
@@ -874,25 +834,21 @@ export default function DepartmentHubView({
           );
         })()}
 
-        {/* ================= ROW 3, COL 3: هوش مصنوعی و بهینه‌سازی (AI Assistant) ================= */}
+        {/* ================= ROW 3, COL 4: هوش مصنوعی و بهینه‌سازی (AI Assistant) ================= */}
         {(() => {
           const hasAccess = true;
           return (
             <div
               onClick={() => onNavigateDepartment('ai_assistant')}
-              className={`relative h-48 sm:h-56 rounded-2xl p-5 text-white flex flex-col items-center justify-center cursor-pointer transition-all duration-200 hover:scale-[1.03] hover:shadow-2xl border-4 border-indigo-400/70 ring-4 ring-indigo-400/20 shadow-lg group overflow-hidden`}
-              style={{
-                background: 'radial-gradient(circle at center, #6366f1 0%, #4338ca 50%, #1e1b4b 100%)',
-                boxShadow: '0 10px 25px -5px rgba(99, 102, 241, 0.5), inset 0 0 20px rgba(0,0,0,0.3)'
-              }}
+              className="relative h-48 sm:h-56 rounded-3xl p-5 text-indigo-950 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 hover:scale-[1.03] hover:shadow-xl border-2 bg-gradient-to-br from-indigo-100 via-purple-100/80 to-indigo-200/90 border-indigo-300 ring-4 ring-indigo-200/40 shadow-sm group overflow-hidden"
             >
-              <div className="text-white group-hover:scale-110 transition-transform duration-200 drop-shadow-md">
+              <div className="text-indigo-800 group-hover:scale-110 transition-transform duration-200">
                 <AiIcon className="w-16 h-16 sm:w-20 sm:h-20" />
               </div>
 
               <div className="text-center mt-2">
-                <h2 className="text-xl sm:text-2xl font-black text-white drop-shadow-sm">دستیار هوش مصنوعی</h2>
-                <span className="text-sm sm:text-base font-serif italic font-bold text-indigo-200 block -mt-0.5">
+                <h2 className="text-xl sm:text-2xl font-black text-indigo-950">دستیار هوش مصنوعی</h2>
+                <span className="text-xs sm:text-sm font-bold text-indigo-800 block -mt-0.5">
                   AI Assistant
                 </span>
               </div>
@@ -900,7 +856,7 @@ export default function DepartmentHubView({
           );
         })()}
 
-        {/* ================= ROW 3, COL 4: ماشین حساب برآورد قیمت (Price Calculator) ================= */}
+        {/* ================= ROW 4: ماشین حساب برآورد قیمت (Price Calculator) ================= */}
         {(() => {
           const hasAccess = role === 'accounting' || role === 'estimation' || role === 'ceo' || role === 'sales';
           return (
@@ -915,27 +871,23 @@ export default function DepartmentHubView({
                 }
                 onNavigateDepartment('calculator');
               }}
-              className={`relative h-48 sm:h-56 rounded-2xl p-5 text-white flex flex-col items-center justify-center cursor-pointer transition-all duration-200 hover:scale-[1.03] hover:shadow-2xl border-4 ${
-                hasAccess ? 'border-sky-400/70 ring-4 ring-sky-400/20 shadow-lg' : 'border-sky-900/40 opacity-85'
+              className={`relative h-48 sm:h-56 rounded-3xl p-5 text-cyan-950 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 hover:scale-[1.03] hover:shadow-xl border-2 bg-gradient-to-br from-cyan-100 via-sky-100/80 to-blue-200/90 ${
+                hasAccess ? 'border-cyan-300 ring-4 ring-cyan-200/40 shadow-sm' : 'border-cyan-200/60 opacity-80'
               } group overflow-hidden`}
-              style={{
-                background: 'radial-gradient(circle at center, #0284c7 0%, #0369a1 50%, #082f49 100%)',
-                boxShadow: '0 10px 25px -5px rgba(2, 132, 199, 0.5), inset 0 0 20px rgba(0,0,0,0.3)'
-              }}
             >
               {!hasAccess && (
-                <div className="absolute top-3.5 left-3.5 bg-black/40 text-sky-200 p-1.5 rounded-lg backdrop-blur-xs" title="نیازمند دسترسی برآورد قیمت">
+                <div className="absolute top-3.5 left-3.5 bg-cyan-950/10 text-cyan-900 p-1.5 rounded-xl backdrop-blur-xs" title="نیازمند دسترسی برآورد قیمت">
                   <Lock className="w-4 h-4" />
                 </div>
               )}
 
-              <div className="text-white group-hover:scale-110 transition-transform duration-200 drop-shadow-md">
+              <div className="text-cyan-800 group-hover:scale-110 transition-transform duration-200">
                 <CalcHubIcon className="w-16 h-16 sm:w-20 sm:h-20" />
               </div>
 
               <div className="text-center mt-2">
-                <h2 className="text-xl sm:text-2xl font-black text-white drop-shadow-sm">برآورد صنعتی قیمت</h2>
-                <span className="text-sm sm:text-base font-serif italic font-bold text-sky-200 block -mt-0.5">
+                <h2 className="text-xl sm:text-2xl font-black text-cyan-950">برآورد صنعتی قیمت</h2>
+                <span className="text-xs sm:text-sm font-bold text-cyan-800 block -mt-0.5">
                   Cost Estimation
                 </span>
               </div>

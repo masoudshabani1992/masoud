@@ -164,12 +164,12 @@ export default function Header({
               onClick={() => setActiveTab('calculator')}
               className={`flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl transition-all shadow-2xs border ${
                 activeTab === 'calculator'
-                  ? 'bg-amber-500 text-slate-950 border-amber-600 font-black'
-                  : 'text-amber-800 bg-amber-50 hover:bg-amber-100 border-amber-200'
+                  ? 'bg-amber-200 text-amber-950 border-amber-300 font-black ring-2 ring-amber-300/60'
+                  : 'text-amber-900 bg-amber-50/80 hover:bg-amber-100/90 border-amber-200/80'
               }`}
               title="ماشین‌حساب برآورد صنعتی قیمت جعبه"
             >
-              <Calculator className="w-4 h-4 text-amber-600" />
+              <Calculator className="w-4 h-4 text-amber-700" />
               <span className="hidden md:inline">محاسبه قیمت</span>
             </button>
           )}
@@ -177,12 +177,12 @@ export default function Header({
           {/* Notification Bell with Swinging Animation */}
           <button
             onClick={onOpenNotifications}
-            className="relative p-2.5 bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 rounded-xl transition-all text-slate-700 hover:text-indigo-700 shadow-2xs group"
+            className="relative p-2.5 bg-slate-50/80 hover:bg-violet-50 border border-slate-200 hover:border-violet-300 rounded-xl transition-all text-slate-600 hover:text-violet-700 shadow-2xs group"
             title="مرکز اعلان‌ها و نوتیفیکیشن‌ها"
           >
-            <Bell className={`w-4 h-4 ${unreadNotificationsCount > 0 ? 'animate-bell text-indigo-600' : ''}`} />
+            <Bell className={`w-4 h-4 ${unreadNotificationsCount > 0 ? 'animate-bell text-violet-600' : ''}`} />
             {unreadNotificationsCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center animate-pulse shadow-xs ring-2 ring-white">
+              <span className="absolute -top-1 -right-1 bg-rose-400 text-rose-950 text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center animate-pulse shadow-xs ring-2 ring-white border border-rose-300">
                 {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
               </span>
             )}
@@ -194,11 +194,11 @@ export default function Header({
               <div className="text-xs font-black text-slate-800 leading-tight">
                 {currentUser?.fullName || currentUser?.full_name}
               </div>
-              <div className="text-[10px] font-bold text-indigo-600 leading-tight">
+              <div className="text-[10px] font-bold text-violet-700 leading-tight">
                 {currentUser?.department || ROLES.find(r => r.id === role)?.name}
               </div>
             </div>
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white font-black flex items-center justify-center text-xs shadow-xs">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-violet-200 to-indigo-200 text-indigo-950 font-black flex items-center justify-center text-xs shadow-2xs border border-indigo-200">
               {currentUser?.fullName?.charAt(0) || 'U'}
             </div>
           </div>
