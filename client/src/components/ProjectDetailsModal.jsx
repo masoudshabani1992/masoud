@@ -316,30 +316,31 @@ export default function ProjectDetailsModal({ projectId, onClose, onUpdated, onP
           />
         )}
 
-        {/* 2. 10-Step Visual Progression Pipeline (Horizontal Bar) */}
-        <div className="bg-slate-800 px-4 py-3 border-b border-slate-700 overflow-x-auto">
-          <div className="flex items-center justify-between min-w-[850px] gap-1">
+        {/* 2. 10-Step Visual Progression Pipeline (Horizontal Bar - Zero Scroll) */}
+        <div className="bg-slate-800/95 px-2 sm:px-4 py-2 sm:py-2.5 border-b border-slate-700 w-full overflow-hidden">
+          <div className="grid grid-cols-10 gap-1 w-full text-center">
             {STAGES.slice(0, 10).map((st) => {
               const isPassed = (project?.current_stage || 1) > st.id;
               const isCurrent = (project?.current_stage || 1) === st.id;
 
               return (
-                <div key={st.id} className="flex-1 flex flex-col items-center relative group">
+                <div key={st.id} className="flex flex-col items-center justify-center relative group min-w-0">
                   <div
-                    className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black transition-all ${
+                    className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-black transition-all ${
                       isCurrent
-                        ? 'bg-amber-400 text-slate-950 ring-4 ring-amber-400/30 scale-110 shadow-lg'
+                        ? 'bg-amber-400 text-slate-950 ring-2 sm:ring-4 ring-amber-400/40 scale-105 shadow-md animate-pulse'
                         : isPassed
                         ? 'bg-emerald-500 text-white'
                         : 'bg-slate-700 text-slate-400'
                     }`}
                   >
-                    {isPassed ? <Check className="w-4 h-4" /> : st.id}
+                    {isPassed ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : st.id}
                   </div>
                   <span
-                    className={`text-[10px] mt-1 font-bold truncate max-w-[80px] text-center ${
+                    className={`text-[9px] sm:text-[10px] mt-1 font-bold truncate w-full text-center block ${
                       isCurrent ? 'text-amber-300 font-black' : isPassed ? 'text-emerald-400' : 'text-slate-400'
                     }`}
+                    title={st.title}
                   >
                     {st.shortName}
                   </span>
