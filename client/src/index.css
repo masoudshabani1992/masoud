@@ -51,7 +51,7 @@
 
 @layer base {
   * {
-    border-color: rgba(51, 65, 85, 0.4);
+    border-color: #f1f5f9;
     font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Tahoma, sans-serif !important;
   }
 
@@ -59,8 +59,8 @@
     font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Tahoma, sans-serif !important;
     direction: rtl;
     text-align: right;
-    background-color: #030712;
-    color: #e2e8f0;
+    background-color: #f8f9fb;
+    color: #1e293b;
   }
 
   input, button, select, textarea {
@@ -68,79 +68,38 @@
   }
 }
 
-/* Control AI Cybernetic Grid & Node Background */
-.control-ai-bg {
-  background-color: #030712;
-  background-image: 
-    radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.12) 0%, transparent 50%),
-    radial-gradient(circle at 85% 30%, rgba(6, 182, 212, 0.08) 0%, transparent 40%),
-    radial-gradient(circle at 15% 70%, rgba(245, 158, 11, 0.06) 0%, transparent 45%),
-    linear-gradient(to right, rgba(30, 41, 59, 0.15) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(30, 41, 59, 0.15) 1px, transparent 1px);
-  background-size: 100% 100%, 100% 100%, 100% 100%, 32px 32px, 32px 32px;
+/* Nixtio HR Dashboard Clean Canvas */
+.app-canvas-bg {
+  background-color: #f8f9fb;
 }
 
-/* Animated Luminous Pipeline Pulse Lines */
-@keyframes pipelineFlow {
-  from {
-    stroke-dashoffset: 100;
-  }
-  to {
-    stroke-dashoffset: 0;
-  }
+/* Card Shadows & Glass Effects (Nixtio Clean Style) */
+.card-clean-shadow {
+  box-shadow: 0 4px 24px -4px rgba(15, 23, 42, 0.05), 0 2px 8px -2px rgba(15, 23, 42, 0.02);
 }
 
-.pipeline-pulse-line {
-  stroke-dasharray: 8 6;
-  animation: pipelineFlow 2.5s linear infinite;
+.card-hover-effect {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
-
-/* Glassmorphic Panels inspired by Control AI */
-.glass-panel-ai {
-  background: rgba(11, 15, 25, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(51, 65, 85, 0.6);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-}
-
-.glass-panel-ai-hover {
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.glass-panel-ai-hover:hover {
-  border-color: rgba(6, 182, 212, 0.5);
-  box-shadow: 0 0 25px rgba(6, 182, 212, 0.15), 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+.card-hover-effect:hover {
   transform: translateY(-2px);
+  box-shadow: 0 12px 32px -4px rgba(15, 23, 42, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.04);
 }
 
-/* Luminous Glow Classes */
-.glow-cyan {
-  box-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
-}
-.glow-amber {
-  box-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
-}
-.glow-indigo {
-  box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
-}
-.glow-emerald {
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
-}
-
-/* Custom Scrollbars (Control AI Dark Theme) */
+/* Custom Scrollbars (Light Clean Style) */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0b0f19;
+  background: #f1f5f9;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: #cbd5e1;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #94a3b8;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -148,9 +107,12 @@
   height: 5px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(11, 15, 25, 0.5);
+  background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: #e2e8f0;
   border-radius: 3px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #cbd5e1;
 }

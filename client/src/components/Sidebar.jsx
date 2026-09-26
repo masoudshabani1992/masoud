@@ -64,12 +64,6 @@ export default function Sidebar({
   const [openWarehouseMenu, setOpenWarehouseMenu] = useState(
     ['warehouse_inventory', 'warehouse_cardboard', 'warehouse_sheet_carton', 'warehouse_single_face', 'warehouse_cellophane', 'warehouse_pvc_film', 'warehouse_ink'].includes(activeTab)
   );
-  const [openDashMenu, setOpenDashMenu] = useState(
-    ['dashboard', 'kanban', 'archive'].includes(activeTab)
-  );
-  const [openSettingsMenu, setOpenSettingsMenu] = useState(
-    ['users', 'hr', 'storage', 'logs'].includes(activeTab)
-  );
 
   const isCeo = role === 'ceo';
   const isMarketer = role === 'marketer';
@@ -94,7 +88,6 @@ export default function Sidebar({
   const canKanban = hasPermission('can_view_kanban');
   const canArchive = hasPermission('can_view_archive');
   const canDashboard = hasPermission('can_view_dashboard');
-  const canDashDropdown = canDashboard || canKanban || canArchive;
 
   const canStudio = hasPermission('can_view_studio');
   const canAi = hasPermission('can_view_ai');
@@ -125,30 +118,30 @@ export default function Sidebar({
       {/* Mobile Backdrop */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 lg:hidden"
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 lg:hidden"
           onClick={() => setMobileOpen(false)}
         />
       )}
 
-      {/* Main Right Sidebar Container (Vision UI & PicGen Aesthetic) */}
+      {/* Main Right Sidebar Container (Nixtio Clean HR Dashboard Style) */}
       <aside
-        className={`fixed top-0 right-0 h-screen bg-slate-950 text-slate-200 z-50 transition-all duration-300 ease-in-out border-l border-slate-800/80 shadow-2xl flex flex-col justify-between overflow-hidden select-none ${
+        className={`fixed top-0 right-0 h-screen bg-white text-slate-700 z-50 transition-all duration-300 ease-in-out border-l border-slate-200/80 shadow-[0_0_35px_rgba(0,0,0,0.03)] flex flex-col justify-between overflow-hidden select-none ${
           mobileOpen ? 'translate-x-0 w-72' : 'translate-x-full lg:translate-x-0'
         } ${collapsed ? 'lg:w-20' : 'lg:w-72'}`}
         dir="rtl"
       >
-        {/* Top Header: Logo, Factory Brand, Collapse Toggle */}
-        <div className="p-4 border-b border-slate-800/80 flex items-center justify-between flex-shrink-0 bg-slate-950/90 backdrop-blur-md">
+        {/* Top Header: Brand Logo & Title */}
+        <div className="p-4 border-b border-slate-100 flex items-center justify-between flex-shrink-0 bg-white">
           <div className="flex items-center gap-3 overflow-hidden">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-amber-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/25 flex-shrink-0 ring-1 ring-white/20">
+            <div className="w-10 h-10 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-md shadow-indigo-200 flex-shrink-0">
               <Box className="w-5 h-5 text-amber-300" />
             </div>
 
             {!collapsed && (
               <div className="flex flex-col min-w-0 animate-in fade-in duration-200">
-                <span className="font-black text-sm text-white truncate tracking-tight">شرکت آرمان امیران</span>
+                <span className="font-black text-sm text-slate-900 truncate tracking-tight">شرکت آرمان امیران</span>
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                   <span className="text-[11px] font-bold text-slate-400 truncate">اتوماسیون تولید (MIS)</span>
                 </div>
               </div>
@@ -160,7 +153,7 @@ export default function Sidebar({
             <button
               type="button"
               onClick={() => setCollapsed(!collapsed)}
-              className="hidden lg:flex w-8 h-8 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white items-center justify-center transition border border-slate-800"
+              className="hidden lg:flex w-8 h-8 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-700 items-center justify-center transition border border-slate-200/60"
               title={collapsed ? 'گسترش منو' : 'جمع کردن منو'}
             >
               {collapsed ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
@@ -169,7 +162,7 @@ export default function Sidebar({
             <button
               type="button"
               onClick={() => setMobileOpen(false)}
-              className="lg:hidden w-8 h-8 rounded-xl bg-slate-900 text-slate-400 hover:text-white flex items-center justify-center border border-slate-800"
+              className="lg:hidden w-8 h-8 rounded-xl bg-slate-50 text-slate-500 hover:text-slate-800 flex items-center justify-center border border-slate-200"
             >
               <X className="w-4 h-4" />
             </button>
@@ -182,25 +175,25 @@ export default function Sidebar({
             <button
               type="button"
               onClick={() => handleSelectTab('new_order')}
-              className={`w-full py-2.5 px-3 rounded-2xl font-black text-xs flex items-center justify-center gap-2 transition-all shadow-lg active:scale-98 ${
+              className={`w-full py-2.5 px-3 rounded-2xl font-black text-xs flex items-center justify-center gap-2 transition-all shadow-md active:scale-98 ${
                 activeTab === 'new_order'
-                  ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-amber-500/25 ring-2 ring-amber-400'
-                  : 'bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-700 hover:from-indigo-500 hover:to-purple-600 text-white shadow-indigo-600/30'
+                  ? 'bg-amber-500 text-slate-950 shadow-amber-200 ring-2 ring-amber-300'
+                  : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-200'
               }`}
             >
               <PlusCircle className="w-4 h-4 text-amber-300" />
-              <span>+ ثبت سفارش جدید صنعتی</span>
+              <span>+ تعریف سفارش جدید</span>
             </button>
           </div>
         )}
 
         {/* Scrollable Navigation Items */}
-        <div className="flex-1 overflow-y-auto px-3 py-3 space-y-6 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto px-3 py-3 space-y-5 custom-scrollbar">
           
           {/* SECTION 1: عملیات و دستور تولید */}
           <div className="space-y-1">
             {!collapsed && (
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 px-3 block">
+              <span className="text-[11px] font-black uppercase tracking-wider text-slate-400 px-3 block mb-1">
                 عملیات و دستور تولید
               </span>
             )}
@@ -210,14 +203,14 @@ export default function Sidebar({
               <button
                 type="button"
                 onClick={() => handleSelectTab('hub')}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl text-xs font-bold transition-all ${
                   isTabActive('hub')
-                    ? 'bg-indigo-600/90 text-white shadow-md shadow-indigo-600/30 ring-1 ring-indigo-400'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-900/80'
+                    ? 'bg-slate-900 text-white shadow-md shadow-slate-900/10'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                 }`}
-                title="هاب دپارتمان‌ها"
+                title="میز کار و هاب دپارتمان‌ها"
               >
-                <LayoutGrid className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                <LayoutGrid className={`w-4 h-4 flex-shrink-0 ${isTabActive('hub') ? 'text-amber-400' : 'text-slate-400'}`} />
                 {!collapsed && <span className="truncate">میز کار و هاب دپارتمان‌ها</span>}
               </button>
             )}
@@ -228,15 +221,15 @@ export default function Sidebar({
                 <button
                   type="button"
                   onClick={() => setOpenProductionMenu(!openProductionMenu)}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl text-xs font-bold transition-all ${
                     ['production_orders', 'production_orders_offset', 'digital_orders', 'service_orders'].includes(activeTab)
-                      ? 'bg-emerald-950/60 text-emerald-300 border border-emerald-800/60'
-                      : 'text-slate-300 hover:text-white hover:bg-slate-900/80'
+                      ? 'bg-emerald-50 text-emerald-800 font-black'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                   }`}
                   title="دستور تولید کارخانه"
                 >
                   <div className="flex items-center gap-3">
-                    <Layers className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                    <Layers className="w-4 h-4 text-emerald-600 flex-shrink-0" />
                     {!collapsed && <span>دستور تولید</span>}
                   </div>
                   {!collapsed && (
@@ -245,17 +238,17 @@ export default function Sidebar({
                 </button>
 
                 {openProductionMenu && !collapsed && (
-                  <div className="pr-7 pl-1 space-y-1 border-r border-slate-800/80 mr-4 my-1 animate-in fade-in duration-150">
+                  <div className="pr-6 pl-1 space-y-1 border-r-2 border-slate-100 mr-4 my-1 animate-in fade-in duration-150">
                     {canProdOffset && (
                       <button
                         type="button"
                         onClick={() => handleSelectTab('production_orders_offset')}
-                        className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition ${
-                          isTabActive('production_orders') ? 'bg-emerald-600 text-white font-black' : 'text-slate-400 hover:text-white hover:bg-slate-900'
+                        className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-medium transition ${
+                          isTabActive('production_orders') ? 'bg-emerald-600 text-white font-black shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/60'
                         }`}
                       >
                         <div className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                          <span className={`w-2 h-2 rounded-full ${isTabActive('production_orders') ? 'bg-white' : 'bg-emerald-500'}`} />
                           <span>۱. تولید (افست کارخانه)</span>
                         </div>
                       </button>
@@ -264,12 +257,12 @@ export default function Sidebar({
                       <button
                         type="button"
                         onClick={() => handleSelectTab('production_orders_digital')}
-                        className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition ${
-                          isTabActive('digital_orders') ? 'bg-purple-600 text-white font-black' : 'text-slate-400 hover:text-white hover:bg-slate-900'
+                        className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-medium transition ${
+                          isTabActive('digital_orders') ? 'bg-purple-600 text-white font-black shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/60'
                         }`}
                       >
                         <div className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-purple-400" />
+                          <span className={`w-2 h-2 rounded-full ${isTabActive('digital_orders') ? 'bg-white' : 'bg-purple-500'}`} />
                           <span>۲. دیجیتال</span>
                         </div>
                       </button>
@@ -278,12 +271,12 @@ export default function Sidebar({
                       <button
                         type="button"
                         onClick={() => handleSelectTab('production_orders_service')}
-                        className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition ${
-                          isTabActive('service_orders') ? 'bg-blue-600 text-white font-black' : 'text-slate-400 hover:text-white hover:bg-slate-900'
+                        className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-medium transition ${
+                          isTabActive('service_orders') ? 'bg-blue-600 text-white font-black shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/60'
                         }`}
                       >
                         <div className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-blue-400" />
+                          <span className={`w-2 h-2 rounded-full ${isTabActive('service_orders') ? 'bg-white' : 'bg-blue-500'}`} />
                           <span>۳. خدماتی</span>
                         </div>
                       </button>
@@ -299,15 +292,15 @@ export default function Sidebar({
                 <button
                   type="button"
                   onClick={() => setOpenWarehouseMenu(!openWarehouseMenu)}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl text-xs font-bold transition-all ${
                     isTabActive('warehouse_cardboard') || ['warehouse_sheet_carton', 'warehouse_single_face', 'warehouse_cellophane', 'warehouse_pvc_film', 'warehouse_ink'].includes(activeTab)
-                      ? 'bg-sky-950/60 text-sky-300 border border-sky-800/60'
-                      : 'text-slate-300 hover:text-white hover:bg-slate-900/80'
+                      ? 'bg-sky-50 text-sky-800 font-black'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                   }`}
                   title="انبار متریال ۶ گانه"
                 >
                   <div className="flex items-center gap-3">
-                    <Package className="w-4 h-4 text-sky-400 flex-shrink-0" />
+                    <Package className="w-4 h-4 text-sky-600 flex-shrink-0" />
                     {!collapsed && <span>انبار متریال</span>}
                   </div>
                   {!collapsed && (
@@ -316,13 +309,13 @@ export default function Sidebar({
                 </button>
 
                 {openWarehouseMenu && !collapsed && (
-                  <div className="pr-7 pl-1 space-y-1 border-r border-slate-800/80 mr-4 my-1 animate-in fade-in duration-150">
+                  <div className="pr-6 pl-1 space-y-1 border-r-2 border-slate-100 mr-4 my-1 animate-in fade-in duration-150">
                     {canWhCardboard && (
                       <button
                         type="button"
                         onClick={() => handleSelectTab('warehouse_cardboard')}
-                        className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium transition ${
-                          activeTab === 'warehouse_cardboard' || activeTab === 'warehouse_inventory' ? 'bg-sky-600 text-white font-black' : 'text-slate-400 hover:text-white hover:bg-slate-900'
+                        className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs font-medium transition ${
+                          activeTab === 'warehouse_cardboard' || activeTab === 'warehouse_inventory' ? 'bg-sky-600 text-white font-black' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/60'
                         }`}
                       >
                         <span className="w-1.5 h-1.5 rounded-full bg-sky-400" />
@@ -333,8 +326,8 @@ export default function Sidebar({
                       <button
                         type="button"
                         onClick={() => handleSelectTab('warehouse_sheet_carton')}
-                        className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium transition ${
-                          activeTab === 'warehouse_sheet_carton' ? 'bg-sky-600 text-white font-black' : 'text-slate-400 hover:text-white hover:bg-slate-900'
+                        className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs font-medium transition ${
+                          activeTab === 'warehouse_sheet_carton' ? 'bg-sky-600 text-white font-black' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/60'
                         }`}
                       >
                         <span className="w-1.5 h-1.5 rounded-full bg-sky-400" />
@@ -345,8 +338,8 @@ export default function Sidebar({
                       <button
                         type="button"
                         onClick={() => handleSelectTab('warehouse_single_face')}
-                        className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium transition ${
-                          activeTab === 'warehouse_single_face' ? 'bg-sky-600 text-white font-black' : 'text-slate-400 hover:text-white hover:bg-slate-900'
+                        className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs font-medium transition ${
+                          activeTab === 'warehouse_single_face' ? 'bg-sky-600 text-white font-black' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/60'
                         }`}
                       >
                         <span className="w-1.5 h-1.5 rounded-full bg-sky-400" />
@@ -357,8 +350,8 @@ export default function Sidebar({
                       <button
                         type="button"
                         onClick={() => handleSelectTab('warehouse_cellophane')}
-                        className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium transition ${
-                          activeTab === 'warehouse_cellophane' ? 'bg-sky-600 text-white font-black' : 'text-slate-400 hover:text-white hover:bg-slate-900'
+                        className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs font-medium transition ${
+                          activeTab === 'warehouse_cellophane' ? 'bg-sky-600 text-white font-black' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/60'
                         }`}
                       >
                         <span className="w-1.5 h-1.5 rounded-full bg-sky-400" />
@@ -369,8 +362,8 @@ export default function Sidebar({
                       <button
                         type="button"
                         onClick={() => handleSelectTab('warehouse_pvc_film')}
-                        className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium transition ${
-                          activeTab === 'warehouse_pvc_film' ? 'bg-sky-600 text-white font-black' : 'text-slate-400 hover:text-white hover:bg-slate-900'
+                        className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs font-medium transition ${
+                          activeTab === 'warehouse_pvc_film' ? 'bg-sky-600 text-white font-black' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/60'
                         }`}
                       >
                         <span className="w-1.5 h-1.5 rounded-full bg-sky-400" />
@@ -381,8 +374,8 @@ export default function Sidebar({
                       <button
                         type="button"
                         onClick={() => handleSelectTab('warehouse_ink')}
-                        className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium transition ${
-                          activeTab === 'warehouse_ink' ? 'bg-sky-600 text-white font-black' : 'text-slate-400 hover:text-white hover:bg-slate-900'
+                        className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs font-medium transition ${
+                          activeTab === 'warehouse_ink' ? 'bg-sky-600 text-white font-black' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/60'
                         }`}
                       >
                         <span className="w-1.5 h-1.5 rounded-full bg-sky-400" />
@@ -398,8 +391,8 @@ export default function Sidebar({
           {/* SECTION 2: فرآیند و گردش کار ۱۰ مرحله */}
           <div className="space-y-1">
             {!collapsed && (
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 px-3 block">
-                فرآیند و رهگیری سفارشات
+              <span className="text-[11px] font-black uppercase tracking-wider text-slate-400 px-3 block mb-1">
+                فرآیند و پیگیری سفارشات
               </span>
             )}
 
@@ -408,20 +401,20 @@ export default function Sidebar({
               <button
                 type="button"
                 onClick={() => handleSelectTab('kanban')}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl text-xs font-bold transition-all ${
                   activeTab === 'kanban'
-                    ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-md shadow-indigo-600/30 ring-1 ring-indigo-400'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-900/80'
+                    ? 'bg-slate-900 text-white shadow-md shadow-slate-900/10'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                 }`}
                 title="گردش کار ۱۰ مرحله (کانبان)"
               >
                 <div className="flex items-center gap-3">
-                  <Kanban className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <Kanban className={`w-4 h-4 flex-shrink-0 ${activeTab === 'kanban' ? 'text-amber-400' : 'text-indigo-600'}`} />
                   {!collapsed && <span>گردش کار ۱۰ مرحله</span>}
                 </div>
                 {!collapsed && (
-                  <span className="text-[10px] bg-amber-500/20 text-amber-300 font-mono px-2 py-0.5 rounded-md border border-amber-500/30">
-                    Live
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${activeTab === 'kanban' ? 'bg-white/20 text-white' : 'bg-indigo-50 text-indigo-700'}`}>
+                    ۱۰ مرحله
                   </span>
                 )}
               </button>
@@ -432,14 +425,14 @@ export default function Sidebar({
               <button
                 type="button"
                 onClick={() => handleSelectTab('dashboard')}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl text-xs font-bold transition-all ${
                   activeTab === 'dashboard'
-                    ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30 ring-1 ring-purple-400'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-900/80'
+                    ? 'bg-slate-900 text-white shadow-md shadow-slate-900/10'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                 }`}
                 title="داشبورد و آمار تحلیلی"
               >
-                <BarChart3 className="w-4 h-4 text-purple-400 flex-shrink-0" />
+                <BarChart3 className={`w-4 h-4 flex-shrink-0 ${activeTab === 'dashboard' ? 'text-amber-400' : 'text-purple-600'}`} />
                 {!collapsed && <span>داشبورد و آمار تحلیلی</span>}
               </button>
             )}
@@ -449,14 +442,14 @@ export default function Sidebar({
               <button
                 type="button"
                 onClick={() => handleSelectTab('archive')}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl text-xs font-bold transition-all ${
                   activeTab === 'archive'
-                    ? 'bg-amber-600 text-white shadow-md shadow-amber-600/30 ring-1 ring-amber-400'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-900/80'
+                    ? 'bg-slate-900 text-white shadow-md shadow-slate-900/10'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                 }`}
                 title="آرشیو و جستجوی سفارشات"
               >
-                <Boxes className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                <Boxes className={`w-4 h-4 flex-shrink-0 ${activeTab === 'archive' ? 'text-amber-400' : 'text-amber-600'}`} />
                 {!collapsed && <span>آرشیو و جستجو</span>}
               </button>
             )}
@@ -466,19 +459,19 @@ export default function Sidebar({
               <button
                 type="button"
                 onClick={() => handleSelectTab('my_tasks')}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl text-xs font-bold transition-all ${
                   activeTab === 'my_tasks'
-                    ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30 ring-1 ring-rose-400'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-900/80'
+                    ? 'bg-slate-900 text-white shadow-md shadow-slate-900/10'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                 }`}
                 title="کارتابل وظایف من"
               >
                 <div className="flex items-center gap-3">
-                  <Inbox className="w-4 h-4 text-rose-400 flex-shrink-0" />
+                  <Inbox className={`w-4 h-4 flex-shrink-0 ${activeTab === 'my_tasks' ? 'text-amber-400' : 'text-rose-600'}`} />
                   {!collapsed && <span>کارتابل وظایف من</span>}
                 </div>
                 {myPendingCount > 0 && !collapsed && (
-                  <span className="w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] font-black flex items-center justify-center animate-pulse">
+                  <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[10px] font-black shadow-xs">
                     {myPendingCount}
                   </span>
                 )}
@@ -489,7 +482,7 @@ export default function Sidebar({
           {/* SECTION 3: استودیو، طراحی و هوش مصنوعی */}
           <div className="space-y-1">
             {!collapsed && (
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 px-3 block">
+              <span className="text-[11px] font-black uppercase tracking-wider text-slate-400 px-3 block mb-1">
                 طراحی و هوش مصنوعی
               </span>
             )}
@@ -499,19 +492,19 @@ export default function Sidebar({
               <button
                 type="button"
                 onClick={() => handleSelectTab('dieline_generator')}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl text-xs font-bold transition-all ${
                   isTabActive('dieline_generator')
-                    ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black shadow-lg shadow-amber-500/25 ring-2 ring-amber-400'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-900/80'
+                    ? 'bg-slate-900 text-white shadow-md shadow-slate-900/10'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                 }`}
                 title="استودیو طراحی امیران (خط تیغ، 3D و CDR)"
               >
                 <div className="flex items-center gap-3">
-                  <Box className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <Box className={`w-4 h-4 flex-shrink-0 ${isTabActive('dieline_generator') ? 'text-amber-400' : 'text-amber-500'}`} />
                   {!collapsed && <span>استودیو طراحی امیران</span>}
                 </div>
                 {!collapsed && (
-                  <span className="text-[10px] bg-amber-950 text-amber-300 px-1.5 py-0.5 rounded font-mono font-bold">
+                  <span className="text-[10px] bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full font-mono font-bold">
                     3D/CDR
                   </span>
                 )}
@@ -523,14 +516,14 @@ export default function Sidebar({
               <button
                 type="button"
                 onClick={() => handleSelectTab('ai_assistant')}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl text-xs font-bold transition-all ${
                   activeTab === 'ai_assistant'
-                    ? 'bg-fuchsia-600 text-white shadow-md shadow-fuchsia-600/30 ring-1 ring-fuchsia-400'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-900/80'
+                    ? 'bg-slate-900 text-white shadow-md shadow-slate-900/10'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                 }`}
                 title="دستیار هوش مصنوعی"
               >
-                <Sparkles className="w-4 h-4 text-fuchsia-400 flex-shrink-0" />
+                <Sparkles className={`w-4 h-4 flex-shrink-0 ${activeTab === 'ai_assistant' ? 'text-amber-400' : 'text-fuchsia-600'}`} />
                 {!collapsed && <span>دستیار هوش مصنوعی</span>}
               </button>
             )}
@@ -540,14 +533,14 @@ export default function Sidebar({
               <button
                 type="button"
                 onClick={() => handleSelectTab('calculator')}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl text-xs font-bold transition-all ${
                   activeTab === 'calculator'
-                    ? 'bg-teal-600 text-white shadow-md shadow-teal-600/30 ring-1 ring-teal-400'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-900/80'
+                    ? 'bg-slate-900 text-white shadow-md shadow-slate-900/10'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                 }`}
                 title="ماشین‌حساب برآورد صنعتی"
               >
-                <Calculator className="w-4 h-4 text-teal-400 flex-shrink-0" />
+                <Calculator className={`w-4 h-4 flex-shrink-0 ${activeTab === 'calculator' ? 'text-amber-400' : 'text-teal-600'}`} />
                 {!collapsed && <span>برآورد قیمت صنعتی</span>}
               </button>
             )}
@@ -557,14 +550,14 @@ export default function Sidebar({
               <button
                 type="button"
                 onClick={() => handleSelectTab('marketing')}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl text-xs font-bold transition-all ${
                   activeTab === 'marketing'
-                    ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30 ring-1 ring-emerald-400'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-900/80'
+                    ? 'bg-slate-900 text-white shadow-md shadow-slate-900/10'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                 }`}
                 title="استعلام و تارگت بازاریاب"
               >
-                <TrendingUp className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                <TrendingUp className={`w-4 h-4 flex-shrink-0 ${activeTab === 'marketing' ? 'text-amber-400' : 'text-emerald-600'}`} />
                 {!collapsed && <span>استعلام بازاریاب</span>}
               </button>
             )}
@@ -574,8 +567,8 @@ export default function Sidebar({
           {canSettings && (
             <div className="space-y-1">
               {!collapsed && (
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 px-3 block">
-                  مدیریت و پیکربندی
+                <span className="text-[11px] font-black uppercase tracking-wider text-slate-400 px-3 block mb-1">
+                  مدیریت و منابع انسانی
                 </span>
               )}
 
@@ -583,14 +576,14 @@ export default function Sidebar({
               <button
                 type="button"
                 onClick={() => handleSelectTab('hr')}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl text-xs font-bold transition-all ${
                   activeTab === 'hr'
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-900/80'
+                    ? 'bg-slate-900 text-white shadow-md shadow-slate-900/10'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                 }`}
                 title="منابع انسانی و ارزیابی عملکرد (HR)"
               >
-                <Award className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+                <Award className={`w-4 h-4 flex-shrink-0 ${activeTab === 'hr' ? 'text-amber-400' : 'text-indigo-600'}`} />
                 {!collapsed && <span>ارزیابی عملکرد (HR)</span>}
               </button>
 
@@ -598,14 +591,14 @@ export default function Sidebar({
               <button
                 type="button"
                 onClick={() => handleSelectTab('users')}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl text-xs font-bold transition-all ${
                   activeTab === 'users'
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-900/80'
+                    ? 'bg-slate-900 text-white shadow-md shadow-slate-900/10'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                 }`}
                 title="مدیریت پرسنل و دسترسی‌ها"
               >
-                <Users className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+                <Users className={`w-4 h-4 flex-shrink-0 ${activeTab === 'users' ? 'text-amber-400' : 'text-indigo-600'}`} />
                 {!collapsed && <span>مدیریت پرسنل</span>}
               </button>
 
@@ -614,14 +607,14 @@ export default function Sidebar({
                 <button
                   type="button"
                   onClick={() => handleSelectTab('storage')}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl text-xs font-bold transition-all ${
                     activeTab === 'storage'
-                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                      : 'text-slate-300 hover:text-white hover:bg-slate-900/80'
+                      ? 'bg-slate-900 text-white shadow-md shadow-slate-900/10'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                   }`}
                   title="پوشه Storage و فایل‌ها"
                 >
-                  <HardDrive className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+                  <HardDrive className={`w-4 h-4 flex-shrink-0 ${activeTab === 'storage' ? 'text-amber-400' : 'text-indigo-600'}`} />
                   {!collapsed && <span>فایل‌ها و استوریج</span>}
                 </button>
               )}
@@ -630,14 +623,14 @@ export default function Sidebar({
               <button
                 type="button"
                 onClick={() => handleSelectTab('logs')}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl text-xs font-bold transition-all ${
                   activeTab === 'logs'
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-900/80'
+                    ? 'bg-slate-900 text-white shadow-md shadow-slate-900/10'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                 }`}
                 title="لاگ و ممیزی کاربران"
               >
-                <Activity className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+                <Activity className={`w-4 h-4 flex-shrink-0 ${activeTab === 'logs' ? 'text-amber-400' : 'text-indigo-600'}`} />
                 {!collapsed && <span>لاگ و ممیزی</span>}
               </button>
 
@@ -646,10 +639,10 @@ export default function Sidebar({
                 <button
                   type="button"
                   onClick={onOpenLicense}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-300 hover:text-amber-300 hover:bg-slate-900/80 transition-all"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl text-xs font-bold text-slate-600 hover:text-indigo-600 hover:bg-slate-50 transition-all"
                   title="لایسنس سرور کارخانه"
                 >
-                  <Key className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <Key className="w-4 h-4 text-amber-500 flex-shrink-0" />
                   {!collapsed && <span>لایسنس سرور</span>}
                 </button>
               )}
@@ -657,36 +650,36 @@ export default function Sidebar({
           )}
         </div>
 
-        {/* Bottom Profile & Role Bar */}
-        <div className="p-3 border-t border-slate-800/80 bg-slate-950/90 flex-shrink-0">
+        {/* Bottom Profile & Role Bar (Nixtio Clean Card Style) */}
+        <div className="p-3 border-t border-slate-100 bg-slate-50/70 flex-shrink-0">
           {!collapsed ? (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center font-black text-white text-xs shadow-md">
-                    {currentUser?.name ? currentUser.name.slice(0, 1) : 'کاربر'}
+                  <div className="w-9 h-9 rounded-2xl bg-indigo-600 text-white font-black text-xs flex items-center justify-center shadow-xs">
+                    {currentUser?.name ? currentUser.name.slice(0, 1) : 'ک'}
                   </div>
                   <div className="min-w-0">
-                    <span className="text-xs font-black text-white block truncate">{currentUser?.name || 'کاربر سیستم'}</span>
-                    <span className="text-[10px] text-amber-400 font-bold block truncate">{currentUser?.department || 'کارخانه'}</span>
+                    <span className="text-xs font-black text-slate-800 block truncate">{currentUser?.name || 'کاربر سیستم'}</span>
+                    <span className="text-[10px] text-slate-400 font-bold block truncate">{currentUser?.department || 'کارخانه'}</span>
                   </div>
                 </div>
 
                 <button
                   type="button"
                   onClick={logout}
-                  className="p-1.5 rounded-lg bg-slate-900 hover:bg-rose-950/60 text-slate-400 hover:text-rose-400 transition border border-slate-800"
+                  className="p-1.5 rounded-xl bg-white hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition border border-slate-200/80 shadow-2xs"
                   title="خروج از حساب کاربری"
                 >
                   <LogOut className="w-4 h-4" />
                 </button>
               </div>
 
-              {/* Fast Role Switcher for Testing / Management */}
+              {/* Role Switcher */}
               <select
                 value={role}
                 onChange={(e) => switchRole(e.target.value)}
-                className="w-full px-2.5 py-1.5 text-[11px] font-bold rounded-xl border border-slate-800 bg-slate-900 text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="w-full px-2.5 py-1.5 text-[11px] font-bold rounded-xl border border-slate-200 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
               >
                 {ROLES.map((r) => (
                   <option key={r.id} value={r.id}>
@@ -698,15 +691,15 @@ export default function Sidebar({
           ) : (
             <div className="flex flex-col items-center gap-2">
               <div
-                className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center font-black text-white text-xs cursor-pointer shadow-md"
+                className="w-9 h-9 rounded-2xl bg-indigo-600 text-white font-black text-xs flex items-center justify-center shadow-xs cursor-pointer"
                 title={`${currentUser?.name} (${currentUser?.department})`}
               >
-                {currentUser?.name ? currentUser.name.slice(0, 1) : 'کاربر'}
+                {currentUser?.name ? currentUser.name.slice(0, 1) : 'ک'}
               </div>
               <button
                 type="button"
                 onClick={logout}
-                className="p-1.5 rounded-lg bg-slate-900 hover:bg-rose-950/60 text-slate-400 hover:text-rose-400 transition border border-slate-800"
+                className="p-1.5 rounded-xl bg-white hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition border border-slate-200"
                 title="خروج"
               >
                 <LogOut className="w-4 h-4" />

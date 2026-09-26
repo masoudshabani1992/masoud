@@ -464,9 +464,9 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen control-ai-bg flex font-sans w-full text-slate-100 selection:bg-cyan-500/30 selection:text-cyan-200" dir="rtl">
+    <div className="min-h-screen bg-[#f8f9fb] flex font-sans w-full text-slate-800 selection:bg-indigo-500/20 selection:text-indigo-900" dir="rtl">
       
-      {/* Right-Hand Navigation Sidebar (Vision UI & PicGen SaaS Style) */}
+      {/* Right-Hand Navigation Sidebar (Nixtio Clean HR Dashboard Style) */}
       <Sidebar
         activeTab={activeTab}
         setActiveTab={(tab) => navigateTab(tab)}
@@ -708,16 +708,16 @@ export default function App() {
       </main>
 
       {/* Universal Page Footer */}
-      <footer className="w-full py-2.5 px-4 sm:px-6 bg-slate-900 text-slate-300 border-t border-slate-800 text-[12px] flex items-center justify-between flex-wrap gap-2 z-30 shrink-0 select-none">
+      <footer className="w-full py-2.5 px-4 sm:px-6 bg-white text-slate-500 border-t border-slate-200/80 text-[12px] flex items-center justify-between flex-wrap gap-2 z-30 shrink-0 select-none shadow-xs">
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span className="font-medium text-slate-200">
+          <span className="font-medium text-slate-700">
             همکار گرامی! تمامی اطلاعات این اتوماسیون محرمانه و امانت در اختیار شماست
           </span>
         </div>
-        <div className="flex items-center gap-1.5 text-amber-400 font-bold font-mono text-[12px]">
+        <div className="flex items-center gap-1.5 text-slate-800 font-bold font-mono text-[12px]">
           <span className="text-slate-400">برنامه‌نویس:</span>
-          <span>مسعود شعبانی</span>
+          <span className="text-indigo-600 font-bold">مسعود شعبانی</span>
         </div>
       </footer>
       </div>
