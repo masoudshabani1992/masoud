@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { STAGES, formatToman, formatNumber, formatDateFa, canAdvanceStage } from '../utils/helpers';
 import CalculatorView from './CalculatorView';
 import FilePreviewModal from './FilePreviewModal';
+import ProjectN8nPipelineCanvas from './ProjectN8nPipelineCanvas';
 import {
   X,
   CheckCircle2,
@@ -37,7 +38,10 @@ import {
   Handshake,
   Trash2,
   ExternalLink,
-  Paperclip
+  Paperclip,
+  Workflow,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 
 export default function ProjectDetailsModal({ projectId, onClose, onUpdated, onPrintTicket }) {
@@ -46,6 +50,7 @@ export default function ProjectDetailsModal({ projectId, onClose, onUpdated, onP
   const [loading, setLoading] = useState(true);
   const [accessError, setAccessError] = useState(null);
   const [activeTab, setActiveTab] = useState('workflow'); // 'workflow', 'notes', 'history', 'specs'
+  const [showN8nCanvas, setShowN8nCanvas] = useState(true); // Toggle for n8n visual pipeline
   const [newComment, setNewComment] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
@@ -273,7 +278,45 @@ export default function ProjectDetailsModal({ projectId, onClose, onUpdated, onP
           </div>
         </div>
 
-        {/* 10-Step Visual Progression Pipeline */}
+        {/* Toggle Bar & Header for n8n Visual Pipeline */}
+        <div className="bg-slate-900 px-4 py-2 border-b border-slate-700/80 flex items-center justify-between flex-wrap gap-2 text-xs">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShowN8nCanvas(!showN8nCanvas)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-black transition-all ${
+                showN8nCanvas
+                  ? 'bg-amber-400 text-slate-950 shadow-md'
+                  : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
+              }`}
+            >
+              <Workflow className="w-3.5 h-3.5" />
+              <span>بوم گرافیکی پایپ‌لاین n8n (جریان نورانی و مرحله چشمک‌زن)</span>
+              {showN8nCanvas ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+            </button>
+
+            <span className="text-[11px] text-slate-400 hidden sm:inline">
+              مسیر طی‌شده با نور متحرک و مرحله جاری به صورت چشمک‌زن فعال است.
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 font-mono text-[11px] text-emerald-400">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span>پیشرفت خط تولید: {Math.min(((project?.current_stage || 1) * 10), 100)}٪</span>
+          </div>
+        </div>
+
+        {/* 1. Interactive n8n Visual Canvas with Flowing Cables & Blinking Active Stage */}
+        {showN8nCanvas && (
+          <ProjectN8nPipelineCanvas
+            project={project}
+            onSelectStage={(stageId) => {
+              // Stage clicked
+            }}
+          />
+        )}
+
+        {/* 2. 10-Step Visual Progression Pipeline (Horizontal Bar) */}
         <div className="bg-slate-800 px-4 py-3 border-b border-slate-700 overflow-x-auto">
           <div className="flex items-center justify-between min-w-[850px] gap-1">
             {STAGES.slice(0, 10).map((st) => {
