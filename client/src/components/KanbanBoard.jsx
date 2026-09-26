@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { STAGES, formatToman, formatNumber, matchProduct } from '../utils/helpers';
-import StagePipelineStepper from './StagePipelineStepper';
 import {
   Search,
   Filter,
@@ -97,13 +96,6 @@ export default function KanbanBoard({
           </div>
         </div>
       )}
-      
-      {/* Luminous Node Workflow Pipeline (Control AI & PicGen / Vision UI Style) */}
-      <StagePipelineStepper
-        projects={projects}
-        selectedStageFilter={selectedStageFilter}
-        onSelectStage={(stageId) => setSelectedStageFilter(stageId)}
-      />
       
       {/* Search & Filter Header Bar - 100% Responsive with Grid Layout */}
       <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">

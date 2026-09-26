@@ -51,7 +51,7 @@
 
 @layer base {
   * {
-    border-color: #f1f5f9;
+    border-color: #e2e8f0;
     font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Tahoma, sans-serif !important;
   }
 
@@ -59,8 +59,6 @@
     font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Tahoma, sans-serif !important;
     direction: rtl;
     text-align: right;
-    background-color: #f8f9fb;
-    color: #1e293b;
   }
 
   input, button, select, textarea {
@@ -68,28 +66,10 @@
   }
 }
 
-/* Nixtio HR Dashboard Clean Canvas */
-.app-canvas-bg {
-  background-color: #f8f9fb;
-}
-
-/* Card Shadows & Glass Effects (Nixtio Clean Style) */
-.card-clean-shadow {
-  box-shadow: 0 4px 24px -4px rgba(15, 23, 42, 0.05), 0 2px 8px -2px rgba(15, 23, 42, 0.02);
-}
-
-.card-hover-effect {
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.card-hover-effect:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 32px -4px rgba(15, 23, 42, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.04);
-}
-
-/* Custom Scrollbars (Light Clean Style) */
+/* Custom Scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
 }
 ::-webkit-scrollbar-track {
   background: #f1f5f9;
@@ -102,17 +82,6 @@
   background: #94a3b8;
 }
 
-.custom-scrollbar::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #e2e8f0;
-  border-radius: 3px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #cbd5e1;
+.box-shadow-card {
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
 }
