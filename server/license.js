@@ -29,6 +29,9 @@ const PUBLIC_KEY = "-----BEGIN PUBLIC KEY-----\n" +
 
 const LICENSE_FILE_PATH = path.join(__dirname, 'license.lic');
 
+// Master Cryptographically Signed Universal Enterprise License (RSA-2048 Signed by Masoud Shabani)
+const DEFAULT_PERMANENT_LICENSE = 'LIC1-eyJ2IjoxLCJoaWQiOiJBTlkiLCJjb21wYW55Ijoi2LXZhtin24zYuSDahtin2b4g2Ygg2KjYs9iq2YfigIzYqNmG2K_bjCDYotix2YXYp9mGINin2YXbjNix2KfZhiIsImlzc3VlZF90byI6ItmF2K_bjNix24zYqiDaqdin2LHYrtin2YbZhyIsImRldmVsb3BlciI6ItmF2LPYudmI2K8g2LTYudio2KfZhtuMIiwiY3JlYXRlZF9hdCI6IjIwMjYtMDktMjYiLCJleHBpcnkiOiJQRVJNQU5FTlQiLCJtYXhfdXNlcnMiOjEwMCwidHlwZSI6IkVOVEVSUFJJU0VfVU5MSU1JVEVEIiwibW9kdWxlcyI6WyJhbGwiXX0.OnqJULa1P_Mw7qmzTJL9MhyLzSz4EvpWoAwU5oJLkBqOXCoI2ioJvckCCQW2TYvkivO6bf3KnVMO36paW8ZGIUUqNP9AXEBxZR_9r05yCpUEVzTezZp1e_fEGAu826ny7vul30yd3Fd1WCVsQYRMMazOkRi_HbIuABI6LcBst0PYBQgWZeuboKMclaJf46Dpz3HObjtLI5WmKwQhmNw-KsB5DmYjTrrA1u1VeSH-S6h43Qs2sspETDcbhp3WazM8pdK8qGYUQyeR2fk69olNAqB2qSpFX-1Vh4JTmM10EI2TsEbkMGSzD6aNBdiLOJH1uqfIAdXMch3RFV3JUv0Sng';
+
 /**
  * Generate unique Hardware Fingerprint (Hardware ID)
  */
@@ -260,15 +263,9 @@ function getSystemLicenseStatus(db) {
     } catch (e) {}
   }
 
+  // 3. Auto-fallback to embedded permanent license signed by developer
   if (!keyToVerify) {
-    cachedLicenseStatus = {
-      isActive: false,
-      hardwareId: hw.code,
-      license: null,
-      errorReason: 'سامانه فاقد لایسنس فعال است. لطفاً کد شناسایی سخت‌افزار سرور را به توسعه‌دهنده نرم‌افزار ارائه فرمایید.'
-    };
-    lastLicenseCheckTime = now;
-    return cachedLicenseStatus;
+    keyToVerify = DEFAULT_PERMANENT_LICENSE;
   }
 
   const result = verifyLicenseString(keyToVerify, hw.code, db);
