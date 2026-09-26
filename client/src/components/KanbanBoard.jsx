@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { STAGES, formatToman, formatNumber, matchProduct } from '../utils/helpers';
+import N8nWorkflowCanvas from './N8nWorkflowCanvas';
 import {
   Search,
   Filter,
@@ -21,7 +22,8 @@ import {
   ShieldCheck,
   UserCheck,
   BarChart3,
-  Kanban
+  Kanban,
+  Workflow
 } from 'lucide-react';
 
 export default function KanbanBoard({
@@ -34,7 +36,7 @@ export default function KanbanBoard({
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPriority, setSelectedPriority] = useState('all');
   const [selectedStageFilter, setSelectedStageFilter] = useState('all');
-  const [viewMode, setViewMode] = useState('grid'); // 'grid' (3x3), 'table'
+  const [viewMode, setViewMode] = useState('n8n'); // 'n8n' (visual canvas), 'grid' (3x3), 'table'
 
   const filteredProjects = projects.filter((p) => {
     const matchSearch = matchProduct(p, searchTerm);
@@ -151,8 +153,21 @@ export default function KanbanBoard({
               ))}
             </select>
 
-            {/* View Mode Toggle (Grid vs Table) */}
+            {/* View Mode Toggle (n8n Workflow Canvas vs Grid vs Table) */}
             <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
+              <button
+                onClick={() => setViewMode('n8n')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black transition-all ${
+                  viewMode === 'n8n'
+                    ? 'bg-indigo-600 text-white shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+                title="بوم تعاملی گردش کار ۱۰ مرحله‌ای به سبک n8n"
+              >
+                <Workflow className="w-3.5 h-3.5" />
+                <span>بوم گرافیکی (n8n)</span>
+              </button>
+
               <button
                 onClick={() => setViewMode('grid')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black transition-all ${
@@ -224,6 +239,16 @@ export default function KanbanBoard({
           </div>
         </div>
       </div>
+
+      {/* VIEW MODE 0: INTERACTIVE n8n WORKFLOW CANVAS */}
+      {viewMode === 'n8n' && (
+        <N8nWorkflowCanvas
+          projects={filteredProjects}
+          onSelectProject={onSelectProject}
+          searchTerm={searchTerm}
+          selectedPriority={selectedPriority}
+        />
+      )}
 
       {/* VIEW MODE 1: ELEGANT 3x3 GRID (Zero Horizontal Scrolling) */}
       {viewMode === 'grid' && (
