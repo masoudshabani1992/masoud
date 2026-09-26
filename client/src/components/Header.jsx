@@ -85,22 +85,22 @@ export default function Header({
   const currentTitle = TAB_TITLES[activeTab] || 'اتوماسیون کارخانه';
 
   return (
-    <header className="h-16 bg-white/90 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-30 shadow-xs px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 select-none" dir="rtl">
+    <header className="h-16 bg-[#030712]/85 text-slate-100 backdrop-blur-xl border-b border-slate-800/80 sticky top-0 z-30 shadow-lg px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 select-none" dir="rtl">
       
       {/* Right Side: Mobile Hamburger & Current Page Title */}
       <div className="flex items-center gap-3 min-w-0">
         <button
           type="button"
           onClick={onToggleMobileSidebar}
-          className="lg:hidden p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition"
+          className="lg:hidden p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 transition border border-slate-800"
           title="باز کردن منوی ناوبری"
         >
-          <Menu className="w-5 h-5" />
+          <Menu className="w-5 h-5 text-cyan-400" />
         </button>
 
-        <div className="flex items-center gap-2 min-w-0">
-          <div className="w-2.5 h-2.5 rounded-full bg-indigo-600 hidden sm:block" />
-          <h1 className="text-sm sm:text-base font-black text-slate-900 truncate">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.8)] animate-pulse hidden sm:block" />
+          <h1 className="text-sm sm:text-base font-black text-white truncate tracking-tight">
             {currentTitle}
           </h1>
         </div>
@@ -111,15 +111,15 @@ export default function Header({
         <button
           type="button"
           onClick={onOpenSearch}
-          className="w-full flex items-center justify-between px-3.5 py-2 rounded-2xl bg-slate-100/80 hover:bg-slate-100 text-slate-500 hover:text-slate-700 text-xs font-bold border border-slate-200/80 transition shadow-inner group"
+          className="w-full flex items-center justify-between px-3.5 py-2 rounded-2xl bg-slate-900/90 hover:bg-slate-900 text-slate-400 hover:text-slate-200 text-xs font-bold border border-slate-800 transition shadow-inner group"
         >
           <div className="flex items-center gap-2">
-            <Search className="w-4 h-4 text-indigo-600 group-hover:scale-110 transition-transform" />
-            <span>جستجوی سریع: مشتری، شماره سفارش، پرونده یا خط تیغ...</span>
+            <Search className="w-4 h-4 text-cyan-400 group-hover:scale-110 transition-transform" />
+            <span className="text-slate-400">جستجوی سریع: مشتری، شماره سفارش، پرونده یا خط تیغ...</span>
           </div>
 
-          <div className="flex items-center gap-1 font-mono text-[10px] bg-white px-2 py-0.5 rounded-lg border border-slate-200 text-slate-600 shadow-2xs">
-            <Command className="w-3 h-3" />
+          <div className="flex items-center gap-1 font-mono text-[10px] bg-slate-950 px-2 py-0.5 rounded-lg border border-slate-700 text-slate-400 shadow-2xs">
+            <Command className="w-3 h-3 text-cyan-400" />
             <span>K</span>
           </div>
         </button>
@@ -132,19 +132,19 @@ export default function Header({
         <button
           type="button"
           onClick={onOpenSearch}
-          className="md:hidden p-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition"
+          className="md:hidden p-2 rounded-xl bg-slate-900 text-slate-300 hover:bg-slate-800 transition border border-slate-800"
           title="جستجو (Ctrl+K)"
         >
-          <Search className="w-4 h-4" />
+          <Search className="w-4 h-4 text-cyan-400" />
         </button>
 
         {/* Date & Time Widget */}
-        <div className="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200/80 text-xs font-bold text-slate-600">
-          <Calendar className="w-3.5 h-3.5 text-indigo-600" />
-          <span>{currentDate}</span>
-          <span className="text-slate-300">|</span>
-          <Clock className="w-3.5 h-3.5 text-amber-600" />
-          <span className="font-mono text-slate-800">{currentTime}</span>
+        <div className="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs font-bold text-slate-300">
+          <Calendar className="w-3.5 h-3.5 text-cyan-400" />
+          <span className="text-slate-300">{currentDate}</span>
+          <span className="text-slate-600">|</span>
+          <Clock className="w-3.5 h-3.5 text-amber-400" />
+          <span className="font-mono text-white">{currentTime}</span>
         </div>
 
         {/* Download Training Manual PDF Button */}
@@ -152,10 +152,10 @@ export default function Header({
           href="/TRAINING_MANUAL.pdf"
           target="_blank"
           rel="noopener noreferrer"
-          className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200/80 text-xs font-bold transition shadow-2xs"
+          className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold transition shadow-2xs"
           title="دانلود دفترچه راهنمای سامانه کارخانه (PDF)"
         >
-          <HelpCircle className="w-4 h-4 text-amber-600" />
+          <HelpCircle className="w-4 h-4 text-amber-400" />
           <span>راهنمای سیستم</span>
         </a>
 
@@ -166,12 +166,12 @@ export default function Header({
             onClick={onOpenLicense}
             className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold transition border ${
               licenseInfo.active
-                ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
-                : 'bg-rose-50 text-rose-800 border-rose-200 hover:bg-rose-100'
+                ? 'bg-emerald-950/60 text-emerald-300 border-emerald-800/80 hover:bg-emerald-950'
+                : 'bg-rose-950/60 text-rose-300 border-rose-800/80 hover:bg-rose-950'
             }`}
             title="وضعیت لایسنس سخت‌افزاری سرور"
           >
-            <ShieldCheck className="w-4 h-4 text-emerald-600" />
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
             <span className="font-mono text-[11px]">لایسنس فعال</span>
           </button>
         )}
@@ -180,10 +180,10 @@ export default function Header({
         <button
           type="button"
           onClick={onOpenNotifications}
-          className="relative p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition active:scale-95"
+          className="relative p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 transition active:scale-95 border border-slate-800"
           title="مرکز اعلان‌ها و رویدادها"
         >
-          <Bell className="w-4 h-4" />
+          <Bell className="w-4 h-4 text-cyan-400" />
           {unreadNotificationsCount > 0 && (
             <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-rose-600 text-white text-[10px] font-black flex items-center justify-center animate-pulse shadow-md">
               {unreadNotificationsCount}
@@ -196,9 +196,9 @@ export default function Header({
           <button
             type="button"
             onClick={() => setActiveTab('new_order')}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white text-xs font-black shadow-md shadow-indigo-600/25 transition active:scale-95"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-slate-950 text-xs font-black shadow-lg shadow-cyan-500/25 transition active:scale-95"
           >
-            <PlusCircle className="w-4 h-4 text-amber-300" />
+            <PlusCircle className="w-4 h-4 text-slate-950" />
             <span className="hidden sm:inline">سفارش جدید</span>
           </button>
         )}

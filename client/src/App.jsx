@@ -464,7 +464,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 flex font-sans w-full text-slate-800" dir="rtl">
+    <div className="min-h-screen control-ai-bg flex font-sans w-full text-slate-100 selection:bg-cyan-500/30 selection:text-cyan-200" dir="rtl">
       
       {/* Right-Hand Navigation Sidebar (Vision UI & PicGen SaaS Style) */}
       <Sidebar
