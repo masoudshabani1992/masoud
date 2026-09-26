@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { STAGES, formatToman, formatNumber, formatDateFa } from '../utils/helpers';
+import N8nWorkflowCanvas from './N8nWorkflowCanvas';
 import {
   BarChart3,
   TrendingUp,
@@ -13,10 +14,16 @@ import {
   Layers,
   Building2,
   Users,
-  Kanban
+  Kanban,
+  Workflow,
+  Sparkles
 } from 'lucide-react';
 
-export default function DashboardView({ onNavigateTab }) {
+export default function DashboardView({
+  projects = [],
+  onSelectProject,
+  onNavigateTab
+}) {
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -32,7 +39,7 @@ export default function DashboardView({ onNavigateTab }) {
   }
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-6 animate-fade-in">
       {/* Consolidated Dashboard / Kanban / Archive Unified Subtab Bar */}
       {onNavigateTab && (
         <div className="bg-white p-2.5 rounded-2xl border border-slate-200/90 shadow-xs flex items-center justify-between flex-wrap gap-2">
@@ -124,6 +131,26 @@ export default function DashboardView({ onNavigateTab }) {
             <PackageCheck className="w-7 h-7" />
           </div>
         </div>
+      </div>
+
+      {/* Interactive n8n Workflow Canvas Pipeline on Dashboard */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between px-2">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-purple-500 animate-pulse" />
+            <h2 className="text-sm sm:text-base font-black text-slate-900">
+              بوم گرافیکی پایپ‌لاین و جریان لحظه‌ای سفارشات کارخانه (n8n Visual Analytics)
+            </h2>
+          </div>
+          <span className="text-xs font-bold text-purple-700 bg-purple-50 px-3 py-1 rounded-full border border-purple-200">
+            رهگیری لحظه‌ای خطوط تولید
+          </span>
+        </div>
+
+        <N8nWorkflowCanvas
+          projects={projects}
+          onSelectProject={onSelectProject}
+        />
       </div>
 
       {/* Production Stages Distribution Chart */}

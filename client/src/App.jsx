@@ -563,6 +563,8 @@ export default function App() {
           {/* Dashboard Analytics */}
           {activeTab === 'dashboard' && (
             <DashboardView
+              projects={projects}
+              onSelectProject={(p) => openProjectModal(p.id)}
               onNavigateTab={(t) => navigateTab(t)}
             />
           )}
