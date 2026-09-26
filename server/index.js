@@ -2997,6 +2997,37 @@ app.get('/api/projects/:id', authMiddleware, (req, res) => {
   const p = db.prepare('SELECT * FROM projects WHERE id = ?').get(req.params.id);
   if (!p) return res.status(404).json({ error: 'پروژه یافت نشد' });
 
+  // Role-Based Project Access Control
+  const user = req.user;
+  const isCeoOrAdmin = user.role === 'ceo' || user.permissions?.can_manage_users || user.permissions?.can_view_archive;
+  
+  if (!isCeoOrAdmin) {
+    let hasAccess = false;
+    if (user.role === 'marketer') {
+      hasAccess = p.created_by == user.id || p.created_by === user.username || p.created_by === user.name || p.marketer_name === user.name || p.marketer_name === user.fullName || p.marketer_id == user.id;
+    } else if (user.role === 'design' || user.role === 'designer') {
+      hasAccess = [4, 5, 6].includes(Number(p.current_stage)) || p.assigned_to == user.id || p.designer_id == user.id;
+    } else if (user.role === 'sales') {
+      hasAccess = [1, 2, 3, 4, 6, 8, 11].includes(Number(p.current_stage)) || p.created_by == user.id || p.sales_person_id == user.id;
+    } else if (user.role === 'secretary') {
+      hasAccess = [1, 3].includes(Number(p.current_stage)) || p.created_by == user.id;
+    } else if (user.role === 'mockup') {
+      hasAccess = [7, 8].includes(Number(p.current_stage)) || p.assigned_to == user.id;
+    } else if (user.role === 'procurement' || user.role === 'warehouse') {
+      hasAccess = [8, 9, 10].includes(Number(p.current_stage)) || p.assigned_to == user.id;
+    } else if (user.role === 'production') {
+      hasAccess = [10, 11].includes(Number(p.current_stage)) || p.assigned_to == user.id;
+    } else if (user.role === 'estimation' || user.role === 'accounting') {
+      hasAccess = [1, 2, 3, 4].includes(Number(p.current_stage)) || p.created_by == user.id;
+    } else if (user.role === 'customer') {
+      hasAccess = [3, 6, 8].includes(Number(p.current_stage));
+    }
+
+    if (!hasAccess) {
+      return res.status(403).json({ error: 'شما مجاز به دیدن این پرونده نیستین', unauthorized: true });
+    }
+  }
+
   const logs = db.prepare('SELECT * FROM workflow_logs WHERE project_id = ? ORDER BY id ASC').all(p.id);
   const comments = db.prepare('SELECT * FROM project_comments WHERE project_id = ? ORDER BY id ASC').all(p.id);
   const purchaseOrders = db.prepare('SELECT * FROM purchase_orders WHERE project_id = ? ORDER BY id ASC').all(p.id);

@@ -207,6 +207,36 @@ function initDb() {
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS workflow_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      project_id INTEGER NOT NULL,
+      stage_number INTEGER NOT NULL,
+      stage_name TEXT NOT NULL,
+      action TEXT NOT NULL,
+      user_id INTEGER,
+      user_name TEXT,
+      user_role TEXT,
+      comment TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (project_id) REFERENCES projects(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS purchase_orders (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      project_id INTEGER NOT NULL,
+      material_type TEXT NOT NULL,
+      material_name TEXT NOT NULL,
+      quantity REAL NOT NULL,
+      unit TEXT NOT NULL,
+      unit_price REAL NOT NULL,
+      total_price REAL NOT NULL,
+      supplier_name TEXT,
+      supplier_phone TEXT,
+      status TEXT DEFAULT 'pending',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (project_id) REFERENCES projects(id)
+    );
+
     CREATE TABLE IF NOT EXISTS project_history (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       project_id INTEGER NOT NULL,
@@ -469,6 +499,46 @@ function initDb() {
   } catch (e) {}
 
   try {
+    db.prepare("ALTER TABLE projects ADD COLUMN length_mm REAL").run();
+  } catch (e) {}
+  try {
+    db.prepare("ALTER TABLE projects ADD COLUMN width_mm REAL").run();
+  } catch (e) {}
+  try {
+    db.prepare("ALTER TABLE projects ADD COLUMN height_mm REAL").run();
+  } catch (e) {}
+  try {
+    db.prepare("ALTER TABLE projects ADD COLUMN box_length REAL").run();
+  } catch (e) {}
+  try {
+    db.prepare("ALTER TABLE projects ADD COLUMN box_width REAL").run();
+  } catch (e) {}
+  try {
+    db.prepare("ALTER TABLE projects ADD COLUMN box_height REAL").run();
+  } catch (e) {}
+  try {
+    db.prepare("ALTER TABLE projects ADD COLUMN profit_margin REAL DEFAULT 20").run();
+  } catch (e) {}
+  try {
+    db.prepare("ALTER TABLE projects ADD COLUMN estimated_unit_price REAL").run();
+  } catch (e) {}
+  try {
+    db.prepare("ALTER TABLE projects ADD COLUMN estimated_total_price REAL").run();
+  } catch (e) {}
+  try {
+    db.prepare("ALTER TABLE projects ADD COLUMN cost_price REAL").run();
+  } catch (e) {}
+  try {
+    db.prepare("ALTER TABLE projects ADD COLUMN created_by INTEGER").run();
+  } catch (e) {}
+  try {
+    db.prepare("ALTER TABLE projects ADD COLUMN assigned_to INTEGER").run();
+  } catch (e) {}
+  try {
+    db.prepare("ALTER TABLE projects ADD COLUMN marketer_name TEXT").run();
+  } catch (e) {}
+
+  try {
     db.prepare("ALTER TABLE warehouse_receipts ADD COLUMN unit TEXT DEFAULT 'شیت'").run();
   } catch (e) {}
 
@@ -691,6 +761,72 @@ function initDb() {
       'قالب در کارخانه موجود است', 600000, 650, 8400000, 8400000,
       'green', 'استاد کاظمی', 12000, '1405/02/25', 'کار تحویل و فاکتور تسویه شد'
     );
+  }
+
+  // Seed default 11-stage workflow projects
+  try {
+    const checkProjects = db.prepare('SELECT COUNT(*) as count FROM projects').get();
+    if (checkProjects && checkProjects.count === 0) {
+      const insertProj = db.prepare(`
+        INSERT INTO projects (
+          archive_code, order_code, title, customer_name, customer_phone,
+          box_type, box_structure, quantity, current_stage, status, priority,
+          has_cardboard, cardboard_type, cardboard_grammage, length_mm, width_mm, height_mm,
+          has_print, print_type, print_colors_count, print_format, print_length, print_width, boxes_per_sheet,
+          has_cellophane, cellophane_type, has_foil, foil_type, has_blade, blade_type, has_glue, glue_type,
+          estimated_unit_price, estimated_total_price, cost_price, profit_margin, created_by, assigned_to
+        ) VALUES (
+          ?, ?, ?, ?, ?,
+          ?, ?, ?, ?, ?, ?,
+          ?, ?, ?, ?, ?, ?,
+          ?, ?, ?, ?, ?, ?, ?,
+          ?, ?, ?, ?, ?, ?, ?, ?,
+          ?, ?, ?, ?, ?, ?
+        )
+      `);
+
+      // 1. Stage 5: Design stage (طراحی خط تیغ)
+      insertProj.run(
+        '8609', '10745', 'جعبه قطعات الکتروژن BLDC', 'الکتروژن', '09121111111',
+        'جعبه مقوایی پشت طوسی صنعتی', 'درب دارویی ته قفلی (Lock-Bottom)', 40300, 5, 'in_progress', 'high',
+        1, 'پشت طوسی راشا', 180, 120, 80, 200,
+        1, 'افست ۴ رنگ CMYK', 4, 'ورقی', 700, 1000, 4,
+        1, 'سلفون مات', 0, null, 1, 'دایکات بوبست', 1, 'لب‌چسب اتوماتیک',
+        3600, 145080000, 2900, 24, 1, 6
+      );
+
+      // 2. Stage 7: Mockup Stage (ماکت‌سازی)
+      insertProj.run(
+        '8752', '10759', 'زیره و رویه دسر سوهان', 'صنایع غذایی خودکار', '09122222222',
+        'جعبه مقوایی ایندربرد بهداشتی', 'جعبه تلسکوپی (درب و ته مجزا)', 7700, 7, 'in_progress', 'normal',
+        1, 'ایندربرد', 270, 200, 150, 60,
+        1, 'افست ۵ رنگ (CMYK + Gold)', 5, 'ورقی', 800, 1000, 2,
+        1, 'سلفون مات', 1, 'طلاکوب طلایی براق', 1, 'لترپرس', 1, 'جعبه‌چسبانی دستی',
+        7500, 57750000, 6100, 23, 1, 7
+      );
+
+      // 3. Stage 10: Floor Production (خط تولید)
+      insertProj.run(
+        '8966', '10791', 'جعبه پودر فیکس گابرینی', 'آرایشی بهداشتی ممقانی', '09123333333',
+        'جعبه مقوایی ایندربرد بهداشتی', 'درب دارویی ساده (Tuck End)', 2300, 10, 'in_progress', 'high',
+        1, 'ایندربرد بهداشتی', 300, 65, 65, 140,
+        1, 'افست ۴ رنگ CMYK', 4, 'دوربرقی', 600, 890, 6,
+        1, 'سلفون مات', 0, null, 1, 'دایکات فکی', 1, 'اتوماتیک',
+        10650, 24495000, 8500, 25, 2, 9
+      );
+
+      // 4. Stage 1: Sales / Reception (ثبت سفارش)
+      insertProj.run(
+        '9140', '10806', 'کارتن قرقره K200', 'صنایع کابل راماسیم', '09124444444',
+        'کارتن لمینتی E فلوت', 'کیبوردی قفل‌دار (Mail-Lock)', 22000, 1, 'in_progress', 'normal',
+        1, 'پشت طوسی راشا + E فلوت', 180, 250, 200, 180,
+        1, 'افست ۴ رنگ CMYK', 4, 'ورقی', 650, 900, 2,
+        1, 'سلفون براق', 0, null, 1, 'دایکات روتاری', 1, 'اتوماتیک',
+        12500, 275000000, 9800, 27, 2, null
+      );
+    }
+  } catch (e) {
+    console.error('Error seeding projects:', e);
   }
 
   // Seed default activity logs (نمونه گزارش لاگ‌های سیستم)

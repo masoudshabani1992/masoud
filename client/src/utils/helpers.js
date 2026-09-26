@@ -417,6 +417,65 @@ export const BOX_STRUCTURES = [
   'جعبه دسته‌دار فانتزی'
 ];
 
+// Role-Based Project Access Authorization Checker
+export function canUserAccessProject(user, project) {
+  if (!user || !project) return false;
+  const role = user.role;
+  
+  // CEO & Admins have full access to all factory projects
+  if (role === 'ceo' || user.permissions?.can_manage_users || user.permissions?.can_view_archive) {
+    return true;
+  }
+
+  // Marketers can ONLY access their own leads and projects
+  if (role === 'marketer') {
+    return Boolean(
+      project.created_by == user.id ||
+      project.created_by === user.username ||
+      project.created_by === user.name ||
+      (project.marketer_name && (project.marketer_name === user.name || project.marketer_name === user.fullName)) ||
+      project.marketer_id == user.id
+    );
+  }
+
+  // Designers can only access projects in design stages (4: CEO approval, 5: Atelier design, 6: Customer design approval) or assigned to them
+  if (role === 'design' || role === 'designer') {
+    return [4, 5, 6].includes(Number(project.current_stage)) || project.assigned_to == user.id || project.designer_id == user.id;
+  }
+
+  // Sales / Commercial can access sales stages (1, 2, 3, 4, 6, 8, 11) or projects created by them
+  if (role === 'sales') {
+    return [1, 2, 3, 4, 6, 8, 11].includes(Number(project.current_stage)) || project.created_by == user.id || project.sales_person_id == user.id;
+  }
+
+  // Secretary can access stage 1 (order intake) and stage 3, or projects created by secretary
+  if (role === 'secretary') {
+    return [1, 3].includes(Number(project.current_stage)) || project.created_by == user.id;
+  }
+
+  // Mockup Unit
+  if (role === 'mockup') {
+    return [7, 8].includes(Number(project.current_stage)) || project.assigned_to == user.id;
+  }
+
+  // Warehouse / Procurement
+  if (role === 'procurement' || role === 'warehouse') {
+    return [8, 9, 10].includes(Number(project.current_stage)) || project.assigned_to == user.id;
+  }
+
+  // Floor Production
+  if (role === 'production') {
+    return [10, 11].includes(Number(project.current_stage)) || project.assigned_to == user.id;
+  }
+
+  // Estimation & Cost Accounting
+  if (role === 'estimation' || role === 'accounting') {
+    return [1, 2, 3, 4].includes(Number(project.current_stage)) || project.created_by == user.id;
+  }
+
+  return false;
+}
+
 // Web Audio API Ding-Dong Notification Sound Generator (100% offline & free)
 export function playNotificationSound() {
   try {

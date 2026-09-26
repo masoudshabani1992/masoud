@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { matchProduct, formatToman } from '../utils/helpers';
+import { matchProduct, formatToman, canUserAccessProject } from '../utils/helpers';
 import {
   Search,
   PlusCircle,
@@ -23,7 +23,11 @@ import {
   CheckCircle2,
   Clock,
   Phone,
-  FileText
+  FileText,
+  ShieldAlert,
+  ShieldCheck,
+  Lock,
+  AlertCircle
 } from 'lucide-react';
 
 export default function CommandPaletteModal({
@@ -38,12 +42,14 @@ export default function CommandPaletteModal({
   const { currentUser, role, hasPermission } = useAuth();
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [accessDeniedMessage, setAccessDeniedMessage] = useState(null);
   const inputRef = useRef(null);
 
   useEffect(() => {
     if (isOpen) {
       setQuery('');
       setSelectedIndex(0);
+      setAccessDeniedMessage(null);
       setTimeout(() => inputRef.current?.focus(), 50);
     }
   }, [isOpen]);
@@ -71,7 +77,6 @@ export default function CommandPaletteModal({
       color: 'text-emerald-600 bg-emerald-50',
       action: () => {
         onNavigate('marketing');
-        // trigger new lead tab if needed
       },
       visible: hasPermission('can_view_marketing')
     },
@@ -118,7 +123,7 @@ export default function CommandPaletteModal({
     {
       id: 'archive',
       title: 'آرشیو جامع محصولات و سفارشات',
-      subtitle: 'بانک اطلاعات جعبه‌ها و جستجوی کدهای بایگانی',
+      subtitle: 'جستجو در بانک اطلاعاتی جعبه‌ها، نقشه‌ها و تاریخچه',
       category: 'ماژول‌ها',
       icon: Boxes,
       color: 'text-purple-600 bg-purple-50',
@@ -127,9 +132,9 @@ export default function CommandPaletteModal({
     },
     {
       id: 'ai_assistant',
-      title: 'دستیار هوش مصنوعی کارخانه جعبه‌سازی',
-      subtitle: 'استخراج استعلام از متن، چیدمان بهینه شیت و بازرسی خط تیغ',
-      category: 'ماژول‌ها',
+      title: 'دستیار هوش مصنوعی کارخانه (AI Packaging Assistant)',
+      subtitle: 'استخراج هوشمند سفارش از پیام مشتری و چیدمان شیت',
+      category: 'ابزارها',
       icon: Sparkles,
       color: 'text-rose-600 bg-rose-50',
       action: () => onNavigate('ai_assistant'),
@@ -137,11 +142,11 @@ export default function CommandPaletteModal({
     },
     {
       id: 'my_tasks',
-      title: 'کارتابل وظایف من (امور منتظر اقدام)',
-      subtitle: 'سفارش‌های نیازمند تایید یا اقدام واحد شما',
-      category: 'ماژول‌ها',
+      title: 'کارتابل وظایف من',
+      subtitle: 'مشاهده سفارشات در انتظار اقدام واحد شما',
+      category: 'کارتابل',
       icon: Inbox,
-      color: 'text-blue-600 bg-blue-50',
+      color: 'text-emerald-600 bg-emerald-50',
       action: () => onNavigate('my_tasks'),
       visible: hasPermission('can_view_my_tasks')
     },
@@ -189,9 +194,29 @@ export default function CommandPaletteModal({
   // Filter Projects based on search (کد آرشیو، مشتری، تلفن، محصول)
   const matchingProjects = query.trim() === ''
     ? []
-    : projects.filter(p => matchProduct(p, query)).slice(0, 5);
+    : projects.filter(p => matchProduct(p, query)).slice(0, 8);
 
   const totalResults = [...filteredNav, ...matchingProjects];
+
+  const handleSelectItem = (item) => {
+    if (item.action) {
+      item.action();
+      onClose();
+    } else if (item.id) {
+      // It's a project: Check User Access Authorization
+      const hasAccess = canUserAccessProject(currentUser, item);
+      if (!hasAccess) {
+        setAccessDeniedMessage(`شما مجاز به دیدن این پرونده نیستین (کد: ${item.archive_code || item.tracking_code || item.id})`);
+        return;
+      }
+      if (onSelectProject) {
+        onSelectProject(item.id);
+      } else {
+        onNavigate('archive');
+      }
+      onClose();
+    }
+  };
 
   const handleKeyDown = (e) => {
     if (e.key === 'ArrowDown') {
@@ -203,18 +228,7 @@ export default function CommandPaletteModal({
     } else if (e.key === 'Enter') {
       e.preventDefault();
       if (totalResults[selectedIndex]) {
-        const item = totalResults[selectedIndex];
-        if (item.action) {
-          item.action();
-        } else if (item.id) {
-          // It's a project
-          if (onSelectProject) {
-            onSelectProject(item.id);
-          } else {
-            onNavigate('archive');
-          }
-        }
-        onClose();
+        handleSelectItem(totalResults[selectedIndex]);
       }
     } else if (e.key === 'Escape') {
       onClose();
@@ -242,13 +256,17 @@ export default function CommandPaletteModal({
             onChange={(e) => {
               setQuery(e.target.value);
               setSelectedIndex(0);
+              setAccessDeniedMessage(null);
             }}
             onKeyDown={handleKeyDown}
             className="w-full bg-transparent text-sm sm:text-base font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none"
           />
           {query && (
             <button
-              onClick={() => setQuery('')}
+              onClick={() => {
+                setQuery('');
+                setAccessDeniedMessage(null);
+              }}
               className="p-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition"
             >
               <X className="w-4 h-4" />
@@ -258,6 +276,22 @@ export default function CommandPaletteModal({
             ESC جهت خروج
           </span>
         </div>
+
+        {/* Access Denied Alert Banner */}
+        {accessDeniedMessage && (
+          <div className="bg-rose-50 border-b border-rose-200 p-3.5 flex items-center justify-between animate-in slide-in-from-top-2">
+            <div className="flex items-center gap-2 text-rose-900 font-bold text-xs sm:text-sm">
+              <Lock className="w-4 h-4 text-rose-600 shrink-0" />
+              <span>{accessDeniedMessage}</span>
+            </div>
+            <button
+              onClick={() => setAccessDeniedMessage(null)}
+              className="text-rose-500 hover:text-rose-700 p-1"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
         {/* Results Container */}
         <div className="max-h-[60vh] overflow-y-auto p-2 divide-y divide-slate-100">
@@ -273,10 +307,7 @@ export default function CommandPaletteModal({
                   <button
                     key={item.id}
                     type="button"
-                    onClick={() => {
-                      item.action();
-                      onClose();
-                    }}
+                    onClick={() => handleSelectItem(item)}
                     onMouseEnter={() => setSelectedIndex(idx)}
                     className={`w-full p-3 rounded-2xl flex items-center justify-between transition text-right ${
                       isSelected ? 'bg-indigo-50 border border-indigo-200 text-indigo-950 shadow-xs' : 'hover:bg-slate-50 text-slate-700'
@@ -311,26 +342,23 @@ export default function CommandPaletteModal({
               {matchingProjects.map((p, pIdx) => {
                 const itemIndex = filteredNav.length + pIdx;
                 const isSelected = selectedIndex === itemIndex;
+                const hasAccess = canUserAccessProject(currentUser, p);
+
                 return (
                   <button
                     key={p.id}
                     type="button"
-                    onClick={() => {
-                      if (onSelectProject) {
-                        onSelectProject(p.id);
-                      } else {
-                        onNavigate('archive');
-                      }
-                      onClose();
-                    }}
+                    onClick={() => handleSelectItem(p)}
                     onMouseEnter={() => setSelectedIndex(itemIndex)}
                     className={`w-full p-3 rounded-2xl flex items-center justify-between transition text-right ${
                       isSelected ? 'bg-indigo-50 border border-indigo-200 text-indigo-950 shadow-xs' : 'hover:bg-slate-50 text-slate-700'
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-700 border border-purple-200 flex items-center justify-center shrink-0 font-bold text-xs">
-                        {p.archive_code || p.tracking_code}
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 font-bold text-xs border ${
+                        hasAccess ? 'bg-purple-50 text-purple-700 border-purple-200' : 'bg-slate-100 text-slate-400 border-slate-200'
+                      }`}>
+                        {hasAccess ? (p.archive_code || p.tracking_code) : <Lock className="w-4 h-4 text-slate-400" />}
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
@@ -343,9 +371,18 @@ export default function CommandPaletteModal({
                       </div>
                     </div>
 
-                    <span className="text-[10px] font-bold px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded-md">
-                      مشاهده در آرشیو
-                    </span>
+                    <div>
+                      {hasAccess ? (
+                        <span className="text-[10px] font-bold px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded-md">
+                          مشاهده پرونده
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-bold px-2 py-0.5 bg-rose-50 text-rose-700 border border-rose-200 rounded-md flex items-center gap-1">
+                          <Lock className="w-3 h-3" />
+                          <span>عدم دسترسی</span>
+                        </span>
+                      )}
+                    </div>
                   </button>
                 );
               })}

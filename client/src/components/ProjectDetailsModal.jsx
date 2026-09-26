@@ -44,6 +44,7 @@ export default function ProjectDetailsModal({ projectId, onClose, onUpdated, onP
   const { currentUser, role } = useAuth();
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [accessError, setAccessError] = useState(null);
   const [activeTab, setActiveTab] = useState('workflow'); // 'workflow', 'notes', 'history', 'specs'
   const [newComment, setNewComment] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
@@ -136,10 +137,16 @@ export default function ProjectDetailsModal({ projectId, onClose, onUpdated, onP
   const fetchProjectDetails = async () => {
     try {
       setLoading(true);
+      setAccessError(null);
       const res = await api.getProject(projectId);
       setProject(res.project);
     } catch (err) {
       console.error(err);
+      if (err.message?.includes('مجاز') || err.message?.includes('دسترسی') || err.unauthorized) {
+        setAccessError('شما مجاز به دیدن این پرونده نیستین');
+      } else {
+        setAccessError(err.message || 'خطا در دریافت اطلاعات پرونده');
+      }
     } finally {
       setLoading(false);
     }
@@ -358,7 +365,29 @@ export default function ProjectDetailsModal({ projectId, onClose, onUpdated, onP
 
         {/* Modal Main Content */}
         <div className="p-4 sm:p-6 overflow-y-auto flex-1 space-y-6">
-          {loading ? (
+          {accessError ? (
+            <div className="py-12 px-4 text-center space-y-4 max-w-lg mx-auto">
+              <div className="w-16 h-16 bg-rose-100 text-rose-600 rounded-3xl flex items-center justify-center mx-auto shadow-lg shadow-rose-100">
+                <Lock className="w-8 h-8" />
+              </div>
+              <h3 className="text-lg font-black text-slate-900">عدم دسترسی به پرونده</h3>
+              <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-800 font-bold text-sm">
+                «شما مجاز به دیدن این پرونده نیستین»
+              </div>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                این پرونده خارج از حوزه مسئولیت سازمانی، مرحله گردش‌کار یا دسترسی‌های تعیین‌شده واحد شما در کارخانه می‌باشد. جهت پیگیری با واحد مدیریت هماهنگ نمایید.
+              </p>
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition shadow-sm"
+                >
+                  بازگشت و بستن پرونده
+                </button>
+              </div>
+            </div>
+          ) : loading ? (
             <div className="py-20 text-center text-slate-400">در حال بارگذاری اطلاعات پروژه...</div>
           ) : !project ? (
             <div className="py-20 text-center text-rose-500">پروژه یافت نشد.</div>

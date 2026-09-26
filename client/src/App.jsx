@@ -136,53 +136,164 @@ export default function App() {
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [printProject, setPrintProject] = useState(null);
 
+  // Open / Close Modals with History Support
+  const openProjectModal = (projId) => {
+    setSelectedProjectId(projId);
+    if (window.history) {
+      window.history.pushState({ tab: activeTab, modal: 'project', id: projId }, '', `#project-${projId}`);
+    }
+  };
+
+  const closeProjectModal = () => {
+    setSelectedProjectId(null);
+    if (window.history?.state?.modal === 'project') {
+      window.history.back();
+    }
+  };
+
+  const openPrintModal = (proj) => {
+    setPrintProject(proj);
+    if (window.history) {
+      window.history.pushState({ tab: activeTab, modal: 'print', id: proj.id }, '', `#print-${proj.id}`);
+    }
+  };
+
+  const closePrintModal = () => {
+    setPrintProject(null);
+    if (window.history?.state?.modal === 'print') {
+      window.history.back();
+    }
+  };
+
+  const openSearchModal = () => {
+    setShowCommandPalette(true);
+    if (window.history) {
+      window.history.pushState({ tab: activeTab, modal: 'search' }, '', `#search`);
+    }
+  };
+
+  const closeSearchModal = () => {
+    setShowCommandPalette(false);
+    if (window.history?.state?.modal === 'search') {
+      window.history.back();
+    }
+  };
+
+  const openNotificationsModal = () => {
+    setShowNotificationModal(true);
+    if (window.history) {
+      window.history.pushState({ tab: activeTab, modal: 'notifications' }, '', `#notifications`);
+    }
+  };
+
+  const closeNotificationsModal = () => {
+    setShowNotificationModal(false);
+    if (window.history?.state?.modal === 'notifications') {
+      window.history.back();
+    }
+  };
+
+  const openLicenseModal = () => {
+    setShowLicenseModal(true);
+    if (window.history) {
+      window.history.pushState({ tab: activeTab, modal: 'license' }, '', `#license`);
+    }
+  };
+
+  const closeLicenseModal = () => {
+    setShowLicenseModal(false);
+    if (window.history?.state?.modal === 'license') {
+      window.history.back();
+    }
+  };
+
   // Navigate with browser history support (Back Button handler)
   const navigateTab = (newTab, addToHistory = true) => {
     if (newTab !== 'new_order') setReorderData(null);
     setActiveTab(newTab);
+    // Close modals on tab change
+    setSelectedProjectId(null);
+    setPrintProject(null);
+    setShowCommandPalette(false);
+    setShowNotificationModal(false);
+    setShowLicenseModal(false);
+
     if (addToHistory && window.history) {
-      window.history.pushState({ tab: newTab }, '', `#${newTab}`);
+      window.history.pushState({ tab: newTab, modal: null }, '', `#${newTab}`);
     }
   };
 
-  // 1. Browser Back Button Listener (popstate)
+  // Browser Back & Forward Button Listener (popstate)
   useEffect(() => {
-    // Initial state
+    // Initial state setup
     if (window.history && !window.history.state) {
-      window.history.replaceState({ tab: activeTab }, '', `#${activeTab}`);
+      window.history.replaceState({ tab: activeTab, modal: null }, '', `#${activeTab}`);
     }
 
     const handlePopState = (event) => {
-      // If modal is open, close modal first
-      if (selectedProjectId) {
+      const state = event.state;
+      if (!state) {
         setSelectedProjectId(null);
-        return;
-      }
-      if (printProject) {
         setPrintProject(null);
-        return;
-      }
-      if (showNotificationModal) {
+        setShowCommandPalette(false);
         setShowNotificationModal(false);
-        return;
-      }
-      if (showLicenseModal) {
         setShowLicenseModal(false);
+        const fallback = getDefaultTabForUser(currentUser, hasPermission);
+        setActiveTab(fallback);
+        if (window.history) {
+          window.history.replaceState({ tab: fallback, modal: null }, '', `#${fallback}`);
+        }
         return;
       }
 
-      // If state has tab, restore tab
-      if (event.state && event.state.tab) {
-        setActiveTab(event.state.tab);
+      // Restore Modal or Tab from History State
+      if (state.modal === 'project' && state.id) {
+        setSelectedProjectId(state.id);
+        setPrintProject(null);
+        setShowCommandPalette(false);
+        setShowNotificationModal(false);
+        setShowLicenseModal(false);
+      } else if (state.modal === 'print' && state.id) {
+        const found = projects.find(p => p.id === state.id);
+        if (found) setPrintProject(found);
+        setSelectedProjectId(null);
+        setShowCommandPalette(false);
+        setShowNotificationModal(false);
+        setShowLicenseModal(false);
+      } else if (state.modal === 'search') {
+        setShowCommandPalette(true);
+        setSelectedProjectId(null);
+        setPrintProject(null);
+        setShowNotificationModal(false);
+        setShowLicenseModal(false);
+      } else if (state.modal === 'notifications') {
+        setShowNotificationModal(true);
+        setSelectedProjectId(null);
+        setPrintProject(null);
+        setShowCommandPalette(false);
+        setShowLicenseModal(false);
+      } else if (state.modal === 'license') {
+        setShowLicenseModal(true);
+        setSelectedProjectId(null);
+        setPrintProject(null);
+        setShowCommandPalette(false);
+        setShowNotificationModal(false);
       } else {
-        const fallback = getDefaultTabForUser(currentUser, hasPermission);
-        setActiveTab(fallback);
+        // No modal in state -> close all modals and activate tab
+        setSelectedProjectId(null);
+        setPrintProject(null);
+        setShowCommandPalette(false);
+        setShowNotificationModal(false);
+        setShowLicenseModal(false);
+        if (state.tab) {
+          setActiveTab(state.tab);
+        }
       }
     };
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [selectedProjectId, printProject, showNotificationModal, showLicenseModal, activeTab, role, currentUser]);
+  }, [projects, currentUser, hasPermission, activeTab]);
 
   // Enforce Strict Role Isolation & Permissions Filter
   useEffect(() => {
@@ -357,9 +468,9 @@ export default function App() {
         setActiveTab={(tab) => navigateTab(tab)}
         myPendingCount={myPendingTasksCount}
         unreadNotificationsCount={unreadNotifCount}
-        onOpenNotifications={() => setShowNotificationModal(true)}
-        onOpenLicense={() => setShowLicenseModal(true)}
-        onOpenSearch={() => setShowCommandPalette(true)}
+        onOpenNotifications={openNotificationsModal}
+        onOpenLicense={openLicenseModal}
+        onOpenSearch={openSearchModal}
         licenseInfo={licenseState.license}
       />
 
@@ -403,8 +514,8 @@ export default function App() {
           {activeTab === 'archive' && (
             <ProductsArchiveView
               projects={projects}
-              onSelectProject={(p) => setSelectedProjectId(p.id)}
-              onPrintTicket={(p) => setPrintProject(p)}
+              onSelectProject={(p) => openProjectModal(p.id)}
+              onPrintTicket={(p) => openPrintModal(p)}
               onReorderProject={handleStartReorder}
               onRefresh={fetchProjects}
             />
@@ -414,8 +525,8 @@ export default function App() {
           {activeTab === 'kanban' && (
             <KanbanBoard
               projects={projects}
-              onSelectProject={(p) => setSelectedProjectId(p.id)}
-              onPrintTicket={(p) => setPrintProject(p)}
+              onSelectProject={(p) => openProjectModal(p.id)}
+              onPrintTicket={(p) => openPrintModal(p)}
               currentRole={role}
             />
           )}
@@ -424,8 +535,8 @@ export default function App() {
           {activeTab === 'my_tasks' && (
             <MyTasksInbox
               projects={projects}
-              onSelectProject={(p) => setSelectedProjectId(p.id)}
-              onPrintTicket={(p) => setPrintProject(p)}
+              onSelectProject={(p) => openProjectModal(p.id)}
+              onPrintTicket={(p) => openPrintModal(p)}
             />
           )}
 
@@ -581,9 +692,9 @@ export default function App() {
       {selectedProjectId && (
         <ProjectDetailsModal
           projectId={selectedProjectId}
-          onClose={() => setSelectedProjectId(null)}
+          onClose={closeProjectModal}
           onUpdated={() => fetchProjects()}
-          onPrintTicket={(p) => setPrintProject(p)}
+          onPrintTicket={(p) => openPrintModal(p)}
         />
       )}
 
@@ -591,7 +702,7 @@ export default function App() {
       {printProject && (
         <PrintTicketModal
           project={printProject}
-          onClose={() => setPrintProject(null)}
+          onClose={closePrintModal}
         />
       )}
 
@@ -599,14 +710,14 @@ export default function App() {
       {showNotificationModal && (
         <NotificationCenterModal
           onClose={() => {
-            setShowNotificationModal(false);
+            closeNotificationsModal();
             fetchNotificationsCount();
           }}
           onSelectProject={(p) => {
             if (p.type === 'lead') {
               handleOpenLeadFromNotification(p.leadId, p.archiveCode);
             } else {
-              setSelectedProjectId(p.id);
+              openProjectModal(p.id);
             }
           }}
           onSelectLead={handleOpenLeadFromNotification}
@@ -616,7 +727,7 @@ export default function App() {
       {/* License Status & Details Modal */}
       <LicenseStatusModal
         isOpen={showLicenseModal}
-        onClose={() => setShowLicenseModal(false)}
+        onClose={closeLicenseModal}
         licenseInfo={licenseState.license}
         hardwareId={licenseState.hardwareId}
         onLicenseUpdated={(newLic) => {
@@ -632,16 +743,16 @@ export default function App() {
       <FloatingQuickDock
         activeTab={activeTab}
         onNavigate={(tab) => navigateTab(tab)}
-        onOpenSearch={() => setShowCommandPalette(true)}
+        onOpenSearch={openSearchModal}
       />
 
       {/* Universal Search & Command Palette Modal (Ctrl + K) */}
       <CommandPaletteModal
         isOpen={showCommandPalette}
-        onClose={() => setShowCommandPalette(false)}
+        onClose={closeSearchModal}
         onNavigate={(tab) => navigateTab(tab)}
         onOpenNewOrder={() => navigateTab('new_order')}
-        onSelectProject={(projId) => setSelectedProjectId(projId)}
+        onSelectProject={(projId) => openProjectModal(projId)}
         projects={projects}
       />
     </div>
