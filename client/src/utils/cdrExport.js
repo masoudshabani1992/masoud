@@ -171,13 +171,13 @@ CREASE_LAYER_COLOR=#22C55E
 
     // Add content folder with vector artwork
     const contentFolder = zip.folder('content');
-    contentFolder.file('page1.svg', coreSvg);
+    contentFolder.file('page1.svg', corelSvg);
     contentFolder.file('root.dat', rootDat);
-    contentFolder.file('dieline_vectors.xml', coreSvg);
+    contentFolder.file('dieline_vectors.xml', corelSvg);
 
     // Add previews folder for thumbnail support
     const previewsFolder = zip.folder('previews');
-    previewsFolder.file('thumbnail.svg', coreSvg);
+    previewsFolder.file('thumbnail.svg', corelSvg);
 
     // Generate .CDR Binary Blob
     const cdrBlob = await zip.generateAsync({
