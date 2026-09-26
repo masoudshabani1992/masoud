@@ -41,6 +41,7 @@ export default function MyTasksInbox({
 
   const allMyTasks = projects.filter((p) => targetStages.includes(p.current_stage));
   const myTasks = allMyTasks.filter((p) => matchProduct(p, searchTerm));
+  const canViewFinancials = role === 'ceo' || role === 'sales' || role === 'accounting' || role === 'estimation';
 
   const getRoleIcon = (stageId) => {
     switch (stageId) {
@@ -195,12 +196,17 @@ export default function MyTasksInbox({
                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-200/80 space-y-2 text-xs sm:text-sm">
                   <div className="flex items-center justify-between text-slate-600">
                     <span>نوع و ساختار جعبه:</span>
-                    <strong className="text-slate-800 font-bold">{proj.box_type} - {proj.box_structure}</strong>
+                    <strong className="text-slate-800 font-bold">{proj.box_type || 'مقوا تک‌لا'} - {proj.box_structure || 'درب دارویی ساده'}</strong>
                   </div>
                   <div className="flex items-center justify-between text-slate-600">
                     <span>ابعاد (طول × عرض × ارتفاع):</span>
                     <strong className="font-mono text-slate-900 font-black">
-                      {proj.length_mm} × {proj.width_mm} × {proj.height_mm} mm
+                      {(() => {
+                        const l = proj.box_length || proj.length_mm || proj.cardboard_length || proj.length || '';
+                        const w = proj.box_width || proj.width_mm || proj.cardboard_width || proj.width || '';
+                        const h = proj.box_height || proj.height_mm || proj.cardboard_height || proj.height || '';
+                        return (l && w && h) ? `${l} × ${w} × ${h} mm` : (proj.dimensions || 'طبق فایل خط تیغ');
+                      })()}
                     </strong>
                   </div>
                   <div className="flex items-center justify-between text-slate-600">
@@ -209,7 +215,8 @@ export default function MyTasksInbox({
                       {formatNumber(proj.quantity)} عدد
                     </strong>
                   </div>
-                  {proj.estimated_total_price > 0 && (
+                  {/* Financial estimates ONLY shown to CEO / Sales / Accounting */}
+                  {canViewFinancials && proj.estimated_total_price > 0 && (
                     <div className="flex items-center justify-between text-slate-700 pt-2 border-t border-slate-200">
                       <span>مبلغ کل برآورد:</span>
                       <strong className="text-emerald-700 font-black text-sm sm:text-base">

@@ -28,7 +28,6 @@ import {
   Compass
 } from 'lucide-react';
 import { api } from '../api/client';
-import DielineGeneratorView from './DielineGeneratorView';
 
 const SAMPLE_PROMPTS = [
   {
@@ -50,7 +49,7 @@ const SAMPLE_PROMPTS = [
 ];
 
 export default function AiAssistantView({ onTransferToOrderForm }) {
-  const [activeTab, setActiveTab] = useState('dieline'); // 'dieline' | 'nlp' | 'nesting' | 'preflight'
+  const [activeTab, setActiveTab] = useState('nlp'); // 'nlp' | 'nesting' | 'preflight'
 
   // Tab 1: NLP Order State
   const [promptText, setPromptText] = useState('');
@@ -180,41 +179,30 @@ export default function AiAssistantView({ onTransferToOrderForm }) {
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">
-                  استودیو طراحی امیران و دستیار هوشمند بسته‌بندی
+                <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center gap-2">
+                  <Sparkles className="w-6 h-6 text-amber-300 animate-pulse" />
+                  <span>دستیار هوش مصنوعی کارخانه (AI Packaging Assistant)</span>
                 </h1>
                 <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                  Amiran Design Studio & AI v2.5
+                  Amiran AI Engine v2.5
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl leading-relaxed">
-                تولید نقشه‌های وکتور خط تیغ استانداردهای ECMA و FEFCO، خروجی‌های 1:1 ایلاستریتور (.AI)، اتوکد (.DXF) و PDF، پیش‌نمایش ۳ بعدی و بازرسی هوشمند چاپ.
+                استخراج خودکار مشخصات جعبه از متن و پیام مشتری، بهینه‌سازی هوشمند چیدمان شیت و محاسبه درصد باطله چاپ، و بازرسی فنی خط تیغ قبل از لیتوگرافی.
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2 bg-slate-800/80 p-1.5 rounded-2xl border border-slate-700/60 shrink-0 flex-wrap">
             <button
-              onClick={() => setActiveTab('dieline')}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
-                activeTab === 'dieline'
-                  ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-md font-black'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-700'
-              }`}
-            >
-              <Scissors className="w-4 h-4" />
-              <span>استودیو خط تیغ امیران</span>
-            </button>
-
-            <button
               onClick={() => setActiveTab('nlp')}
               className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
                 activeTab === 'nlp'
-                  ? 'bg-indigo-600 text-white shadow-md font-black'
+                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md font-black ring-1 ring-purple-400'
                   : 'text-slate-300 hover:text-white hover:bg-slate-700'
               }`}
             >
-              <Bot className="w-4 h-4" />
+              <Bot className="w-4 h-4 text-purple-300" />
               <span>استخراج سفارش از متن (NLP)</span>
             </button>
 
@@ -222,12 +210,12 @@ export default function AiAssistantView({ onTransferToOrderForm }) {
               onClick={() => setActiveTab('nesting')}
               className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
                 activeTab === 'nesting'
-                  ? 'bg-indigo-600 text-white shadow-md font-black'
+                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md font-black ring-1 ring-purple-400'
                   : 'text-slate-300 hover:text-white hover:bg-slate-700'
               }`}
             >
-              <Layers className="w-4 h-4" />
-              <span>محاسبه باطله شیت</span>
+              <Layers className="w-4 h-4 text-cyan-300" />
+              <span>بهینه‌ساز فرم‌بندی و باطله شیت</span>
             </button>
 
             <button
@@ -237,25 +225,16 @@ export default function AiAssistantView({ onTransferToOrderForm }) {
               }}
               className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
                 activeTab === 'preflight'
-                  ? 'bg-indigo-600 text-white shadow-md font-black'
+                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md font-black ring-1 ring-purple-400'
                   : 'text-slate-300 hover:text-white hover:bg-slate-700'
               }`}
             >
-              <ShieldCheck className="w-4 h-4" />
+              <ShieldCheck className="w-4 h-4 text-emerald-300" />
               <span>بازرسی فنی چاپ (Preflight)</span>
             </button>
           </div>
         </div>
       </div>
-
-      {/* ================= TAB 0: DIELINE STUDIO ================= */}
-      {activeTab === 'dieline' && (
-        <DielineGeneratorView
-          onTransferToOrder={(specs) => {
-            if (onTransferToOrderForm) onTransferToOrderForm(specs);
-          }}
-        />
-      )}
 
       {/* ================= TAB 1: NLP PROMPT PARSER ================= */}
       {activeTab === 'nlp' && (
