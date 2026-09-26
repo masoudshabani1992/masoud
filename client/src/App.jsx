@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from './context/AuthContext';
 import { api } from './api/client';
 import Header from './components/Header';
+import RightSidebar from './components/RightSidebar';
 import LoginView from './components/LoginView';
 import DepartmentHubView from './components/DepartmentHubView';
 import KanbanBoard from './components/KanbanBoard';
@@ -107,6 +108,7 @@ export default function App() {
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [showLicenseModal, setShowLicenseModal] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   // Global Ctrl+K / Cmd+K Command Palette Listener
   useEffect(() => {
@@ -461,9 +463,9 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col font-sans w-full text-slate-800">
-      {/* Universal Header */}
-      <Header
+    <div className="min-h-screen bg-slate-100 flex font-sans w-full text-slate-800" dir="rtl">
+      {/* Right Sidebar Modern Navigation */}
+      <RightSidebar
         activeTab={activeTab}
         setActiveTab={(tab) => navigateTab(tab)}
         myPendingCount={myPendingTasksCount}
@@ -471,18 +473,34 @@ export default function App() {
         onOpenNotifications={openNotificationsModal}
         onOpenLicense={openLicenseModal}
         onOpenSearch={openSearchModal}
-        licenseInfo={licenseState.license}
+        isOpenMobile={isMobileSidebarOpen}
+        onCloseMobile={() => setIsMobileSidebarOpen(false)}
       />
 
-      {/* Main Content Area Wrapped with Error Boundary */}
-      <main
-        className={
-          activeTab === 'dieline_generator' || activeTab === '3d_studio'
-            ? 'flex-1 w-full h-[calc(100vh-64px)] max-h-[calc(100vh-64px)] overflow-hidden p-2 sm:p-3'
-            : 'flex-1 w-full max-w-[2200px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6'
-        }
-      >
-        <ErrorBoundary onReset={() => navigateTab('hub')}>
+      {/* Main Content Area Container (Left of Sidebar) */}
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen">
+        {/* Universal Top Header */}
+        <Header
+          activeTab={activeTab}
+          setActiveTab={(tab) => navigateTab(tab)}
+          myPendingCount={myPendingTasksCount}
+          unreadNotificationsCount={unreadNotifCount}
+          onOpenNotifications={openNotificationsModal}
+          onOpenLicense={openLicenseModal}
+          onOpenSearch={openSearchModal}
+          onToggleSidebarMobile={() => setIsMobileSidebarOpen(prev => !prev)}
+          licenseInfo={licenseState.license}
+        />
+
+        {/* Main Content Area Wrapped with Error Boundary */}
+        <main
+          className={
+            activeTab === 'dieline_generator' || activeTab === '3d_studio'
+              ? 'flex-1 w-full h-[calc(100vh-64px)] max-h-[calc(100vh-64px)] overflow-hidden p-2 sm:p-3'
+              : 'flex-1 w-full max-w-[2200px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6'
+          }
+        >
+          <ErrorBoundary onReset={() => navigateTab('hub')}>
           
           {/* Department Hub (Landing Screen) */}
           {activeTab === 'hub' && (
@@ -693,6 +711,7 @@ export default function App() {
           <span>مسعود شعبانی</span>
         </div>
       </footer>
+    </div>
 
       {/* Project Details Modal */}
       {selectedProjectId && (
