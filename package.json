@@ -1,7 +1,7 @@
 {
   "name": "box-factory-erp",
-  "version": "1.0.0",
-  "description": "سامانه اتوماسیون و مدیریت پروژه ۹ مرحله‌ای کارخانه جعبه‌سازی و کارتن‌سازی",
+  "version": "2.7.2",
+  "description": "سامانه اتوماسیون و مدیریت پروژه ۱۰ مرحله‌ای کارخانه جعبه‌سازی و کارتن‌سازی آرمان امیران",
   "main": "server/index.js",
   "scripts": {
     "setup": "cd server && npm install && cd ../client && npm install && npm run build",

@@ -138,8 +138,8 @@ export default function RightSidebar({
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                   <span className="text-[11px] font-bold text-slate-500">اتوماسیون تولید (MIS)</span>
-                  <span className="px-1.5 py-0.2 rounded-md text-[10px] font-black bg-purple-50 text-purple-700 border border-purple-200">
-                    v2.5
+                  <span className="px-1.5 py-0.2 rounded-md text-[10px] font-black bg-purple-100 text-purple-800 border border-purple-300" title="نسخه ۲.۷.۲ - بیلد ۷۲">
+                    v2.7.2
                   </span>
                 </div>
               </div>

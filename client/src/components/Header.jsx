@@ -115,8 +115,8 @@ export default function Header({
                 <h1 className="font-black text-slate-900 text-sm sm:text-base tracking-tight">
                   {currentInfo.title}
                 </h1>
-                <span className="hidden md:inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">
-                  سامانه کارخانه‌ای
+                <span className="hidden md:inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-violet-50 text-violet-700 border border-violet-200">
+                  نسخه ۲.۷.۲ (بیلد ۷۲)
                 </span>
               </div>
               <p className="text-[11px] text-slate-500 font-medium hidden sm:block">
