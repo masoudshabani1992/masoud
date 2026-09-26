@@ -36,7 +36,7 @@ export default function KanbanBoard({
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPriority, setSelectedPriority] = useState('all');
   const [selectedStageFilter, setSelectedStageFilter] = useState('all');
-  const [viewMode, setViewMode] = useState('n8n'); // 'n8n' (visual canvas), 'grid' (3x3), 'table'
+  const [viewMode, setViewMode] = useState('grid'); // 'grid' (3x3 tiles) or 'table' for the stage cards section below canvas
 
   const filteredProjects = projects.filter((p) => {
     const matchSearch = matchProduct(p, searchTerm);
@@ -153,57 +153,6 @@ export default function KanbanBoard({
               ))}
             </select>
 
-            {/* View Mode Toggle (n8n Workflow Canvas vs Grid vs Table) */}
-            <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
-              <button
-                onClick={() => setViewMode('n8n')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black transition-all ${
-                  viewMode === 'n8n'
-                    ? 'bg-indigo-600 text-white shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-                title="بوم تعاملی گردش کار ۱۰ مرحله‌ای به سبک n8n"
-              >
-                <Workflow className="w-3.5 h-3.5" />
-                <span>بوم گرافیکی (n8n)</span>
-              </button>
-
-              <button
-                onClick={() => setViewMode('grid')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black transition-all ${
-                  viewMode === 'grid'
-                    ? 'bg-indigo-600 text-white shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-                title="نمای شبکه‌ای ۳×۳ دپارتمان‌ها (بدون اسکرول افقی)"
-              >
-                <LayoutGrid className="w-3.5 h-3.5" />
-                <span>نمای شبکه‌ای (Grid)</span>
-              </button>
-
-              <button
-                onClick={() => setViewMode('table')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black transition-all ${
-                  viewMode === 'table'
-                    ? 'bg-indigo-600 text-white shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-                title="نمای فشرده جدولی"
-              >
-                <TableIcon className="w-3.5 h-3.5" />
-                <span>نمای جدولی</span>
-              </button>
-            </div>
-
-            {hasActiveFilters && (
-              <button
-                onClick={clearFilters}
-                className="flex items-center gap-1 text-xs text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-3 py-2 rounded-xl font-bold transition-colors border border-rose-200"
-              >
-                <X className="w-3.5 h-3.5" />
-                <span>حذف فیلترها</span>
-              </button>
-            )}
           </div>
         </div>
 
@@ -240,19 +189,80 @@ export default function KanbanBoard({
         </div>
       </div>
 
-      {/* VIEW MODE 0: INTERACTIVE n8n WORKFLOW CANVAS */}
-      {viewMode === 'n8n' && (
+      {/* 1. INTERACTIVE n8n WORKFLOW CANVAS PIPELINE (Top) */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between px-2">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse" />
+            <h2 className="text-sm sm:text-base font-black text-slate-900">
+              بوم گرافیکی پایپ‌لاین و جریان زنده نودها (n8n Pipeline Canvas)
+            </h2>
+          </div>
+          <span className="text-xs font-bold text-slate-400 font-sans hidden sm:inline">
+            10-Stage Visual Workflow
+          </span>
+        </div>
+
         <N8nWorkflowCanvas
           projects={filteredProjects}
           onSelectProject={onSelectProject}
           searchTerm={searchTerm}
           selectedPriority={selectedPriority}
         />
-      )}
+      </div>
 
-      {/* VIEW MODE 1: ELEGANT 3x3 GRID (Zero Horizontal Scrolling) */}
-      {viewMode === 'grid' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 w-full">
+      {/* 2. CLASSIC 10-STAGE KANBAN GRID & TILES (زیر بوم گرافیکی - کاشی‌های ۳×۳) */}
+      <div className="space-y-4 pt-4 border-t-2 border-slate-200/80">
+        
+        {/* Stage Cards Header & View Mode Switcher */}
+        <div className="flex items-center justify-between px-2 flex-wrap gap-2">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-800 flex items-center justify-center font-black">
+              <LayoutGrid className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-sm sm:text-base font-black text-slate-900">
+                کاشی‌های تفکیکی ۱۰ مرحله خط تولید (نمای شبکه‌ای و کارت‌های سفارش)
+              </h2>
+              <p className="text-[11px] text-slate-500 font-medium">
+                کارت‌های اختصاصی هر ایستگاه به همراه مشخصات فنی مقوا، تیراژ و دکمه ورود به پرونده
+              </p>
+            </div>
+          </div>
+
+          {/* View Mode Toggle: Grid (کاشی‌های ۳×۳) vs Table (جدول فشرده) */}
+          <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black transition-all ${
+                viewMode === 'grid'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+              title="نمای شبکه‌ای ۳×۳ کاشی‌های مراحل"
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              <span>نمای شبکه‌ای کاشی‌ها (Grid)</span>
+            </button>
+
+            <button
+              onClick={() => setViewMode('table')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black transition-all ${
+                viewMode === 'table'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+              title="نمای فشرده جدولی"
+            >
+              <TableIcon className="w-3.5 h-3.5" />
+              <span>نمای جدولی</span>
+            </button>
+          </div>
+        </div>
+
+        {/* VIEW MODE 1: ELEGANT 3x3 GRID (Zero Horizontal Scrolling) */}
+        {viewMode === 'grid' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 w-full">
           {displayedStages.map((stage) => {
             const stageProjects = filteredProjects.filter((p) => p.current_stage === stage.id);
             const isMyRoleStage =
@@ -505,6 +515,8 @@ export default function KanbanBoard({
           </div>
         </div>
       )}
+
+      </div>
 
     </div>
   );
