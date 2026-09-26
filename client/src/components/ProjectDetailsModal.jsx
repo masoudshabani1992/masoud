@@ -3,6 +3,7 @@ import { api } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { STAGES, formatToman, formatNumber, formatDateFa, canAdvanceStage } from '../utils/helpers';
 import CalculatorView from './CalculatorView';
+import FilePreviewModal from './FilePreviewModal';
 import {
   X,
   CheckCircle2,
@@ -34,7 +35,9 @@ import {
   Lock,
   CreditCard,
   Handshake,
-  Trash2
+  Trash2,
+  ExternalLink,
+  Paperclip
 } from 'lucide-react';
 
 export default function ProjectDetailsModal({ projectId, onClose, onUpdated, onPrintTicket }) {
@@ -47,8 +50,17 @@ export default function ProjectDetailsModal({ projectId, onClose, onUpdated, onP
   const [rejectReason, setRejectReason] = useState('');
   const [showRejectForm, setShowRejectForm] = useState(false);
 
-  // Management Deletion Permission
+  // File Preview Modal & Upload States
+  const [previewFile, setPreviewFile] = useState(null);
+  const [customDielineUrl, setCustomDielineUrl] = useState(null);
+  const [customDielineName, setCustomDielineName] = useState(null);
+  const [customMockupUrl, setCustomMockupUrl] = useState(null);
+  const [uploadingDieline, setUploadingDieline] = useState(false);
+  const [uploadingMockup, setUploadingMockup] = useState(false);
+
+  // Management / Financial Permissions
   const isCeoOrAdmin = role === 'ceo' || currentUser?.permissions?.can_manage_users || currentUser?.permissions?.can_delete_projects;
+  const canViewFinancials = role === 'ceo' || role === 'sales' || role === 'accounting' || role === 'estimation';
 
   const handleDeleteProject = async () => {
     if (!project) return;
@@ -76,6 +88,50 @@ export default function ProjectDetailsModal({ projectId, onClose, onUpdated, onP
   const [depositAmount, setDepositAmount] = useState('');
   const [paymentRef, setPaymentRef] = useState('');
   const [customerNotes, setCustomerNotes] = useState('');
+
+  const handleDielineUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingDieline(true);
+    try {
+      const res = await api.uploadToStorage(file, 'dieline', 'project', project?.id);
+      if (res?.file_url) {
+        setCustomDielineUrl(res.file_url);
+        setCustomDielineName(res.original_filename || file.name);
+      }
+    } catch (err) {
+      const reader = new FileReader();
+      reader.onload = (uploadEvent) => {
+        setCustomDielineUrl(uploadEvent.target.result);
+        setCustomDielineName(file.name);
+      };
+      reader.readAsDataURL(file);
+    } finally {
+      setUploadingDieline(false);
+    }
+  };
+
+  const handleMockupUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingMockup(true);
+    try {
+      const res = await api.uploadToStorage(file, 'mockup', 'project', project?.id);
+      if (res?.file_url) {
+        setCustomMockupUrl(res.file_url);
+      }
+    } catch (err) {
+      const reader = new FileReader();
+      reader.onload = (uploadEvent) => {
+        setCustomMockupUrl(uploadEvent.target.result);
+      };
+      reader.readAsDataURL(file);
+    } finally {
+      setUploadingMockup(false);
+    }
+  };
 
   const fetchProjectDetails = async () => {
     try {
@@ -597,40 +653,150 @@ export default function ProjectDetailsModal({ projectId, onClose, onUpdated, onP
 
                   {/* STAGE 5: واحد طراحی و آتلیه */}
                   {project.current_stage === 5 && (
-                    <div className="bg-white p-5 rounded-2xl border border-indigo-200 shadow-sm space-y-4">
-                      <div className="flex items-center justify-between border-b border-indigo-100 pb-3">
-                        <h4 className="text-xs font-bold text-indigo-900 flex items-center gap-2">
-                          <Compass className="w-4 h-4 text-indigo-600" />
-                          <span>واحد طراحی و پیش‌از‌چاپ - خط تیغ و نقشه قالب</span>
-                        </h4>
-                        <span className="text-xs text-indigo-700 font-bold bg-indigo-50 px-2 py-0.5 rounded">
-                          در حال طراحی تیغ و گرافیک
+                    <div className="bg-white p-5 rounded-2xl border-2 border-indigo-200 shadow-sm space-y-5">
+                      <div className="flex items-center justify-between border-b border-indigo-100 pb-3 flex-wrap gap-2">
+                        <div className="flex items-center gap-2">
+                          <Compass className="w-5 h-5 text-indigo-600" />
+                          <div>
+                            <h4 className="text-xs sm:text-sm font-black text-indigo-950">
+                              واحد طراحی و پیش‌از‌چاپ - مدیریت خط تیغ، وکتور و رندر ۳بعدی
+                            </h4>
+                            <p className="text-[11px] text-slate-500">
+                              بررسی، پیش‌نمایش درجا، بارگذاری و دانلود فایل‌های استاندارد خط تیغ و موکاپ
+                            </p>
+                          </div>
+                        </div>
+                        <span className="text-xs text-indigo-700 font-bold bg-indigo-50 px-3 py-1 rounded-xl border border-indigo-200">
+                          مرحله جاری: ۵. طراحی و تیغ
                         </span>
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="border-2 border-dashed border-indigo-200 rounded-xl p-4 text-center space-y-2 bg-indigo-50/40">
-                          <Compass className="w-8 h-8 text-indigo-500 mx-auto" />
-                          <div className="text-xs font-bold text-indigo-900">فایل خط تیغ (Dieline / CAD)</div>
-                          <div className="text-[11px] text-slate-500">فرمت‌های مجاز: PDF, AI, CDR, DXF</div>
-                          <input
-                            type="text"
-                            placeholder="نام فایل یا لینک: dieline-box-v2.pdf"
-                            defaultValue={project.design_data?.dielineFile || `dieline-${project.archive_code || project.tracking_code}.pdf`}
-                            className="w-full px-3 py-1.5 text-xs rounded-lg border border-indigo-200 bg-white"
-                          />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* 1. کارت خط تیغ Dieline */}
+                        <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-slate-800 text-xs flex items-center gap-1.5">
+                              <Compass className="w-4 h-4 text-indigo-600" />
+                              <span>فایل خط تیغ (Dieline / CAD / Vector)</span>
+                            </span>
+                            <span className="text-[10px] bg-indigo-100 text-indigo-800 font-bold px-2 py-0.5 rounded">
+                              PDF • AI • EPS • DXF
+                            </span>
+                          </div>
+
+                          <div className="p-3 bg-white rounded-xl border border-slate-200 flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 truncate">
+                              <Paperclip className="w-4 h-4 text-indigo-500 shrink-0" />
+                              <span className="font-mono text-xs font-bold text-slate-800 truncate">
+                                {customDielineName || project.dieline_filename || `dieline-${project.archive_code || project.tracking_code}.pdf`}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const url = customDielineUrl || project.dieline_file_url || `/dieline-single-80x15x165mm.svg`;
+                                  const name = customDielineName || project.dieline_filename || `dieline-${project.archive_code || project.tracking_code}.pdf`;
+                                  setPreviewFile({ file_url: url, original_filename: name });
+                                }}
+                                className="px-2.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-xs font-bold transition flex items-center gap-1 border border-indigo-200"
+                                title="پیش‌نمایش آنلاین فایل خط تیغ"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                                <span>مشاهده</span>
+                              </button>
+
+                              <a
+                                href={customDielineUrl || project.dieline_file_url || `/dieline-single-80x15x165mm.svg`}
+                                download={customDielineName || project.dieline_filename || `dieline-${project.archive_code || project.tracking_code}.pdf`}
+                                className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition flex items-center gap-1 border border-slate-200"
+                                title="دانلود فایل خط تیغ"
+                              >
+                                <Download className="w-3.5 h-3.5" />
+                                <span>دانلود</span>
+                              </a>
+                            </div>
+                          </div>
+
+                          {/* Dieline Actions: Upload */}
+                          <div className="flex items-center gap-2 pt-1">
+                            <label className="flex-1 py-2 px-3 bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-xl text-xs font-bold text-center cursor-pointer transition flex items-center justify-center gap-1.5 shadow-2xs">
+                              <Upload className="w-3.5 h-3.5" />
+                              <span>{uploadingDieline ? 'در حال بارگذاری...' : 'آپلود خط تیغ جدید'}</span>
+                              <input
+                                type="file"
+                                accept=".pdf,.ai,.eps,.cdr,.dxf,.svg,image/*"
+                                onChange={handleDielineUpload}
+                                className="hidden"
+                              />
+                            </label>
+                          </div>
                         </div>
 
-                        <div className="border-2 border-dashed border-indigo-200 rounded-xl p-4 text-center space-y-2 bg-indigo-50/40">
-                          <Sparkles className="w-8 h-8 text-amber-500 mx-auto" />
-                          <div className="text-xs font-bold text-indigo-900">طرح گرافیکی و موکاپ ۳بعدی</div>
-                          <div className="text-[11px] text-slate-500">پیش‌نمایش جعبه جهت ارسال به مشتری</div>
-                          <input
-                            type="text"
-                            placeholder="لینک پیش‌نمایش تصویر..."
-                            defaultValue={project.design_data?.preview3d || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=500'}
-                            className="w-full px-3 py-1.5 text-xs rounded-lg border border-indigo-200 bg-white"
-                          />
+                        {/* 2. کارت موکاپ و رندر ۳بعدی */}
+                        <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-slate-800 text-xs flex items-center gap-1.5">
+                              <Sparkles className="w-4 h-4 text-amber-500" />
+                              <span>موکاپ و رندر ۳بعدی جعبه (3D Mockup)</span>
+                            </span>
+                            <span className="text-[10px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded">
+                              رندر گرافیکی
+                            </span>
+                          </div>
+
+                          <div className="p-3 bg-white rounded-xl border border-slate-200 flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 truncate">
+                              <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-200">
+                                <Sparkles className="w-4 h-4" />
+                              </div>
+                              <span className="font-mono text-xs font-bold text-slate-800 truncate">
+                                {customMockupUrl ? 'رندر ۳بعدی اختصاصی' : (project.design_data?.mockupName || `mockup-3d-${project.archive_code || project.tracking_code}.png`)}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const url = customMockupUrl || project.design_data?.preview3d || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=800';
+                                  setPreviewFile({ file_url: url, original_filename: `mockup-3d-${project.archive_code || project.tracking_code}.png` });
+                                }}
+                                className="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 rounded-lg text-xs font-bold transition flex items-center gap-1 border border-amber-200"
+                                title="مشاهده آنلاین رندر ۳بعدی"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                                <span>مشاهده</span>
+                              </button>
+
+                              <a
+                                href={customMockupUrl || project.design_data?.preview3d || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=800'}
+                                download={`mockup-${project.archive_code || project.tracking_code}.png`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition flex items-center gap-1 border border-slate-200"
+                                title="دانلود موکاپ"
+                              >
+                                <Download className="w-3.5 h-3.5" />
+                                <span>دانلود</span>
+                              </a>
+                            </div>
+                          </div>
+
+                          {/* Mockup Upload */}
+                          <div className="flex items-center gap-2 pt-1">
+                            <label className="flex-1 py-2 px-3 bg-white hover:bg-amber-50 text-amber-800 border border-amber-200 rounded-xl text-xs font-bold text-center cursor-pointer transition flex items-center justify-center gap-1.5 shadow-2xs">
+                              <Upload className="w-3.5 h-3.5" />
+                              <span>{uploadingMockup ? 'در حال بارگذاری...' : 'آپلود رندر / موکاپ جدید'}</span>
+                              <input
+                                type="file"
+                                accept="image/*,.pdf"
+                                onChange={handleMockupUpload}
+                                className="hidden"
+                              />
+                            </label>
+                          </div>
                         </div>
                       </div>
 
@@ -638,18 +804,20 @@ export default function ProjectDetailsModal({ projectId, onClose, onUpdated, onP
                         onClick={() =>
                           handleAdvance(
                             {
-                              dielineFile: `dieline-${project.archive_code || project.tracking_code}.pdf`,
+                              dielineFile: customDielineName || project.dieline_filename || `dieline-${project.archive_code || project.tracking_code}.pdf`,
+                              dielineUrl: customDielineUrl || project.dieline_file_url,
+                              mockupUrl: customMockupUrl || project.design_data?.preview3d,
                               designerName: currentUser?.fullName || 'واحد طراحی',
                               date: new Date().toISOString()
                             },
-                            'فایل خط تیغ و موکاپ نهایی آماده شد و جهت تاییدیه طرح به مرحله ۶ ارجاع گردید.'
+                            'فایل‌های نهایی خط تیغ و رندر ۳بعدی آماده شد و جهت تاییدیه طرح به مرحله ۶ ارجاع گردید.'
                           )
                         }
                         disabled={actionLoading}
-                        className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs shadow-md shadow-indigo-200 flex items-center justify-center gap-2 transition-all active:scale-95"
+                        className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs shadow-md shadow-indigo-200 flex items-center justify-center gap-2 transition-all active:scale-95"
                       >
                         <CheckCircle2 className="w-5 h-5" />
-                        <span>ارسال فایل‌های طراحی جهت تایید طرح توسط مشتری (مرحله ۶)</span>
+                        <span>تایید نهایی فایل‌های طراحی و ارسال به مرحله ۶ (تایید طرح توسط مشتری)</span>
                       </button>
                     </div>
                   )}
@@ -906,32 +1074,100 @@ export default function ProjectDetailsModal({ projectId, onClose, onUpdated, onP
               {/* TAB 4: SPECS MATRIX */}
               {activeTab === 'specs' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Right Column: Physical & Structural Specs */}
                   <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-2 text-xs">
-                    <h4 className="font-bold text-slate-900 border-b pb-2">مشخصات فیزیکی و ساختار</h4>
-                    <div className="flex justify-between py-1"><span>نوع جعبه:</span><strong className="text-slate-800">{project.box_type}</strong></div>
-                    <div className="flex justify-between py-1"><span>ساختار درب و قفل:</span><strong className="text-slate-800">{project.box_structure}</strong></div>
-                    <div className="flex justify-between py-1"><span>نوع مقوا:</span><strong className="text-slate-800">{project.cardboard_type} ({project.cardboard_grammage} گرم)</strong></div>
+                    <h4 className="font-bold text-slate-900 border-b pb-2">مشخصات فیزیکی و ساختار جعبه</h4>
+                    <div className="flex justify-between py-1"><span>نوع جعبه:</span><strong className="text-slate-800">{project.box_type || 'مقوا تک‌لا'}</strong></div>
+                    <div className="flex justify-between py-1"><span>ساختار درب و قفل:</span><strong className="text-slate-800">{project.box_structure || 'درب دارویی ساده (Tuck End)'}</strong></div>
+                    <div className="flex justify-between py-1"><span>ابعاد داخلی (L×W×H):</span><strong className="font-mono text-slate-900 font-bold">{project.box_length || project.length_mm || '-'} × {project.box_width || project.width_mm || '-'} × {project.box_height || project.height_mm || '-'} mm</strong></div>
+                    <div className="flex justify-between py-1"><span>نوع مقوا:</span><strong className="text-slate-800">{project.cardboard_type || 'ایندربرد'} ({project.cardboard_grammage || 300} گرم)</strong></div>
                     <div className="flex justify-between py-1"><span>تیراژ:</span><strong className="font-black text-indigo-700">{formatNumber(project.quantity)} عدد</strong></div>
-                    <div className="flex justify-between py-1"><span>ماشین چاپ:</span><strong className="text-slate-800">{project.print_format} ({project.print_colors_count} رنگ)</strong></div>
-                    <div className="flex justify-between py-1"><span>سلفون:</span><strong className="text-slate-800">{project.has_cellophane ? project.cellophane_type : 'ندارد'}</strong></div>
-                    <div className="flex justify-between py-1"><span>طلاکوب:</span><strong className="text-slate-800">{project.has_foil ? project.foil_type : 'ندارد'}</strong></div>
-                    <div className="flex justify-between py-1"><span>تیغ / قالب:</span><strong className="text-slate-800">{project.has_blade ? project.blade_type : 'ندارد'}</strong></div>
-                    <div className="flex justify-between py-1"><span>جعبه‌چسبانی:</span><strong className="text-slate-800">{project.has_glue ? project.glue_type : 'ندارد'}</strong></div>
+                    <div className="flex justify-between py-1"><span>ماشین چاپ:</span><strong className="text-slate-800">{project.print_type ? `${project.print_type} (${project.print_colors_count || 4} رنگ)` : 'افست ۴ رنگ CMYK'}</strong></div>
+                    <div className="flex justify-between py-1"><span>سلفون:</span><strong className="text-slate-800">{project.has_cellophane ? (project.cellophane_type || 'سلفون مات') : 'ندارد'}</strong></div>
+                    <div className="flex justify-between py-1"><span>طلاکوب:</span><strong className="text-slate-800">{project.has_foil ? (project.foil_type || 'طلاکوب حرارتی') : 'ندارد'}</strong></div>
+                    <div className="flex justify-between py-1"><span>تیغ / قالب:</span><strong className="text-slate-800">{project.has_blade ? (project.blade_type || 'دایکات لترپرس') : 'ندارد'}</strong></div>
+                    <div className="flex justify-between py-1"><span>جعبه‌چسبانی:</span><strong className="text-slate-800">{project.has_glue ? (project.glue_type || 'اتوماتیک') : 'ندارد'}</strong></div>
                   </div>
 
-                  <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-2 text-xs">
-                    <h4 className="font-bold text-slate-900 border-b pb-2">اطلاعات مالی و پیش‌فاکتور</h4>
-                    <div className="flex justify-between py-1"><span>قیمت هر عدد جعبه:</span><strong className="text-indigo-700 font-black">{formatToman(project.estimated_unit_price)}</strong></div>
-                    <div className="flex justify-between py-1"><span>مبلغ کل پیش‌فاکتور:</span><strong className="text-emerald-700 font-black text-sm">{formatToman(project.estimated_total_price)}</strong></div>
-                    <div className="flex justify-between py-1"><span>بهای تمام شده خام:</span><strong className="text-slate-700 font-bold">{formatToman(project.cost_price)}</strong></div>
-                    <div className="flex justify-between py-1"><span>حاشیه سود کارخانه:</span><strong className="text-purple-800 font-bold">%{project.profit_margin || 20}</strong></div>
-                  </div>
+                  {/* Left Column: If Financial Role (CEO / Sales / Accounting) -> Proforma Pricing. Else (Design, Production, Mockup, Warehouse) -> Prepress & Dieline Files */}
+                  {canViewFinancials ? (
+                    <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-2 text-xs">
+                      <h4 className="font-bold text-slate-900 border-b pb-2">اطلاعات مالی و پیش‌فاکتور (مختص بازرگانی و مدیرعامل)</h4>
+                      <div className="flex justify-between py-1"><span>قیمت هر عدد جعبه:</span><strong className="text-indigo-700 font-black">{formatToman(project.estimated_unit_price)}</strong></div>
+                      <div className="flex justify-between py-1"><span>مبلغ کل پیش‌فاکتور:</span><strong className="text-emerald-700 font-black text-sm">{formatToman(project.estimated_total_price)}</strong></div>
+                      <div className="flex justify-between py-1"><span>بهای تمام شده خام:</span><strong className="text-slate-700 font-bold">{formatToman(project.cost_price)}</strong></div>
+                      <div className="flex justify-between py-1"><span>حاشیه سود کارخانه:</span><strong className="text-purple-800 font-bold">%{project.profit_margin || 15}</strong></div>
+                    </div>
+                  ) : (
+                    <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-3 text-xs">
+                      <div className="border-b pb-2 flex items-center justify-between">
+                        <h4 className="font-bold text-slate-900">مشخصات فنی فرم‌بندی و فایل‌های طراحی</h4>
+                        <span className="text-[10px] text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded font-bold">واحد پیش‌ازچاپ و طراحی</span>
+                      </div>
+                      
+                      <div className="space-y-1.5 text-slate-700">
+                        <div className="flex justify-between py-0.5"><span>ابعاد شیت چاپی:</span><strong className="font-mono">{project.print_length || 500} × {project.print_width || 700} mm</strong></div>
+                        <div className="flex justify-between py-0.5"><span>تعداد در هر فرم (لت):</span><strong className="font-mono">{project.boxes_per_sheet || 2} عدد در شیت</strong></div>
+                        <div className="flex justify-between py-0.5"><span>وضعیت زینک:</span><strong>{project.zinc_status || 'زینک جدید'}</strong></div>
+                        <div className="flex justify-between py-0.5"><span>فرم چاپی:</span><strong>{project.print_format || 'دوربرقی'}</strong></div>
+                        <div className="flex justify-between py-0.5"><span>درصد باطله چاپ:</span><strong className="font-mono">%{project.print_waste || 5}</strong></div>
+                      </div>
+
+                      {/* Dieline & Mockup Direct Action Box for Designers */}
+                      <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-2 mt-2">
+                        <div className="text-[11px] font-bold text-slate-800">فایل‌های پیوست نقشه و موکاپ:</div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const url = customDielineUrl || project.dieline_file_url || `/dieline-single-80x15x165mm.svg`;
+                              const name = customDielineName || project.dieline_filename || `dieline-${project.archive_code || project.tracking_code}.pdf`;
+                              setPreviewFile({ file_url: url, original_filename: name });
+                            }}
+                            className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg font-bold transition flex items-center gap-1 border border-indigo-200"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>پیش‌نمایش خط تیغ</span>
+                          </button>
+
+                          <a
+                            href={customDielineUrl || project.dieline_file_url || `/dieline-single-80x15x165mm.svg`}
+                            download={customDielineName || project.dieline_filename || `dieline-${project.archive_code || project.tracking_code}.pdf`}
+                            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold transition flex items-center gap-1 border border-slate-200"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                            <span>دانلود خط تیغ</span>
+                          </a>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const url = customMockupUrl || project.design_data?.preview3d || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=800';
+                              setPreviewFile({ file_url: url, original_filename: `mockup-${project.archive_code || project.tracking_code}.png` });
+                            }}
+                            className="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 rounded-lg font-bold transition flex items-center gap-1 border border-amber-200"
+                          >
+                            <Sparkles className="w-3.5 h-3.5" />
+                            <span>مشاهده موکاپ ۳بعدی</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </>
           )}
         </div>
       </div>
+
+      {/* File Preview Modal for Dieline & Artwork */}
+      {previewFile && (
+        <FilePreviewModal
+          file={previewFile}
+          onClose={() => setPreviewFile(null)}
+        />
+      )}
     </div>
   );
 }

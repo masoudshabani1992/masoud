@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 import { formatToman, formatNumber, formatDateFa, STAGES } from '../utils/helpers';
 import {
   Printer,
@@ -13,13 +14,24 @@ import {
 } from 'lucide-react';
 
 export default function PrintTicketModal({ project, onClose }) {
-  const [docType, setDocType] = useState('job_ticket'); // 'job_ticket' or 'invoice'
+  const { role } = useAuth();
+  const canViewInvoice = role === 'ceo' || role === 'sales' || role === 'accounting';
+
+  const [docType, setDocType] = useState(canViewInvoice ? 'invoice' : 'job_ticket'); // 'job_ticket' or 'invoice'
 
   if (!project) return null;
 
   const handlePrint = () => {
     window.print();
   };
+
+  // Determine correct dimensions without undefined fallback
+  const length = project.box_length || project.length_mm || project.cardboard_length || project.length || '';
+  const width = project.box_width || project.width_mm || project.cardboard_width || project.width || '';
+  const height = project.box_height || project.height_mm || project.cardboard_height || project.height || '';
+  const dimensionString = (length && width && height)
+    ? `${length} × ${width} × ${height} mm`
+    : (project.dimensions || 'طبق فایل خط تیغ');
 
   return (
     <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
@@ -30,6 +42,7 @@ export default function PrintTicketModal({ project, onClose }) {
             <span className="text-xs font-bold text-slate-300">نوع سند چاپی:</span>
             <div className="bg-slate-800 p-1 rounded-lg border border-slate-700 flex items-center gap-1">
               <button
+                type="button"
                 onClick={() => setDocType('job_ticket')}
                 className={`px-3 py-1 text-xs rounded-md font-bold transition-all ${
                   docType === 'job_ticket' ? 'bg-indigo-600 text-white' : 'text-slate-300 hover:text-white'
@@ -37,19 +50,25 @@ export default function PrintTicketModal({ project, onClose }) {
               >
                 حواله و دستور کار تولید (Job Card)
               </button>
-              <button
-                onClick={() => setDocType('invoice')}
-                className={`px-3 py-1 text-xs rounded-md font-bold transition-all ${
-                  docType === 'invoice' ? 'bg-indigo-600 text-white' : 'text-slate-300 hover:text-white'
-                }`}
-              >
-                پیش‌فاکتور رسمی فروش
-              </button>
+
+              {/* پیش‌فاکتور فروش فقط برای مدیرعامل و بازرگانی مجاز است */}
+              {canViewInvoice && (
+                <button
+                  type="button"
+                  onClick={() => setDocType('invoice')}
+                  className={`px-3 py-1 text-xs rounded-md font-bold transition-all ${
+                    docType === 'invoice' ? 'bg-indigo-600 text-white' : 'text-slate-300 hover:text-white'
+                  }`}
+                >
+                  پیش‌فاکتور رسمی فروش
+                </button>
+              )}
             </div>
           </div>
 
           <div className="flex items-center gap-2">
             <button
+              type="button"
               onClick={handlePrint}
               className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 shadow-sm transition-colors"
             >
@@ -57,6 +76,7 @@ export default function PrintTicketModal({ project, onClose }) {
               <span>چاپ سند (A4)</span>
             </button>
             <button
+              type="button"
               onClick={onClose}
               className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition-colors"
             >
@@ -88,7 +108,7 @@ export default function PrintTicketModal({ project, onClose }) {
               <div className="text-sm font-black text-indigo-900 bg-indigo-50 px-3 py-1 rounded border border-indigo-200">
                 {docType === 'job_ticket' ? 'برگه دستور کار تولید' : 'پیش‌فاکتور فروش'}
               </div>
-              <div className="text-[11px] text-slate-600">کد رهگیری: <strong>{project.tracking_code}</strong></div>
+              <div className="text-[11px] text-slate-600">کد رهگیری: <strong>{project.archive_code || project.tracking_code}</strong></div>
               <div className="text-[11px] text-slate-600">تاریخ: <strong>{formatDateFa(project.created_at)}</strong></div>
             </div>
           </div>
@@ -101,9 +121,9 @@ export default function PrintTicketModal({ project, onClose }) {
               <div>عنوان پروژه: <strong className="text-indigo-900">{project.title}</strong></div>
             </div>
             <div className="space-y-1.5">
-              <div>نوع محصول: <strong className="text-slate-900">{project.box_type}</strong></div>
-              <div>مدل درب و قفل: <strong className="text-slate-900">{project.box_structure}</strong></div>
-              <div>مرحله جاری در کارخانه: <strong className="text-amber-700">{STAGES.find(s => s.id === project.current_stage)?.title}</strong></div>
+              <div>نوع محصول: <strong className="text-slate-900">{project.box_type || 'مقوا تک‌لا'}</strong></div>
+              <div>مدل درب و قفل: <strong className="text-slate-900">{project.box_structure || 'درب دارویی ساده (Tuck End)'}</strong></div>
+              <div>مرحله جاری در کارخانه: <strong className="text-amber-700">{STAGES.find(s => s.id === project.current_stage)?.name || STAGES.find(s => s.id === project.current_stage)?.title}</strong></div>
             </div>
           </div>
 
@@ -126,31 +146,37 @@ export default function PrintTicketModal({ project, onClose }) {
               </thead>
               <tbody>
                 <tr>
-                  <td className="border border-slate-300 p-2.5 font-mono font-bold">
-                    {project.length_mm} × {project.width_mm} × {project.height_mm} mm
+                  <td className="border border-slate-300 p-2.5 font-mono font-bold text-slate-900">
+                    {dimensionString}
                   </td>
                   <td className="border border-slate-300 p-2.5 font-bold text-indigo-900 font-mono">
                     {formatNumber(project.quantity)} عدد
                   </td>
                   <td className="border border-slate-300 p-2.5">
-                    {project.specs_data?.paperType || 'ایندربرد ۳۰۰ گرم'}
+                    {project.cardboard_type || project.specs_data?.paperType || 'ایندربرد ۳۰۰ گرم'}
                   </td>
                   <td className="border border-slate-300 p-2.5">
-                    {project.specs_data?.insideFlute || 'سینگل فیس E فلوت'}
+                    {project.has_sheet ? (project.sheet_type || project.sheet_category || 'سینگل فیس') : (project.specs_data?.insideFlute || 'بدون سینگل (تک‌لا)')}
                   </td>
                   <td className="border border-slate-300 p-2.5">
-                    {project.specs_data?.printColors || 'افست ۴ رنگ CMYK'}
+                    {project.print_type ? `${project.print_type} (${project.print_colors_count || 4} رنگ)` : (project.specs_data?.printColors || 'افست ۴ رنگ CMYK')}
                   </td>
                   <td className="border border-slate-300 p-2.5">
-                    سلفون مات، یووی موضعی، دایکات
+                    {[
+                      project.has_cellophane ? (project.cellophane_type || 'سلفون') : null,
+                      project.has_uv ? (project.uv_type || 'یووی') : null,
+                      project.has_foil ? (project.foil_type || 'طلاکوب') : null,
+                      project.has_blade ? (project.blade_type || 'دایکات') : null,
+                      project.has_glue ? (project.glue_type || 'جعبه‌چسبانی') : null
+                    ].filter(Boolean).join('، ') || 'سلفون مات، یووی موضعی، دایکات'}
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
 
-          {/* If Invoice View: Price Table */}
-          {docType === 'invoice' && (
+          {/* If Invoice View: Price Table (تنها برای مدیرعامل و بازرگانی) */}
+          {docType === 'invoice' && canViewInvoice && (
             <div className="space-y-2">
               <h3 className="font-bold text-slate-800 text-xs">جدول مالی پیش‌فاکتور</h3>
               <table className="w-full border-collapse border border-slate-300 text-center">
@@ -254,25 +280,26 @@ export default function PrintTicketModal({ project, onClose }) {
             </div>
           )}
 
-          {/* Signatures & Factory Seal */}
-          <div className="pt-6 grid grid-cols-4 gap-4 text-center border-t border-slate-200 text-xs">
+          {/* Signatures Footer */}
+          <div className="grid grid-cols-4 gap-4 text-center pt-8 border-t border-slate-300">
             <div className="space-y-8">
-              <div className="font-bold text-slate-700">واحد بازرگانی و فروش</div>
-              <div className="text-slate-400">امضا و تاریخ</div>
+              <div className="font-bold text-slate-800">واحد بازرگانی و فروش</div>
+              <div className="text-[11px] text-slate-400">امضا و تاریخ</div>
             </div>
             <div className="space-y-8">
-              <div className="font-bold text-slate-700">واحد طراحی و ماکت‌سازی</div>
-              <div className="text-slate-400">امضا و تاریخ</div>
+              <div className="font-bold text-slate-800">واحد طراحی و ماکت‌سازی</div>
+              <div className="text-[11px] text-slate-400">امضا و تاریخ</div>
             </div>
             <div className="space-y-8">
-              <div className="font-bold text-slate-700">سرپرست تولید و چاپ</div>
-              <div className="text-slate-400">امضا و تاریخ</div>
+              <div className="font-bold text-slate-800">سرپرست تولید و چاپ</div>
+              <div className="text-[11px] text-slate-400">امضا و تاریخ</div>
             </div>
             <div className="space-y-8">
-              <div className="font-bold text-slate-700">تایید نهایی مدیریت عامل</div>
-              <div className="text-slate-400">مهر و امضا رسمی</div>
+              <div className="font-bold text-slate-800">تایید نهایی مدیریت عامل</div>
+              <div className="text-[11px] text-slate-400">مهر و امضا رسمی</div>
             </div>
           </div>
+
         </div>
       </div>
     </div>
