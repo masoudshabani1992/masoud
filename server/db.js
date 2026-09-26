@@ -416,6 +416,28 @@ function initDb() {
       related_entity_id INTEGER,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
+
+    -- 6. جدول جامع تاریخچه و لاگ عملیات کاربران (User Activity Logs & Audit Trail)
+    CREATE TABLE IF NOT EXISTS activity_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER,
+      username TEXT NOT NULL DEFAULT 'unknown',
+      full_name TEXT NOT NULL DEFAULT 'کاربر نامشخص',
+      role TEXT NOT NULL DEFAULT 'user',
+      action TEXT NOT NULL, -- 'login', 'logout', 'create_order', 'edit_order', 'update_stage', 'delete_order', 'create_lead', 'estimate_lead', 'update_lead_status', 'convert_lead_to_order', 'warehouse_receipt', 'warehouse_edit', 'user_create', 'user_edit', 'user_delete', 'price_formula_update', 'file_upload', 'file_delete', 'hr_evaluation', 'backup_download', 'status_color_change'
+      module TEXT NOT NULL, -- 'auth', 'orders', 'workflow', 'marketing', 'calculator', 'warehouse', 'production', 'studio', 'users', 'hr', 'pricing', 'storage', 'backup'
+      target_id TEXT,
+      target_name TEXT,
+      description TEXT NOT NULL,
+      details_json TEXT,
+      ip_address TEXT DEFAULT '127.0.0.1',
+      user_agent TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_activity_logs_created ON activity_logs(created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_activity_logs_user ON activity_logs(username);
+    CREATE INDEX IF NOT EXISTS idx_activity_logs_module ON activity_logs(module);
   `);
 
   // Seed default users
@@ -669,6 +691,29 @@ function initDb() {
       'قالب در کارخانه موجود است', 600000, 650, 8400000, 8400000,
       'green', 'استاد کاظمی', 12000, '1405/02/25', 'کار تحویل و فاکتور تسویه شد'
     );
+  }
+
+  // Seed default activity logs (نمونه گزارش لاگ‌های سیستم)
+  try {
+    const checkLogs = db.prepare('SELECT COUNT(*) as count FROM activity_logs').get();
+    if (checkLogs && checkLogs.count === 0) {
+      const insertLog = db.prepare(`
+        INSERT INTO activity_logs (
+          user_id, username, full_name, role,
+          action, module, target_id, target_name,
+          description, details_json, ip_address, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now', ?))
+      `);
+
+      insertLog.run(1, 'ceo', 'مسعود شعبانی', 'ceo', 'login', 'auth', '1', 'مسعود شعبانی', 'ورود موفق مدیرعامل به سامانه اتوماسیون کارخانه', null, '192.168.1.10', '-3 hours');
+      insertLog.run(3, 'marketer', 'رضا صادقی', 'marketer', 'create_lead', 'marketing', 'MKT-107', 'جعبه کرم مارال', 'ثبت استعلام بازاریابی جدید: جعبه کرم آبرسان کاسه‌ای مارال (تیراژ ۲۰,۰۰۰ عدد) همراه با فایل خط تیغ', '{"quantity":20000,"material":"ایندربرد ۳۰۰ گرم","box_dimensions":"80x80x70"}', '192.168.1.15', '-2 hours');
+      insertLog.run(5, 'estimate', 'مهندس احمدی', 'estimation', 'estimate_lead', 'calculator', 'MKT-105', 'جعبه شوینده گلبرگ', 'برآورد و ثبت قیمت استعلام جعبه شوینده گلبرگ: فی واحد ۴,۳۵۰ تومان (مجموع ۱۰۸,۷۵۰,۰۰۰ تومان)', '{"unit_price":4350,"total_price":108750000,"cardboard_cost":2150,"print_cost":650}', '192.168.1.18', '-90 minutes');
+      insertLog.run(6, 'designer', 'مهندس کاظمی', 'design', 'dieline_export', 'studio', 'DIE-204', 'جعبه دارویی اکسیر', 'طراحی پارامتریک و خروجی CorelDRAW EPS وکتور با خطوط Hairline برای دستگاه لیزر قالب', '{"box_type":"reverse_tuck","dimensions":"65x65x140"}', '192.168.1.20', '-60 minutes');
+      insertLog.run(9, 'production', 'استاد رحیمی', 'production', 'status_color_change', 'production', '10759', 'زیره و رویه دسر سوهان', 'تغییر وضعیت دستور کار تولید به رنگ سفید (صف تولید سالن چاپ و دایکات)', '{"old_status":"yellow","new_status":"white"}', '192.168.1.25', '-45 minutes');
+      insertLog.run(8, 'procurement', 'مهندس باقری', 'warehouse', 'warehouse_receipt', 'warehouse', 'REC-101', 'ایندربرد ۳۰۰ گرم چانگ‌هوآ', 'ثبت ورود پارت اول مقوای ایندربرد ۳۰۰ گرم سایز ۷۰×۱۰۰ به انبار مرکزی (۵,۰۰۰ شیت)', '{"supplier":"بازرگانی چانگ‌هوآ","sheet_count":5000,"location":"انبار سالن ۱"}', '192.168.1.22', '-20 minutes');
+    }
+  } catch (e) {
+    console.error('Error seeding activity logs:', e);
   }
 }
 

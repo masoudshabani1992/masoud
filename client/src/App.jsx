@@ -29,6 +29,7 @@ import DigitalPrintView from './components/DigitalPrintView';
 import TollServicesView from './components/TollServicesView';
 import HumanResourcesView from './components/HumanResourcesView';
 import StorageManagerView from './components/StorageManagerView';
+import AuditLogsView from './components/AuditLogsView';
 import CommandPaletteModal from './components/CommandPaletteModal';
 import FloatingQuickDock from './components/FloatingQuickDock';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -44,6 +45,8 @@ const TAB_PERMISSION_MAP = {
   materials: 'can_view_material_prices',
   users: 'can_manage_users',
   hr: 'can_manage_users',
+  logs: 'can_manage_users',
+  storage: 'can_manage_users',
   migration: 'can_view_migration',
   dieline_generator: 'can_view_studio',
   '3d_studio': 'can_view_studio',
@@ -437,6 +440,9 @@ export default function App() {
 
           {/* Storage Files & Folders Manager */}
           {activeTab === 'storage' && <StorageManagerView />}
+
+          {/* Audit Logs & User Activity Tracking (ممیزی و لاگ سیستم) */}
+          {activeTab === 'logs' && <AuditLogsView />}
 
           {/* Human Resources & Performance Evaluation System (HR) */}
           {activeTab === 'hr' && <HumanResourcesView />}

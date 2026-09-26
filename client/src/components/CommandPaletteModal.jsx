@@ -164,6 +164,16 @@ export default function CommandPaletteModal({
       color: 'text-indigo-600 bg-indigo-50',
       action: () => onNavigate('users'),
       visible: role === 'ceo' || hasPermission('can_manage_users')
+    },
+    {
+      id: 'logs',
+      title: 'مرکز ممیزی و تاریخچه لاگ کاربران (Audit Trail)',
+      subtitle: 'مشاهده لحظه‌ای تمامی اقدامات، ورودها، سفارشات، برآوردها و تغییرات پرسنل',
+      category: 'مدیریت',
+      icon: ShieldAlert,
+      color: 'text-rose-600 bg-rose-50',
+      action: () => onNavigate('logs'),
+      visible: role === 'ceo' || hasPermission('can_manage_users')
     }
   ].filter(item => item.visible);
 

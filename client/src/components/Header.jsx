@@ -34,7 +34,8 @@ import {
   Droplet,
   Award,
   HardDrive,
-  Search
+  Search,
+  Activity
 } from 'lucide-react';
 
 export default function Header({
@@ -712,6 +713,21 @@ export default function Header({
               >
                 <HardDrive className="w-4 h-4 text-cyan-600" />
                 <span>پوشه Storage</span>
+              </button>
+            )}
+
+            {/* 14. گزارش ممیزی و لاگ سیستم (مختص مدیرعامل) */}
+            {(isCeo || canManageUsers) && (
+              <button
+                onClick={() => setActiveTab('logs')}
+                className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border ${
+                  activeTab === 'logs'
+                    ? 'bg-gradient-to-r from-slate-900 to-indigo-900 text-amber-300 border-slate-900 shadow-md ring-2 ring-amber-400'
+                    : 'bg-slate-900/5 hover:bg-slate-900/10 text-slate-800 border-slate-300 shadow-xs'
+                }`}
+              >
+                <Activity className="w-4 h-4 text-amber-500" />
+                <span>لاگ و ممیزی کاربران</span>
               </button>
             )}
 

@@ -3,3 +3,11 @@ client/node_modules/
 server/node_modules/
 .DS_Store
 *.log
+factory.db
+factory.db-journal
+license.lic
+server/factory.db
+server/factory.db-journal
+server/license.lic
+storage/
+Storage/

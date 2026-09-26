@@ -170,6 +170,14 @@ export const api = {
   },
   deleteStorageFile: (id) => apiRequest(`/storage/files/${id}`, { method: 'DELETE' }),
 
+  // Activity Logs & Audit Trail (مدیریت لاگ و ممیزی سیستم)
+  getActivityLogs: (params = {}) => {
+    const q = new URLSearchParams(params).toString();
+    return apiRequest(`/logs${q ? `?${q}` : ''}`);
+  },
+  getActivityLogStats: () => apiRequest('/logs/stats'),
+  clearActivityLogs: (retention_days = 0) => apiRequest('/logs/clear', { method: 'DELETE', body: JSON.stringify({ retention_days }) }),
+
   // Notifications & Alerts
   getNotifications: () => apiRequest('/notifications'),
   markNotificationRead: (id) => apiRequest(`/notifications/${id}/read`, { method: 'POST' }),

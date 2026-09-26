@@ -541,6 +541,15 @@ app.post('/api/marketing/leads', authMiddleware, (req, res) => {
       archiveCode: leadCode
     });
 
+    logActivity(req, {
+      action: 'create_lead',
+      module: 'marketing',
+      target_id: leadCode,
+      target_name: product_name,
+      description: `ثبت استعلام بازاریابی «${product_name}» (${leadCode}) برای مشتری «${customer_name}» با تیراژ ${Number(quantity).toLocaleString('fa-IR')} عدد`,
+      details: { leadCode, customer_name, quantity, cardboard_type, has_dieline: !!finalDielineUrl }
+    });
+
     res.json({
       success: true,
       lead_id: newLeadId,
@@ -755,6 +764,15 @@ app.put('/api/marketing/leads/:id/estimate', authMiddleware, (req, res) => {
       });
     }
 
+    logActivity(req, {
+      action: 'estimate_lead',
+      module: 'calculator',
+      target_id: lead.lead_code || String(id),
+      target_name: lead.product_name,
+      description: `برآورد قیمت استعلام «${lead.product_name}» (${lead.lead_code}): فی واحد ${unitPrice.toLocaleString('fa-IR')} تومان (مجموع: ${totalPrice.toLocaleString('fa-IR')} تومان)`,
+      details: { unit_price: unitPrice, total_price: totalPrice, commercial_notes }
+    });
+
     res.json({ success: true, message: 'برآورد قیمت با موفقیت ثبت و به کارتابل بازاریاب اعلام گردید.' });
   } catch (err) {
     res.status(500).json({ error: 'خطا در ثبت برآورد قیمت: ' + err.message });
@@ -786,6 +804,15 @@ app.put('/api/marketing/leads/:id/status', authMiddleware, (req, res) => {
     params.push(id);
 
     db.prepare(query).run(...params);
+
+    logActivity(req, {
+      action: 'update_lead_status',
+      module: 'marketing',
+      target_id: lead.lead_code || String(id),
+      target_name: lead.product_name,
+      description: `تغییر وضعیت استعلام «${lead.product_name}» به «${status === 'customer_approved' ? 'تایید مشتری' : status === 'rejected' ? 'رد شده' : status}»`,
+      details: { status, customer_feedback, rejection_reason }
+    });
 
     res.json({ success: true, message: 'وضعیت استعلام به‌روزرسانی شد.' });
   } catch (err) {
@@ -1749,6 +1776,70 @@ function authMiddleware(req, res, next) {
   next();
 }
 
+// ================= AUDIT LOGGING HELPER =================
+function formatLogPersianDate(dateString) {
+  try {
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return { date_fa: '---', time_fa: '---', full_fa: '---' };
+    const dateFa = new Intl.DateTimeFormat('fa-IR-u-nu-latn', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+    const timeFa = new Intl.DateTimeFormat('fa-IR-u-nu-latn', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(d);
+    return {
+      date_fa: dateFa,
+      time_fa: timeFa,
+      full_fa: `${dateFa} - ${timeFa}`
+    };
+  } catch (e) {
+    return { date_fa: '---', time_fa: '---', full_fa: '---' };
+  }
+}
+
+function logActivity(req, {
+  user = null,
+  action = 'general',
+  module = 'general',
+  target_id = null,
+  target_name = null,
+  description = '',
+  details = null
+}) {
+  try {
+    const activeUser = user || req?.user || {
+      id: null,
+      username: 'anonymous',
+      fullName: 'کاربر سیستم',
+      full_name: 'کاربر سیستم',
+      role: 'guest'
+    };
+
+    const ip = req?.headers?.['x-forwarded-for'] || req?.socket?.remoteAddress || req?.ip || '127.0.0.1';
+    const userAgent = req?.headers?.['user-agent'] || '';
+    const detailsJson = details ? (typeof details === 'object' ? JSON.stringify(details) : String(details)) : null;
+
+    db.prepare(`
+      INSERT INTO activity_logs (
+        user_id, username, full_name, role,
+        action, module, target_id, target_name,
+        description, details_json, ip_address, user_agent, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+    `).run(
+      activeUser.id || null,
+      activeUser.username || 'unknown',
+      activeUser.fullName || activeUser.full_name || activeUser.username || 'نامشخص',
+      activeUser.role || 'user',
+      String(action),
+      String(module),
+      target_id ? String(target_id) : null,
+      target_name ? String(target_name) : null,
+      String(description),
+      detailsJson,
+      String(ip).replace('::ffff:', ''),
+      userAgent
+    );
+  } catch (err) {
+    console.error('Error logging activity:', err);
+  }
+}
+
 const STAGES = {
   1: { id: 1, key: 'COMMERCE', name: '۱. بازرگانی و تعریف سفارش', role: 'sales', desc: 'ثبت کد آرشیو، مشخصات فنی و تیراژ' },
   2: { id: 2, key: 'PRICE_ESTIMATION', name: '۲. استعلام و برآورد قیمت روز', role: 'estimation', desc: 'محاسبه قیمت مقوا، سینگل، چاپ و خدمات' },
@@ -2036,6 +2127,16 @@ app.post('/api/auth/login', (req, res) => {
     JWT_SECRET,
     { expiresIn: '30d' }
   );
+
+  logActivity(req, {
+    user: { id: user.id, username: user.username, full_name: user.full_name, role: user.role },
+    action: 'login',
+    module: 'auth',
+    target_id: String(user.id),
+    target_name: user.full_name,
+    description: `ورود موفق کاربر «${user.full_name}» (${user.department}) به سامانه`
+  });
+
   const { password_hash, ...userProfile } = user;
   res.json({ token, user: { ...userProfile, permissions } });
 });
@@ -2051,6 +2152,16 @@ app.post('/api/auth/demo-login/:role', (req, res) => {
     JWT_SECRET,
     { expiresIn: '30d' }
   );
+
+  logActivity(req, {
+    user: { id: user.id, username: user.username, full_name: user.full_name, role: user.role },
+    action: 'login',
+    module: 'auth',
+    target_id: String(user.id),
+    target_name: user.full_name,
+    description: `ورود با نقش پیش‌نمایش: «${user.full_name}» (${user.department})`
+  });
+
   const { password_hash, ...userProfile } = user;
   res.json({ token, user: { ...userProfile, permissions } });
 });
@@ -2422,6 +2533,15 @@ app.post('/api/users', authMiddleware, requireCeo, (req, res) => {
     db.prepare('INSERT INTO marketer_targets (user_id, year_month_fa, target_inquiries, target_amount, target_orders) VALUES (?, ?, ?, ?, ?)').run(newUserId, currentMonthKey, targetInq, targetAmt, targetOrd);
   } catch (e) {}
 
+  logActivity(req, {
+    action: 'user_create',
+    module: 'users',
+    target_id: String(newUserId),
+    target_name: full_name,
+    description: `ایجاد کاربر جدید: «${full_name}» (${username}) با نقش ${role} و تارگت ماهانه ${targetInq} استعلام`,
+    details: { username, role, department, monthly_target_inquiries: targetInq }
+  });
+
   res.json({ success: true, id: newUserId, message: 'کاربر جدید با سطوح دسترسی و تارگت مشخص با موفقیت ایجاد گردید.' });
 });
 
@@ -2460,6 +2580,15 @@ app.put('/api/users/:id', authMiddleware, requireCeo, (req, res) => {
     }
   } catch (e) {}
 
+  logActivity(req, {
+    action: 'user_edit',
+    module: 'users',
+    target_id: String(id),
+    target_name: full_name,
+    description: `ویرایش اطلاعات، سطوح دسترسی یا تارگت کاربر «${full_name}»`,
+    details: { role, department, is_active: activeVal === 1, targetInq }
+  });
+
   res.json({ success: true, message: 'اطلاعات، سطوح دسترسی و تارگت کاربر با موفقیت ذخیره گردید.' });
 });
 
@@ -2468,8 +2597,242 @@ app.delete('/api/users/:id', authMiddleware, requireCeo, (req, res) => {
   if (parseInt(id) === req.user.id) {
     return res.status(400).json({ error: 'امکان حذف حساب کاربری جاری وجود ندارد' });
   }
+  const targetUser = db.prepare('SELECT username, full_name FROM users WHERE id = ?').get(id);
   db.prepare('DELETE FROM users WHERE id = ?').run(id);
+
+  logActivity(req, {
+    action: 'user_delete',
+    module: 'users',
+    target_id: id,
+    target_name: targetUser?.full_name || id,
+    description: `حذف حساب کاربری «${targetUser?.full_name || id}» (${targetUser?.username || ''})`
+  });
+
   res.json({ success: true, message: 'کاربر با موفقیت حذف گردید.' });
+});
+
+// ================= AUDIT & ACTIVITY LOGS (مدیریت لاگ و ممیزی سیستم) =================
+app.get('/api/logs', authMiddleware, requireCeo, (req, res) => {
+  try {
+    const {
+      username,
+      module: mod,
+      action,
+      search,
+      page = 1,
+      limit = 50
+    } = req.query;
+
+    const pageNum = Math.max(1, parseInt(page) || 1);
+    const limitNum = Math.min(200, Math.max(1, parseInt(limit) || 50));
+    const offset = (pageNum - 1) * limitNum;
+
+    let conditions = ['1=1'];
+    let params = [];
+
+    if (username && username !== 'all') {
+      conditions.push('username = ?');
+      params.push(username);
+    }
+
+    if (mod && mod !== 'all') {
+      conditions.push('module = ?');
+      params.push(mod);
+    }
+
+    if (action && action !== 'all') {
+      conditions.push('action = ?');
+      params.push(action);
+    }
+
+    if (search && search.trim()) {
+      const s = `%${search.trim()}%`;
+      conditions.push('(description LIKE ? OR target_name LIKE ? OR full_name LIKE ? OR username LIKE ? OR ip_address LIKE ?)');
+      params.push(s, s, s, s, s);
+    }
+
+    const whereClause = conditions.join(' AND ');
+
+    const countRow = db.prepare(`SELECT COUNT(*) as total FROM activity_logs WHERE ${whereClause}`).get(...params);
+    const total = countRow ? countRow.total : 0;
+
+    const logs = db.prepare(`
+      SELECT * FROM activity_logs
+      WHERE ${whereClause}
+      ORDER BY id DESC
+      LIMIT ? OFFSET ?
+    `).all(...params, limitNum, offset);
+
+    const formattedLogs = logs.map(l => {
+      const dates = formatLogPersianDate(l.created_at);
+      let parsedDetails = null;
+      if (l.details_json) {
+        try {
+          parsedDetails = JSON.parse(l.details_json);
+        } catch (e) {
+          parsedDetails = l.details_json;
+        }
+      }
+      return {
+        ...l,
+        date_fa: dates.date_fa,
+        time_fa: dates.time_fa,
+        full_date_fa: dates.full_fa,
+        details: parsedDetails
+      };
+    });
+
+    res.json({
+      success: true,
+      logs: formattedLogs,
+      pagination: {
+        total,
+        page: pageNum,
+        limit: limitNum,
+        totalPages: Math.ceil(total / limitNum)
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در دریافت گزارش لاگ‌ها: ' + err.message });
+  }
+});
+
+app.get('/api/logs/stats', authMiddleware, requireCeo, (req, res) => {
+  try {
+    const totalRow = db.prepare('SELECT COUNT(*) as total FROM activity_logs').get();
+    const todayRow = db.prepare("SELECT COUNT(*) as count FROM activity_logs WHERE date(created_at) = date('now')").get();
+    const activeUsersRow = db.prepare("SELECT COUNT(DISTINCT username) as count FROM activity_logs WHERE date(created_at) = date('now')").get();
+
+    const topUsers = db.prepare(`
+      SELECT username, full_name, role, COUNT(*) as activity_count, MAX(created_at) as last_activity
+      FROM activity_logs
+      GROUP BY username
+      ORDER BY activity_count DESC
+      LIMIT 6
+    `).all().map(u => ({
+      ...u,
+      last_activity_fa: formatLogPersianDate(u.last_activity).full_fa
+    }));
+
+    const moduleStats = db.prepare(`
+      SELECT module, COUNT(*) as count
+      FROM activity_logs
+      GROUP BY module
+      ORDER BY count DESC
+    `).all();
+
+    const actionStats = db.prepare(`
+      SELECT action, COUNT(*) as count
+      FROM activity_logs
+      GROUP BY action
+      ORDER BY count DESC
+      LIMIT 10
+    `).all();
+
+    const recentCritical = db.prepare(`
+      SELECT * FROM activity_logs
+      WHERE action IN ('delete_order', 'user_delete', 'user_create', 'price_formula_update', 'file_delete', 'logs_cleared')
+      ORDER BY id DESC
+      LIMIT 5
+    `).all().map(l => ({
+      ...l,
+      full_date_fa: formatLogPersianDate(l.created_at).full_fa
+    }));
+
+    res.json({
+      success: true,
+      total_count: totalRow ? totalRow.total : 0,
+      today_count: todayRow ? todayRow.count : 0,
+      active_users_today: activeUsersRow ? activeUsersRow.count : 0,
+      top_users: topUsers,
+      module_stats: moduleStats,
+      action_stats: actionStats,
+      recent_critical: recentCritical
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در محاسبه آمار ممیزی و لاگ: ' + err.message });
+  }
+});
+
+app.delete('/api/logs/clear', authMiddleware, requireCeo, (req, res) => {
+  try {
+    const { retention_days = 0 } = req.body || {};
+    const retentionNum = parseInt(retention_days) || 0;
+
+    let deletedCount = 0;
+    if (retentionNum === 0) {
+      const info = db.prepare('DELETE FROM activity_logs').run();
+      deletedCount = info.changes;
+    } else {
+      const info = db.prepare(`DELETE FROM activity_logs WHERE created_at < datetime('now', '-${retentionNum} days')`).run();
+      deletedCount = info.changes;
+    }
+
+    logActivity(req, {
+      action: 'logs_cleared',
+      module: 'admin',
+      description: `پاکسازی تاریخچه لاگ‌ها (حذف ${deletedCount} رکورد با بازه ${retentionNum === 0 ? 'کل تاریخچه' : `${retentionNum} روز اخیر`})`
+    });
+
+    res.json({
+      success: true,
+      message: `تعداد ${deletedCount} رکورد لاگ با موفقیت پاکسازی شد.`,
+      deleted_count: deletedCount
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در پاکسازی لاگ‌ها: ' + err.message });
+  }
+});
+
+app.get('/api/logs/export-excel', authMiddleware, requireCeo, (req, res) => {
+  try {
+    const { username, module: mod, action, search } = req.query;
+
+    let conditions = ['1=1'];
+    let params = [];
+
+    if (username && username !== 'all') {
+      conditions.push('username = ?');
+      params.push(username);
+    }
+    if (mod && mod !== 'all') {
+      conditions.push('module = ?');
+      params.push(mod);
+    }
+    if (action && action !== 'all') {
+      conditions.push('action = ?');
+      params.push(action);
+    }
+    if (search && search.trim()) {
+      const s = `%${search.trim()}%`;
+      conditions.push('(description LIKE ? OR target_name LIKE ? OR full_name LIKE ? OR username LIKE ? OR ip_address LIKE ?)');
+      params.push(s, s, s, s, s);
+    }
+
+    const whereClause = conditions.join(' AND ');
+    const logs = db.prepare(`
+      SELECT * FROM activity_logs
+      WHERE ${whereClause}
+      ORDER BY id DESC
+      LIMIT 1000
+    `).all(...params);
+
+    // Generate CSV with UTF-8 BOM
+    let csv = '\uFEFFشناسه,تاریخ و زمان شمسی,نام کاربر,نام کاربری,نقش,بخش,نوع عملیات,عنوان سوژه/هدف,شرح دقیق اقدام کاربر,آدرس IP\n';
+    logs.forEach(l => {
+      const dates = formatLogPersianDate(l.created_at);
+      const cleanDesc = (l.description || '').replace(/"/g, '""').replace(/\n/g, ' ');
+      const cleanTarget = (l.target_name || '').replace(/"/g, '""');
+      const cleanUser = (l.full_name || '').replace(/"/g, '""');
+      csv += `${l.id},"${dates.full_fa}","${cleanUser}","${l.username}","${l.role}","${l.module}","${l.action}","${cleanTarget}","${cleanDesc}","${l.ip_address}"\n`;
+    });
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="activity_logs_${Date.now()}.csv"`);
+    res.send(csv);
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در صدور خروجی اکسل لاگ: ' + err.message });
+  }
 });
 
 
@@ -2651,6 +3014,15 @@ app.delete('/api/projects/:id', authMiddleware, (req, res) => {
       archiveCode: project.archive_code
     });
 
+    logActivity(req, {
+      action: 'delete_order',
+      module: 'orders',
+      target_id: project.archive_code || String(id),
+      target_name: project.title,
+      description: `حذف دائم سفارش «${project.title}» (کد بایگانی ${project.archive_code || id}) متعلق به «${project.customer_name}»`,
+      details: { archive_code: project.archive_code, customer_name: project.customer_name, quantity: project.quantity }
+    });
+
     res.json({
       success: true,
       message: `پرونده «${project.title}» (کد آرشیو: ${project.archive_code || id}) با موفقیت از سیستم حذف گردید.`
@@ -2743,6 +3115,15 @@ app.post('/api/projects', authMiddleware, (req, res) => {
       VALUES (?, 1, 'بازرگانی و فروش', 'ثبت اولیه مشخصات کار', ?, ?, ?, ?)
     `).run(newId, req.user.id, req.user.fullName, req.user.role, `سفارش با کد آرشیو ${archiveCode} در سیستم ثبت گردید.`);
 
+    logActivity(req, {
+      action: 'create_order',
+      module: 'orders',
+      target_id: archiveCode,
+      target_name: data.title || 'جعبه جدید',
+      description: `ثبت سفارش جدید کارخانه: «${data.title || 'جعبه جدید'}» (کد آرشیو: ${archiveCode}) برای مشتری «${data.customer_name}» به تیراژ ${parseInt(data.quantity) || 5000} عدد`,
+      details: { archive_code: archiveCode, customer_name: data.customer_name, quantity: data.quantity, cardboard_type: data.cardboard_type }
+    });
+
     res.json({ success: true, id: newId, archiveCode });
   } catch (err) {
     console.error('Error creating project:', err);
@@ -2802,6 +3183,15 @@ app.post('/api/projects/:id/advance-stage', authMiddleware, (req, res) => {
     project: project
   });
 
+  logActivity(req, {
+    action: 'update_stage',
+    module: 'workflow',
+    target_id: project.archive_code || String(id),
+    target_name: project.title,
+    description: `انتقال سفارش «${project.title}» از مرحله ${currentStage} به مرحله ${nextStage} (${nextStageInfo.name})${comment ? ` - توضیح: ${comment}` : ''}`,
+    details: { from_stage: currentStage, to_stage: nextStage, next_stage_name: nextStageInfo.name, comment }
+  });
+
   res.json({ success: true, nextStage });
 });
 
@@ -2820,6 +3210,15 @@ app.post('/api/projects/:id/reject-stage', authMiddleware, (req, res) => {
     INSERT INTO workflow_logs (project_id, stage_number, stage_name, action, user_id, user_name, user_role, comment)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `).run(id, project.current_stage, STAGES[project.current_stage]?.name || '', `بازگشت به ${STAGES[fallbackStage]?.name || ''}`, req.user.id, req.user.fullName, req.user.role, `علت: ${reason || 'اصلاحات'}`);
+
+  logActivity(req, {
+    action: 'reject_stage',
+    module: 'workflow',
+    target_id: project.archive_code || String(id),
+    target_name: project.title,
+    description: `برگشت سفارش «${project.title}» از مرحله ${project.current_stage} به مرحله ${fallbackStage} (${STAGES[fallbackStage]?.name || ''}) به علت: ${reason || 'نیاز به اصلاحات'}`,
+    details: { from_stage: project.current_stage, to_stage: fallbackStage, reason }
+  });
 
   res.json({ success: true, current_stage: fallbackStage });
 });
