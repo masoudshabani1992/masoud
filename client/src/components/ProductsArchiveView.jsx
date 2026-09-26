@@ -25,7 +25,9 @@ import {
   Tag,
   SlidersHorizontal,
   Download,
-  Trash2
+  Trash2,
+  BarChart3,
+  Kanban
 } from 'lucide-react';
 
 export default function ProductsArchiveView({
@@ -33,7 +35,8 @@ export default function ProductsArchiveView({
   onSelectProject,
   onPrintTicket,
   onReorderProject,
-  onRefresh
+  onRefresh,
+  onNavigateTab
 }) {
   const { currentUser, role } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
@@ -175,6 +178,43 @@ export default function ProductsArchiveView({
 
   return (
     <div className="w-full space-y-6">
+      {/* Consolidated Dashboard / Kanban / Archive Unified Subtab Bar */}
+      {onNavigateTab && (
+        <div className="bg-white p-2.5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <button
+              type="button"
+              onClick={() => onNavigateTab('dashboard')}
+              className="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-700 hover:text-purple-700 hover:bg-slate-100 transition flex items-center gap-2"
+            >
+              <BarChart3 className="w-4 h-4 text-purple-600" />
+              <span>۱. داشبورد و آمار تحلیلی</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onNavigateTab('kanban')}
+              className="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-700 hover:text-indigo-700 hover:bg-slate-100 transition flex items-center gap-2"
+            >
+              <Kanban className="w-4 h-4 text-indigo-600" />
+              <span>۲. گردش کار ۱۰ مرحله (کانبان)</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onNavigateTab('archive')}
+              className="px-4 py-2 rounded-xl text-xs sm:text-sm font-black bg-amber-600 text-white shadow-md shadow-amber-200 flex items-center gap-2 ring-2 ring-amber-400"
+            >
+              <Boxes className="w-4 h-4 text-amber-100" />
+              <span>۳. آرشیو و جستجوی سفارشات</span>
+            </button>
+          </div>
+
+          <div className="text-xs text-slate-400 font-bold px-3 py-1 bg-slate-50 rounded-xl border border-slate-200 hidden sm:block">
+            مرکز یکپارچه داشبورد، پیگیری و آرشیو کارخانه
+          </div>
+        </div>
+      )}
       
       {/* Header Banner */}
       <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-800 flex flex-wrap items-center justify-between gap-6">
@@ -364,7 +404,7 @@ export default function ProductsArchiveView({
                       <td
                         className="py-3 px-4 font-mono cursor-pointer"
                         onClick={() => onSelectProject(proj)}
-                        title="کلیک جهت مشاهده پرونده و گردش کار ۹ مرحله"
+                        title="کلیک جهت مشاهده پرونده و گردش کار ۱۰ مرحله"
                       >
                         <div className="flex flex-col gap-1">
                           <span className="font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-2 py-0.5 rounded border border-indigo-100 inline-block w-fit transition-colors">

@@ -36,7 +36,7 @@ import {
 const MODULE_DEFINITIONS = {
   auth: { label: 'احراز هویت و ورود', icon: Lock, color: 'bg-purple-100 text-purple-800 border-purple-200' },
   orders: { label: 'سفارشات جعبه', icon: Boxes, color: 'bg-blue-100 text-blue-800 border-blue-200' },
-  workflow: { label: 'گردش کار ۹ مرحله', icon: ArrowRightLeft, color: 'bg-indigo-100 text-indigo-800 border-indigo-200' },
+  workflow: { label: 'گردش کار ۱۰ مرحله', icon: ArrowRightLeft, color: 'bg-indigo-100 text-indigo-800 border-indigo-200' },
   marketing: { label: 'استعلام بازاریابی', icon: Users, color: 'bg-teal-100 text-teal-800 border-teal-200' },
   calculator: { label: 'برآورد و قیمت‌گذاری', icon: SlidersHorizontal, color: 'bg-amber-100 text-amber-800 border-amber-200' },
   production: { label: 'دستور تولید کارخانه', icon: Layers, color: 'bg-emerald-100 text-emerald-800 border-emerald-200' },

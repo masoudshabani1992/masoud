@@ -44,10 +44,12 @@ export default function Header({
   // Dropdowns state
   const [showProdDropdown, setShowProdDropdown] = useState(false);
   const [showWhDropdown, setShowWhDropdown] = useState(false);
+  const [showDashDropdown, setShowDashDropdown] = useState(false);
   const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
   
   const prodRef = useRef(null);
   const whRef = useRef(null);
+  const dashRef = useRef(null);
   const settingsRef = useRef(null);
 
   useEffect(() => {
@@ -57,6 +59,9 @@ export default function Header({
       }
       if (whRef.current && !whRef.current.contains(event.target)) {
         setShowWhDropdown(false);
+      }
+      if (dashRef.current && !dashRef.current.contains(event.target)) {
+        setShowDashDropdown(false);
       }
       if (settingsRef.current && !settingsRef.current.contains(event.target)) {
         setShowSettingsDropdown(false);
@@ -88,18 +93,21 @@ export default function Header({
 
   const canKanban = hasPermission('can_view_kanban');
   const canArchive = hasPermission('can_view_archive');
+  const canDashboard = hasPermission('can_view_dashboard');
+  const canDashDropdown = canDashboard || canKanban || canArchive;
+
   const canStudio = hasPermission('can_view_studio');
   const canAi = hasPermission('can_view_ai');
   const canMarketing = hasPermission('can_view_marketing');
   const canMyTasks = hasPermission('can_view_my_tasks');
   const canCalculator = hasPermission('can_view_calculator');
-  const canDashboard = hasPermission('can_view_dashboard');
   const canCreateOrder = hasPermission('can_create_order');
   const canManageUsers = hasPermission('can_manage_users');
   const canSettings = isCeo || canManageUsers;
 
   const isProdActive = ['production_orders', 'production_orders_offset', 'digital_orders', 'production_orders_digital', 'service_orders', 'production_orders_service'].includes(activeTab);
   const isWhActive = ['warehouse_inventory', 'warehouse_cardboard', 'warehouse_sheet_carton', 'warehouse_single_face', 'warehouse_cellophane', 'warehouse_pvc_film', 'warehouse_ink'].includes(activeTab);
+  const isDashActive = ['dashboard', 'kanban', 'archive'].includes(activeTab);
   const isSettingsActive = ['users', 'hr', 'storage', 'logs'].includes(activeTab);
 
   return (
@@ -110,7 +118,7 @@ export default function Header({
           <div className="flex items-center gap-2.5">
             <Building2 className="w-5 h-5 text-amber-400" />
             <span className="font-black text-amber-300 text-sm sm:text-base">اتوماسیون تولید (MIS) شرکت آرمان امیران</span>
-            <span className="hidden lg:inline text-slate-400 text-xs">| پلتفرم یکپارچه مدیریت فرآیند تولید کارتن و جعبه</span>
+            <span className="hidden lg:inline text-slate-400 text-xs">| پلتفرم یکپارچه مدیریت فرآیند ۱۰ مرحله‌ای تولید کارتن و جعبه</span>
           </div>
 
           {/* Role Switcher - ONLY for CEO / Admin */}
@@ -276,6 +284,7 @@ export default function Header({
                   onClick={() => {
                     setShowProdDropdown(!showProdDropdown);
                     setShowWhDropdown(false);
+                    setShowDashDropdown(false);
                     setShowSettingsDropdown(false);
                   }}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border shadow-xs ${
@@ -383,6 +392,7 @@ export default function Header({
                   onClick={() => {
                     setShowWhDropdown(!showWhDropdown);
                     setShowProdDropdown(false);
+                    setShowDashDropdown(false);
                     setShowSettingsDropdown(false);
                   }}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border shadow-xs ${
@@ -533,37 +543,104 @@ export default function Header({
               </div>
             )}
 
-            {/* 4. گردش کار ۹ مرحله (Kanban) */}
-            {canKanban && (
-              <button
-                onClick={() => setActiveTab('kanban')}
-                className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border ${
-                  activeTab === 'kanban'
-                    ? 'bg-indigo-600 text-white border-indigo-700 shadow-md ring-2 ring-indigo-400'
-                    : 'bg-white text-slate-700 hover:text-indigo-600 hover:bg-slate-50 border-slate-200 shadow-xs'
-                }`}
-              >
-                <Kanban className="w-4 h-4 text-indigo-500" />
-                <span>گردش کار ۹ مرحله</span>
-              </button>
+            {/* 4. داشبورد و آرشیو (Dashboard, Kanban & Archive Main Dropdown) */}
+            {canDashDropdown && (
+              <div className="relative" ref={dashRef}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowDashDropdown(!showDashDropdown);
+                    setShowProdDropdown(false);
+                    setShowWhDropdown(false);
+                    setShowSettingsDropdown(false);
+                  }}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border shadow-xs ${
+                    isDashActive
+                      ? 'bg-purple-700 text-white border-purple-800 shadow-md ring-2 ring-purple-400'
+                      : 'bg-white text-purple-950 hover:bg-purple-50 border-purple-200 hover:border-purple-300'
+                  }`}
+                >
+                  <BarChart3 className={`w-4 h-4 ${isDashActive ? 'text-amber-300' : 'text-purple-600'}`} />
+                  <span>داشبورد و آرشیو</span>
+                  <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${showDashDropdown ? 'rotate-180' : ''}`} />
+                </button>
+
+                {/* Dropdown Menu: ۱. داشبورد و آمار تحلیلی | ۲. گردش کار ۱۰ مرحله (کانبان) | ۳. آرشیو و جستجوی سفارشات */}
+                {showDashDropdown && (
+                  <div className="absolute top-full right-0 mt-2 w-80 bg-white rounded-2xl shadow-2xl border-2 border-purple-200 py-2 z-50 animate-fadeIn space-y-1">
+                    <div className="px-3.5 py-1.5 text-[11px] font-bold text-slate-400 border-b border-slate-100 flex items-center justify-between">
+                      <span>داشبورد، پیگیری و آرشیو:</span>
+                      <span className="text-[10px] bg-purple-50 text-purple-800 font-bold px-2 py-0.5 rounded border border-purple-200">تحلیلی و آماری</span>
+                    </div>
+
+                    {/* 1. داشبورد تحلیلی */}
+                    {canDashboard && (
+                      <button
+                        onClick={() => {
+                          setActiveTab('dashboard');
+                          setShowDashDropdown(false);
+                        }}
+                        className={`w-full text-right px-3.5 py-2.5 text-xs font-bold transition-colors flex items-center gap-3 ${
+                          activeTab === 'dashboard' ? 'bg-purple-50 text-purple-950 font-black' : 'hover:bg-slate-50 text-slate-700'
+                        }`}
+                      >
+                        <div className="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold shrink-0">
+                          <BarChart3 className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <div className="font-black text-slate-900">۱. داشبورد و آمار تحلیلی</div>
+                          <div className="text-[10px] text-slate-400">نمودارهای راندمان، مبالغ فروش و آمارهای تولید</div>
+                        </div>
+                      </button>
+                    )}
+
+                    {/* 2. گردش کار ۱۰ مرحله */}
+                    {canKanban && (
+                      <button
+                        onClick={() => {
+                          setActiveTab('kanban');
+                          setShowDashDropdown(false);
+                        }}
+                        className={`w-full text-right px-3.5 py-2.5 text-xs font-bold transition-colors flex items-center gap-3 ${
+                          activeTab === 'kanban' ? 'bg-indigo-50 text-indigo-950 font-black' : 'hover:bg-slate-50 text-slate-700'
+                        }`}
+                      >
+                        <div className="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold shrink-0">
+                          <Kanban className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <div className="font-black text-slate-900">۲. گردش کار ۱۰ مرحله (کانبان)</div>
+                          <div className="text-[10px] text-slate-400">مشاهده صف و وضعیت سفارشات در مراحل ۱۰ گانه</div>
+                        </div>
+                      </button>
+                    )}
+
+                    {/* 3. آرشیو و جستجو */}
+                    {canArchive && (
+                      <button
+                        onClick={() => {
+                          setActiveTab('archive');
+                          setShowDashDropdown(false);
+                        }}
+                        className={`w-full text-right px-3.5 py-2.5 text-xs font-bold transition-colors flex items-center gap-3 ${
+                          activeTab === 'archive' ? 'bg-amber-50 text-amber-950 font-black' : 'hover:bg-slate-50 text-slate-700'
+                        }`}
+                      >
+                        <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold shrink-0">
+                          <Boxes className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <div className="font-black text-slate-900">۳. آرشیو و جستجوی سفارشات</div>
+                          <div className="text-[10px] text-slate-400">بانک اطلاعاتی جعبه‌ها، فیلترها و چاپ حواله کارگاه</div>
+                        </div>
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
             )}
 
-            {/* 5. آرشیو و جستجو (Archive) */}
-            {canArchive && (
-              <button
-                onClick={() => setActiveTab('archive')}
-                className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border ${
-                  activeTab === 'archive'
-                    ? 'bg-indigo-600 text-white border-indigo-700 shadow-md ring-2 ring-indigo-400'
-                    : 'bg-white text-slate-700 hover:text-indigo-600 hover:bg-slate-50 border-slate-200 shadow-xs'
-                }`}
-              >
-                <Boxes className="w-4 h-4 text-amber-500" />
-                <span>آرشیو و جستجو</span>
-              </button>
-            )}
-
-            {/* 6. استودیو طراحی امیران (تنها و یکتای بخش طراحی) */}
+            {/* 5. استودیو طراحی امیران (تنها و یکتای بخش طراحی) */}
             {canStudio && (
               <button
                 onClick={() => setActiveTab('dieline_generator')}
@@ -579,7 +656,7 @@ export default function Header({
               </button>
             )}
 
-            {/* 7. دستیار هوش مصنوعی (یکتای بخش هوش مصنوعی) */}
+            {/* 6. دستیار هوش مصنوعی (یکتای بخش هوش مصنوعی) */}
             {canAi && (
               <button
                 onClick={() => setActiveTab('ai_assistant')}
@@ -595,7 +672,7 @@ export default function Header({
               </button>
             )}
 
-            {/* 8. استعلام بازاریاب */}
+            {/* 7. استعلام بازاریاب */}
             {canMarketing && (
               <button
                 onClick={() => setActiveTab('marketing')}
@@ -610,7 +687,7 @@ export default function Header({
               </button>
             )}
 
-            {/* 9. وظایف من */}
+            {/* 8. وظایف من */}
             {canMyTasks && (
               <button
                 onClick={() => setActiveTab('my_tasks')}
@@ -630,22 +707,7 @@ export default function Header({
               </button>
             )}
 
-            {/* 10. داشبورد */}
-            {canDashboard && (
-              <button
-                onClick={() => setActiveTab('dashboard')}
-                className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border ${
-                  activeTab === 'dashboard'
-                    ? 'bg-indigo-600 text-white border-indigo-700 shadow-md ring-2 ring-indigo-400'
-                    : 'bg-white text-slate-700 hover:text-indigo-600 hover:bg-slate-50 border-slate-200 shadow-xs'
-                }`}
-              >
-                <BarChart3 className="w-4 h-4 text-purple-500" />
-                <span>داشبورد</span>
-              </button>
-            )}
-
-            {/* 11. تنظیمات اتوماسیون (منوی کشویی تجمیع‌شده: لایسنس، پرسنل، ارزیابی، استوریج، لاگ) */}
+            {/* 9. تنظیمات اتوماسیون (منوی کشویی تجمیع‌شده: لایسنس، پرسنل، ارزیابی، استوریج، لاگ) */}
             {canSettings && (
               <div className="relative mr-auto" ref={settingsRef}>
                 <button
@@ -654,6 +716,7 @@ export default function Header({
                     setShowSettingsDropdown(!showSettingsDropdown);
                     setShowProdDropdown(false);
                     setShowWhDropdown(false);
+                    setShowDashDropdown(false);
                   }}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all border shadow-xs ${
                     isSettingsActive

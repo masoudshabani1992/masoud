@@ -12,10 +12,11 @@ import {
   Activity,
   Layers,
   Building2,
-  Users
+  Users,
+  Kanban
 } from 'lucide-react';
 
-export default function DashboardView() {
+export default function DashboardView({ onNavigateTab }) {
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -32,6 +33,44 @@ export default function DashboardView() {
 
   return (
     <div className="w-full space-y-6">
+      {/* Consolidated Dashboard / Kanban / Archive Unified Subtab Bar */}
+      {onNavigateTab && (
+        <div className="bg-white p-2.5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <button
+              type="button"
+              onClick={() => onNavigateTab('dashboard')}
+              className="px-4 py-2 rounded-xl text-xs sm:text-sm font-black bg-purple-700 text-white shadow-md shadow-purple-200 flex items-center gap-2 ring-2 ring-purple-400"
+            >
+              <BarChart3 className="w-4 h-4 text-amber-300" />
+              <span>۱. داشبورد و آمار تحلیلی</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onNavigateTab('kanban')}
+              className="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-700 hover:text-indigo-700 hover:bg-slate-100 transition flex items-center gap-2"
+            >
+              <Kanban className="w-4 h-4 text-indigo-600" />
+              <span>۲. گردش کار ۱۰ مرحله (کانبان)</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onNavigateTab('archive')}
+              className="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-700 hover:text-amber-700 hover:bg-slate-100 transition flex items-center gap-2"
+            >
+              <Boxes className="w-4 h-4 text-amber-600" />
+              <span>۳. آرشیو و جستجوی سفارشات</span>
+            </button>
+          </div>
+
+          <div className="text-xs text-slate-400 font-bold px-3 py-1 bg-slate-50 rounded-xl border border-slate-200 hidden sm:block">
+            مرکز یکپارچه داشبورد، پیگیری و آرشیو کارخانه
+          </div>
+        </div>
+      )}
+
       {/* Top Metrics Cards - Wide Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
@@ -40,7 +79,7 @@ export default function DashboardView() {
             <div className="text-3xl font-black text-indigo-700 mt-1">
               {analytics?.activeProjects || 0}
             </div>
-            <span className="text-xs text-slate-400 mt-0.5 block">در ۹ مرحله خط تولید کارخانه</span>
+            <span className="text-xs text-slate-400 mt-0.5 block">در ۱۰ مرحله خط تولید کارخانه</span>
           </div>
           <div className="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shadow-inner">
             <Boxes className="w-7 h-7" />
@@ -79,7 +118,7 @@ export default function DashboardView() {
             <div className="text-3xl font-black text-purple-700 mt-1">
               {analytics?.completedProjects || 0}
             </div>
-            <span className="text-xs text-emerald-600 font-black mt-0.5 block">تکمیل موفق ۱۰۰٪</span>
+            <span className="text-xs text-slate-400 mt-0.5 block">اتمام کامل و تحویل مشتری</span>
           </div>
           <div className="w-14 h-14 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center shadow-inner">
             <PackageCheck className="w-7 h-7" />
@@ -87,66 +126,54 @@ export default function DashboardView() {
         </div>
       </div>
 
-      {/* 9-Stage Pipeline Funnel Breakdown */}
-      <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+      {/* Production Stages Distribution Chart */}
+      <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6">
         <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-          <div className="flex items-center gap-3">
-            <BarChart3 className="w-6 h-6 text-indigo-600" />
-            <h3 className="text-base sm:text-lg font-black text-slate-800">توزیع سفارشات در مراحل ۹ گانه خط تولید کارخانه</h3>
+          <div>
+            <h3 className="text-base sm:text-lg font-black text-slate-800">
+              توزیع بار کاری در مراحل ۱۰ گانه خط تولید کارخانه
+            </h3>
+            <p className="text-xs text-slate-500 mt-0.5">تعداد سفارشات فعال در هر ایستگاه زنجیره تولید</p>
           </div>
-          <span className="text-xs sm:text-sm text-slate-500 font-medium">نمای قیف عملیاتی و تراکم کارگاهی</span>
+          <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-200">
+            گزارش زنده
+          </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4 pt-2">
-          {STAGES.slice(0, 9).map((stage) => {
-            const count = analytics?.stageBreakdown?.[stage.id] || 0;
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          {STAGES.filter(s => s.id <= 10).map((stage) => {
+            const count = analytics?.stageDistribution?.[stage.id] || 0;
+            const percent = analytics?.activeProjects > 0
+              ? Math.round((count / analytics.activeProjects) * 100)
+              : 0;
+
             return (
               <div
                 key={stage.id}
-                className="p-5 rounded-2xl border border-slate-200 bg-slate-50/70 hover:bg-white hover:border-indigo-400 hover:shadow-md transition-all flex items-center justify-between"
+                className={`p-4 rounded-xl border flex flex-col justify-between space-y-3 ${
+                  count > 0 ? 'bg-indigo-50/50 border-indigo-200' : 'bg-slate-50/50 border-slate-200'
+                }`}
               >
-                <div>
-                  <div className="text-sm font-black text-slate-800">{stage.title}</div>
-                  <div className="text-xs text-slate-500 mt-1 font-semibold">مسئول: {stage.roleName}</div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-slate-700 line-clamp-1">{stage.shortName}</span>
+                  <span className="text-xs font-bold text-slate-400 font-mono">مرحله {stage.id}</span>
                 </div>
-                <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-black text-base shadow-sm ${count > 0 ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-500'}`}>
-                  {count}
+
+                <div className="flex items-baseline justify-between">
+                  <span className="text-2xl font-black text-indigo-900">{count}</span>
+                  <span className="text-xs text-slate-500 font-bold">{percent}٪ از کل</span>
+                </div>
+
+                {/* Progress bar */}
+                <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                  <div
+                    className="bg-indigo-600 h-full rounded-full transition-all duration-500"
+                    style={{ width: `${percent}%` }}
+                  />
                 </div>
               </div>
             );
           })}
-        </div>
-      </div>
-
-      {/* Recent Factory Activity Stream */}
-      <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-        <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
-          <Activity className="w-6 h-6 text-amber-600" />
-          <h3 className="text-base sm:text-lg font-black text-slate-800">آخرین رویدادها و اقدامات پرسنل در سیستم</h3>
-        </div>
-
-        <div className="space-y-3">
-          {analytics?.recentLogs?.map((log) => (
-            <div
-              key={log.id}
-              className="p-4 rounded-xl border border-slate-100 bg-slate-50/80 hover:bg-white transition-all flex flex-wrap items-center justify-between gap-4 text-xs sm:text-sm"
-            >
-              <div className="flex items-center gap-3.5">
-                <span className="font-mono text-xs font-black text-indigo-700 bg-indigo-50 px-3 py-1 rounded-md border border-indigo-200">
-                  {log.tracking_code}
-                </span>
-                <div>
-                  <strong className="text-slate-800 font-bold">{log.user_name}</strong>
-                  <span className="text-slate-500"> ({log.stage_name}): </span>
-                  <span className="text-slate-700 font-medium">{log.comment}</span>
-                </div>
-              </div>
-
-              <div className="text-slate-400 font-mono text-xs">
-                {formatDateFa(log.created_at)}
-              </div>
-            </div>
-          ))}
         </div>
       </div>
     </div>

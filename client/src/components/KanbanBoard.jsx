@@ -19,14 +19,17 @@ import {
   Layers,
   Sparkles,
   ShieldCheck,
-  UserCheck
+  UserCheck,
+  BarChart3,
+  Kanban
 } from 'lucide-react';
 
 export default function KanbanBoard({
   projects = [],
   onSelectProject,
   onPrintTicket,
-  currentRole
+  currentRole,
+  onNavigateTab
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPriority, setSelectedPriority] = useState('all');
@@ -56,6 +59,43 @@ export default function KanbanBoard({
 
   return (
     <div className="w-full space-y-6 animate-fade-in">
+      {/* Consolidated Dashboard / Kanban / Archive Unified Subtab Bar */}
+      {onNavigateTab && (
+        <div className="bg-white p-2.5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <button
+              type="button"
+              onClick={() => onNavigateTab('dashboard')}
+              className="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-700 hover:text-purple-700 hover:bg-slate-100 transition flex items-center gap-2"
+            >
+              <BarChart3 className="w-4 h-4 text-purple-600" />
+              <span>۱. داشبورد و آمار تحلیلی</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onNavigateTab('kanban')}
+              className="px-4 py-2 rounded-xl text-xs sm:text-sm font-black bg-indigo-700 text-white shadow-md shadow-indigo-200 flex items-center gap-2 ring-2 ring-indigo-400"
+            >
+              <Kanban className="w-4 h-4 text-amber-300" />
+              <span>۲. گردش کار ۱۰ مرحله (کانبان)</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onNavigateTab('archive')}
+              className="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-700 hover:text-amber-700 hover:bg-slate-100 transition flex items-center gap-2"
+            >
+              <Boxes className="w-4 h-4 text-amber-600" />
+              <span>۳. آرشیو و جستجوی سفارشات</span>
+            </button>
+          </div>
+
+          <div className="text-xs text-slate-400 font-bold px-3 py-1 bg-slate-50 rounded-xl border border-slate-200 hidden sm:block">
+            مرکز یکپارچه داشبورد، پیگیری و آرشیو کارخانه
+          </div>
+        </div>
+      )}
       
       {/* Search & Filter Header Bar - 100% Responsive with Grid Layout */}
       <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
@@ -103,7 +143,7 @@ export default function KanbanBoard({
               onChange={(e) => setSelectedStageFilter(e.target.value)}
               className="px-3.5 py-2.5 text-xs sm:text-sm font-bold rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
             >
-              <option value="all">نمایش هر ۹ مرحله خط تولید</option>
+              <option value="all">نمایش هر ۱۰ مرحله خط تولید</option>
               {STAGES.map((s) => (
                 <option key={s.id} value={s.id}>
                   مرحله {s.id}: {s.title}

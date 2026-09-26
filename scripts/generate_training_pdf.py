@@ -398,7 +398,7 @@ def build_pdf(filename="TRAINING_MANUAL.pdf"):
     hr_axes = [
         [Paragraph(fa("محور ارزیابی"), style_table_header), Paragraph(fa("شاخص‌های اندازه‌گیری"), style_table_header), Paragraph(fa("تاثیر در امتیاز"), style_table_header)],
         [Paragraph(fa("۱. کیفیت کار و دقت فنی"), style_table_cell), Paragraph(fa("کاهش ضایعات و باطله، دقت در خط تیغ، فرمول و چاپ بدون خطای فنی"), style_table_cell), Paragraph(fa("۲۰٪"), style_table_cell)],
-        [Paragraph(fa("۲. سرعت عمل و تحویل"), style_table_cell), Paragraph(fa("رعایت موعد تحویل در چرخه ۹ مرحله‌ای و پاسخگویی به موقع"), style_table_cell), Paragraph(fa("۲۰٪"), style_table_cell)],
+        [Paragraph(fa("۲. سرعت عمل و تحویل"), style_table_cell), Paragraph(fa("رعایت موعد تحویل در چرخه ۱۰ مرحله‌ای و پاسخگویی به موقع"), style_table_cell), Paragraph(fa("۲۰٪"), style_table_cell)],
         [Paragraph(fa("۳. تحقق تارگت ماهانه"), style_table_cell), Paragraph(fa("تحقق تارگت استعلام بازاریاب، تیراژ چاپ، ثبت رسید انبار و برآورد"), style_table_cell), Paragraph(fa("۲۰٪"), style_table_cell)],
         [Paragraph(fa("۴. انضباط و حضور کاری"), style_table_cell), Paragraph(fa("حضور به موقع در شیفت، رعایت پروتکل‌های ایمنی، آراستگی محیط کار"), style_table_cell), Paragraph(fa("۲۰٪"), style_table_cell)],
         [Paragraph(fa("۵. کار تیمی و اخلاق"), style_table_cell), Paragraph(fa("تعامل سازنده با همکاران و سرپرستان، مسئولیت‌پذیری و حفظ محرمانگی"), style_table_cell), Paragraph(fa("۲۰٪"), style_table_cell)]

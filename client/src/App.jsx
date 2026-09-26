@@ -518,16 +518,18 @@ export default function App() {
               onPrintTicket={(p) => openPrintModal(p)}
               onReorderProject={handleStartReorder}
               onRefresh={fetchProjects}
+              onNavigateTab={(t) => navigateTab(t)}
             />
           )}
 
-          {/* 9-Stage Kanban Board */}
+          {/* 10-Stage Kanban Board */}
           {activeTab === 'kanban' && (
             <KanbanBoard
               projects={projects}
               onSelectProject={(p) => openProjectModal(p.id)}
               onPrintTicket={(p) => openPrintModal(p)}
               currentRole={role}
+              onNavigateTab={(t) => navigateTab(t)}
             />
           )}
 
@@ -541,7 +543,11 @@ export default function App() {
           )}
 
           {/* Dashboard Analytics */}
-          {activeTab === 'dashboard' && <DashboardView />}
+          {activeTab === 'dashboard' && (
+            <DashboardView
+              onNavigateTab={(t) => navigateTab(t)}
+            />
+          )}
 
           {/* Raw Materials Prices */}
           {activeTab === 'materials' && <MaterialPricesView />}

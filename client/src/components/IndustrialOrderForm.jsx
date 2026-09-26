@@ -1035,7 +1035,7 @@ export default function IndustrialOrderForm({ onOrderSaved, onCancel, initialDat
               className="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-base font-black shadow-lg shadow-indigo-600/40 flex items-center gap-2.5 active:scale-95 transition-all"
             >
               <CheckCircle2 className="w-5 h-5" />
-              <span>{loading ? 'در حال پردازش...' : 'تایید نهایی و ورود به خط تولید ۹ مرحله‌ای'}</span>
+              <span>{loading ? 'در حال پردازش...' : 'تایید نهایی و ورود به خط تولید ۱۰ مرحله‌ای'}</span>
             </button>
           </div>
         </div>

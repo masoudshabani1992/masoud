@@ -88,7 +88,7 @@ export const ALL_PERMISSION_MODULES = [
     color: 'border-purple-300 bg-purple-50/50 text-purple-900',
     permissions: [
       { key: 'can_view_hub', label: 'صفحه اصلی کارخانه (Hub)', desc: 'دسترسی به هاب ناوبری و خلاصه وضعیت' },
-      { key: 'can_view_kanban', label: 'گردش کار ۹ مرحله‌ای کارخانه', desc: 'مشاهده بردهای پیشرفت پروژه از بازرگانی تا تولید' },
+      { key: 'can_view_kanban', label: 'گردش کار ۱۰ مرحله‌ای کارخانه', desc: 'مشاهده بردهای پیشرفت پروژه از بازرگانی تا تولید' },
       { key: 'can_view_archive', label: 'آرشیو محصولات و پرونده‌ها', desc: 'دفتر تلفن، جستجو در آرشیو فنی، کد بایگانی و مشتریان' },
       { key: 'can_create_order', label: 'ثبت سفارش کامل صنعتی', desc: 'فرم تعریف سفارش کامل و ارسال به پیش‌فاکتور' },
       { key: 'can_view_my_tasks', label: 'کارتابل وظایف من (Inbox)', desc: 'مشاهده پروژه‌های در انتظار اقدام اختصاصی این کاربر' }

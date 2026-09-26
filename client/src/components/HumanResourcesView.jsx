@@ -750,7 +750,7 @@ export default function HumanResourcesView() {
                     onChange={(e) => setScoreSpeed(Number(e.target.value))}
                     className="w-full accent-indigo-600 cursor-pointer"
                   />
-                  <div className="text-[10px] text-slate-500">رعایت موعد تحویل در چرخه ۹ مرحله‌ای، تسریع در فرآیندها و پاسخگویی به موقع</div>
+                  <div className="text-[10px] text-slate-500">رعایت موعد تحویل در چرخه ۱۰ مرحله‌ای، تسریع در فرآیندها و پاسخگویی به موقع</div>
                 </div>
 
                 {/* Axis 3: Target Achievement */}

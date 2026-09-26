@@ -68,7 +68,7 @@ export default function LoginView() {
             </div>
 
             <p className="text-xs text-slate-300 leading-relaxed pt-2 font-medium">
-              سامانه یکپارچه مدیریت فرآیند ۹ مرحله‌ای تولید کارتن و جعبه‌سازی با تفکیک سطوح دسترسی پرسنل و کارتابل‌های اختصاصی.
+              سامانه یکپارچه مدیریت فرآیند ۱۰ مرحله‌ای تولید کارتن و جعبه‌سازی با تفکیک سطوح دسترسی پرسنل و کارتابل‌های اختصاصی.
             </p>
 
             {/* Quick Demo Access Roles */}
