@@ -116,7 +116,7 @@ export default function Header({
                   {currentInfo.title}
                 </h1>
                 <span className="hidden md:inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-violet-50 text-violet-700 border border-violet-200">
-                  نسخه ۲.۷.۲ (بیلد ۷۲)
+                  نسخه ۲.۷.۳ (بیلد ۷۶)
                 </span>
               </div>
               <p className="text-[11px] text-slate-500 font-medium hidden sm:block">

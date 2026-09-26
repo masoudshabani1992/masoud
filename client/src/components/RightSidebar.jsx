@@ -53,6 +53,7 @@ export default function RightSidebar({
 
   // Submenu open states (auto-expand if child active)
   const [openSubmenu, setOpenSubmenu] = useState(() => {
+    if (['marketing', 'calculator'].includes(activeTab)) return 'mkt';
     if (['production_orders', 'production_orders_offset', 'digital_orders', 'service_orders'].includes(activeTab)) return 'prod';
     if (['warehouse_inventory', 'warehouse_cardboard', 'warehouse_sheet_carton', 'warehouse_single_face', 'warehouse_cellophane', 'warehouse_pvc_film', 'warehouse_ink'].includes(activeTab)) return 'wh';
     if (['dashboard', 'kanban', 'archive'].includes(activeTab)) return 'dash';
@@ -138,8 +139,8 @@ export default function RightSidebar({
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                   <span className="text-[11px] font-bold text-slate-500">اتوماسیون تولید (MIS)</span>
-                  <span className="px-1.5 py-0.2 rounded-md text-[10px] font-black bg-purple-100 text-purple-800 border border-purple-300" title="نسخه ۲.۷.۲ - بیلد ۷۲">
-                    v2.7.2
+                  <span className="px-1.5 py-0.2 rounded-md text-[10px] font-black bg-purple-100 text-purple-800 border border-purple-300" title="نسخه ۲.۷.۳ - بیلد ۷۶">
+                    v2.7.3
                   </span>
                 </div>
               </div>
@@ -242,25 +243,67 @@ export default function RightSidebar({
               </button>
             )}
 
-            {/* کارتابل بازاریابی */}
+            {/* کارتابل استعلام و بازاریابی (شامل کارتابل استعلامات و ماشین‌حساب قیمت) */}
             {canMarketing && (
-              <button
-                onClick={() => handleNavClick('marketing')}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
-                  activeTab === 'marketing'
-                    ? 'bg-emerald-100 text-emerald-950 font-black border border-emerald-300/80 shadow-2xs'
-                    : 'text-slate-700 hover:bg-emerald-50/60 hover:text-emerald-900'
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
-                    activeTab === 'marketing' ? 'bg-emerald-200 text-emerald-900' : 'bg-emerald-50 text-emerald-700'
-                  }`}>
-                    <Users className="w-4 h-4" />
+              <div className="space-y-1">
+                <button
+                  onClick={() => toggleSubmenu('mkt')}
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                    activeTab === 'marketing' || activeTab === 'calculator'
+                      ? 'bg-emerald-100 text-emerald-950 font-black border border-emerald-300/80 shadow-2xs'
+                      : 'text-slate-700 hover:bg-emerald-50/60 hover:text-emerald-900'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
+                      activeTab === 'marketing' || activeTab === 'calculator'
+                        ? 'bg-emerald-200 text-emerald-900'
+                        : 'bg-emerald-50 text-emerald-700'
+                    }`}>
+                      <Users className="w-4 h-4" />
+                    </div>
+                    <span>استعلام و بازاریابی</span>
                   </div>
-                  <span>استعلام و بازاریابی</span>
-                </div>
-              </button>
+                  <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
+                    openSubmenu === 'mkt' ? 'rotate-180 text-emerald-700' : ''
+                  }`} />
+                </button>
+
+                {/* Submenu Items for Marketing */}
+                {openSubmenu === 'mkt' && (
+                  <div className="pr-5 pl-2 py-1 space-y-1 animate-slide-down border-r-2 border-emerald-300 mr-3">
+                    <button
+                      onClick={() => handleNavClick('marketing')}
+                      className={`w-full text-right px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between ${
+                        activeTab === 'marketing'
+                          ? 'bg-emerald-600 text-white font-black shadow-xs'
+                          : 'text-slate-600 hover:bg-emerald-50/70 hover:text-emerald-900'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Users className="w-3.5 h-3.5" />
+                        <span>۱. کارتابل استعلامات</span>
+                      </div>
+                    </button>
+
+                    {canCalculator && (
+                      <button
+                        onClick={() => handleNavClick('calculator')}
+                        className={`w-full text-right px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between ${
+                          activeTab === 'calculator'
+                            ? 'bg-emerald-600 text-white font-black shadow-xs'
+                            : 'text-slate-600 hover:bg-emerald-50/70 hover:text-emerald-900'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <Calculator className="w-3.5 h-3.5" />
+                          <span>۲. ماشین‌حساب برآورد قیمت</span>
+                        </div>
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
             )}
           </div>
 
@@ -607,27 +650,6 @@ export default function RightSidebar({
                   <span>دستیار هوش مصنوعی</span>
                 </div>
                 <span className="text-[10px] font-bold px-1.5 py-0.2 bg-fuchsia-200 text-fuchsia-900 rounded">AI</span>
-              </button>
-            )}
-
-            {/* ماشین حساب قیمت */}
-            {canCalculator && (
-              <button
-                onClick={() => handleNavClick('calculator')}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
-                  activeTab === 'calculator'
-                    ? 'bg-orange-100 text-orange-950 font-black border border-orange-300/80 shadow-2xs'
-                    : 'text-slate-700 hover:bg-orange-50/60 hover:text-orange-900'
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
-                    activeTab === 'calculator' ? 'bg-orange-200 text-orange-900' : 'bg-orange-50 text-orange-700'
-                  }`}>
-                    <Calculator className="w-4 h-4" />
-                  </div>
-                  <span>ماشین‌حساب قیمت</span>
-                </div>
               </button>
             )}
           </div>
