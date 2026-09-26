@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { canAccessDepartment } from '../utils/helpers';
+import FactoryHubPipelineCanvas from './FactoryHubPipelineCanvas';
 import {
   Lock,
   AlertCircle,
@@ -18,7 +19,9 @@ import {
   Box,
   CreditCard,
   Clock,
-  CheckCircle2
+  CheckCircle2,
+  Workflow,
+  LayoutGrid
 } from 'lucide-react';
 
 // Custom SVGs crafted to match the legacy MIS screenshot
@@ -203,6 +206,7 @@ export default function DepartmentHubView({
 }) {
   const { currentUser, role } = useAuth();
   const [accessDeniedModal, setAccessDeniedModal] = useState(null);
+  const [viewMode, setViewMode] = useState('canvas'); // 'canvas' (n8n pipeline canvas) or 'tiles' (12-tile department grid)
 
   // Compute pending items per department based on 10-stage pipeline
   const designCount = projects.filter((p) => p.current_stage === 5).length;
@@ -293,8 +297,57 @@ export default function DepartmentHubView({
         </div>
       </div>
 
-      {/* Two Core Centers: ۱. دستور تولید | ۲. انبار */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      {/* View Switcher Bar: n8n Pipeline Canvas vs 12-Tile Pastel Hub */}
+      <div className="bg-white p-2.5 rounded-2xl border border-slate-200/90 shadow-xs flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setViewMode('canvas')}
+            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-black transition flex items-center gap-2 ${
+              viewMode === 'canvas'
+                ? 'bg-gradient-to-r from-amber-200 via-orange-200 to-rose-200 text-slate-950 border border-amber-300 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+            }`}
+            title="بوم گرافیکی تعاملی اتوماسیون کارخانه به سبک n8n"
+          >
+            <Workflow className="w-4 h-4 text-amber-800" />
+            <span>بوم گرافیکی پایپ‌لاین کارخانه (n8n Enterprise)</span>
+          </button>
+
+          <button
+            onClick={() => setViewMode('tiles')}
+            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-black transition flex items-center gap-2 ${
+              viewMode === 'tiles'
+                ? 'bg-indigo-600 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+            }`}
+            title="پرتال سنتی کاشی‌های ۱۲ دپارتمان"
+          >
+            <LayoutGrid className="w-4 h-4" />
+            <span>پرتال کاشی‌های دپارتمان (۱۲ دپارتمان)</span>
+          </button>
+        </div>
+
+        <div className="text-xs text-slate-500 font-bold hidden md:flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span>مرکز مدیریت یکپارچه کارخانه جعبه‌سازی و کارتن‌سازی</span>
+        </div>
+      </div>
+
+      {/* VIEW MODE 1: n8n PIPELINE CANVAS */}
+      {viewMode === 'canvas' && (
+        <FactoryHubPipelineCanvas
+          projects={projects}
+          onNavigateDepartment={onNavigateDepartment}
+          onOpenNewOrder={onOpenNewOrder}
+          onOpenArchive={onOpenArchive}
+        />
+      )}
+
+      {/* VIEW MODE 2: CLASSIC PASTEL TILES & CENTERS */}
+      {viewMode === 'tiles' && (
+        <>
+          {/* Two Core Centers: ۱. دستور تولید | ۲. انبار */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         
         {/* Card 1: مرکز دستور تولید (۱.تولید | ۲.دیجیتال | ۳.خدماتی) */}
         <div className="bg-white rounded-3xl p-6 border border-indigo-200/80 shadow-sm space-y-4">
@@ -896,6 +949,8 @@ export default function DepartmentHubView({
         })()}
 
       </div>
+        </>
+      )}
 
       {/* Access Denied Modal Alert */}
       {accessDeniedModal && (

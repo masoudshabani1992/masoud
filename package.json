@@ -1,6 +1,6 @@
 {
   "name": "box-factory-erp",
-  "version": "2.7.4",
+  "version": "2.7.5",
   "description": "سامانه اتوماسیون و مدیریت پروژه ۱۰ مرحله‌ای کارخانه جعبه‌سازی و کارتن‌سازی آرمان امیران",
   "main": "server/index.js",
   "scripts": {
