@@ -31,6 +31,7 @@ import TollServicesView from './components/TollServicesView';
 import HumanResourcesView from './components/HumanResourcesView';
 import StorageManagerView from './components/StorageManagerView';
 import AuditLogsView from './components/AuditLogsView';
+import NotificationSettingsView from './components/NotificationSettingsView';
 import CommandPaletteModal from './components/CommandPaletteModal';
 import FloatingQuickDock from './components/FloatingQuickDock';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -48,6 +49,7 @@ const TAB_PERMISSION_MAP = {
   hr: 'can_manage_users',
   logs: 'can_manage_users',
   storage: 'can_manage_users',
+  notification_settings: 'can_manage_users',
   migration: 'can_view_migration',
   dieline_generator: 'can_view_studio',
   '3d_studio': 'can_view_studio',
@@ -580,6 +582,9 @@ export default function App() {
 
           {/* Audit Logs & User Activity Tracking (ممیزی و لاگ سیستم) */}
           {activeTab === 'logs' && <AuditLogsView />}
+
+          {/* Automatic Notifications Configuration (بله و پیامک تایید مشتری) */}
+          {activeTab === 'notification_settings' && <NotificationSettingsView />}
 
           {/* Human Resources & Performance Evaluation System (HR) */}
           {activeTab === 'hr' && <HumanResourcesView />}

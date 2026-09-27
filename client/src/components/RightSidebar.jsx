@@ -34,7 +34,9 @@ import {
   ShieldAlert,
   ChevronLeft,
   SlidersHorizontal,
-  Flame
+  Flame,
+  Bell,
+  Smartphone
 } from 'lucide-react';
 
 export default function RightSidebar({
@@ -97,7 +99,7 @@ export default function RightSidebar({
   const isProdActive = ['production_orders', 'production_orders_offset', 'digital_orders', 'production_orders_digital', 'service_orders', 'production_orders_service'].includes(activeTab);
   const isWhActive = ['warehouse_inventory', 'warehouse_cardboard', 'warehouse_sheet_carton', 'warehouse_single_face', 'warehouse_cellophane', 'warehouse_pvc_film', 'warehouse_ink'].includes(activeTab);
   const isDashActive = ['dashboard', 'kanban', 'archive'].includes(activeTab);
-  const isSettingsActive = ['users', 'hr', 'storage', 'logs'].includes(activeTab);
+  const isSettingsActive = ['users', 'hr', 'storage', 'logs', 'notification_settings'].includes(activeTab);
 
   const handleNavClick = (tab) => {
     setActiveTab(tab);
@@ -139,8 +141,8 @@ export default function RightSidebar({
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                   <span className="text-[11px] font-bold text-slate-500">اتوماسیون تولید (MIS)</span>
-                  <span className="px-1.5 py-0.2 rounded-md text-[10px] font-black bg-purple-100 text-purple-800 border border-purple-300" title="نسخه ۲.۸.۰ - بیلد ۸۳">
-                    v2.8.0
+                  <span className="px-1.5 py-0.2 rounded-md text-[10px] font-black bg-purple-100 text-purple-800 border border-purple-300" title="نسخه ۲.۸.۱ - بیلد ۸۴">
+                    v2.8.1
                   </span>
                 </div>
               </div>
@@ -735,6 +737,21 @@ export default function RightSidebar({
                     >
                       <Activity className="w-3.5 h-3.5 text-rose-700" />
                       <span>۵. لاگ و ممیزی</span>
+                    </button>
+
+                    <button
+                      onClick={() => handleNavClick('notification_settings')}
+                      className={`w-full text-right px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between ${
+                        activeTab === 'notification_settings'
+                          ? 'bg-amber-100 text-amber-950 font-black border border-amber-300/80 shadow-2xs'
+                          : 'text-slate-600 hover:bg-amber-50 hover:text-amber-900'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Bell className="w-3.5 h-3.5 text-amber-600 animate-bounce" />
+                        <span>۶. اطلاع‌رسانی بله و پیامک</span>
+                      </div>
+                      <span className="text-[10px] bg-amber-200 text-amber-900 px-1 py-0.2 rounded font-bold">تایید مشتری</span>
                     </button>
                   </div>
                 )}

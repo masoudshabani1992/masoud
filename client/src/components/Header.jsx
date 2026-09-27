@@ -52,6 +52,7 @@ const TAB_TITLES = {
   hr: { title: 'ارزیابی عملکرد پرسنل (HR)', desc: 'پرونده پرسنلی و ارزیابی ۵ محوره پرسنل', icon: ShieldCheck, color: 'text-amber-600' },
   storage: { title: 'پوشه Storage و مدیریت فایل‌ها', desc: 'آرشیو فایل‌های خط تیغ و گرافیکی', icon: Settings, color: 'text-cyan-600' },
   logs: { title: 'لاگ و ممیزی کاربران (Audit Trail)', desc: 'ثبت لحظه‌ای تمامی فعالیت‌ها و تغییرات', icon: Settings, color: 'text-rose-600' },
+  notification_settings: { title: 'تنظیمات اطلاع‌رسانی خودکار (بله و پیامک)', desc: 'پیکربندی ارسال نوتیفیکیشن به پرسنل در بله و پیامک به کارفرما پس از تایید مشتری', icon: Bell, color: 'text-amber-600' },
   migration: { title: 'مرکز انتقال و ایمپورت اکسل', desc: 'انتقال سریع اطلاعات از اتوماسیون قدیمی', icon: Layers, color: 'text-amber-600' }
 };
 
@@ -116,7 +117,7 @@ export default function Header({
                   {currentInfo.title}
                 </h1>
                 <span className="hidden md:inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-violet-50 text-violet-700 border border-violet-200">
-                  نسخه ۲.۸.۰ (بیلد ۸۳)
+                  نسخه ۲.۸.۱ (بیلد ۸۴)
                 </span>
               </div>
               <p className="text-[11px] text-slate-500 font-medium hidden sm:block">
