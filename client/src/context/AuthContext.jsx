@@ -75,7 +75,14 @@ export function AuthProvider({ children }) {
 
   const hasPermission = (permissionKey) => {
     if (!currentUser) return false;
-    if (currentUser.role === 'ceo') return true;
+    if (currentUser.role === 'admin') return true;
+    if (currentUser.role === 'ceo') {
+      // CEO is strictly restricted from Server License, raw Storage folder, and Audit/Activity Logs
+      if (['can_view_storage', 'can_view_logs', 'can_view_license'].includes(permissionKey)) {
+        return false;
+      }
+      return true;
+    }
     if (currentUser.permissions && currentUser.permissions[permissionKey] !== undefined) {
       return Boolean(currentUser.permissions[permissionKey]);
     }

@@ -38,6 +38,20 @@ export default function StorageManagerView() {
   const [uploadSuccess, setUploadSuccess] = useState(null);
   const [previewFile, setPreviewFile] = useState(null);
 
+  if (role !== 'admin') {
+    return (
+      <div className="p-8 text-center bg-white rounded-3xl border border-rose-200 shadow-sm max-w-lg mx-auto mt-12 space-y-4">
+        <div className="w-16 h-16 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto">
+          <ShieldAlert className="w-8 h-8" />
+        </div>
+        <h2 className="text-base font-black text-slate-800">شما مجاز به دیدن این پرونده نیستین</h2>
+        <p className="text-xs text-slate-500 leading-relaxed">
+          دسترسی به ساختار فایل‌ها و پوشه Storage به صورت انحصاری مختص مدیر ارشد سیستم (Admin) است.
+        </p>
+      </div>
+    );
+  }
+
   const fetchStorageFiles = async () => {
     setLoading(true);
     try {

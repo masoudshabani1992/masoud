@@ -25,7 +25,7 @@ import { useAuth } from '../context/AuthContext';
 
 export default function LicenseStatusModal({ isOpen, onClose, licenseInfo, hardwareId, onLicenseUpdated }) {
   const { role } = useAuth();
-  const isCeo = role === 'ceo';
+  const isAdmin = role === 'admin';
 
   const [activeTab, setActiveTab] = useState('info'); // 'info' | 'renew' | 'generator'
   const [copied, setCopied] = useState(false);
@@ -182,7 +182,7 @@ export default function LicenseStatusModal({ isOpen, onClose, licenseInfo, hardw
             <span>تمدید / ثبت کلید جدید</span>
           </button>
 
-          {isCeo && (
+          {isAdmin && (
             <button
               onClick={() => { setActiveTab('generator'); setMsg({ type: '', text: '' }); }}
               className={`pb-3 px-3 text-xs font-bold border-b-2 transition flex items-center gap-1.5 ${
@@ -192,7 +192,7 @@ export default function LicenseStatusModal({ isOpen, onClose, licenseInfo, hardw
               }`}
             >
               <Sparkles className="w-4 h-4 text-indigo-400" />
-              <span>موتور صدور لایسنس (مسعود شعبانی)</span>
+              <span>موتور صدور لایسنس (مهندس مسعود شعبانی)</span>
             </button>
           )}
         </div>
@@ -322,7 +322,7 @@ export default function LicenseStatusModal({ isOpen, onClose, licenseInfo, hardw
           )}
 
           {/* TAB 3: GENERATOR (FOR MASOUD SHABANI) */}
-          {activeTab === 'generator' && isCeo && (
+          {activeTab === 'generator' && isAdmin && (
             <form onSubmit={handleGenerateLicense} className="space-y-4">
               <div className="p-3.5 bg-indigo-950/30 border border-indigo-500/20 rounded-2xl text-xs text-indigo-300 leading-relaxed">
                 ✨ <strong>موتور صدور لایسنس رمزنگاری‌شده RSA-2048:</strong> در این بخش می‌توانید برای هر سخت‌افزار، مشتری یا کارخانه جدید لایسنس معتبر صادر نمایید.

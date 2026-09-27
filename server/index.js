@@ -257,7 +257,7 @@ app.post('/api/license/activate', (req, res) => {
   }
 });
 
-app.post('/api/license/deactivate', authMiddleware, requireCeo, (req, res) => {
+app.post('/api/license/deactivate', authMiddleware, requireAdmin, (req, res) => {
   try {
     db.prepare('UPDATE license_store SET is_active = 0 WHERE id = 1').run();
     const licPath = path.join(__dirname, 'license.lic');
@@ -268,8 +268,8 @@ app.post('/api/license/deactivate', authMiddleware, requireCeo, (req, res) => {
   }
 });
 
-// Developer License Key Generator (Only CEO/Developer)
-app.post('/api/license/generate', authMiddleware, requireCeo, (req, res) => {
+// Developer License Key Generator (Only Admin/Developer - Masoud Shabani)
+app.post('/api/license/generate', authMiddleware, requireAdmin, (req, res) => {
   try {
     const { hardwareId, companyName, issuedTo, expiry, maxUsers, type } = req.body;
     const { generateSignedLicenseKey } = require('./license-generator');
@@ -1871,6 +1871,38 @@ const STAGES = {
 };
 
 const DEFAULT_ROLE_PERMISSIONS = {
+  // 0. مدیر ارشد سیستم (Super Admin - Masoud Shabani) - UNRESTRICTED FULL ACCESS
+  admin: {
+    can_view_hub: true,
+    can_view_production_offset: true,
+    can_view_production_digital: true,
+    can_view_production_service: true,
+    can_create_production_order: true,
+    can_view_warehouse_cardboard: true,
+    can_view_warehouse_sheet_carton: true,
+    can_view_warehouse_single_face: true,
+    can_view_warehouse_cellophane: true,
+    can_view_warehouse_pvc_film: true,
+    can_view_warehouse_ink: true,
+    can_create_warehouse_receipt: true,
+    can_view_kanban: true,
+    can_view_archive: true,
+    can_view_studio: true,
+    can_view_ai: true,
+    can_view_marketing: true,
+    can_create_marketing_lead: true,
+    can_view_my_tasks: true,
+    can_view_calculator: true,
+    can_view_material_prices: true,
+    can_view_dashboard: true,
+    can_create_order: true,
+    can_manage_users: true,
+    can_view_migration: true,
+    can_view_storage: true,
+    can_view_logs: true,
+    can_view_license: true
+  },
+
   // 1. طراح (Designer) - STRICT ISOLATION
   design: {
     can_view_studio: true, // استودیو طراحی امیران (خط تیغ ۲ بعدی و ۳ بعدی)
@@ -1958,7 +1990,7 @@ const DEFAULT_ROLE_PERMISSIONS = {
     can_view_kanban: false
   },
 
-  // 4. مدیرعامل (CEO) - FULL ACCESS
+  // 4. مدیرعامل (CEO) - OPERATIONAL MANAGEMENT (EXCLUDING TECHNICAL STORAGE / LOGS / LICENSE)
   ceo: {
     can_view_hub: true,
     can_view_production_offset: true,
@@ -1984,7 +2016,10 @@ const DEFAULT_ROLE_PERMISSIONS = {
     can_view_dashboard: true,
     can_create_order: true,
     can_manage_users: true,
-    can_view_migration: true
+    can_view_migration: true,
+    can_view_storage: false, // مدیرعامل به پوشه Storage دسترسی ندارد
+    can_view_logs: false,    // مدیرعامل به لاگ و ممیزی دسترسی ندارد
+    can_view_license: false  // مدیرعامل به لایسنس سرور دسترسی ندارد
   },
 
   // 5. سرپرست تولید (Production)
@@ -2106,6 +2141,7 @@ const DEFAULT_ROLE_PERMISSIONS = {
 
 function resolveUserPermissions(user) {
   if (!user) return DEFAULT_ROLE_PERMISSIONS.marketer;
+  if (user.role === 'admin') return DEFAULT_ROLE_PERMISSIONS.admin;
   if (user.role === 'ceo') return DEFAULT_ROLE_PERMISSIONS.ceo;
 
   let parsed = null;
@@ -2182,16 +2218,30 @@ app.post('/api/auth/demo-login/:role', (req, res) => {
   res.json({ token, user: { ...userProfile, permissions } });
 });
 
+function requireAdmin(req, res, next) {
+  if (req.user?.role !== 'admin') {
+    return res.status(403).json({ error: 'دسترسی غیرمجاز: این بخش به صورت انحصاری مختص مدیر ارشد سیستم (Admin) است.' });
+  }
+  next();
+}
+
+function requireCeoOrAdmin(req, res, next) {
+  if (!['admin', 'ceo'].includes(req.user?.role)) {
+    return res.status(403).json({ error: 'دسترسی غیرمجاز: این عملیات مختص مدیریت است.' });
+  }
+  next();
+}
+
 function requireCeo(req, res, next) {
-  if (req.user?.role !== 'ceo') {
-    return res.status(403).json({ error: 'دسترسی غیرمجاز: این عملیات مختص مدیریت عامل است.' });
+  if (!['admin', 'ceo'].includes(req.user?.role)) {
+    return res.status(403).json({ error: 'دسترسی غیرمجاز: این عملیات مختص مدیریت است.' });
   }
   next();
 }
 
 function requireRoles(...allowed) {
   return (req, res, next) => {
-    if (req.user?.role === 'ceo' || allowed.includes(req.user?.role)) {
+    if (['admin', 'ceo'].includes(req.user?.role) || allowed.includes(req.user?.role)) {
       return next();
     }
     return res.status(403).json({ error: 'دسترسی غیرمجاز: شما مجوز دسترسی به این بخش را ندارید.' });
@@ -2627,8 +2677,8 @@ app.delete('/api/users/:id', authMiddleware, requireCeo, (req, res) => {
   res.json({ success: true, message: 'کاربر با موفقیت حذف گردید.' });
 });
 
-// ================= AUDIT & ACTIVITY LOGS (مدیریت لاگ و ممیزی سیستم) =================
-app.get('/api/logs', authMiddleware, requireCeo, (req, res) => {
+// ================= AUDIT & ACTIVITY LOGS (مدیریت لاگ و ممیزی سیستم - اختصاصی ADMIN) =================
+app.get('/api/logs', authMiddleware, requireAdmin, (req, res) => {
   try {
     const {
       username,
@@ -2713,7 +2763,7 @@ app.get('/api/logs', authMiddleware, requireCeo, (req, res) => {
   }
 });
 
-app.get('/api/logs/stats', authMiddleware, requireCeo, (req, res) => {
+app.get('/api/logs/stats', authMiddleware, requireAdmin, (req, res) => {
   try {
     const totalRow = db.prepare('SELECT COUNT(*) as total FROM activity_logs').get();
     const todayRow = db.prepare("SELECT COUNT(*) as count FROM activity_logs WHERE date(created_at) = date('now')").get();
@@ -2770,7 +2820,7 @@ app.get('/api/logs/stats', authMiddleware, requireCeo, (req, res) => {
   }
 });
 
-app.delete('/api/logs/clear', authMiddleware, requireCeo, (req, res) => {
+app.delete('/api/logs/clear', authMiddleware, requireAdmin, (req, res) => {
   try {
     const { retention_days = 0 } = req.body || {};
     const retentionNum = parseInt(retention_days) || 0;
@@ -2800,7 +2850,7 @@ app.delete('/api/logs/clear', authMiddleware, requireCeo, (req, res) => {
   }
 });
 
-app.get('/api/logs/export-excel', authMiddleware, requireCeo, (req, res) => {
+app.get('/api/logs/export-excel', authMiddleware, requireAdmin, (req, res) => {
   try {
     const { username, module: mod, action, search } = req.query;
 
@@ -3518,18 +3568,14 @@ app.post('/api/storage/upload', authMiddleware, userUpload.single('file'), (req,
   }
 });
 
-// List files in Storage
-app.get('/api/storage/files', authMiddleware, (req, res) => {
+// List files in Storage (Admin only Storage Explorer)
+app.get('/api/storage/files', authMiddleware, requireAdmin, (req, res) => {
   try {
     const { username, category, search } = req.query;
     let query = 'SELECT * FROM storage_files WHERE 1=1';
     const params = [];
 
-    // Marketers only see their own files unless CEO/Sales
-    if (req.user.role === 'marketer' && req.user.role !== 'ceo') {
-      query += ' AND (username = ? OR username = "general")';
-      params.push(req.user.username);
-    } else if (username && username !== 'all') {
+    if (username && username !== 'all') {
       query += ' AND username = ?';
       params.push(username);
     }
@@ -3565,15 +3611,11 @@ app.get('/api/storage/files', authMiddleware, (req, res) => {
   }
 });
 
-// Delete file from Storage
-app.delete('/api/storage/files/:id', authMiddleware, (req, res) => {
+// Delete file from Storage (Admin only)
+app.delete('/api/storage/files/:id', authMiddleware, requireAdmin, (req, res) => {
   try {
     const file = db.prepare('SELECT * FROM storage_files WHERE id = ?').get(req.params.id);
     if (!file) return res.status(404).json({ error: 'فایل یافت نشد.' });
-
-    if (req.user.role !== 'ceo' && req.user.username !== file.username && !req.user.permissions?.can_manage_users) {
-      return res.status(403).json({ error: 'شما مجاز به حذف این فایل نیستید.' });
-    }
 
     const absolutePath = path.join(ROOT_STORAGE_DIR, file.relative_path);
     if (fs.existsSync(absolutePath)) {

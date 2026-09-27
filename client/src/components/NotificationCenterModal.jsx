@@ -24,7 +24,7 @@ import {
 
 export default function NotificationCenterModal({ onClose, onSelectProject, onSelectLead }) {
   const { role } = useAuth();
-  const isCeo = role === 'ceo';
+  const isCeo = role === 'ceo' || role === 'admin';
 
   const [activeTab, setActiveTab] = useState('list'); // 'list', 'settings'
   const [notifications, setNotifications] = useState([]);

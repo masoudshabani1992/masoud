@@ -51,6 +51,7 @@ export default function RightSidebar({
   onCloseMobile
 }) {
   const { currentUser, role, logout, switchRole, hasPermission } = useAuth();
+  const isAdmin = role === 'admin';
   const isCeo = role === 'ceo';
 
   // Submenu open states (auto-expand if child active)
@@ -59,7 +60,7 @@ export default function RightSidebar({
     if (['production_orders', 'production_orders_offset', 'digital_orders', 'service_orders'].includes(activeTab)) return 'prod';
     if (['warehouse_inventory', 'warehouse_cardboard', 'warehouse_sheet_carton', 'warehouse_single_face', 'warehouse_cellophane', 'warehouse_pvc_film', 'warehouse_ink'].includes(activeTab)) return 'wh';
     if (['dashboard', 'kanban', 'archive'].includes(activeTab)) return 'dash';
-    if (['users', 'hr', 'storage', 'logs'].includes(activeTab)) return 'settings';
+    if (['users', 'hr', 'storage', 'logs', 'notification_settings'].includes(activeTab)) return 'settings';
     return null;
   });
 
@@ -94,7 +95,7 @@ export default function RightSidebar({
   const canCalculator = hasPermission('can_view_calculator');
   const canCreateOrder = hasPermission('can_create_order');
   const canManageUsers = hasPermission('can_manage_users');
-  const canSettings = isCeo || canManageUsers;
+  const canSettings = isAdmin || isCeo || canManageUsers;
 
   const isProdActive = ['production_orders', 'production_orders_offset', 'digital_orders', 'production_orders_digital', 'service_orders', 'production_orders_service'].includes(activeTab);
   const isWhActive = ['warehouse_inventory', 'warehouse_cardboard', 'warehouse_sheet_carton', 'warehouse_single_face', 'warehouse_cellophane', 'warehouse_pvc_film', 'warehouse_ink'].includes(activeTab);
@@ -689,16 +690,23 @@ export default function RightSidebar({
                 {/* Submenu Items */}
                 {openSubmenu === 'settings' && (
                   <div className="pr-5 pl-2 py-1 space-y-1 animate-slide-down border-r-2 border-slate-300 mr-3">
-                    <button
-                      onClick={() => {
-                        if (onOpenLicense) onOpenLicense();
-                      }}
-                      className="w-full text-right px-3 py-2 rounded-lg text-xs font-bold text-slate-600 hover:bg-emerald-50 hover:text-emerald-900 transition-all flex items-center gap-2"
-                    >
-                      <Key className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>۱. لایسنس سرور</span>
-                    </button>
+                    {/* لایسنس سرور - انحصاری Admin */}
+                    {isAdmin && (
+                      <button
+                        onClick={() => {
+                          if (onOpenLicense) onOpenLicense();
+                        }}
+                        className="w-full text-right px-3 py-2 rounded-lg text-xs font-bold text-slate-700 hover:bg-emerald-50 hover:text-emerald-900 transition-all flex items-center justify-between"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Key className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>۱. لایسنس سرور</span>
+                        </div>
+                        <span className="text-[9px] bg-emerald-100 text-emerald-800 font-mono px-1 py-0.2 rounded font-black">Admin</span>
+                      </button>
+                    )}
 
+                    {/* مدیریت پرسنل و دسترسی‌ها */}
                     <button
                       onClick={() => handleNavClick('users')}
                       className={`w-full text-right px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
@@ -709,6 +717,7 @@ export default function RightSidebar({
                       <span>۲. مدیریت پرسنل</span>
                     </button>
 
+                    {/* ارزیابی عملکرد HR */}
                     <button
                       onClick={() => handleNavClick('hr')}
                       className={`w-full text-right px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
@@ -719,26 +728,39 @@ export default function RightSidebar({
                       <span>۳. ارزیابی عملکرد HR</span>
                     </button>
 
-                    <button
-                      onClick={() => handleNavClick('storage')}
-                      className={`w-full text-right px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
-                        activeTab === 'storage' ? 'bg-cyan-100 text-cyan-950 font-black' : 'text-slate-600 hover:bg-cyan-50 hover:text-cyan-900'
-                      }`}
-                    >
-                      <HardDrive className="w-3.5 h-3.5 text-cyan-700" />
-                      <span>۴. پوشه Storage</span>
-                    </button>
+                    {/* پوشه Storage - انحصاری Admin */}
+                    {isAdmin && (
+                      <button
+                        onClick={() => handleNavClick('storage')}
+                        className={`w-full text-right px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between ${
+                          activeTab === 'storage' ? 'bg-cyan-100 text-cyan-950 font-black' : 'text-slate-600 hover:bg-cyan-50 hover:text-cyan-900'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <HardDrive className="w-3.5 h-3.5 text-cyan-700" />
+                          <span>۴. پوشه Storage</span>
+                        </div>
+                        <span className="text-[9px] bg-cyan-100 text-cyan-800 font-mono px-1 py-0.2 rounded font-black">Admin</span>
+                      </button>
+                    )}
 
-                    <button
-                      onClick={() => handleNavClick('logs')}
-                      className={`w-full text-right px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
-                        activeTab === 'logs' ? 'bg-rose-100 text-rose-950 font-black' : 'text-slate-600 hover:bg-rose-50 hover:text-rose-900'
-                      }`}
-                    >
-                      <Activity className="w-3.5 h-3.5 text-rose-700" />
-                      <span>۵. لاگ و ممیزی</span>
-                    </button>
+                    {/* لاگ و ممیزی کاربران - انحصاری Admin */}
+                    {isAdmin && (
+                      <button
+                        onClick={() => handleNavClick('logs')}
+                        className={`w-full text-right px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between ${
+                          activeTab === 'logs' ? 'bg-rose-100 text-rose-950 font-black' : 'text-slate-600 hover:bg-rose-50 hover:text-rose-900'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <Activity className="w-3.5 h-3.5 text-rose-700" />
+                          <span>۵. لاگ و ممیزی</span>
+                        </div>
+                        <span className="text-[9px] bg-rose-100 text-rose-800 font-mono px-1 py-0.2 rounded font-black">Admin</span>
+                      </button>
+                    )}
 
+                    {/* اطلاع‌رسانی بله و پیامک */}
                     <button
                       onClick={() => handleNavClick('notification_settings')}
                       className={`w-full text-right px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between ${
@@ -764,17 +786,17 @@ export default function RightSidebar({
         {/* Footer User Profile & Quick Actions */}
         <div className="p-3.5 border-t border-slate-100 bg-slate-50/80 space-y-2.5">
           
-          {/* Quick Role Switcher for CEO */}
-          {isCeo && (
+          {/* Quick Role Switcher for Admin & CEO */}
+          {(isAdmin || isCeo) && (
             <div className="bg-slate-900 text-white p-2 rounded-xl text-xs space-y-1.5 shadow-sm">
               <div className="flex items-center justify-between text-[10px] text-slate-400 font-bold">
                 <span className="flex items-center gap-1 text-cyan-300">
                   <UserCheck className="w-3 h-3" />
-                  <span>سوئیچ سریع نقش (مدیرعامل):</span>
+                  <span>سوئیچ سریع نقش ({isAdmin ? 'مدیر سیستم' : 'مدیرعامل'}):</span>
                 </span>
               </div>
-              <div className="grid grid-cols-4 gap-1">
-                {ROLES.slice(0, 8).map((r) => (
+              <div className="grid grid-cols-5 gap-1">
+                {ROLES.slice(0, 10).map((r) => (
                   <button
                     key={r.id}
                     onClick={() => switchRole(r.id)}

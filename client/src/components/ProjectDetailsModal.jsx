@@ -65,8 +65,8 @@ export default function ProjectDetailsModal({ projectId, onClose, onUpdated, onP
   const [uploadingMockup, setUploadingMockup] = useState(false);
 
   // Management / Financial Permissions
-  const isCeoOrAdmin = role === 'ceo' || currentUser?.permissions?.can_manage_users || currentUser?.permissions?.can_delete_projects;
-  const canViewFinancials = role === 'ceo' || role === 'sales' || role === 'accounting' || role === 'estimation';
+  const isCeoOrAdmin = role === 'admin' || role === 'ceo' || currentUser?.permissions?.can_manage_users || currentUser?.permissions?.can_delete_projects;
+  const canViewFinancials = role === 'admin' || role === 'ceo' || role === 'sales' || role === 'accounting' || role === 'estimation';
 
   const handleDeleteProject = async () => {
     if (!project) return;

@@ -30,7 +30,7 @@ export default function MyTasksInbox({
 
   // Determine stage mapping for current role
   let targetStages = [];
-  if (role === 'ceo') targetStages = [3];
+  if (role === 'ceo' || role === 'admin') targetStages = [3];
   else if (role === 'sales') targetStages = [1, 5, 7];
   else if (role === 'estimation') targetStages = [2];
   else if (role === 'design') targetStages = [4];
@@ -41,7 +41,7 @@ export default function MyTasksInbox({
 
   const allMyTasks = projects.filter((p) => targetStages.includes(p.current_stage));
   const myTasks = allMyTasks.filter((p) => matchProduct(p, searchTerm));
-  const canViewFinancials = role === 'ceo' || role === 'sales' || role === 'accounting' || role === 'estimation';
+  const canViewFinancials = role === 'ceo' || role === 'admin' || role === 'sales' || role === 'accounting' || role === 'estimation';
 
   const getRoleIcon = (stageId) => {
     switch (stageId) {

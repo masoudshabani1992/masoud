@@ -807,7 +807,7 @@ export default function DepartmentHubView({
 
         {/* ================= ROW 3, COL 2: بازاریابی و استعلام (Marketing & Leads) ================= */}
         {(() => {
-          const hasAccess = role === 'marketer' || role === 'sales' || role === 'ceo' || role === 'secretary';
+          const hasAccess = role === 'marketer' || role === 'sales' || role === 'ceo' || role === 'admin' || role === 'secretary';
           return (
             <div
               onClick={() => {
@@ -846,11 +846,11 @@ export default function DepartmentHubView({
 
         {/* ================= ROW 3, COL 3: منابع انسانی و ارزیابی عملکرد (Human Resources) ================= */}
         {(() => {
-          const hasAccess = role === 'ceo' || role === 'secretary' || currentUser?.permissions?.can_manage_users;
+          const hasAccess = role === 'admin' || role === 'ceo' || role === 'secretary' || currentUser?.permissions?.can_manage_users;
           return (
             <div
               onClick={() => {
-                if (!hasAccess && role !== 'ceo') {
+                if (!hasAccess && role !== 'ceo' && role !== 'admin') {
                   setAccessDeniedModal({
                     targetName: 'منابع انسانی و ارزیابی عملکرد',
                     userRoleName: currentUser?.department || role
@@ -907,11 +907,11 @@ export default function DepartmentHubView({
 
         {/* ================= ROW 4: ماشین حساب برآورد قیمت (Price Calculator) ================= */}
         {(() => {
-          const hasAccess = role === 'accounting' || role === 'estimation' || role === 'ceo' || role === 'sales';
+          const hasAccess = role === 'accounting' || role === 'estimation' || role === 'ceo' || role === 'admin' || role === 'sales';
           return (
             <div
               onClick={() => {
-                if (!hasAccess && role !== 'ceo') {
+                if (!hasAccess && role !== 'ceo' && role !== 'admin') {
                   setAccessDeniedModal({
                     targetName: 'برآورد صنعتی قیمت',
                     userRoleName: currentUser?.department || role

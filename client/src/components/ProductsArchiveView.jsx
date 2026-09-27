@@ -47,7 +47,7 @@ export default function ProductsArchiveView({
   const [sortBy, setSortBy] = useState('newest'); // 'newest', 'oldest', 'quantity_desc', 'price_desc'
   const [deletingId, setDeletingId] = useState(null);
 
-  const isCeoOrAdmin = role === 'ceo' || currentUser?.permissions?.can_manage_users || currentUser?.permissions?.can_delete_projects;
+  const isCeoOrAdmin = role === 'admin' || role === 'ceo' || currentUser?.permissions?.can_manage_users || currentUser?.permissions?.can_delete_projects;
 
   const handleDelete = async (proj, e) => {
     e.stopPropagation();

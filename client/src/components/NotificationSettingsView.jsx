@@ -25,7 +25,7 @@ import {
 
 export default function NotificationSettingsView() {
   const { role } = useAuth();
-  const isCeo = role === 'ceo';
+  const isCeo = role === 'ceo' || role === 'admin';
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);

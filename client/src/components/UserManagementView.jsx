@@ -219,8 +219,15 @@ export const ROLE_PRESETS = {
     }
   },
   ceo: {
-    name: 'مدیرعامل (CEO Full Master)',
-    desc: 'دسترسی ۱۰۰٪ کامل به تمام بخش‌ها، پرسنل، بک‌آپ و تنظیمات',
+    name: 'مدیرعامل (CEO)',
+    desc: 'دسترسی کامل به عملیات کارخانه، تاییدات مالی و سفارشات (محدود در لایسنس سرور، پوشه Storage و لاگ‌ها)',
+    permissions: Object.fromEntries(
+      ALL_PERMISSION_MODULES.flatMap(m => m.permissions.map(p => [p.key, true]))
+    )
+  },
+  admin: {
+    name: 'مدیر ارشد سیستم (Super Admin)',
+    desc: 'دسترسی ۱۰۰٪ کامل و بدون محدودیت به کلیه زیرساخت‌ها، لایسنس سرور، پوشه Storage، لاگ و ممیزی و عملیات کارخانه (مهندس مسعود شعبانی)',
     permissions: Object.fromEntries(
       ALL_PERMISSION_MODULES.flatMap(m => m.permissions.map(p => [p.key, true]))
     )

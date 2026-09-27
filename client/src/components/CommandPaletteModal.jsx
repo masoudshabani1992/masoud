@@ -158,7 +158,7 @@ export default function CommandPaletteModal({
       icon: Users,
       color: 'text-indigo-600 bg-indigo-50',
       action: () => onNavigate('users'),
-      visible: role === 'ceo' || hasPermission('can_manage_users')
+      visible: role === 'admin' || role === 'ceo' || hasPermission('can_manage_users')
     },
     {
       id: 'hr',
@@ -168,27 +168,27 @@ export default function CommandPaletteModal({
       icon: UserCheck,
       color: 'text-amber-600 bg-amber-50',
       action: () => onNavigate('hr'),
-      visible: role === 'ceo' || hasPermission('can_manage_users')
+      visible: role === 'admin' || role === 'ceo' || hasPermission('can_manage_users')
     },
     {
       id: 'storage',
       title: 'پوشه Storage و مدیریت فایل‌ها',
       subtitle: 'مرکز نگهداری و دانلود مستقیم فایل‌های خط تیغ و آرشیو گرافیکی',
-      category: 'تنظیمات اتوماسیون',
+      category: 'تنظیمات اتوماسیون (Admin)',
       icon: HardDrive,
       color: 'text-cyan-600 bg-cyan-50',
       action: () => onNavigate('storage'),
-      visible: role === 'ceo' || hasPermission('can_manage_users')
+      visible: role === 'admin'
     },
     {
       id: 'logs',
       title: 'لاگ و ممیزی کاربران (Audit Trail)',
       subtitle: 'مشاهده لحظه‌ای تمامی اقدامات، ورودها، سفارشات، برآوردها و تغییرات پرسنل',
-      category: 'تنظیمات اتوماسیون',
+      category: 'تنظیمات اتوماسیون (Admin)',
       icon: ShieldAlert,
       color: 'text-rose-600 bg-rose-50',
       action: () => onNavigate('logs'),
-      visible: role === 'ceo' || hasPermission('can_manage_users')
+      visible: role === 'admin'
     }
   ].filter(item => item.visible);
 

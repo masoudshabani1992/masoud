@@ -57,7 +57,7 @@ const DEPARTMENTS = [
 
 export default function HumanResourcesView() {
   const { currentUser, role } = useAuth();
-  const isCeo = role === 'ceo';
+  const isCeo = role === 'ceo' || role === 'admin';
 
   const [activeTab, setActiveTab] = useState('evaluations'); // 'evaluations' | 'directory' | 'matrix' | 'report'
   const [selectedDept, setSelectedDept] = useState('all');

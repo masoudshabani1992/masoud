@@ -123,7 +123,8 @@ export const STAGES = [
 ];
 
 export const ROLES = [
-  { id: 'ceo', name: 'مدیر عامل', desc: 'دسترسی نامحدود به تمامی بخش‌ها و گزارشات کلان', color: 'bg-amber-700', allowedStages: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] },
+  { id: 'admin', name: 'مدیر ارشد سیستم', desc: 'دسترسی ۱۰۰٪ کامل و بدون محدودیت به کلیه بخش‌ها، لایسنس، فایل‌های سرور، لاگ‌ها و تنظیمات (مهندس مسعود شعبانی)', color: 'bg-emerald-800', allowedStages: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] },
+  { id: 'ceo', name: 'مدیر عامل', desc: 'دسترسی کامل به عملیات کارخانه، تاییدات مالی و سفارشات (محدود در لایسنس، پوشه Storage و لاگ‌ها)', color: 'bg-amber-700', allowedStages: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] },
   { id: 'design', name: 'طراحی', desc: 'واحد آتلیه، خط تیغ، تفکیک رنگ و ماکت دیجیتال', color: 'bg-yellow-600', allowedStages: [5] },
   { id: 'sales', name: 'بازرگانی', desc: 'ثبت سفارش، پیش‌فاکتور و تاییدات کارفرما', color: 'bg-purple-600', allowedStages: [1, 3, 6, 8] },
   { id: 'secretary', name: 'مسئول دفتر', desc: 'ثبت اولیه سفارشات، مکاتبات و امور دفتری', color: 'bg-rose-700', allowedStages: [1, 3] },
@@ -135,15 +136,31 @@ export const ROLES = [
 ];
 
 export const DEPARTMENT_PERMISSIONS = {
-  ceo: {
-    name: 'مدیریت عامل',
-    allowedTabs: ['hub', 'kanban', 'archive', 'new_order', 'my_tasks', 'dashboard', 'materials', 'users', 'calculator', 'subdomain_guide', 'marketing'],
+  admin: {
+    name: 'مدیریت ارشد سیستم',
+    allowedTabs: ['hub', 'kanban', 'archive', 'new_order', 'my_tasks', 'dashboard', 'materials', 'users', 'calculator', 'subdomain_guide', 'marketing', 'storage', 'logs', 'license', 'notifications'],
     allowedStages: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
     canApproveCeo: true,
     canEditMaterials: true,
     canManageUsers: true,
     canCreateOrder: true,
-    canViewFinancials: true
+    canViewFinancials: true,
+    canViewStorage: true,
+    canViewLogs: true,
+    canViewLicense: true
+  },
+  ceo: {
+    name: 'مدیریت عامل',
+    allowedTabs: ['hub', 'kanban', 'archive', 'new_order', 'my_tasks', 'dashboard', 'materials', 'users', 'calculator', 'subdomain_guide', 'marketing', 'notifications'],
+    allowedStages: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+    canApproveCeo: true,
+    canEditMaterials: true,
+    canManageUsers: true,
+    canCreateOrder: true,
+    canViewFinancials: true,
+    canViewStorage: false,
+    canViewLogs: false,
+    canViewLicense: false
   },
   design: {
     name: 'طراحی',
@@ -259,7 +276,7 @@ export const DEPARTMENT_PERMISSIONS = {
 
 export function canAccessDepartment(userRole, targetRole) {
   if (!userRole) return false;
-  if (userRole === 'ceo') return true;
+  if (userRole === 'admin' || userRole === 'ceo') return true;
   if (userRole === targetRole) return true;
   if (userRole === 'accounting' && targetRole === 'estimation') return true;
   if (userRole === 'estimation' && targetRole === 'accounting') return true;
@@ -274,7 +291,7 @@ export function canAccessDepartment(userRole, targetRole) {
 
 export function canAdvanceStage(userRole, stageNumber) {
   if (!userRole) return false;
-  if (userRole === 'ceo') return true;
+  if (userRole === 'admin' || userRole === 'ceo') return true;
 
   const mapping = {
     1: ['sales', 'secretary'],
@@ -422,8 +439,8 @@ export function canUserAccessProject(user, project) {
   if (!user || !project) return false;
   const role = user.role;
   
-  // CEO & Admins have full access to all factory projects
-  if (role === 'ceo' || user.permissions?.can_manage_users || user.permissions?.can_view_archive) {
+  // Super Admin & CEO have full access to all factory projects
+  if (role === 'admin' || role === 'ceo' || user.permissions?.can_manage_users || user.permissions?.can_view_archive) {
     return true;
   }
 

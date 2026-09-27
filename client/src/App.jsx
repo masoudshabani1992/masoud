@@ -73,7 +73,7 @@ const TAB_PERMISSION_MAP = {
 
 const getDefaultTabForUser = (user, checkPermFn) => {
   if (!user) return 'hub';
-  if (user.role === 'ceo') return 'hub';
+  if (user.role === 'admin' || user.role === 'ceo') return 'hub';
   if (user.role === 'design' && checkPermFn('can_view_studio')) return 'dieline_generator';
   if (user.role === 'marketer' && checkPermFn('can_view_marketing')) return 'marketing';
   if (user.role === 'secretary' && checkPermFn('can_create_order')) return 'new_order';
@@ -395,7 +395,7 @@ export default function App() {
           }
         } catch (e) {}
       }
-      if (role === 'sales' || role === 'estimation' || role === 'accounting' || role === 'ceo') {
+      if (role === 'sales' || role === 'estimation' || role === 'accounting' || role === 'ceo' || role === 'admin') {
         navigateTab('calculator');
       } else {
         navigateTab('marketing');
@@ -441,7 +441,7 @@ export default function App() {
   }
 
   let targetStages = [];
-  if (role === 'ceo') targetStages = [4];
+  if (role === 'ceo' || role === 'admin') targetStages = [4];
   else if (role === 'sales') targetStages = [1, 3, 6, 8];
   else if (role === 'secretary') targetStages = [1, 3];
   else if (role === 'estimation' || role === 'accounting') targetStages = [2];

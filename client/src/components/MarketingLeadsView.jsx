@@ -107,7 +107,7 @@ const STAGE_NAMES = {
 export default function MarketingLeadsView({ onNavigateToKanban }) {
   const { currentUser, role } = useAuth();
   const isMarketer = role === 'marketer';
-  const isCommercialOrCeo = role === 'sales' || role === 'ceo' || role === 'secretary' || role === 'accounting';
+  const isCommercialOrCeo = role === 'sales' || role === 'ceo' || role === 'admin' || role === 'secretary' || role === 'accounting';
 
   const [activeTab, setActiveTab] = useState('leads_list'); // 'leads_list' | 'new_lead' | 'profile_stats'
   const [leads, setLeads] = useState([]);

@@ -481,7 +481,8 @@ function initDb() {
       VALUES (?, ?, ?, ?, ?, ?)
     `);
 
-    insertUser.run('ceo', passHash, 'مسعود شعبانی', 'ceo', 'مدیریت کارخانه', '09121111111');
+    insertUser.run('admin', passHash, 'مهندس مسعود شعبانی', 'admin', 'مدیریت ارشد سیستم (Admin)', '09121111111');
+    insertUser.run('ceo', passHash, 'مدیریت محترم عامل', 'ceo', 'مدیریت عامل کارخانه', '09121111112');
     insertUser.run('sales', passHash, 'مهندس رادمنش', 'sales', 'واحد فروش', '09122222222');
     insertUser.run('marketer', passHash, 'رضا صادقی', 'marketer', 'بازاریابی و استعلام میدانی', '09123334455');
     insertUser.run('secretary', passHash, 'خانم افشار', 'secretary', 'دبیرخانه و ثبت سفارش', '09123333333');
@@ -492,6 +493,19 @@ function initDb() {
     insertUser.run('production', passHash, 'استاد رحیمی', 'production', 'سرپرست سالن چاپ و دایکات', '09128888888');
     insertUser.run('accounting', passHash, 'خانم تهرانی', 'accounting', 'امور مالی و حسابداری', '09129999999');
   }
+
+  // Ensure Admin user always exists
+  try {
+    const salt = bcrypt.genSaltSync(10);
+    const passHash = bcrypt.hashSync('123456', salt);
+    const existingAdmin = db.prepare('SELECT id FROM users WHERE username = ? OR role = ?').get('admin', 'admin');
+    if (!existingAdmin) {
+      db.prepare(`
+        INSERT INTO users (username, password_hash, full_name, role, department, phone)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `).run('admin', passHash, 'مهندس مسعود شعبانی', 'admin', 'مدیریت ارشد سیستم (Admin)', '09121111111');
+    }
+  } catch (e) {}
 
   // Migrations / Column additions if missing
   try {

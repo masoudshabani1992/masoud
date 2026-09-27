@@ -15,7 +15,7 @@ import {
 
 export default function PrintTicketModal({ project, onClose }) {
   const { role } = useAuth();
-  const canViewInvoice = role === 'ceo' || role === 'sales' || role === 'accounting';
+  const canViewInvoice = role === 'ceo' || role === 'admin' || role === 'sales' || role === 'accounting';
 
   const [docType, setDocType] = useState(canViewInvoice ? 'invoice' : 'job_ticket'); // 'job_ticket' or 'invoice'
 
