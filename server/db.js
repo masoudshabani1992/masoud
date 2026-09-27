@@ -290,6 +290,11 @@ function initDb() {
       value TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS settings (
+      key TEXT UNIQUE NOT NULL,
+      value TEXT NOT NULL
+    );
+
     CREATE TABLE IF NOT EXISTS marketing_leads (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       lead_code TEXT UNIQUE NOT NULL,
@@ -508,6 +513,10 @@ function initDb() {
   } catch (e) {}
 
   // Migrations / Column additions if missing
+  try {
+    db.prepare('CREATE TABLE IF NOT EXISTS settings (key TEXT UNIQUE NOT NULL, value TEXT NOT NULL)').run();
+  } catch (e) {}
+
   try {
     db.prepare("ALTER TABLE warehouse_receipts ADD COLUMN warehouse_category TEXT DEFAULT 'cardboard'").run();
   } catch (e) {}

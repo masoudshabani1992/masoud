@@ -3705,7 +3705,7 @@ app.post('/api/notifications/read-all', authMiddleware, (req, res) => {
 });
 
 // Get Notification Settings
-app.get('/api/settings/notifications', authMiddleware, requireCeo, (req, res) => {
+app.get('/api/settings/notifications', authMiddleware, requireCeoOrAdmin, (req, res) => {
   try {
     const rows = db.prepare("SELECT key, value FROM settings WHERE key LIKE 'bale_%' OR key LIKE 'sms_%' OR key LIKE 'melipayamak_%' OR key LIKE 'browser_%'").all();
     const settings = {};
@@ -3717,7 +3717,7 @@ app.get('/api/settings/notifications', authMiddleware, requireCeo, (req, res) =>
 });
 
 // Update Notification Settings
-app.post('/api/settings/notifications', authMiddleware, requireCeo, (req, res) => {
+app.post('/api/settings/notifications', authMiddleware, requireCeoOrAdmin, (req, res) => {
   try {
     const settings = req.body;
     const upsertStmt = db.prepare(`
@@ -3738,24 +3738,41 @@ app.post('/api/settings/notifications', authMiddleware, requireCeo, (req, res) =
   }
 });
 
-// Test Bale Notification
-app.post('/api/notifications/test-bale', authMiddleware, requireCeo, async (req, res) => {
+// Test Bale Notification with configurable template
+app.post('/api/notifications/test-bale', authMiddleware, requireCeoOrAdmin, async (req, res) => {
   try {
-    const { token, chatId } = req.body;
+    const { token, chatId, template, stageNumber } = req.body;
     if (!token || !chatId) {
       return res.status(400).json({ error: 'توکن و شناسه چت بله الزامی است' });
     }
 
-    const testText = '🔔 *تست اتصال اتوماسیون آرمان امیران به پیام‌رسان بله*\\n\\nاتصال بات با موفقیت برقرار شد!';
+    const { formatBaleTemplate, STAGE_NAMES, getPersianDateString } = require('./notifications');
+    const stage = Number(stageNumber) || 5;
+
+    const sampleText = formatBaleTemplate(template, {
+      title: 'جعبه دارویی هاردباکس ۳ لایه (تست پیام)',
+      archive_code: 'ARM-TEST-2026',
+      customer_name: 'داروسازی سلامت نوین',
+      quantity: '۵,۰۰۰ عدد',
+      stage_number: String(stage),
+      stage_name: STAGE_NAMES[stage] || `مرحله ${stage}`,
+      target_role: 'استودیو طراحی و قالب',
+      message: 'تست موفقیت‌آمیز قالب انتخابی و تنظیمات مراحل بله',
+      time: new Date().toLocaleTimeString('fa-IR'),
+      date: getPersianDateString(),
+      box_type: 'جعبه دارویی قفل‌دار',
+      dimensions: '۱۲۰×۸۰×۴۵ mm'
+    });
+
     const response = await fetch(`https://tapi.bale.ai/bot${token}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: chatId, text: testText, parse_mode: 'Markdown' })
+      body: JSON.stringify({ chat_id: chatId, text: sampleText, parse_mode: 'Markdown' })
     });
 
     const data = await response.json();
     if (data.ok) {
-      res.json({ success: true, message: 'پیام تست به بله ارسال شد' });
+      res.json({ success: true, message: 'پیام تست با قالب تنظیمی با موفقیت به بله ارسال شد.', formattedText: sampleText });
     } else {
       res.status(400).json({ error: 'خطای بله: ' + (data.description || 'نامشخص') });
     }
@@ -3765,7 +3782,7 @@ app.post('/api/notifications/test-bale', authMiddleware, requireCeo, async (req,
 });
 
 // Test Melipayamak Customer SMS
-app.post('/api/notifications/test-sms', authMiddleware, requireCeo, async (req, res) => {
+app.post('/api/notifications/test-sms', authMiddleware, requireCeoOrAdmin, async (req, res) => {
   try {
     const { username, password, from, to, text } = req.body;
     if (!username || !password || !to) {

@@ -184,7 +184,7 @@ export const api = {
   markAllNotificationsRead: () => apiRequest('/notifications/read-all', { method: 'POST' }),
   getNotificationSettings: () => apiRequest('/settings/notifications'),
   updateNotificationSettings: (data) => apiRequest('/settings/notifications', { method: 'POST', body: JSON.stringify(data) }),
-  testBaleNotification: (token, chatId) => apiRequest('/notifications/test-bale', { method: 'POST', body: JSON.stringify({ token, chatId }) }),
+  testBaleNotification: (token, chatId, template = '', stageNumber = 5) => apiRequest('/notifications/test-bale', { method: 'POST', body: JSON.stringify({ token, chatId, template, stageNumber }) }),
   testCustomerSms: (data) => apiRequest('/notifications/test-sms', { method: 'POST', body: JSON.stringify(data) }),
 
   // Customers & Analytics
