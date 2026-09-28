@@ -45,16 +45,15 @@ export default function LoginView() {
     const dev = detectDeviceBiometrics();
     setDeviceInfo(dev);
 
-    // AUTOMATIC BIOMETRIC / FINGERPRINT PROMPT ON MOBILE
-    const isMobileDevice = dev.isMobile || window.innerWidth <= 800;
+    // AUTOMATIC BIOMETRIC / FINGERPRINT PROMPT ON MOBILE & TOUCH DEVICES
+    const isMobileDevice = dev.isMobile || window.innerWidth <= 800 || ('ontouchstart' in window);
     const autoPrompt = isAutoBiometricPromptEnabled();
-    const isDismissed = sessionStorage.getItem('dismissed_auto_bio') === 'true';
 
-    if (isMobileDevice && autoPrompt && !isDismissed) {
+    if (isMobileDevice && autoPrompt) {
       const timer = setTimeout(() => {
         setAutoStartBio(true);
         setShowBiometricModal(true);
-      }, 300);
+      }, 100);
       return () => clearTimeout(timer);
     }
   }, []);

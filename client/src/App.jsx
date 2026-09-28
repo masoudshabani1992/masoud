@@ -35,9 +35,11 @@ import NotificationSettingsView from './components/NotificationSettingsView';
 import CommandPaletteModal from './components/CommandPaletteModal';
 import FloatingQuickDock from './components/FloatingQuickDock';
 import BiometricSettingsModal from './components/BiometricSettingsModal';
+import BiometricLockScreen from './components/BiometricLockScreen';
 import SystemAutoUpdateModal from './components/SystemAutoUpdateModal';
 import ErrorBoundary from './components/ErrorBoundary';
 import { playNotificationSound } from './utils/helpers';
+import { isAutoBiometricPromptEnabled, detectDeviceBiometrics } from './utils/biometrics';
 
 const TAB_PERMISSION_MAP = {
   hub: 'can_view_hub',
@@ -95,7 +97,17 @@ const getDefaultTabForUser = (user, checkPermFn) => {
 };
 
 export default function App() {
-  const { currentUser, role, hasPermission } = useAuth();
+  const { currentUser, role, hasPermission, logout } = useAuth();
+  const [isBiometricLocked, setIsBiometricLocked] = useState(() => {
+    try {
+      const dev = detectDeviceBiometrics();
+      const autoPrompt = isAutoBiometricPromptEnabled();
+      // If auto-prompt enabled, lock on mobile or upon session restore
+      return autoPrompt;
+    } catch (e) {
+      return false;
+    }
+  });
   const [activeTab, setActiveTab] = useState(() => {
     if (role === 'design') return 'dieline_generator';
     if (role === 'marketer') return 'marketing';
@@ -444,6 +456,17 @@ export default function App() {
     return <LoginView />;
   }
 
+  // If Biometric Lock is active, show Full-Screen Tactile Lock Screen
+  if (isBiometricLocked) {
+    return (
+      <BiometricLockScreen
+        user={currentUser}
+        onUnlock={() => setIsBiometricLocked(false)}
+        onLogout={logout}
+      />
+    );
+  }
+
   let targetStages = [];
   if (role === 'ceo' || role === 'admin') targetStages = [4];
   else if (role === 'sales') targetStages = [1, 3, 6, 8];
@@ -497,6 +520,7 @@ export default function App() {
           onOpenBiometricSettings={() => setShowBiometricSettingsModal(true)}
           onOpenAutoUpdate={() => setShowAutoUpdateModal(true)}
           onToggleSidebarMobile={() => setIsMobileSidebarOpen(prev => !prev)}
+          onLockScreen={() => setIsBiometricLocked(true)}
           licenseInfo={licenseState.license}
         />
 

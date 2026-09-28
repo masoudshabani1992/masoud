@@ -24,7 +24,8 @@ import {
   ShieldCheck,
   Zap,
   ChevronLeft,
-  Fingerprint
+  Fingerprint,
+  Lock
 } from 'lucide-react';
 
 const TAB_TITLES = {
@@ -67,7 +68,8 @@ export default function Header({
   onOpenSearch,
   onOpenBiometricSettings,
   onOpenAutoUpdate,
-  onToggleSidebarMobile
+  onToggleSidebarMobile,
+  onLockScreen
 }) {
   const { currentUser, role, hasPermission } = useAuth();
   const isAdmin = currentUser?.role === 'admin' || role === 'admin';
@@ -215,6 +217,18 @@ export default function Header({
             >
               <Fingerprint className="w-4 h-4 text-teal-600" />
               <span className="hidden md:inline">بیومتریک</span>
+            </button>
+          )}
+
+          {/* Quick Lock Button */}
+          {onLockScreen && (
+            <button
+              onClick={onLockScreen}
+              className="p-2.5 bg-slate-100/90 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border border-slate-200 rounded-xl transition-all shadow-2xs flex items-center gap-1.5 text-xs font-bold"
+              title="قفل سریع اتوماسیون با اثر انگشت"
+            >
+              <Lock className="w-4 h-4 text-slate-600" />
+              <span className="hidden lg:inline">قفل برنامه</span>
             </button>
           )}
 
