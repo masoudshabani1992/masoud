@@ -1,52 +1,64 @@
 @echo off
-title Box Factory ERP - Running Server
+chcp 65001 >nul 2>nul
+title Box Factory ERP - Production Server
 color 0A
 
 cd /d "%~dp0\.."
 
+echo ===============================================================================
+echo       سامانه جامع اتوماسیون کارخانه جعبه و کارتن سازی آرمان امیران
+echo                  BOX FACTORY ERP - SERVER LAUNCHER
+echo ===============================================================================
+echo.
+
 :: 1. Verify Node.js is installed
 where node >nul 2>nul
 if %errorlevel% neq 0 (
-    echo [ERROR] Node.js is NOT installed!
-    echo Please download and install Node.js (LTS version) from https://nodejs.org
+    color 0C
+    echo ===============================================================================
+    echo [خطای مهم] نرم افزار Node.js روی این ویندوز نصب نیست!
+    echo [ERROR] Node.js is NOT installed on this machine!
+    echo ===============================================================================
     echo.
+    echo برای اجرای سامانه فقط کافیست یکبار نرم افزار رایگان Node.js را نصب کنید:
+    echo 1. به وبسایت زیر بروید:
+    echo    https://nodejs.org
+    echo 2. نسخه LTS را دانلود و نصب کنید.
+    echo 3. پس از اتمام نصب، دوباره روی همین فایل start-server.bat کلیک کنید.
+    echo.
+    echo ===============================================================================
     pause
     exit /b 1
 )
 
-:: 2. Auto-install server dependencies if first time run or missing
-if not exist "server\node_modules\express" (
-    echo ===============================================================================
-    echo      First Time Setup: Installing Server Modules (Lotfan Chand Lahze Sabr Konid)...
-    echo ===============================================================================
-    cd server
-    call npm install --no-audit
-    cd /d "%~dp0\.."
-    cls
-)
+:: 2. Display Node info
+echo [OK] Node.js Version:
+node -v
+echo.
 
+:: 3. Server Startup
 echo ===============================================================================
-echo                     BOX FACTORY ERP SERVER IS RUNNING
-echo                     Server Ba Movafaghiat Roshan Shod
+echo               سرور اتوماسیون با موفقیت روشن شد و آماده استفاده است
+echo                    SERVER IS RUNNING ON PORT 3001
 echo ===============================================================================
 echo.
-echo Local Access:
-echo   http://localhost:3001
+echo [1] دسترسی روی همین سیستم (Local Access):
+echo     http://localhost:3001
 echo.
-echo Network Access (LAN / Mobile Devices):
+echo [2] دسترسی از گوشی، تبلت و کامپیوترهای دیگر کارخانه (LAN / WiFi):
 ipconfig | findstr /i "IPv4"
-echo   Port: 3001  (Example: http://192.168.1.100:3001)
+echo     پورت: 3001 (مثال: http://192.168.1.100:3001)
 echo.
 echo ===============================================================================
-echo NOTE: Do NOT close this window while users are using the system.
+echo توجه: این پنجره را نبندید تا سیستم برای سایر همکاران فعال بماند.
+echo NOTE: Do NOT close this window while users are working.
 echo ===============================================================================
 echo.
 
 node server/index.js
 if %errorlevel% neq 0 (
     echo.
-    echo [ERROR] Server exited with code %errorlevel%.
-    echo Trying to reinstall dependencies...
+    echo [خطا در اجرا] در حال بررسی ماژول های سرور...
     cd server
     call npm install
     cd ..
