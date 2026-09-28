@@ -163,6 +163,21 @@ export function saveLastBioUser(user) {
   } catch (e) {}
 }
 
+export function isAutoBiometricPromptEnabled() {
+  try {
+    const val = localStorage.getItem('boxfactory_auto_bio_prompt');
+    return val !== 'false'; // default is true on mobile
+  } catch (e) {
+    return true;
+  }
+}
+
+export function setAutoBiometricPromptEnabled(enabled) {
+  try {
+    localStorage.setItem('boxfactory_auto_bio_prompt', enabled ? 'true' : 'false');
+  } catch (e) {}
+}
+
 // Request Native WebAuthn Assertion if supported, with graceful fallback
 export async function triggerNativeBiometricAuth(challengeString, username = '') {
   if (!window.PublicKeyCredential) {

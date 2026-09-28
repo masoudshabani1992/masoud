@@ -126,7 +126,7 @@ export default function Header({
                   title="کلیک برای بررسی و به‌روزرسانی خودکار ۱-کلیکی سرور"
                 >
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>نسخه ۲.۸.۷ (بیلد ۹۰)</span>
+                  <span>نسخه ۲.۸.۸ (بیلد ۹۱)</span>
                   <Zap className="w-3 h-3 text-amber-500" />
                 </button>
               </div>

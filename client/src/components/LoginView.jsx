@@ -15,10 +15,15 @@ import {
   Fingerprint,
   ScanFace,
   Sparkles,
-  Smartphone
+  Smartphone,
+  Zap
 } from 'lucide-react';
 import BiometricAuthModal from './BiometricAuthModal';
-import { getLastBioUser, detectDeviceBiometrics } from '../utils/biometrics';
+import {
+  getLastBioUser,
+  detectDeviceBiometrics,
+  isAutoBiometricPromptEnabled
+} from '../utils/biometrics';
 
 export default function LoginView() {
   const { login, switchRole, loginBiometric } = useAuth();
@@ -27,6 +32,7 @@ export default function LoginView() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showBiometricModal, setShowBiometricModal] = useState(false);
+  const [autoStartBio, setAutoStartBio] = useState(false);
   const [lastBioUser, setLastBioUser] = useState(null);
   const [deviceInfo, setDeviceInfo] = useState(null);
 
@@ -38,6 +44,19 @@ export default function LoginView() {
     }
     const dev = detectDeviceBiometrics();
     setDeviceInfo(dev);
+
+    // AUTOMATIC BIOMETRIC / FINGERPRINT PROMPT ON MOBILE
+    const isMobileDevice = dev.isMobile || window.innerWidth <= 800;
+    const autoPrompt = isAutoBiometricPromptEnabled();
+    const isDismissed = sessionStorage.getItem('dismissed_auto_bio') === 'true';
+
+    if (isMobileDevice && autoPrompt && !isDismissed) {
+      const timer = setTimeout(() => {
+        setAutoStartBio(true);
+        setShowBiometricModal(true);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
   }, []);
 
   const handleSubmit = async (e) => {
@@ -76,13 +95,22 @@ export default function LoginView() {
     }
   };
 
+  const handleManualOpenBiometrics = () => {
+    setAutoStartBio(true);
+    setShowBiometricModal(true);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 flex flex-col items-center justify-center p-4 sm:p-6 font-sans select-none" dir="rtl">
       
-      {/* Biometric Scanning & Auth Modal */}
+      {/* Biometric Scanning & Auth Modal with Auto-Prompt */}
       <BiometricAuthModal
         isOpen={showBiometricModal}
-        onClose={() => setShowBiometricModal(false)}
+        autoStart={autoStartBio}
+        onClose={() => {
+          setShowBiometricModal(false);
+          setAutoStartBio(false);
+        }}
         onLoginSuccess={handleBiometricSuccess}
       />
 
@@ -153,7 +181,7 @@ export default function LoginView() {
           <div className="p-1 rounded-2xl bg-gradient-to-r from-teal-500 via-emerald-500 to-cyan-500 shadow-md">
             <button
               type="button"
-              onClick={() => setShowBiometricModal(true)}
+              onClick={handleManualOpenBiometrics}
               className="w-full bg-white hover:bg-teal-50/50 p-3.5 sm:p-4 rounded-[14px] flex items-center justify-between gap-3 text-right transition-all group"
             >
               <div className="flex items-center gap-3">
@@ -163,8 +191,9 @@ export default function LoginView() {
                 <div>
                   <div className="text-xs font-black text-slate-800 flex items-center gap-2">
                     <span>ورود با اثر انگشت یا تشخیص چهره</span>
-                    <span className="text-[9px] font-bold bg-teal-100 text-teal-800 px-2 py-0.5 rounded-full">
-                      بیومتریک موبایل
+                    <span className="text-[9px] font-bold bg-teal-100 text-teal-800 px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <Zap className="w-3 h-3 text-teal-600" />
+                      خودکار در موبایل
                     </span>
                   </div>
                   <div className="text-[11px] text-slate-500 mt-0.5 font-medium">

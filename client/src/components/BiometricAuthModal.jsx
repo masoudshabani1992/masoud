@@ -12,7 +12,9 @@ import {
   Lock,
   ArrowRight,
   RefreshCw,
-  Cpu
+  Cpu,
+  CheckSquare,
+  Square
 } from 'lucide-react';
 import { api } from '../api/client';
 import {
@@ -21,10 +23,12 @@ import {
   saveStoredBiometricToken,
   saveLastBioUser,
   getLastBioUser,
-  triggerNativeBiometricAuth
+  triggerNativeBiometricAuth,
+  isAutoBiometricPromptEnabled,
+  setAutoBiometricPromptEnabled
 } from '../utils/biometrics';
 
-export default function BiometricAuthModal({ isOpen, onClose, onLoginSuccess }) {
+export default function BiometricAuthModal({ isOpen, onClose, onLoginSuccess, autoStart = false }) {
   const [authMode, setAuthMode] = useState('fingerprint'); // 'fingerprint' | 'face_id'
   const [usersList, setUsersList] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -32,11 +36,16 @@ export default function BiometricAuthModal({ isOpen, onClose, onLoginSuccess }) 
   const [errorMessage, setErrorMessage] = useState('');
   const [deviceInfo, setDeviceInfo] = useState(null);
   const [scanProgress, setScanProgress] = useState(0);
+  const [autoPromptEnabled, setAutoPromptEnabled] = useState(isAutoBiometricPromptEnabled());
 
   const scanTimerRef = useRef(null);
+  const autoStartedRef = useRef(false);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      autoStartedRef.current = false;
+      return;
+    }
 
     const dev = detectDeviceBiometrics();
     setDeviceInfo(dev);
@@ -54,15 +63,24 @@ export default function BiometricAuthModal({ isOpen, onClose, onLoginSuccess }) 
       if (res && res.users) {
         setUsersList(res.users);
         const lastUser = getLastBioUser();
+        let targetUser = res.users[0] || null;
+
         if (lastUser) {
           const found = res.users.find(u => u.username === lastUser.username || u.id === lastUser.id);
           if (found) {
-            setSelectedUser(found);
-            return;
+            targetUser = found;
           }
         }
-        // Default to first user or sales/ceo
-        setSelectedUser(res.users[0] || null);
+
+        setSelectedUser(targetUser);
+
+        // If autoStart is requested, trigger biometric scan immediately
+        if (autoStart && !autoStartedRef.current && targetUser) {
+          autoStartedRef.current = true;
+          setTimeout(() => {
+            handleStartBiometricScan(targetUser);
+          }, 350);
+        }
       }
     } catch (err) {
       console.error('Failed to load biometric users', err);
@@ -82,7 +100,7 @@ export default function BiometricAuthModal({ isOpen, onClose, onLoginSuccess }) 
     setScanProgress(10);
     playBiometricChime('scan');
 
-    // Simulate progressive scanning while invoking native WebAuthn
+    // Progressive scanning visual
     let progress = 10;
     if (scanTimerRef.current) clearInterval(scanTimerRef.current);
     scanTimerRef.current = setInterval(() => {
@@ -136,6 +154,17 @@ export default function BiometricAuthModal({ isOpen, onClose, onLoginSuccess }) 
     }
   };
 
+  const handleToggleAutoPrompt = () => {
+    const nextVal = !autoPromptEnabled;
+    setAutoPromptEnabled(nextVal);
+    setAutoBiometricPromptEnabled(nextVal);
+  };
+
+  const handleCloseModal = () => {
+    sessionStorage.setItem('dismissed_auto_bio', 'true');
+    if (onClose) onClose();
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -152,7 +181,7 @@ export default function BiometricAuthModal({ isOpen, onClose, onLoginSuccess }) 
               <div className="flex items-center gap-2">
                 <h3 className="text-base font-black text-slate-800">ورود بیومتریک پرسنل</h3>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-100 text-teal-800 border border-teal-200">
-                  سریع و امن
+                  سریع و خودکار
                 </span>
               </div>
               <p className="text-xs text-slate-500 mt-0.5 font-medium">
@@ -161,7 +190,7 @@ export default function BiometricAuthModal({ isOpen, onClose, onLoginSuccess }) 
             </div>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleCloseModal}
             className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-white/80 transition"
           >
             <X className="w-5 h-5" />
@@ -169,7 +198,7 @@ export default function BiometricAuthModal({ isOpen, onClose, onLoginSuccess }) 
         </div>
 
         {/* Biometric Mode Tabs (Fingerprint vs Face ID) */}
-        <div className="p-4 sm:p-6 space-y-6">
+        <div className="p-4 sm:p-6 space-y-5">
           <div className="grid grid-cols-2 gap-2 bg-slate-100 p-1.5 rounded-2xl">
             <button
               type="button"
@@ -211,7 +240,7 @@ export default function BiometricAuthModal({ isOpen, onClose, onLoginSuccess }) 
               )}
             </label>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-40 overflow-y-auto p-1 bg-slate-50 rounded-2xl border border-slate-200">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-36 overflow-y-auto p-1 bg-slate-50 rounded-2xl border border-slate-200">
               {usersList.map((u) => {
                 const isSelected = selectedUser?.id === u.id;
                 return (
@@ -247,7 +276,7 @@ export default function BiometricAuthModal({ isOpen, onClose, onLoginSuccess }) 
           </div>
 
           {/* Interactive Scanning Area */}
-          <div className="flex flex-col items-center justify-center py-4 px-2 space-y-4">
+          <div className="flex flex-col items-center justify-center py-3 px-2 space-y-3">
             
             {/* Visual Scanner Pad */}
             <div className="relative flex items-center justify-center">
@@ -348,19 +377,19 @@ export default function BiometricAuthModal({ isOpen, onClose, onLoginSuccess }) 
 
           </div>
 
-          {/* Device & Security Info Pill */}
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3 flex items-center justify-between text-xs text-slate-600">
-            <div className="flex items-center gap-2">
-              <Smartphone className="w-4 h-4 text-slate-400 shrink-0" />
-              <span className="font-bold text-slate-700">دستگاه شناسایی‌شده:</span>
-              <span className="text-teal-700 font-bold truncate max-w-[180px]">
-                {deviceInfo?.deviceName || 'دستگاه همراه پرسنل'}
-              </span>
-            </div>
-            <div className="flex items-center gap-1 text-[10px] text-emerald-700 font-bold bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-lg">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>رمزنگاری سخت‌افزاری FIDO2</span>
-            </div>
+          {/* Auto-Prompt Preference Checkbox */}
+          <div
+            onClick={handleToggleAutoPrompt}
+            className="flex items-center gap-2.5 p-2.5 bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-xl cursor-pointer transition select-none"
+          >
+            {autoPromptEnabled ? (
+              <CheckSquare className="w-4 h-4 text-teal-600 shrink-0" />
+            ) : (
+              <Square className="w-4 h-4 text-slate-400 shrink-0" />
+            )}
+            <span className="text-[11px] font-bold text-slate-700">
+              درخواست خودکار سنسور اثر انگشت / چهره هنگام باز شدن صفحه در موبایل
+            </span>
           </div>
 
           {/* Action Trigger Button */}
