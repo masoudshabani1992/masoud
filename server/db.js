@@ -561,6 +561,28 @@ function initDb() {
     db.prepare("ALTER TABLE projects ADD COLUMN marketer_name TEXT").run();
   } catch (e) {}
 
+  // Migrations for marketing_leads table
+  try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN customer_phone TEXT").run(); } catch (e) {}
+  try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN product_name TEXT").run(); } catch (e) {}
+  try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN cardboard_grammage REAL").run(); } catch (e) {}
+  try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN material_construction TEXT").run(); } catch (e) {}
+  try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN cellophane_type TEXT").run(); } catch (e) {}
+  try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN box_length REAL").run(); } catch (e) {}
+  try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN box_width REAL").run(); } catch (e) {}
+  try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN box_height REAL").run(); } catch (e) {}
+  try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN notes TEXT").run(); } catch (e) {}
+  try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN marketer_id INTEGER").run(); } catch (e) {}
+  try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP").run(); } catch (e) {}
+
+  try { db.prepare("UPDATE marketing_leads SET customer_phone = phone WHERE customer_phone IS NULL AND phone IS NOT NULL").run(); } catch (e) {}
+  try { db.prepare("UPDATE marketing_leads SET product_name = box_title WHERE product_name IS NULL AND box_title IS NOT NULL").run(); } catch (e) {}
+  try { db.prepare("UPDATE marketing_leads SET box_length = length WHERE box_length IS NULL AND length IS NOT NULL").run(); } catch (e) {}
+  try { db.prepare("UPDATE marketing_leads SET box_width = width WHERE box_width IS NULL AND width IS NOT NULL").run(); } catch (e) {}
+  try { db.prepare("UPDATE marketing_leads SET box_height = height WHERE box_height IS NULL AND height IS NOT NULL").run(); } catch (e) {}
+  try { db.prepare("UPDATE marketing_leads SET cardboard_grammage = grammage WHERE cardboard_grammage IS NULL AND grammage IS NOT NULL").run(); } catch (e) {}
+  try { db.prepare("UPDATE marketing_leads SET cellophane_type = coating_type WHERE cellophane_type IS NULL AND coating_type IS NOT NULL").run(); } catch (e) {}
+  try { db.prepare("UPDATE marketing_leads SET notes = marketer_notes WHERE notes IS NULL AND marketer_notes IS NOT NULL").run(); } catch (e) {}
+
   try {
     db.prepare("ALTER TABLE warehouse_receipts ADD COLUMN unit TEXT DEFAULT 'شیت'").run();
   } catch (e) {}
