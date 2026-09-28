@@ -288,20 +288,6 @@ export default function LoginView() {
         </div>
 
       </div>
-
-      {/* Standalone Horizontal Page Footer for Extra Clarity */}
-      <div className="w-full max-w-4xl mt-4 bg-slate-900/80 backdrop-blur-md text-slate-300 border border-slate-800 rounded-2xl py-3 px-6 text-[12px] flex flex-row items-center justify-between flex-wrap sm:flex-nowrap gap-3 shadow-lg">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
-          <span className="font-medium text-slate-200 text-xs">
-            همکار گرامی! تمامی اطلاعات این اتوماسیون محرمانه و امانت در اختیار شماست
-          </span>
-        </div>
-        <div className="flex items-center gap-1.5 text-amber-400 font-bold font-mono text-xs shrink-0">
-          <span className="text-slate-400 font-sans">برنامه‌نویس:</span>
-          <span>مسعود شعبانی</span>
-        </div>
-      </div>
     </div>
   );
 }

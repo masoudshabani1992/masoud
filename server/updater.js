@@ -1,13 +1,21 @@
 /**
  * In-App One-Click Live Auto-Updater for Box Factory ERP
  * Downloads latest update directly from GitHub repository and performs safe in-place upgrade
+ * 100% Zero-Dependency extraction compatible with Windows Server, Windows 10/11 & Linux.
  */
 
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
 const http = require('http');
-const AdmZip = require('adm-zip');
+const { execSync } = require('child_process');
+
+let AdmZip = null;
+try {
+  AdmZip = require('adm-zip');
+} catch (e) {
+  // Graceful fallback to native Windows / Linux CLI unzippers
+}
 
 const ROOT_DIR = path.resolve(__dirname, '..');
 const BACKUP_BASE_DIR = path.join(ROOT_DIR, 'backups');
@@ -22,13 +30,13 @@ function getCurrentVersionInfo() {
     if (fs.existsSync(pkgPath)) {
       const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
       return {
-        version: pkg.version || '2.8.7',
-        build: 90,
+        version: pkg.version || '2.8.9',
+        build: 95,
         description: pkg.description || 'سامانه اتوماسیون کارخانه جعبه‌سازی'
       };
     }
   } catch (e) {}
-  return { version: '2.8.7', build: 90 };
+  return { version: '2.8.9', build: 95 };
 }
 
 function fetchJsonUrl(url) {
@@ -95,7 +103,7 @@ function downloadFile(url, destPath, onProgress) {
     });
 
     req.on('error', reject);
-    req.setTimeout(60000, () => {
+    req.setTimeout(120000, () => {
       req.destroy();
       reject(new Error('دانلود بسته آپدیت با مهلت زمانی مواجه شد.'));
     });
@@ -116,10 +124,10 @@ async function checkForUpdates() {
       updateAvailable,
       lastChecked: new Date().toISOString(),
       changelog: [
-        '✨ سیستم احراز هویت بیومتریک با اثر انگشت (Touch ID) و تشخیص چهره (Face ID)',
-        '🚀 سیستم به‌روزرسانی زنده و خودکار ۱-کلیکی بدون نیاز به دانلود و نصب دستی',
-        '⚡ پکیج بهینه‌سازی شده برای استقرار روی سرورهای ویندوز شبکه داخلی',
-        '📊 رفع کامل خطای ثبت استعلامات میدانی بازاریابی و انطباق با پایگاه داده'
+        '✨ سیستم احراز هویت و قفل تمام‌صفحه بیومتریک موبایل با اثر انگشت و چهره',
+        '🚀 پکیج کامل آپدیت خودکار شامل ۱۰۰٪ فایل‌های آفلاین و ماژول‌های سرور بدون وابستگی اینترنتی',
+        '🎨 اصلاح رابط کاربری صفحه ورود و حذف فوتر تکراری',
+        '⚡ پکیج بهینه‌سازی شده برای استقرار روی سرورهای ویندوز شبکه داخلی'
       ]
     };
   } catch (err) {
@@ -128,7 +136,7 @@ async function checkForUpdates() {
       currentBuild: current.build,
       latestVersion: current.version,
       updateAvailable: false,
-      notice: 'عدم دسترسی به گیت‌هاب؛ سامانه در حالت آفلاین به سر می‌برد.',
+      notice: 'سامانه در حالت آفلاین/شبکه محلی مستقل است.',
       changelog: []
     };
   }
@@ -160,6 +168,106 @@ function createSafetyBackup() {
   return { backupFolder, dateStr };
 }
 
+function copyDirectorySafely(srcDir, destDir) {
+  if (!fs.existsSync(srcDir)) return;
+  if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
+
+  const entries = fs.readdirSync(srcDir, { withFileTypes: true });
+  for (const entry of entries) {
+    const srcPath = path.join(srcDir, entry.name);
+    const destPath = path.join(destDir, entry.name);
+
+    // STRICTLY PROTECT database, license, and storage
+    if (
+      entry.name === 'factory.db' ||
+      entry.name === 'license.lic' ||
+      entry.name.toLowerCase() === 'storage'
+    ) {
+      continue;
+    }
+
+    if (entry.isDirectory()) {
+      copyDirectorySafely(srcPath, destPath);
+    } else {
+      fs.copyFileSync(srcPath, destPath);
+    }
+  }
+}
+
+function extractZipSafely(zipPath, targetDir) {
+  // Method 1: AdmZip if available
+  if (AdmZip) {
+    try {
+      const zip = new AdmZip(zipPath);
+      const zipEntries = zip.getEntries();
+      for (const entry of zipEntries) {
+        if (
+          entry.entryName.includes('factory.db') ||
+          entry.entryName.includes('license.lic') ||
+          entry.entryName.startsWith('storage/') ||
+          entry.entryName.startsWith('Storage/')
+        ) {
+          continue;
+        }
+
+        if (!entry.isDirectory) {
+          const destPath = path.join(targetDir, entry.entryName);
+          const destFileDir = path.dirname(destPath);
+          if (!fs.existsSync(destFileDir)) {
+            fs.mkdirSync(destFileDir, { recursive: true });
+          }
+          fs.writeFileSync(destPath, entry.getData());
+        }
+      }
+      return true;
+    } catch (e) {
+      console.warn('AdmZip extraction failed, attempting OS fallback:', e.message);
+    }
+  }
+
+  // Method 2: Temporary directory extraction via OS tools
+  const extractTempDir = path.join(UPDATES_TMP_DIR, 'unpacked_' + Date.now());
+  if (!fs.existsSync(extractTempDir)) {
+    fs.mkdirSync(extractTempDir, { recursive: true });
+  }
+
+  let extracted = false;
+
+  // On Windows, try PowerShell Expand-Archive or tar
+  if (process.platform === 'win32') {
+    try {
+      execSync(`powershell -NoProfile -NonInteractive -Command "Expand-Archive -Path '${zipPath}' -DestinationPath '${extractTempDir}' -Force"`, { stdio: 'ignore' });
+      extracted = true;
+    } catch (e) {
+      try {
+        execSync(`tar -xf "${zipPath}" -C "${extractTempDir}"`, { stdio: 'ignore' });
+        extracted = true;
+      } catch (err2) {}
+    }
+  } else {
+    // Linux / Mac
+    try {
+      execSync(`unzip -o -q "${zipPath}" -d "${extractTempDir}"`, { stdio: 'ignore' });
+      extracted = true;
+    } catch (e) {
+      try {
+        execSync(`tar -xf "${zipPath}" -C "${extractTempDir}"`, { stdio: 'ignore' });
+        extracted = true;
+      } catch (err2) {}
+    }
+  }
+
+  if (extracted) {
+    copyDirectorySafely(extractTempDir, targetDir);
+    try {
+      fs.rmSync(extractTempDir, { recursive: true, force: true });
+    } catch (e) {}
+    return true;
+  }
+
+  throw new Error('سیستم‌عامل قادر به استخراج خودکار فایل ZIP نبود.');
+}
+
 async function performLiveOneClickUpdate(onProgress) {
   // Step 1: Safety Backup
   if (onProgress) onProgress({ step: 1, percent: 15, message: 'در حال تهیه فایل پشتیبان امن از دیتابیس و لایسنس...' });
@@ -171,8 +279,8 @@ async function performLiveOneClickUpdate(onProgress) {
   }
   const zipPath = path.join(UPDATES_TMP_DIR, 'update_latest.zip');
 
-  // Step 3: Download latest release ZIP from GitHub
-  if (onProgress) onProgress({ step: 2, percent: 35, message: 'در حال دریافت بسته نصبی جدید از گیت‌هاب...' });
+  // Step 3: Download complete full-offline standalone package from GitHub
+  if (onProgress) onProgress({ step: 2, percent: 35, message: 'در حال دریافت بسته نصبی کامل و آفلاین از سرور...' });
   
   let downloaded = false;
   // If running in local repository where box-factory-windows-setup.zip already exists, copy directly or download
@@ -183,7 +291,7 @@ async function performLiveOneClickUpdate(onProgress) {
   } else {
     try {
       await downloadFile(GITHUB_ZIP_URL, zipPath, (p) => {
-        if (onProgress) onProgress({ step: 2, percent: 35 + Math.round(p * 0.35), message: `در حال دریافت فایل آپدیت (${p}%)...` });
+        if (onProgress) onProgress({ step: 2, percent: 35 + Math.round(p * 0.35), message: `در حال دریافت فایل آپدیت آفلاین (${p}%)...` });
       });
       downloaded = true;
     } catch (err) {
@@ -198,31 +306,9 @@ async function performLiveOneClickUpdate(onProgress) {
   }
 
   // Step 4: Extract and In-Place Overwrite (Preserving DB, License & Storage)
-  if (onProgress) onProgress({ step: 3, percent: 75, message: 'در حال استخراج و به‌روزرسانی فایل‌های رابط کاربری و سرور...' });
+  if (onProgress) onProgress({ step: 3, percent: 75, message: 'در حال استخراج و جایگزینی فایل‌های رابط کاربری، ماژول‌ها و سرور...' });
   
-  const zip = new AdmZip(zipPath);
-  const zipEntries = zip.getEntries();
-
-  zipEntries.forEach(entry => {
-    // STRICTLY PROTECT existing database, license, and user storage files
-    if (
-      entry.entryName.includes('factory.db') ||
-      entry.entryName.includes('license.lic') ||
-      entry.entryName.startsWith('storage/') ||
-      entry.entryName.startsWith('Storage/')
-    ) {
-      return;
-    }
-
-    if (!entry.isDirectory) {
-      const destPath = path.join(ROOT_DIR, entry.entryName);
-      const destDir = path.dirname(destPath);
-      if (!fs.existsSync(destDir)) {
-        fs.mkdirSync(destDir, { recursive: true });
-      }
-      fs.writeFileSync(destPath, entry.getData());
-    }
-  });
+  extractZipSafely(zipPath, ROOT_DIR);
 
   // Step 5: Re-run SQLite migrations
   if (onProgress) onProgress({ step: 4, percent: 95, message: 'در حال اعمال ساختارهای جدید دیتابیس...' });
@@ -231,14 +317,16 @@ async function performLiveOneClickUpdate(onProgress) {
     if (typeof initDb === 'function') {
       initDb();
     }
-  } catch (e) {}
+  } catch (e) {
+    console.warn('Notice: Migration re-init finished with note:', e.message);
+  }
 
   // Cleanup temp zip
   try {
     fs.unlinkSync(zipPath);
   } catch (e) {}
 
-  if (onProgress) onProgress({ step: 5, percent: 100, message: 'به‌روزرسانی با موفقیت تکمیل گردید!' });
+  if (onProgress) onProgress({ step: 5, percent: 100, message: 'به‌روزرسانی آفلاین و کامل با موفقیت انجام شد!' });
 
   const finalVer = getCurrentVersionInfo();
 
@@ -247,13 +335,13 @@ async function performLiveOneClickUpdate(onProgress) {
     version: finalVer.version,
     build: finalVer.build,
     backupFolder: backupInfo.backupFolder,
-    message: `سامانه با موفقیت به نسخه ${finalVer.version} ارتقا یافت.`
+    message: `سامانه با موفقیت به نسخه آفلاین ${finalVer.version} ارتقا یافت.`
   };
 }
 
 module.exports = {
+  getCurrentVersionInfo,
   checkForUpdates,
   performLiveOneClickUpdate,
-  getCurrentVersionInfo,
   createSafetyBackup
 };
