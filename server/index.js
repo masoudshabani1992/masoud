@@ -675,7 +675,7 @@ app.put('/api/marketing/leads/:id', authMiddleware, (req, res) => {
 app.post('/api/marketing/leads/:id/request-revision', authMiddleware, (req, res) => {
   try {
     const user = req.user;
-    if (user.role !== 'sales' && user.role !== 'ceo' && user.role !== 'accounting') {
+    if (!['sales', 'ceo', 'admin', 'accounting'].includes(user.role)) {
       return res.status(403).json({ error: 'تنها واحد برآورد یا مدیریت مجاز به اعلام نقص استعلام هستند.' });
     }
 
@@ -718,8 +718,8 @@ app.post('/api/marketing/leads/:id/request-revision', authMiddleware, (req, res)
 app.put('/api/marketing/leads/:id/estimate', authMiddleware, (req, res) => {
   try {
     const user = req.user;
-    if (user.role !== 'sales' && user.role !== 'ceo' && user.role !== 'accounting') {
-      return res.status(403).json({ error: 'تنها واحد بازرگانی و مدیر عامل مجاز به برآورد قیمت هستند.' });
+    if (!['sales', 'ceo', 'admin', 'accounting'].includes(user.role)) {
+      return res.status(403).json({ error: 'تنها واحد بازرگانی، مدیر عامل و مدیر ارشد سیستم مجاز به برآورد قیمت هستند.' });
     }
 
     const { id } = req.params;
@@ -922,8 +922,8 @@ function getPersianYearMonth(dateInput = new Date()) {
 app.post('/api/marketing/leads/:id/convert-to-project', authMiddleware, (req, res) => {
   try {
     const user = req.user;
-    if (user.role !== 'sales' && user.role !== 'ceo' && user.role !== 'secretary') {
-      return res.status(403).json({ error: 'فقط واحد بازرگانی یا مدیریت عامل می‌توانند استعلام را به سفارش تبدیل کنند.' });
+    if (!['sales', 'ceo', 'admin', 'secretary'].includes(user.role)) {
+      return res.status(403).json({ error: 'فقط واحد بازرگانی یا مدیریت می‌توانند استعلام را به سفارش تبدیل کنند.' });
     }
 
     const { id } = req.params;
@@ -1087,9 +1087,9 @@ app.get('/api/marketing/target-stats', authMiddleware, (req, res) => {
       });
     }
 
-    // 4. If CEO or Sales: also provide Leaderboard of all Marketers
+    // 4. If Admin, CEO or Sales: also provide Leaderboard of all Marketers
     let allMarketersSummary = [];
-    if (user.role === 'ceo' || user.role === 'sales' || user.role === 'accounting') {
+    if (['admin', 'ceo', 'sales', 'accounting'].includes(user.role)) {
       const marketersList = db.prepare("SELECT id, username, full_name, phone, monthly_target_inquiries, monthly_target_amount, is_active FROM users WHERE role = 'marketer' OR department LIKE '%بازاریاب%'").all();
       
       allMarketersSummary = marketersList.map(m => {
@@ -1165,12 +1165,12 @@ app.get('/api/marketing/target-stats', authMiddleware, (req, res) => {
   }
 });
 
-// Update Marketer Monthly Target (تنظیم تارگت ماهانه توسط مدیر بازرگانی یا مدیرعامل)
+// Update Marketer Monthly Target (تنظیم تارگت ماهانه توسط مدیر ارشد سیستم، مدیرعامل یا مدیر بازرگانی)
 app.put('/api/marketing/targets/:user_id', authMiddleware, (req, res) => {
   try {
     const user = req.user;
-    if (user.role !== 'ceo' && user.role !== 'sales') {
-      return res.status(403).json({ error: 'تنها مدیریت عامل و مدیر بازرگانی مجاز به تعیین تارگت هستند.' });
+    if (!['admin', 'ceo', 'sales'].includes(user.role)) {
+      return res.status(403).json({ error: 'تنها مدیریت و مدیر بازرگانی مجاز به تعیین تارگت هستند.' });
     }
 
     const targetUserId = parseInt(req.params.user_id);
@@ -3049,7 +3049,7 @@ app.get('/api/projects/:id', authMiddleware, (req, res) => {
 
   // Role-Based Project Access Control
   const user = req.user;
-  const isCeoOrAdmin = user.role === 'ceo' || user.permissions?.can_manage_users || user.permissions?.can_view_archive;
+  const isCeoOrAdmin = ['admin', 'ceo'].includes(user.role) || user.permissions?.can_manage_users || user.permissions?.can_view_archive;
   
   if (!isCeoOrAdmin) {
     let hasAccess = false;
@@ -3107,9 +3107,9 @@ app.get('/api/projects/:id', authMiddleware, (req, res) => {
 app.delete('/api/projects/:id', authMiddleware, (req, res) => {
   try {
     const user = req.user;
-    const isCeoOrAdmin = user.role === 'ceo' || user.permissions?.can_manage_users || user.permissions?.can_delete_projects;
+    const isCeoOrAdmin = ['admin', 'ceo'].includes(user.role) || user.permissions?.can_manage_users || user.permissions?.can_delete_projects;
     if (!isCeoOrAdmin) {
-      return res.status(403).json({ error: 'تنها مدیریت عامل یا کاربران دارای دسترسی حذف پرونده مجاز به حذف سفارش هستند.' });
+      return res.status(403).json({ error: 'تنها مدیریت کارخانه یا کاربران دارای دسترسی حذف پرونده مجاز به حذف سفارش هستند.' });
     }
 
     const { id } = req.params;
@@ -3671,7 +3671,7 @@ app.get('/api/notifications', authMiddleware, (req, res) => {
     const userId = req.user?.id || 1;
 
     let rows;
-    if (userRole === 'ceo') {
+    if (userRole === 'ceo' || userRole === 'admin') {
       rows = db.prepare('SELECT * FROM notifications ORDER BY id DESC LIMIT 40').all();
     } else {
       rows = db.prepare("SELECT * FROM notifications WHERE role = ? OR role = 'all' OR user_id = ? ORDER BY id DESC LIMIT 40").all(userRole, userId);

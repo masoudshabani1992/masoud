@@ -266,6 +266,7 @@ export default function KanbanBoard({
           {displayedStages.map((stage) => {
             const stageProjects = filteredProjects.filter((p) => p.current_stage === stage.id);
             const isMyRoleStage =
+              currentRole === 'admin' ||
               currentRole === 'ceo' ||
               (stage.role === currentRole) ||
               (currentRole === 'sales' && [1, 5, 7].includes(stage.id));

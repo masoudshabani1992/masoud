@@ -363,7 +363,7 @@ export default function StorageManagerView() {
                           <Copy className="w-3.5 h-3.5" />
                         </button>
 
-                        {(role === 'ceo' || currentUser?.username === file.username) && (
+                        {(role === 'admin' || currentUser?.username === file.username) && (
                           <button
                             onClick={() => handleDeleteFile(file)}
                             className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition"

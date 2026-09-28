@@ -868,7 +868,7 @@ export default function UserManagementView() {
                             >
                               <Edit2 className="w-4 h-4" />
                             </button>
-                            {u.role !== 'ceo' && (
+                            {u.role !== 'admin' && (
                               <button
                                 type="button"
                                 onClick={() => handleDeleteUser(u.id, u.full_name)}

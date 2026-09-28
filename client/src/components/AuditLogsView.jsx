@@ -202,18 +202,6 @@ export default function AuditLogsView() {
     window.open(`/api/logs/export-excel?${params}`, '_blank');
   };
 
-  if (role !== 'ceo') {
-    return (
-      <div className="p-8 text-center bg-white rounded-3xl border border-rose-200 space-y-4 max-w-xl mx-auto mt-12" dir="rtl">
-        <ShieldAlert className="w-16 h-16 text-rose-500 mx-auto animate-bounce" />
-        <h3 className="text-xl font-black text-slate-800">دسترسی به بخش ممیزی و لاگ‌ها محدود است</h3>
-        <p className="text-sm text-slate-600">
-          مشاهده تاریخچه فعالیت کاربران و ممیزی سیستم کارخانه منحصراً در اختیار مدیریت عامل می‌باشد.
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6 text-slate-800 font-sans pb-16" dir="rtl">
       
