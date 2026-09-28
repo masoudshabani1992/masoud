@@ -134,6 +134,14 @@ export const api = {
   deleteBiometricDevice: (id) => apiRequest(`/auth/biometric/devices/${id}`, { method: 'DELETE' }),
   getBiometricAdminSummary: () => apiRequest('/auth/biometric/admin-summary'),
 
+  // In-App One-Click Live Auto-Updater & Deployment
+  checkSystemUpdates: () => apiRequest('/system/check-updates'),
+  applySystemAutoUpdate: () => apiRequest('/system/apply-auto-update', { method: 'POST' }),
+  getSystemBackups: () => apiRequest('/system/backups'),
+  getDeployConfig: () => apiRequest('/system/deploy-config'),
+  saveDeployConfig: (data) => apiRequest('/system/deploy-config', { method: 'POST', body: JSON.stringify(data) }),
+  deployNow: (targetPath) => apiRequest('/system/deploy-now', { method: 'POST', body: JSON.stringify({ targetPath }) }),
+
   // Projects
   getProjects: (params = {}) => {
     const query = new URLSearchParams(params).toString();

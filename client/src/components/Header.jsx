@@ -66,6 +66,7 @@ export default function Header({
   onOpenLicense,
   onOpenSearch,
   onOpenBiometricSettings,
+  onOpenAutoUpdate,
   onToggleSidebarMobile
 }) {
   const { currentUser, role, hasPermission } = useAuth();
@@ -118,9 +119,16 @@ export default function Header({
                 <h1 className="font-black text-slate-900 text-sm sm:text-base tracking-tight">
                   {currentInfo.title}
                 </h1>
-                <span className="hidden md:inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-violet-50 text-violet-700 border border-violet-200">
-                  نسخه ۲.۸.۷ (بیلد ۹۰)
-                </span>
+                <button
+                  type="button"
+                  onClick={onOpenAutoUpdate}
+                  className="hidden md:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 shadow-2xs transition active:scale-95"
+                  title="کلیک برای بررسی و به‌روزرسانی خودکار ۱-کلیکی سرور"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>نسخه ۲.۸.۷ (بیلد ۹۰)</span>
+                  <Zap className="w-3 h-3 text-amber-500" />
+                </button>
               </div>
               <p className="text-[11px] text-slate-500 font-medium hidden sm:block">
                 {currentInfo.desc}

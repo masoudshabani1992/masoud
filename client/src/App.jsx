@@ -35,6 +35,7 @@ import NotificationSettingsView from './components/NotificationSettingsView';
 import CommandPaletteModal from './components/CommandPaletteModal';
 import FloatingQuickDock from './components/FloatingQuickDock';
 import BiometricSettingsModal from './components/BiometricSettingsModal';
+import SystemAutoUpdateModal from './components/SystemAutoUpdateModal';
 import ErrorBoundary from './components/ErrorBoundary';
 import { playNotificationSound } from './utils/helpers';
 
@@ -141,6 +142,7 @@ export default function App() {
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [printProject, setPrintProject] = useState(null);
   const [showBiometricSettingsModal, setShowBiometricSettingsModal] = useState(false);
+  const [showAutoUpdateModal, setShowAutoUpdateModal] = useState(false);
 
   // Open / Close Modals with History Support
   const openProjectModal = (projId) => {
@@ -493,6 +495,7 @@ export default function App() {
           onOpenLicense={openLicenseModal}
           onOpenSearch={openSearchModal}
           onOpenBiometricSettings={() => setShowBiometricSettingsModal(true)}
+          onOpenAutoUpdate={() => setShowAutoUpdateModal(true)}
           onToggleSidebarMobile={() => setIsMobileSidebarOpen(prev => !prev)}
           licenseInfo={licenseState.license}
         />
@@ -795,6 +798,12 @@ export default function App() {
       <BiometricSettingsModal
         isOpen={showBiometricSettingsModal}
         onClose={() => setShowBiometricSettingsModal(false)}
+      />
+
+      {/* System In-App One-Click Auto-Update Modal */}
+      <SystemAutoUpdateModal
+        isOpen={showAutoUpdateModal}
+        onClose={() => setShowAutoUpdateModal(false)}
       />
     </div>
   );
