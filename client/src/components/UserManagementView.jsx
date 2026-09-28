@@ -28,6 +28,7 @@ import {
   Calculator,
   Sliders,
   Sparkles,
+  Fingerprint,
   RefreshCw,
   Eye,
   EyeOff,
@@ -803,7 +804,14 @@ export default function UserManagementView() {
                           <div className="text-[11px] text-slate-400">{u.phone || u.department}</div>
                         </td>
                         <td className="p-3 font-mono font-bold text-indigo-700">
-                          @{u.username}
+                          <div className="flex items-center gap-1.5">
+                            <span>@{u.username}</span>
+                            {u.biometric_enabled && (
+                              <span className="p-1 rounded-md bg-teal-50 text-teal-700 border border-teal-200" title="ورود بیومتریک اثر انگشت / چهره فعال است">
+                                <Fingerprint className="w-3.5 h-3.5" />
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td className="p-3">
                           <span className={`inline-block px-2.5 py-0.5 rounded-lg text-white font-bold text-[11px] ${matchedRole?.color || 'bg-slate-600'}`}>

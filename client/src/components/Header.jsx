@@ -23,7 +23,8 @@ import {
   Settings,
   ShieldCheck,
   Zap,
-  ChevronLeft
+  ChevronLeft,
+  Fingerprint
 } from 'lucide-react';
 
 const TAB_TITLES = {
@@ -64,6 +65,7 @@ export default function Header({
   onOpenNotifications,
   onOpenLicense,
   onOpenSearch,
+  onOpenBiometricSettings,
   onToggleSidebarMobile
 }) {
   const { currentUser, role, hasPermission } = useAuth();
@@ -117,7 +119,7 @@ export default function Header({
                   {currentInfo.title}
                 </h1>
                 <span className="hidden md:inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-violet-50 text-violet-700 border border-violet-200">
-                  نسخه ۲.۸.۶ (بیلد ۸۹)
+                  نسخه ۲.۸.۷ (بیلد ۹۰)
                 </span>
               </div>
               <p className="text-[11px] text-slate-500 font-medium hidden sm:block">
@@ -188,6 +190,18 @@ export default function Header({
               </span>
             )}
           </button>
+
+          {/* Biometric Devices / Passkeys Management */}
+          {onOpenBiometricSettings && (
+            <button
+              onClick={onOpenBiometricSettings}
+              className="p-2.5 bg-teal-50/80 hover:bg-teal-100/90 text-teal-800 border border-teal-200/80 rounded-xl transition-all shadow-2xs flex items-center gap-1.5 text-xs font-bold"
+              title="مدیریت ورود با اثر انگشت یا چهره (بیومتریک)"
+            >
+              <Fingerprint className="w-4 h-4 text-teal-600" />
+              <span className="hidden md:inline">بیومتریک</span>
+            </button>
+          )}
 
           {/* User Role Indicator Badge */}
           <div className="hidden sm:flex items-center gap-2 pl-2 border-r border-slate-200 pr-3">

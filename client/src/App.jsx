@@ -34,6 +34,7 @@ import AuditLogsView from './components/AuditLogsView';
 import NotificationSettingsView from './components/NotificationSettingsView';
 import CommandPaletteModal from './components/CommandPaletteModal';
 import FloatingQuickDock from './components/FloatingQuickDock';
+import BiometricSettingsModal from './components/BiometricSettingsModal';
 import ErrorBoundary from './components/ErrorBoundary';
 import { playNotificationSound } from './utils/helpers';
 
@@ -139,6 +140,7 @@ export default function App() {
   // Modals state
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [printProject, setPrintProject] = useState(null);
+  const [showBiometricSettingsModal, setShowBiometricSettingsModal] = useState(false);
 
   // Open / Close Modals with History Support
   const openProjectModal = (projId) => {
@@ -490,6 +492,7 @@ export default function App() {
           onOpenNotifications={openNotificationsModal}
           onOpenLicense={openLicenseModal}
           onOpenSearch={openSearchModal}
+          onOpenBiometricSettings={() => setShowBiometricSettingsModal(true)}
           onToggleSidebarMobile={() => setIsMobileSidebarOpen(prev => !prev)}
           licenseInfo={licenseState.license}
         />
@@ -786,6 +789,12 @@ export default function App() {
         onOpenNewOrder={() => navigateTab('new_order')}
         onSelectProject={(projId) => openProjectModal(projId)}
         projects={projects}
+      />
+
+      {/* Biometric Devices & Passkeys Management Modal */}
+      <BiometricSettingsModal
+        isOpen={showBiometricSettingsModal}
+        onClose={() => setShowBiometricSettingsModal(false)}
       />
     </div>
   );

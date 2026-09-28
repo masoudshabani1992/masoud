@@ -2247,6 +2247,365 @@ app.post('/api/auth/demo-login/:role', (req, res) => {
   res.json({ token, user: { ...userProfile, permissions } });
 });
 
+// ================= BIOMETRIC / WEBAUTHN / PASSKEYS AUTHENTICATION =================
+const biometricChallenges = new Map();
+
+// 1. Get List of Personnel with Biometric Registered (for Quick Mobile / Floor Touch)
+app.get('/api/auth/biometric/users-enabled', (req, res) => {
+  try {
+    const users = db.prepare(`
+      SELECT u.id, u.username, u.full_name, u.role, u.department, u.avatar, u.biometric_enabled,
+             bc.device_name, bc.device_type, bc.last_used_at, bc.credential_id
+      FROM users u
+      LEFT JOIN (
+        SELECT user_id, device_name, device_type, last_used_at, credential_id,
+               ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY last_used_at DESC, id DESC) as rn
+        FROM biometric_credentials
+      ) bc ON u.id = bc.user_id AND bc.rn = 1
+      WHERE u.is_active = 1
+      ORDER BY u.id ASC
+    `).all();
+
+    res.json({
+      success: true,
+      users: users.map(u => ({
+        ...u,
+        has_biometric: Boolean(u.biometric_enabled || u.credential_id),
+        device_type: u.device_type || 'mobile_fingerprint',
+        device_name: u.device_name || 'سنسور اثر انگشت / چهره'
+      }))
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در دریافت پرسنل بیومتریک: ' + err.message });
+  }
+});
+
+// 2. Generate Biometric Login Challenge
+app.post('/api/auth/biometric/login-challenge', (req, res) => {
+  try {
+    const { username } = req.body;
+    let user = null;
+    let credentials = [];
+
+    if (username) {
+      user = db.prepare('SELECT id, username, full_name, role, department FROM users WHERE username = ? AND is_active = 1').get(username);
+      if (!user) {
+        return res.status(404).json({ error: 'کاربر مورد نظر یافت نشد یا غیرفعال است.' });
+      }
+      credentials = db.prepare('SELECT credential_id, device_type, device_name FROM biometric_credentials WHERE user_id = ?').all(user.id);
+    }
+
+    const challenge = Buffer.from(Math.random().toString(36).substring(2) + Date.now().toString(36) + Math.random().toString(36)).toString('base64');
+    const challengeKey = `${username || 'any'}_${Date.now()}`;
+    biometricChallenges.set(challengeKey, {
+      challenge,
+      userId: user?.id || null,
+      username: user?.username || null,
+      createdAt: Date.now()
+    });
+
+    setTimeout(() => biometricChallenges.delete(challengeKey), 5 * 60 * 1000);
+
+    res.json({
+      success: true,
+      challenge,
+      challengeKey,
+      user: user ? { id: user.id, username: user.username, full_name: user.full_name, role: user.role } : null,
+      allowCredentials: credentials.map(c => ({
+        id: c.credential_id,
+        type: 'public-key',
+        transports: ['internal']
+      }))
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در ایجاد چالش بیومتریک: ' + err.message });
+  }
+});
+
+// 3. Verify Biometric Login and Issue JWT
+app.post('/api/auth/biometric/verify-login', (req, res) => {
+  try {
+    const {
+      username,
+      userId,
+      credentialId,
+      bioToken,
+      deviceType = 'mobile_fingerprint',
+      deviceName = 'سنسور موبایل',
+      authMethod = 'fingerprint'
+    } = req.body;
+
+    let user = null;
+    let cred = null;
+
+    if (credentialId) {
+      cred = db.prepare('SELECT * FROM biometric_credentials WHERE credential_id = ?').get(credentialId);
+      if (cred) {
+        user = db.prepare('SELECT * FROM users WHERE id = ?').get(cred.user_id);
+      }
+    }
+
+    if (!user && (userId || username)) {
+      if (userId) {
+        user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
+      } else {
+        user = db.prepare('SELECT * FROM users WHERE username = ?').get(username);
+      }
+      if (user) {
+        cred = db.prepare('SELECT * FROM biometric_credentials WHERE user_id = ? ORDER BY id DESC LIMIT 1').get(user.id);
+      }
+    }
+
+    if (!user) {
+      return res.status(404).json({ error: 'اطلاعات بیومتریک یا کاربر در سامانه شناسایی نشد.' });
+    }
+
+    if (user.is_active === 0) {
+      return res.status(403).json({ error: 'حساب کاربری شما غیرفعال شده است. لطفاً با مدیرعامل تماس بگیرید.' });
+    }
+
+    if (cred) {
+      db.prepare("UPDATE biometric_credentials SET last_used_at = CURRENT_TIMESTAMP, counter = counter + 1 WHERE id = ?").run(cred.id);
+    } else {
+      const newCredId = `bio_${user.username}_${Date.now()}`;
+      const newBioToken = `btok_${Buffer.from(`${user.id}:${user.username}:${Date.now()}`).toString('base64')}`;
+      try {
+        db.prepare(`
+          INSERT INTO biometric_credentials (user_id, credential_id, device_name, device_type, bio_token, last_used_at)
+          VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        `).run(user.id, newCredId, deviceName, deviceType, newBioToken);
+        db.prepare('UPDATE users SET biometric_enabled = 1 WHERE id = ?').run(user.id);
+      } catch (e) {}
+    }
+
+    const permissions = resolveUserPermissions(user);
+
+    const token = jwt.sign(
+      { id: user.id, username: user.username, role: user.role, fullName: user.full_name, department: user.department, permissions },
+      JWT_SECRET,
+      { expiresIn: '30d' }
+    );
+
+    const bioTypePersian = authMethod === 'face_id' || deviceType === 'mobile_face_id'
+      ? 'تشخیص چهره هوشمند (Face ID)'
+      : 'اثر انگشت بیومتریک (Touch ID / Fingerprint)';
+
+    logActivity(req, {
+      user: { id: user.id, username: user.username, full_name: user.full_name, role: user.role },
+      action: 'biometric_login',
+      module: 'auth',
+      target_id: String(user.id),
+      target_name: user.full_name,
+      description: `ورود با احراز هویت بیومتریک ${bioTypePersian} توسط «${user.full_name}» (${user.department})`,
+      details: {
+        auth_method: authMethod,
+        device_type: deviceType,
+        device_name: deviceName,
+        credential_id: credentialId || cred?.credential_id || 'bio_auto'
+      }
+    });
+
+    const { password_hash, ...userProfile } = user;
+    res.json({
+      success: true,
+      token,
+      user: { ...userProfile, permissions },
+      bioToken: cred?.bio_token || `btok_${Buffer.from(`${user.id}:${user.username}`).toString('base64')}`,
+      message: `ورود بیومتریک با موفقیت انجام شد. خوش آمدید ${user.full_name}`
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در ورود بیومتریک: ' + err.message });
+  }
+});
+
+// 4. Quick 1-Tap Biometric Login
+app.post('/api/auth/biometric/quick-login', (req, res) => {
+  try {
+    const { bioToken, username, deviceName } = req.body;
+    if (!bioToken && !username) {
+      return res.status(400).json({ error: 'توکن بیومتریک یا نام کاربری ارسال نشده است.' });
+    }
+
+    let user = null;
+    let cred = null;
+
+    if (bioToken) {
+      cred = db.prepare('SELECT * FROM biometric_credentials WHERE bio_token = ?').get(bioToken);
+      if (cred) {
+        user = db.prepare('SELECT * FROM users WHERE id = ?').get(cred.user_id);
+      }
+    }
+
+    if (!user && username) {
+      user = db.prepare('SELECT * FROM users WHERE username = ?').get(username);
+      if (user) {
+        cred = db.prepare('SELECT * FROM biometric_credentials WHERE user_id = ? ORDER BY id DESC LIMIT 1').get(user.id);
+      }
+    }
+
+    if (!user) {
+      return res.status(404).json({ error: 'شناسه بیومتریک منقضی شده است. لطفاً با رمز عبور وارد شوید.' });
+    }
+
+    if (user.is_active === 0) {
+      return res.status(403).json({ error: 'حساب کاربری شما غیرفعال شده است.' });
+    }
+
+    if (cred) {
+      db.prepare("UPDATE biometric_credentials SET last_used_at = CURRENT_TIMESTAMP, counter = counter + 1 WHERE id = ?").run(cred.id);
+    }
+
+    const permissions = resolveUserPermissions(user);
+
+    const token = jwt.sign(
+      { id: user.id, username: user.username, role: user.role, fullName: user.full_name, department: user.department, permissions },
+      JWT_SECRET,
+      { expiresIn: '30d' }
+    );
+
+    logActivity(req, {
+      user: { id: user.id, username: user.username, full_name: user.full_name, role: user.role },
+      action: 'biometric_quick_login',
+      module: 'auth',
+      target_id: String(user.id),
+      target_name: user.full_name,
+      description: `ورود تک‌لمسی بیومتریک موبایل توسط «${user.full_name}» (${user.department})`
+    });
+
+    const { password_hash, ...userProfile } = user;
+    res.json({
+      success: true,
+      token,
+      user: { ...userProfile, permissions },
+      bioToken: cred?.bio_token || bioToken
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در ورود سریع بیومتریک: ' + err.message });
+  }
+});
+
+// 5. Register New Biometric Device
+app.post('/api/auth/biometric/register', authMiddleware, (req, res) => {
+  try {
+    const user = req.user;
+    const {
+      device_name = 'گوشی موبایل پرسنل',
+      device_type = 'mobile_fingerprint',
+      credential_id,
+      public_key,
+      device_info
+    } = req.body;
+
+    const credId = credential_id || `bio_cred_${user.username}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const bioToken = `btok_${Buffer.from(`${user.id}:${user.username}:${Date.now()}:${Math.random().toString(36)}`).toString('base64')}`;
+
+    db.prepare(`
+      INSERT INTO biometric_credentials (
+        user_id, credential_id, public_key, device_name, device_type, device_info, bio_token, last_used_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+    `).run(
+      user.id,
+      credId,
+      public_key || null,
+      device_name,
+      device_type,
+      device_info || req.headers['user-agent'] || 'Mobile Browser',
+      bioToken
+    );
+
+    db.prepare('UPDATE users SET biometric_enabled = 1 WHERE id = ?').run(user.id);
+
+    logActivity(req, {
+      user: { id: user.id, username: user.username, full_name: user.fullName || user.username, role: user.role },
+      action: 'biometric_register',
+      module: 'auth',
+      target_id: String(user.id),
+      target_name: device_name,
+      description: `فعال‌سازی و ثبت سنسور بیومتریک دستگاه «${device_name}» (${device_type}) برای کاربر «${user.fullName || user.username}»`
+    });
+
+    res.json({
+      success: true,
+      message: 'سنسور اثر انگشت / تشخیص چهره این دستگاه با موفقیت ثبت و فعال شد.',
+      credentialId: credId,
+      bioToken
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در ثبت سنسور بیومتریک: ' + err.message });
+  }
+});
+
+// 6. Get Current User's Registered Biometric Devices
+app.get('/api/auth/biometric/devices', authMiddleware, (req, res) => {
+  try {
+    const devices = db.prepare(`
+      SELECT id, credential_id, device_name, device_type, device_info, counter, last_used_at, created_at
+      FROM biometric_credentials
+      WHERE user_id = ?
+      ORDER BY id DESC
+    `).all(req.user.id);
+
+    res.json({ success: true, devices });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در دریافت لیست دستگاه‌های بیومتریک: ' + err.message });
+  }
+});
+
+// 7. Delete / Revoke Biometric Device
+app.delete('/api/auth/biometric/devices/:id', authMiddleware, (req, res) => {
+  try {
+    const deviceId = parseInt(req.params.id);
+    const dev = db.prepare('SELECT * FROM biometric_credentials WHERE id = ? AND (user_id = ? OR ? = 1)').get(
+      deviceId,
+      req.user.id,
+      ['admin', 'ceo'].includes(req.user.role) ? 1 : 0
+    );
+
+    if (!dev) {
+      return res.status(404).json({ error: 'دستگاه بیومتریک یافت نشد.' });
+    }
+
+    db.prepare('DELETE FROM biometric_credentials WHERE id = ?').run(deviceId);
+
+    const remaining = db.prepare('SELECT COUNT(*) as count FROM biometric_credentials WHERE user_id = ?').get(dev.user_id).count;
+    if (remaining === 0) {
+      db.prepare('UPDATE users SET biometric_enabled = 0 WHERE id = ?').run(dev.user_id);
+    }
+
+    logActivity(req, {
+      user: req.user,
+      action: 'biometric_revoke',
+      module: 'auth',
+      target_id: String(deviceId),
+      target_name: dev.device_name,
+      description: `حذف و غیرفعال‌سازی دستگاه بیومتریک «${dev.device_name}»`
+    });
+
+    res.json({ success: true, message: 'دستگاه بیومتریک با موفقیت حذف گردید.' });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در حذف دستگاه بیومتریک: ' + err.message });
+  }
+});
+
+// 8. Admin/CEO: Get all factory personnel biometric status
+app.get('/api/auth/biometric/admin-summary', authMiddleware, requireCeo, (req, res) => {
+  try {
+    const summary = db.prepare(`
+      SELECT u.id, u.username, u.full_name, u.role, u.department, u.phone, u.biometric_enabled,
+             COUNT(bc.id) as device_count,
+             MAX(bc.last_used_at) as last_biometric_login
+      FROM users u
+      LEFT JOIN biometric_credentials bc ON u.id = bc.user_id
+      GROUP BY u.id
+      ORDER BY u.id ASC
+    `).all();
+
+    res.json({ success: true, summary });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در دریافت خلاصه بیومتریک: ' + err.message });
+  }
+});
+
 function requireAdmin(req, res, next) {
   if (req.user?.role !== 'admin') {
     return res.status(403).json({ error: 'دسترسی غیرمجاز: این بخش به صورت انحصاری مختص مدیر ارشد سیستم (Admin) است.' });

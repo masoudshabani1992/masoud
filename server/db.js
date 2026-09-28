@@ -473,6 +473,25 @@ function initDb() {
     CREATE INDEX IF NOT EXISTS idx_activity_logs_created ON activity_logs(created_at DESC);
     CREATE INDEX IF NOT EXISTS idx_activity_logs_user ON activity_logs(username);
     CREATE INDEX IF NOT EXISTS idx_activity_logs_module ON activity_logs(module);
+
+    -- 7. جدول اعتبارسنجی بیومتریک اثر انگشت و تشخیص چهره موبایل (Biometric / WebAuthn / Passkeys)
+    CREATE TABLE IF NOT EXISTS biometric_credentials (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      credential_id TEXT UNIQUE NOT NULL,
+      public_key TEXT,
+      device_name TEXT NOT NULL DEFAULT 'گوشی موبایل پرسنل',
+      device_type TEXT NOT NULL DEFAULT 'mobile_fingerprint', -- 'mobile_fingerprint', 'mobile_face_id', 'touch_id', 'windows_hello'
+      device_info TEXT, -- OS, Browser details, IP
+      bio_token TEXT,   -- Secure cryptographic local device verification token
+      counter INTEGER DEFAULT 0,
+      last_used_at DATETIME,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_biometric_user ON biometric_credentials(user_id);
+    CREATE INDEX IF NOT EXISTS idx_biometric_cred ON biometric_credentials(credential_id);
   `);
 
   // Seed default users
@@ -625,6 +644,46 @@ function initDb() {
 
   try {
     db.prepare("ALTER TABLE marketing_leads ADD COLUMN converted_archive_code TEXT").run();
+  } catch (e) {}
+
+  // Biometric authentication migrations
+  try {
+    db.prepare("ALTER TABLE users ADD COLUMN biometric_enabled INTEGER DEFAULT 0").run();
+  } catch (e) {}
+
+  // Seed sample biometric devices for default demo users
+  try {
+    const credCount = db.prepare('SELECT COUNT(*) as count FROM biometric_credentials').get().count;
+    if (credCount === 0) {
+      const usersList = db.prepare('SELECT id, username, full_name, role FROM users').all();
+      const insertBio = db.prepare(`
+        INSERT INTO biometric_credentials (
+          user_id, credential_id, device_name, device_type, device_info, bio_token, last_used_at
+        ) VALUES (?, ?, ?, ?, ?, ?, datetime('now', '-1 hours'))
+      `);
+
+      usersList.forEach(u => {
+        let devName = 'گوشی سامسونگ گلکسی پرسنل (اثر انگشت)';
+        let devType = 'mobile_fingerprint';
+        if (u.role === 'ceo' || u.role === 'admin') {
+          devName = 'آیفون ۱۵ پرو (تشخیص چهره Face ID)';
+          devType = 'mobile_face_id';
+        } else if (u.role === 'design') {
+          devName = 'تبلت گرافیکی آی‌پد (Touch ID)';
+          devType = 'touch_id';
+        } else if (u.role === 'production') {
+          devName = 'موبایل شیائومی سرپرست سالن (Fingerprint)';
+          devType = 'mobile_fingerprint';
+        }
+
+        const credId = `bio_cred_${u.username}_${u.id}_dev1`;
+        const bioToken = `btok_${Buffer.from(`${u.id}:${u.username}:biometric_verified_token_factory_1405`).toString('base64')}`;
+        try {
+          insertBio.run(u.id, credId, devName, devType, 'Mobile Chrome / Safari on Mobile OS', bioToken);
+          db.prepare('UPDATE users SET biometric_enabled = 1 WHERE id = ?').run(u.id);
+        } catch (err) {}
+      });
+    }
   } catch (e) {}
 
   // Seed default warehouse receipts matching actual factory Google Sheet

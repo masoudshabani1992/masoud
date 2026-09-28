@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { ROLES } from '../utils/helpers';
 import {
@@ -11,15 +11,34 @@ import {
   KeyRound,
   ArrowRight,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Fingerprint,
+  ScanFace,
+  Sparkles,
+  Smartphone
 } from 'lucide-react';
+import BiometricAuthModal from './BiometricAuthModal';
+import { getLastBioUser, detectDeviceBiometrics } from '../utils/biometrics';
 
 export default function LoginView() {
-  const { login, switchRole } = useAuth();
+  const { login, switchRole, loginBiometric } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [showBiometricModal, setShowBiometricModal] = useState(false);
+  const [lastBioUser, setLastBioUser] = useState(null);
+  const [deviceInfo, setDeviceInfo] = useState(null);
+
+  useEffect(() => {
+    const lastUser = getLastBioUser();
+    if (lastUser) {
+      setLastBioUser(lastUser);
+      if (!username) setUsername(lastUser.username);
+    }
+    const dev = detectDeviceBiometrics();
+    setDeviceInfo(dev);
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -50,8 +69,23 @@ export default function LoginView() {
     }
   };
 
+  const handleBiometricSuccess = (loginResult) => {
+    setShowBiometricModal(false);
+    if (loginBiometric) {
+      loginBiometric(loginResult);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 flex flex-col items-center justify-center p-4 sm:p-6 font-sans select-none">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 flex flex-col items-center justify-center p-4 sm:p-6 font-sans select-none" dir="rtl">
+      
+      {/* Biometric Scanning & Auth Modal */}
+      <BiometricAuthModal
+        isOpen={showBiometricModal}
+        onClose={() => setShowBiometricModal(false)}
+        onLoginSuccess={handleBiometricSuccess}
+      />
+
       <div className="w-full max-w-4xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden grid grid-cols-1 md:grid-cols-12 animate-in fade-in zoom-in-95 duration-200">
         
         {/* Right Column: Factory Branding & Fast Roles */}
@@ -99,7 +133,7 @@ export default function LoginView() {
           </div>
         </div>
 
-        {/* Left Column: Login Form */}
+        {/* Left Column: Login Form & Biometric Option */}
         <div className="md:col-span-7 p-6 sm:p-10 flex flex-col justify-center space-y-6">
           <div className="space-y-1.5">
             <h1 className="text-2xl font-black text-slate-900">ورود به اتوماسیون شرکت آرمان امیران</h1>
@@ -114,6 +148,46 @@ export default function LoginView() {
               <span>{error}</span>
             </div>
           )}
+
+          {/* PRIMARY BIOMETRIC LOGIN CARD (FOR MOBILE & FLOOR PERSONNEL) */}
+          <div className="p-1 rounded-2xl bg-gradient-to-r from-teal-500 via-emerald-500 to-cyan-500 shadow-md">
+            <button
+              type="button"
+              onClick={() => setShowBiometricModal(true)}
+              className="w-full bg-white hover:bg-teal-50/50 p-3.5 sm:p-4 rounded-[14px] flex items-center justify-between gap-3 text-right transition-all group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-teal-500 to-emerald-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-teal-500/20 group-hover:scale-105 transition-transform">
+                  <Fingerprint className="w-6 h-6 animate-pulse" />
+                </div>
+                <div>
+                  <div className="text-xs font-black text-slate-800 flex items-center gap-2">
+                    <span>ورود با اثر انگشت یا تشخیص چهره</span>
+                    <span className="text-[9px] font-bold bg-teal-100 text-teal-800 px-2 py-0.5 rounded-full">
+                      بیومتریک موبایل
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-slate-500 mt-0.5 font-medium">
+                    {lastBioUser
+                      ? `ورود سریع برای «${lastBioUser.full_name}» (${lastBioUser.department})`
+                      : 'سنسور اثر انگشت اندروید، Face ID آیفون و Windows Hello'}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center shrink-0 group-hover:bg-teal-600 group-hover:text-white transition-colors">
+                <ScanFace className="w-4.5 h-4.5" />
+              </div>
+            </button>
+          </div>
+
+          {/* Divider */}
+          <div className="relative flex items-center justify-center">
+            <div className="border-t border-slate-200 w-full" />
+            <span className="bg-white px-3 text-[11px] font-bold text-slate-400 absolute">
+              یا ورود سنتی با نام کاربری و کلمه عبور
+            </span>
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
@@ -166,7 +240,7 @@ export default function LoginView() {
               className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black text-sm shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 active:scale-98 transition-all"
             >
               <LogIn className="w-5 h-5" />
-              <span>{loading ? 'در حال بررسی اطلاعات...' : 'ورود به پنل کارخانه'}</span>
+              <span>{loading ? 'در حال بررسی اطلاعات...' : 'ورود با نام کاربری و رمز عبور'}</span>
             </button>
           </form>
         </div>

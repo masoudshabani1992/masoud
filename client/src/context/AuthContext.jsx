@@ -38,6 +38,15 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const handleBiometricLogin = (loginResult) => {
+    if (loginResult && loginResult.token) {
+      localStorage.setItem('boxfactory_token', loginResult.token);
+      setToken(loginResult.token);
+      setCurrentUser(loginResult.user);
+      return loginResult.user;
+    }
+  };
+
   useEffect(() => {
     async function initAuth() {
       const saved = localStorage.getItem('boxfactory_token');
@@ -99,6 +108,7 @@ export function AuthProvider({ children }) {
         token,
         loading,
         login: handleLogin,
+        loginBiometric: handleBiometricLogin,
         switchRole: handleDemoLogin,
         logout: handleLogout
       }}

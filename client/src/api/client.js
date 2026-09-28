@@ -124,6 +124,16 @@ export const api = {
   updateUser: (id, userData) => apiRequest(`/users/${id}`, { method: 'PUT', body: JSON.stringify(userData) }),
   deleteUser: (id) => apiRequest(`/users/${id}`, { method: 'DELETE' }),
 
+  // Biometric / WebAuthn / Passkeys (اثر انگشت و چهره پرسنل)
+  getBiometricUsersEnabled: () => apiRequest('/auth/biometric/users-enabled'),
+  getBiometricLoginChallenge: (username) => apiRequest('/auth/biometric/login-challenge', { method: 'POST', body: JSON.stringify({ username }) }),
+  verifyBiometricLogin: (data) => apiRequest('/auth/biometric/verify-login', { method: 'POST', body: JSON.stringify(data) }),
+  quickBiometricLogin: (data) => apiRequest('/auth/biometric/quick-login', { method: 'POST', body: JSON.stringify(data) }),
+  registerBiometricDevice: (data) => apiRequest('/auth/biometric/register', { method: 'POST', body: JSON.stringify(data) }),
+  getBiometricDevices: () => apiRequest('/auth/biometric/devices'),
+  deleteBiometricDevice: (id) => apiRequest(`/auth/biometric/devices/${id}`, { method: 'DELETE' }),
+  getBiometricAdminSummary: () => apiRequest('/auth/biometric/admin-summary'),
+
   // Projects
   getProjects: (params = {}) => {
     const query = new URLSearchParams(params).toString();
