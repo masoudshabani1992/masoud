@@ -189,6 +189,16 @@ export default function CommandPaletteModal({
       color: 'text-rose-600 bg-rose-50',
       action: () => onNavigate('logs'),
       visible: role === 'admin'
+    },
+    {
+      id: 'migration',
+      title: 'مرکز انتقال اطلاعات و ایمپورت اکسل',
+      subtitle: 'انتقال سریع مشتریان، سفارشات و متریال از اتوماسیون قدیمی به سیستم جدید',
+      category: 'تنظیمات اتوماسیون',
+      icon: FileSpreadsheet,
+      color: 'text-orange-600 bg-orange-50',
+      action: () => onNavigate('migration'),
+      visible: role === 'admin' || role === 'ceo' || hasPermission('can_manage_users') || hasPermission('can_view_migration')
     }
   ].filter(item => item.visible);
 

@@ -257,38 +257,30 @@ export default function DepartmentHubView({
       </div>
 
 
-      {/* Quick Action Bar for Data Migration and New Orders */}
+      {/* Quick Action Bar for Archive and New Orders */}
       <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
-            <ArrowRightLeft className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-xl bg-violet-100 text-violet-700 flex items-center justify-center font-bold">
+            <Layers className="w-5 h-5 text-violet-700" />
           </div>
           <div>
-            <div className="text-sm font-black text-slate-800">انتقال سریع اطلاعات از اتوماسیون قدیمی</div>
-            <div className="text-xs text-slate-500">ایمپورت مشتریان، سفارشات و آرشیو کارهای قبلی از طریق فایل اکسل یا دیتابیس</div>
+            <div className="text-sm font-black text-slate-800">سامانه یکپارچه مدیریت فرآیند ۱۰ مرحله‌ای تولید کارتن و جعبه</div>
+            <div className="text-xs text-slate-500">دسترسی سریع به ثبت سفارشات جدید صنعتی و آرشیو پرونده‌های کارخانه</div>
           </div>
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
           <button
-            onClick={() => onNavigateDepartment('migration')}
-            className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl text-xs sm:text-sm shadow-md transition-all flex items-center gap-2"
-          >
-            <FileSpreadsheet className="w-4 h-4" />
-            <span>مرکز انتقال و ایمپورت اکسل</span>
-          </button>
-
-          <button
             onClick={onOpenArchive}
-            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl text-xs sm:text-sm transition-all flex items-center gap-2"
+            className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl text-xs sm:text-sm transition-all flex items-center gap-2 border border-slate-200"
           >
             <Boxes className="w-4 h-4 text-amber-600" />
-            <span>آرشیو کارهای ثبت‌شده</span>
+            <span>آرشیو جامع سفارشات</span>
           </button>
 
           <button
             onClick={onOpenNewOrder}
-            className="px-4 py-2.5 btn-marketing-green text-white font-black rounded-xl text-xs sm:text-sm shadow-md transition-all flex items-center gap-2"
+            className="px-5 py-2.5 btn-marketing-green text-white font-black rounded-xl text-xs sm:text-sm shadow-md transition-all flex items-center gap-2"
           >
             <PlusCircle className="w-4 h-4 text-emerald-100" />
             <span>سفارش جدید</span>

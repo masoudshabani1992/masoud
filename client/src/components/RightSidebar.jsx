@@ -60,7 +60,7 @@ export default function RightSidebar({
     if (['production_orders', 'production_orders_offset', 'digital_orders', 'service_orders'].includes(activeTab)) return 'prod';
     if (['warehouse_inventory', 'warehouse_cardboard', 'warehouse_sheet_carton', 'warehouse_single_face', 'warehouse_cellophane', 'warehouse_pvc_film', 'warehouse_ink'].includes(activeTab)) return 'wh';
     if (['dashboard', 'kanban', 'archive'].includes(activeTab)) return 'dash';
-    if (['users', 'hr', 'storage', 'logs', 'notification_settings'].includes(activeTab)) return 'settings';
+    if (['users', 'hr', 'storage', 'logs', 'notification_settings', 'migration'].includes(activeTab)) return 'settings';
     return null;
   });
 
@@ -100,7 +100,7 @@ export default function RightSidebar({
   const isProdActive = ['production_orders', 'production_orders_offset', 'digital_orders', 'production_orders_digital', 'service_orders', 'production_orders_service'].includes(activeTab);
   const isWhActive = ['warehouse_inventory', 'warehouse_cardboard', 'warehouse_sheet_carton', 'warehouse_single_face', 'warehouse_cellophane', 'warehouse_pvc_film', 'warehouse_ink'].includes(activeTab);
   const isDashActive = ['dashboard', 'kanban', 'archive'].includes(activeTab);
-  const isSettingsActive = ['users', 'hr', 'storage', 'logs', 'notification_settings'].includes(activeTab);
+  const isSettingsActive = ['users', 'hr', 'storage', 'logs', 'notification_settings', 'migration'].includes(activeTab);
 
   const handleNavClick = (tab) => {
     setActiveTab(tab);
@@ -774,6 +774,22 @@ export default function RightSidebar({
                         <span>۶. اطلاع‌رسانی بله و پیامک</span>
                       </div>
                       <span className="text-[10px] bg-amber-200 text-amber-900 px-1 py-0.2 rounded font-bold">تایید مشتری</span>
+                    </button>
+
+                    {/* انتقال اطلاعات از اتوماسیون قدیمی (مرکز ایمپورت اکسل) */}
+                    <button
+                      onClick={() => handleNavClick('migration')}
+                      className={`w-full text-right px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between ${
+                        activeTab === 'migration'
+                          ? 'bg-orange-100 text-orange-950 font-black border border-orange-300/80 shadow-2xs'
+                          : 'text-slate-600 hover:bg-orange-50 hover:text-orange-900'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <FileSpreadsheet className="w-3.5 h-3.5 text-orange-600" />
+                        <span>۷. انتقال اطلاعات (ایمپورت اکسل)</span>
+                      </div>
+                      <span className="text-[10px] bg-orange-200 text-orange-900 px-1 py-0.2 rounded font-bold">اکسل</span>
                     </button>
                   </div>
                 )}
