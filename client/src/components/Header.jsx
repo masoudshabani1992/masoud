@@ -70,6 +70,7 @@ export default function Header({
   onToggleSidebarMobile
 }) {
   const { currentUser, role, hasPermission } = useAuth();
+  const isAdmin = currentUser?.role === 'admin' || role === 'admin';
   const [timeStr, setTimeStr] = useState('');
   const [dateStr, setDateStr] = useState('');
 
@@ -119,16 +120,22 @@ export default function Header({
                 <h1 className="font-black text-slate-900 text-sm sm:text-base tracking-tight">
                   {currentInfo.title}
                 </h1>
-                <button
-                  type="button"
-                  onClick={onOpenAutoUpdate}
-                  className="hidden md:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 shadow-2xs transition active:scale-95"
-                  title="کلیک برای بررسی و به‌روزرسانی خودکار ۱-کلیکی سرور"
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>نسخه ۲.۸.۸ (بیلد ۹۱)</span>
-                  <Zap className="w-3 h-3 text-amber-500" />
-                </button>
+                {isAdmin ? (
+                  <button
+                    type="button"
+                    onClick={onOpenAutoUpdate}
+                    className="hidden md:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 shadow-2xs transition active:scale-95 cursor-pointer"
+                    title="مدیریت و به‌روزرسانی خودکار سرور (اختصاصی مدیر ارشد سیستم)"
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span>نسخه ۲.۸.۸ (بیلد ۹۱)</span>
+                    <Zap className="w-3 h-3 text-amber-500" />
+                  </button>
+                ) : (
+                  <span className="hidden md:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                    نسخه ۲.۸.۸
+                  </span>
+                )}
               </div>
               <p className="text-[11px] text-slate-500 font-medium hidden sm:block">
                 {currentInfo.desc}

@@ -2636,6 +2636,97 @@ function requireRoles(...allowed) {
   };
 }
 
+// ================= SYSTEM AUTO-UPDATE & DEPLOYMENT (STRICTLY ADMIN ONLY) =================
+const { checkForUpdates, performLiveOneClickUpdate } = require('./updater');
+const { deployToLocalPath, loadConfig, saveConfig } = require('../scripts/auto_deploy');
+
+app.get('/api/system/check-updates', authMiddleware, requireAdmin, async (req, res) => {
+  try {
+    const updateInfo = await checkForUpdates();
+    res.json({ success: true, ...updateInfo });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در بررسی به‌روزرسانی: ' + err.message });
+  }
+});
+
+app.post('/api/system/apply-auto-update', authMiddleware, requireAdmin, async (req, res) => {
+  try {
+    const result = await performLiveOneClickUpdate();
+
+    logActivity(req, {
+      user: req.user,
+      action: 'system_auto_update',
+      module: 'admin',
+      target_id: result.version,
+      target_name: 'سامانه ERP کارخانه',
+      description: `به‌روزرسانی خودکار و زنده سیستم به نسخه ${result.version} (بیلد ${result.build}) توسط «${req.user.fullName || req.user.username}»`,
+      details: { version: result.version, backupFolder: result.backupFolder }
+    });
+
+    res.json({ success: true, ...result });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در اجرای به‌روزرسانی خودکار: ' + err.message });
+  }
+});
+
+app.get('/api/system/backups', authMiddleware, requireAdmin, (req, res) => {
+  try {
+    const backupsDir = path.join(__dirname, '..', 'backups');
+    let backupList = [];
+    if (fs.existsSync(backupsDir)) {
+      const dirs = fs.readdirSync(backupsDir, { withFileTypes: true });
+      backupList = dirs
+        .filter(d => d.isDirectory())
+        .map(d => {
+          const fullPath = path.join(backupsDir, d.name);
+          const stat = fs.statSync(fullPath);
+          return {
+            name: d.name,
+            created_at: stat.birthtime || stat.mtime,
+            path: fullPath
+          };
+        })
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    }
+    res.json({ success: true, backups: backupList });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در دریافت لیست بکاپ‌ها: ' + err.message });
+  }
+});
+
+app.get('/api/system/deploy-config', authMiddleware, requireAdmin, (req, res) => {
+  try {
+    const cfg = loadConfig();
+    res.json({ success: true, config: cfg, currentVersion: '2.8.8', buildNumber: 91 });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/system/deploy-config', authMiddleware, requireAdmin, (req, res) => {
+  try {
+    const { targetPath, autoDeployEnabled } = req.body;
+    saveConfig({ defaultTargetPath: (targetPath || '').trim(), autoDeployEnabled: Boolean(autoDeployEnabled) });
+    res.json({ success: true, message: 'مسیر و تنظیمات استقرار خودکار ذخیره گردید.' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/system/deploy-now', authMiddleware, requireAdmin, async (req, res) => {
+  try {
+    const { targetPath } = req.body;
+    const finalPath = targetPath || loadConfig().defaultTargetPath;
+    if (!finalPath) {
+      return res.status(400).json({ error: 'مسیری برای استقرار تعیین نشده است.' });
+    }
+    await deployToLocalPath(finalPath);
+    res.json({ success: true, message: `به‌روزرسانی با موفقیت در مسیر «${finalPath}» اعمال شد.` });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در استقرار خودکار: ' + err.message });
+  }
+});
+
 // ================= HR & PERFORMANCE EVALUATION =================
 app.get('/api/hr/employees', authMiddleware, (req, res) => {
   try {

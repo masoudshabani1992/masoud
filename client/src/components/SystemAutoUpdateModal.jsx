@@ -16,9 +16,13 @@ import {
   HardDrive
 } from 'lucide-react';
 import { api } from '../api/client';
+import { useAuth } from '../context/AuthContext';
 import { playBiometricChime } from '../utils/biometrics';
 
 export default function SystemAutoUpdateModal({ isOpen, onClose }) {
+  const { currentUser, role } = useAuth();
+  const isAdmin = currentUser?.role === 'admin' || role === 'admin';
+
   const [updateInfo, setUpdateInfo] = useState(null);
   const [checking, setChecking] = useState(true);
   const [updating, setUpdating] = useState(false);
@@ -132,6 +136,28 @@ export default function SystemAutoUpdateModal({ isOpen, onClose }) {
   };
 
   if (!isOpen) return null;
+
+  if (!isAdmin) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md animate-in fade-in select-none" dir="rtl">
+        <div className="w-full max-w-md bg-white rounded-3xl p-6 text-center space-y-4 shadow-2xl border border-rose-200">
+          <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 mx-auto flex items-center justify-center">
+            <AlertCircle className="w-6 h-6" />
+          </div>
+          <h3 className="text-base font-black text-slate-800">شما مجاز به دیدن این پرونده نیستین</h3>
+          <p className="text-xs text-slate-500 leading-relaxed">
+            دسترسی به بخش به‌روزرسانی زنده و زیرساخت سرور انحصاراً در اختیار مدیر ارشد سیستم (Admin) است.
+          </p>
+          <button
+            onClick={onClose}
+            className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs transition"
+          >
+            بستن پنجره
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md animate-in fade-in duration-200 select-none" dir="rtl">
