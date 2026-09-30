@@ -646,6 +646,24 @@ function initDb() {
     db.prepare("ALTER TABLE marketing_leads ADD COLUMN converted_archive_code TEXT").run();
   } catch (e) {}
 
+  // Granular technical material specifications migrations
+  try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN main_category TEXT DEFAULT 'مقوایی'").run(); } catch (e) {}
+  try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN print_type TEXT").run(); } catch (e) {}
+  try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN print_colors TEXT").run(); } catch (e) {}
+  try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN print_zinc TEXT").run(); } catch (e) {}
+  try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN custom_spot_color INTEGER DEFAULT 0").run(); } catch (e) {}
+  try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN print_form_length REAL").run(); } catch (e) {}
+  try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN print_form_width REAL").run(); } catch (e) {}
+  try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN boxes_per_sheet INTEGER").run(); } catch (e) {}
+  try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN varnish_type TEXT").run(); } catch (e) {}
+  try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN lacquer_type TEXT").run(); } catch (e) {}
+  try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN glue_type TEXT").run(); } catch (e) {}
+  try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN glue_length REAL").run(); } catch (e) {}
+  try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN glue_width REAL").run(); } catch (e) {}
+  try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN foil_length REAL").run(); } catch (e) {}
+  try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN foil_width REAL").run(); } catch (e) {}
+  try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN technical_specs_json TEXT").run(); } catch (e) {}
+
   // Biometric authentication migrations
   try {
     db.prepare("ALTER TABLE users ADD COLUMN biometric_enabled INTEGER DEFAULT 0").run();

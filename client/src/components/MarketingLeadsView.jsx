@@ -53,25 +53,102 @@ import {
   Edit3,
   AlertTriangle,
   Trash2,
-  Eye
+  Eye,
+  CheckCircle,
+  HelpCircle,
+  Settings,
+  SlidersHorizontal as SlidersIcon
 } from 'lucide-react';
 
-const CARDBOARD_TYPES = [
-  'ایندربرد بهداشتی (Ivory/FBB)',
-  'پشت طوسی صنعتی (Duplex)',
-  'کرافت قهوه‌ای (Kraft)',
-  'گلاسه براق (Art Paper)',
-  'فابریانو فانتزی (Textured)',
-  'متالایز طلایی / نقره‌ای'
+export const MAIN_CATEGORIES = [
+  { id: 'مقوایی', label: 'مقوایی', desc: 'جعبه مقوایی / مقوای تک‌لا', icon: '📦' },
+  { id: 'لمینتی', label: 'لمینتی', desc: 'کارتن لمینتی / سینگل فلوت', icon: '📑' },
+  { id: 'کارتن', label: 'کارتن', desc: 'کارتن ۳ و ۵ لایه مادر / دایکاتی', icon: '📦' }
 ];
 
-const GRAMMAGES = [
-  { value: 230, label: '۲۳۰ گرم' },
-  { value: 250, label: '۲۵۰ گرم' },
-  { value: 280, label: '۲۸۰ گرم' },
-  { value: 300, label: '۳۰۰ گرم (استاندارد)' },
-  { value: 350, label: '۳۵۰ گرم' },
-  { value: 400, label: '۴۰۰ گرم' }
+export const CARDBOARD_TYPES = [
+  'پشت طوسی',
+  'ایندربرد',
+  'گلاسه',
+  'تحریر',
+  'کرافت',
+  'بهداشتی'
+];
+
+export const GRAMMAGES = [
+  30, 40, 50, 70, 80, 110, 115, 125, 128, 135, 140, 160, 170, 180, 190, 200, 210, 230, 250, 270, 300, 350, 400, 470, 560, 580, 600, 650
+];
+
+export const PRINT_TYPES = [
+  'افست نرمال',
+  'افست متالایز'
+];
+
+export const PRINT_COLORS = [
+  'بدون چاپ',
+  '۱ رنگ',
+  '۲ رنگ',
+  '۳ رنگ',
+  '۴ رنگ (CMYK)',
+  '۵ رنگ',
+  '۶ رنگ'
+];
+
+export const PRINT_ZINC_OPTIONS = [
+  'زینک جدید',
+  'زینک موجود'
+];
+
+export const CELLOPHANE_TYPES = [
+  'سلفون حرارتی براق',
+  'سلفون حرارتی مات',
+  'واتربیس براق',
+  'واتربیس مات',
+  'طرح دار',
+  'مخملی',
+  'بدون سلفون'
+];
+
+export const VARNISH_OPTIONS = [
+  'بدون ورنی',
+  'مات',
+  'براق'
+];
+
+export const LACQUER_OPTIONS = [
+  'بدون لاک',
+  'یو وی سیلندری'
+];
+
+export const UV_OPTIONS = [
+  'بدون یووی',
+  'موضعی',
+  'شنی',
+  'هیبرید',
+  'اکلیلی',
+  '3D'
+];
+
+export const EMBOSS_OPTIONS = [
+  'بدون برجسته',
+  'برجسته',
+  'کلیشه موجود',
+  'کلیشه جدید'
+];
+
+export const GLUE_OPTIONS = [
+  'لب چسب',
+  'لمینتی',
+  'مقوایی',
+  'دوطرفه',
+  'کارتن'
+];
+
+export const FOIL_OPTIONS = [
+  'بدون فویل',
+  'طلاکوب',
+  'نقره کوب',
+  'رنگی کوب'
 ];
 
 const MATERIAL_CONSTRUCTIONS = [
@@ -81,14 +158,6 @@ const MATERIAL_CONSTRUCTIONS = [
   'کارتن ۳ لایه C-Flute (کارتن مادر)',
   'کارتن ۵ لایه BC-Flute (کارتن سنگین صادراتی)',
   'هاردباکس مغزی کرجی'
-];
-
-const CELLOPHANE_TYPES = [
-  'سلفون مات حرارتی',
-  'سلفون براق حرارتی',
-  'سلفون مخملی (Soft Touch)',
-  'سلفون متالایز واترپروف',
-  'بدون سلفون (ورنی / چاپ مستقیم)'
 ];
 
 const STAGE_NAMES = {
@@ -134,10 +203,28 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
   const [customerPhone, setCustomerPhone] = useState('');
   const [productName, setProductName] = useState('');
   const [quantity, setQuantity] = useState(5000);
-  const [cardboardType, setCardboardType] = useState('ایندربرد بهداشتی (Ivory/FBB)');
+  const [mainCategory, setMainCategory] = useState('مقوایی');
+  const [cardboardType, setCardboardType] = useState('ایندربرد');
   const [cardboardGrammage, setCardboardGrammage] = useState(300);
-  const [materialConstruction, setMaterialConstruction] = useState('مقوای تک‌لا (بدون سینگل)');
-  const [cellophaneType, setCellophaneType] = useState('سلفون مات حرارتی');
+  const [materialConstruction, setMaterialConstruction] = useState('مقوایی');
+  const [printType, setPrintType] = useState('افست نرمال');
+  const [printColors, setPrintColors] = useState('۴ رنگ (CMYK)');
+  const [printZinc, setPrintZinc] = useState('زینک جدید');
+  const [customSpotColor, setCustomSpotColor] = useState(false);
+  const [printFormLength, setPrintFormLength] = useState('');
+  const [printFormWidth, setPrintFormWidth] = useState('');
+  const [boxesPerSheet, setBoxesPerSheet] = useState('');
+  const [cellophaneType, setCellophaneType] = useState('سلفون حرارتی مات');
+  const [varnishType, setVarnishType] = useState('بدون ورنی');
+  const [lacquerType, setLacquerType] = useState('بدون لاک');
+  const [uvType, setUvType] = useState('بدون یووی');
+  const [embossType, setEmbossType] = useState('بدون برجسته');
+  const [glueType, setGlueType] = useState('لب چسب');
+  const [glueLength, setGlueLength] = useState('');
+  const [glueWidth, setGlueWidth] = useState('');
+  const [foilType, setFoilType] = useState('بدون فویل');
+  const [foilLength, setFoilLength] = useState('');
+  const [foilWidth, setFoilWidth] = useState('');
   const [boxLength, setBoxLength] = useState('');
   const [boxWidth, setBoxWidth] = useState('');
   const [boxHeight, setBoxHeight] = useState('');
@@ -154,10 +241,28 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
   const [editCustomerPhone, setEditCustomerPhone] = useState('');
   const [editProductName, setEditProductName] = useState('');
   const [editQuantity, setEditQuantity] = useState(5000);
-  const [editCardboardType, setEditCardboardType] = useState('');
+  const [editMainCategory, setEditMainCategory] = useState('مقوایی');
+  const [editCardboardType, setEditCardboardType] = useState('ایندربرد');
   const [editCardboardGrammage, setEditCardboardGrammage] = useState(300);
-  const [editMaterialConstruction, setEditMaterialConstruction] = useState('');
-  const [editCellophaneType, setEditCellophaneType] = useState('');
+  const [editMaterialConstruction, setEditMaterialConstruction] = useState('مقوایی');
+  const [editPrintType, setEditPrintType] = useState('افست نرمال');
+  const [editPrintColors, setEditPrintColors] = useState('۴ رنگ (CMYK)');
+  const [editPrintZinc, setEditPrintZinc] = useState('زینک جدید');
+  const [editCustomSpotColor, setEditCustomSpotColor] = useState(false);
+  const [editPrintFormLength, setEditPrintFormLength] = useState('');
+  const [editPrintFormWidth, setEditPrintFormWidth] = useState('');
+  const [editBoxesPerSheet, setEditBoxesPerSheet] = useState('');
+  const [editCellophaneType, setEditCellophaneType] = useState('سلفون حرارتی مات');
+  const [editVarnishType, setEditVarnishType] = useState('بدون ورنی');
+  const [editLacquerType, setEditLacquerType] = useState('بدون لاک');
+  const [editUvType, setEditUvType] = useState('بدون یووی');
+  const [editEmbossType, setEditEmbossType] = useState('بدون برجسته');
+  const [editGlueType, setEditGlueType] = useState('لب چسب');
+  const [editGlueLength, setEditGlueLength] = useState('');
+  const [editGlueWidth, setEditGlueWidth] = useState('');
+  const [editFoilType, setEditFoilType] = useState('بدون فویل');
+  const [editFoilLength, setEditFoilLength] = useState('');
+  const [editFoilWidth, setEditFoilWidth] = useState('');
   const [editBoxLength, setEditBoxLength] = useState('');
   const [editBoxWidth, setEditBoxWidth] = useState('');
   const [editBoxHeight, setEditBoxHeight] = useState('');
@@ -258,15 +363,40 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
 
   // Open Edit & Resubmit Modal (for Marketer when lead is incomplete)
   const handleOpenEditModal = (lead) => {
+    let specs = {};
+    try {
+      if (lead.technical_specs_json) {
+        specs = typeof lead.technical_specs_json === 'string' ? JSON.parse(lead.technical_specs_json) : lead.technical_specs_json;
+      }
+    } catch (e) {}
+
     setEditingLead(lead);
     setEditCustomerName(lead.customer_name || '');
     setEditCustomerPhone(lead.customer_phone || '');
     setEditProductName(lead.product_name || '');
     setEditQuantity(lead.quantity || 5000);
-    setEditCardboardType(lead.cardboard_type || 'ایندربرد بهداشتی (Ivory/FBB)');
-    setEditCardboardGrammage(lead.cardboard_grammage || 300);
-    setEditMaterialConstruction(lead.material_construction || 'مقوای تک‌لا (بدون سینگل)');
-    setEditCellophaneType(lead.cellophane_type || 'سلفون مات حرارتی');
+    setEditMainCategory(specs.main_category || lead.main_category || 'مقوایی');
+    setEditCardboardType(specs.cardboard_type || lead.cardboard_type || 'ایندربرد');
+    setEditCardboardGrammage(specs.cardboard_grammage || lead.cardboard_grammage || 300);
+    setEditMaterialConstruction(lead.material_construction || 'مقوایی');
+    setEditPrintType(specs.print_type || lead.print_type || 'افست نرمال');
+    setEditPrintColors(specs.print_colors || lead.print_colors || '۴ رنگ (CMYK)');
+    setEditPrintZinc(specs.print_zinc || lead.print_zinc || 'زینک جدید');
+    setEditCustomSpotColor(!!(specs.custom_spot_color || lead.custom_spot_color));
+    setEditPrintFormLength(specs.print_form_length || lead.print_form_length || '');
+    setEditPrintFormWidth(specs.print_form_width || lead.print_form_width || '');
+    setEditBoxesPerSheet(specs.boxes_per_sheet || lead.boxes_per_sheet || '');
+    setEditCellophaneType(specs.cellophane_type || lead.cellophane_type || 'سلفون حرارتی مات');
+    setEditVarnishType(specs.varnish_type || lead.varnish_type || 'بدون ورنی');
+    setEditLacquerType(specs.lacquer_type || lead.lacquer_type || 'بدون لاک');
+    setEditUvType(specs.uv_type || lead.uv_type || 'بدون یووی');
+    setEditEmbossType(specs.emboss_type || lead.emboss_type || 'بدون برجسته');
+    setEditGlueType(specs.glue_type || lead.glue_type || 'لب چسب');
+    setEditGlueLength(specs.glue_length || lead.glue_length || '');
+    setEditGlueWidth(specs.glue_width || lead.glue_width || '');
+    setEditFoilType(specs.foil_type || lead.foil_type || 'بدون فویل');
+    setEditFoilLength(specs.foil_length || lead.foil_length || '');
+    setEditFoilWidth(specs.foil_width || lead.foil_width || '');
     setEditBoxLength(lead.box_length !== null ? String(lead.box_length) : '');
     setEditBoxWidth(lead.box_width !== null ? String(lead.box_width) : '');
     setEditBoxHeight(lead.box_height !== null ? String(lead.box_height) : '');
@@ -286,25 +416,68 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
 
     setUpdatingLead(true);
     try {
+      const technicalSpecs = {
+        main_category: editMainCategory,
+        cardboard_type: editCardboardType,
+        cardboard_grammage: Number(editCardboardGrammage),
+        print_type: editPrintType,
+        print_colors: editPrintColors,
+        print_zinc: editPrintZinc,
+        custom_spot_color: editCustomSpotColor,
+        print_form_length: editPrintFormLength ? Number(editPrintFormLength) : null,
+        print_form_width: editPrintFormWidth ? Number(editPrintFormWidth) : null,
+        boxes_per_sheet: editBoxesPerSheet ? Number(editBoxesPerSheet) : null,
+        cellophane_type: editCellophaneType,
+        varnish_type: editVarnishType,
+        lacquer_type: editLacquerType,
+        uv_type: editUvType,
+        emboss_type: editEmbossType,
+        glue_type: editGlueType,
+        glue_length: editGlueLength ? Number(editGlueLength) : null,
+        glue_width: editGlueWidth ? Number(editGlueWidth) : null,
+        foil_type: editFoilType,
+        foil_length: editFoilLength ? Number(editFoilLength) : null,
+        foil_width: editFoilWidth ? Number(editFoilWidth) : null
+      };
+
       const res = await api.updateMarketingLead(editingLead.id, {
         customer_name: editCustomerName,
         customer_phone: editCustomerPhone,
         product_name: editProductName,
         quantity: Number(editQuantity),
+        main_category: editMainCategory,
         cardboard_type: editCardboardType,
         cardboard_grammage: Number(editCardboardGrammage),
-        material_construction: editMaterialConstruction,
+        material_construction: editMainCategory === 'مقوایی' ? `مقوای تک‌لا (${editCardboardType})` : editMainCategory,
+        print_type: editPrintType,
+        print_colors: editPrintColors,
+        print_zinc: editPrintZinc,
+        custom_spot_color: editCustomSpotColor,
+        print_form_length: editPrintFormLength ? Number(editPrintFormLength) : null,
+        print_form_width: editPrintFormWidth ? Number(editPrintFormWidth) : null,
+        boxes_per_sheet: editBoxesPerSheet ? Number(editBoxesPerSheet) : null,
         cellophane_type: editCellophaneType,
+        varnish_type: editVarnishType,
+        lacquer_type: editLacquerType,
+        uv_type: editUvType,
+        emboss_type: editEmbossType,
+        glue_type: editGlueType,
+        glue_length: editGlueLength ? Number(editGlueLength) : null,
+        glue_width: editGlueWidth ? Number(editGlueWidth) : null,
+        foil_type: editFoilType,
+        foil_length: editFoilLength ? Number(editFoilLength) : null,
+        foil_width: editFoilWidth ? Number(editFoilWidth) : null,
         box_length: editBoxLength ? Number(editBoxLength) : null,
         box_width: editBoxWidth ? Number(editBoxWidth) : null,
         box_height: editBoxHeight ? Number(editBoxHeight) : null,
         notes: editNotes,
         dieline_filename: editDielineFileName || null,
-        dieline_file_url: editDielineFileUrl || null
+        dieline_file_url: editDielineFileUrl || null,
+        technical_specs: technicalSpecs
       });
 
       if (res.success) {
-        alert(res.message);
+        showSuccessToast('اطلاعات با موفقیت ثبت و به واحد مربوطه ارسال شد.');
         setEditingLead(null);
         fetchLeads();
       }
@@ -330,7 +503,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
       });
 
       if (res.success) {
-        alert(res.message);
+        showSuccessToast('اعلام نقص مدارک با موفقیت به بازاریاب ارسال شد.');
         setRevisionModalLead(null);
         setEstimatingLead(null);
         setRevisionReason('');
@@ -354,25 +527,68 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
     setSubmitting(true);
     setSubmitSuccess(null);
     try {
+      const technicalSpecs = {
+        main_category: mainCategory,
+        cardboard_type: cardboardType,
+        cardboard_grammage: Number(cardboardGrammage),
+        print_type: printType,
+        print_colors: printColors,
+        print_zinc: printZinc,
+        custom_spot_color: customSpotColor,
+        print_form_length: printFormLength ? Number(printFormLength) : null,
+        print_form_width: printFormWidth ? Number(printFormWidth) : null,
+        boxes_per_sheet: boxesPerSheet ? Number(boxesPerSheet) : null,
+        cellophane_type: cellophaneType,
+        varnish_type: varnishType,
+        lacquer_type: lacquerType,
+        uv_type: uvType,
+        emboss_type: embossType,
+        glue_type: glueType,
+        glue_length: glueLength ? Number(glueLength) : null,
+        glue_width: glueWidth ? Number(glueWidth) : null,
+        foil_type: foilType,
+        foil_length: foilLength ? Number(foilLength) : null,
+        foil_width: foilWidth ? Number(foilWidth) : null
+      };
+
       const res = await api.createMarketingLead({
         customer_name: customerName,
         customer_phone: customerPhone,
         product_name: productName,
         quantity: Number(quantity),
+        main_category: mainCategory,
         cardboard_type: cardboardType,
         cardboard_grammage: Number(cardboardGrammage),
-        material_construction: materialConstruction,
+        material_construction: mainCategory === 'مقوایی' ? `مقوای تک‌لا (${cardboardType})` : mainCategory,
+        print_type: printType,
+        print_colors: printColors,
+        print_zinc: printZinc,
+        custom_spot_color: customSpotColor,
+        print_form_length: printFormLength ? Number(printFormLength) : null,
+        print_form_width: printFormWidth ? Number(printFormWidth) : null,
+        boxes_per_sheet: boxesPerSheet ? Number(boxesPerSheet) : null,
         cellophane_type: cellophaneType,
+        varnish_type: varnishType,
+        lacquer_type: lacquerType,
+        uv_type: uvType,
+        emboss_type: embossType,
+        glue_type: glueType,
+        glue_length: glueLength ? Number(glueLength) : null,
+        glue_width: glueWidth ? Number(glueWidth) : null,
+        foil_type: foilType,
+        foil_length: foilLength ? Number(foilLength) : null,
+        foil_width: foilWidth ? Number(foilWidth) : null,
         box_length: boxLength ? Number(boxLength) : null,
         box_width: boxWidth ? Number(boxWidth) : null,
         box_height: boxHeight ? Number(boxHeight) : null,
         notes: notes,
         dieline_filename: dielineFileName || null,
-        dieline_file_url: dielineFileUrl || null
+        dieline_file_url: dielineFileUrl || null,
+        technical_specs: technicalSpecs
       });
 
       if (res.success) {
-        showSuccessToast('اطلاعات ثبت و به واحد مربوطه ارسال شد.', 'ثبت موفق استعلام');
+        showSuccessToast('اطلاعات با موفقیت ثبت و به واحد مربوطه ارسال شد.');
         setSubmitSuccess({
           code: res.lead_code,
           msg: res.message
@@ -382,6 +598,27 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
         setCustomerPhone('');
         setProductName('');
         setQuantity(5000);
+        setMainCategory('مقوایی');
+        setCardboardType('ایندربرد');
+        setCardboardGrammage(300);
+        setPrintType('افست نرمال');
+        setPrintColors('۴ رنگ (CMYK)');
+        setPrintZinc('زینک جدید');
+        setCustomSpotColor(false);
+        setPrintFormLength('');
+        setPrintFormWidth('');
+        setBoxesPerSheet('');
+        setCellophaneType('سلفون حرارتی مات');
+        setVarnishType('بدون ورنی');
+        setLacquerType('بدون لاک');
+        setUvType('بدون یووی');
+        setEmbossType('بدون برجسته');
+        setGlueType('لب چسب');
+        setGlueLength('');
+        setGlueWidth('');
+        setFoilType('بدون فویل');
+        setFoilLength('');
+        setFoilWidth('');
         setBoxLength('');
         setBoxWidth('');
         setBoxHeight('');
@@ -390,7 +627,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
         setDielineFileUrl('');
         setDielineFileSize('');
         fetchLeads();
-        setActiveTab('leads_list');
+        fetchTargetStats();
       }
     } catch (err) {
       alert(err.message || 'خطا در ثبت استعلام.');
@@ -1344,28 +1581,38 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                       </div>
 
                       {/* Technical Specs & Dimensions */}
-                      <div className="space-y-1 text-xs text-slate-700 bg-slate-50/70 p-3 rounded-2xl border border-slate-100">
-                        <div>
-                          <span className="text-slate-400">تیراژ:</span>{' '}
-                          <strong className="font-mono text-slate-900 text-sm">{Number(lead.quantity).toLocaleString('fa-IR')} عدد</strong>
-                        </div>
-                        <div>
-                          <span className="text-slate-400">مقوا:</span>{' '}
-                          <strong>{lead.cardboard_type} ({lead.cardboard_grammage}g)</strong>
-                        </div>
-                        <div>
-                          <span className="text-slate-400">ساختار:</span>{' '}
-                          <strong>{lead.material_construction}</strong>
-                        </div>
-                        <div>
-                          <span className="text-slate-400">سلفون:</span>{' '}
-                          <strong>{lead.cellophane_type}</strong>
-                        </div>
-                        {lead.box_length && (
-                          <div className="text-slate-500 font-mono text-[11px]">
-                            ابعاد: {lead.box_length} × {lead.box_width} × {lead.box_height} cm
+                      <div className="space-y-1.5 text-xs text-slate-700 bg-slate-50/70 p-3 rounded-2xl border border-slate-100 flex flex-col justify-between">
+                        <div className="space-y-1">
+                          <div>
+                            <span className="text-slate-400">تیراژ:</span>{' '}
+                            <strong className="font-mono text-teal-800 text-sm font-black">{Number(lead.quantity).toLocaleString('fa-IR')} عدد</strong>
                           </div>
-                        )}
+                          <div>
+                            <span className="text-slate-400">جنس و گرماژ:</span>{' '}
+                            <strong className="text-slate-900">{lead.cardboard_type || 'ایندربرد'} ({lead.cardboard_grammage || lead.grammage || 300}g)</strong>
+                          </div>
+                          <div>
+                            <span className="text-slate-400">چاپ:</span>{' '}
+                            <strong>{lead.print_type || 'افست نرمال'} ({lead.print_colors || '۴ رنگ'})</strong>
+                          </div>
+                          <div>
+                            <span className="text-slate-400">روکش و سلفون:</span>{' '}
+                            <strong>{lead.cellophane_type || 'سلفون مات'}</strong>
+                          </div>
+                          {lead.box_length && (
+                            <div className="text-slate-500 font-mono text-[11px]">
+                              ابعاد: {lead.box_length} × {lead.box_width} × {lead.box_height} cm
+                            </div>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedLeadForDetail(lead)}
+                          className="mt-1 text-[11px] text-teal-700 hover:text-teal-900 font-bold flex items-center gap-1 self-start"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>مشاهده کامل مشخصات فنی</span>
+                        </button>
                       </div>
 
                       {/* Price Estimation & Factory Status */}
@@ -1739,99 +1986,548 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
             </div>
           </div>
 
-          {/* Section 2: Technical Specs (Cardboard, Flute, Cellophane) */}
-          <div className="space-y-3 pt-2">
-            <h3 className="text-xs font-black text-slate-700 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-teal-600" />
-              ۲. مشخصات فنی متریال و تیراژ
-            </h3>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs">
+          {/* Section 2: Technical Specs (Hierarchical: مقوایی / لمینتی / کارتن) */}
+          <div className="space-y-4 pt-3 border-t border-slate-100">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <h3 className="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-teal-600 shadow-sm" />
+                ۲. مشخصات فنی متریال و تیراژ
+              </h3>
+              <span className="text-[11px] font-bold text-teal-800 bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200">
+                فرم استاندارد محاسبه بهای تمام‌شده جعبه
+              </span>
+            </div>
+
+            {/* Quantity and Tier 1 Material Category Selection */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
               {/* Quantity */}
-              <div>
-                <label className="font-bold text-slate-700 block mb-1.5">
+              <div className="md:col-span-1">
+                <label className="font-black text-slate-800 block mb-1.5">
                   تیراژ سفارش (عدد): <span className="text-rose-500">*</span>
                 </label>
-                <input
-                  type="number"
-                  required
-                  step="500"
-                  value={quantity}
-                  onChange={(e) => setQuantity(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-black text-slate-800 focus:outline-none focus:border-teal-500 font-mono"
-                />
+                <div className="relative">
+                  <input
+                    type="number"
+                    required
+                    min="100"
+                    step="500"
+                    placeholder="مثال: ۵۰۰۰"
+                    value={quantity}
+                    onChange={(e) => setQuantity(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-300 rounded-2xl px-3.5 py-2.5 text-sm font-black text-slate-900 focus:outline-none focus:border-teal-500 font-mono shadow-xs"
+                  />
+                  <span className="absolute left-3 top-2.5 text-slate-400 font-bold text-xs">عدد</span>
+                </div>
+                <div className="flex items-center gap-1 mt-1.5 flex-wrap">
+                  {[1000, 2500, 5000, 10000, 20000].map((q) => (
+                    <button
+                      key={q}
+                      type="button"
+                      onClick={() => setQuantity(q)}
+                      className={`px-2 py-0.5 rounded-lg text-[10px] font-bold font-mono transition ${
+                        Number(quantity) === q
+                          ? 'bg-teal-600 text-white shadow-xs'
+                          : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                      }`}
+                    >
+                      {q.toLocaleString('fa-IR')}
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              {/* Cardboard Type */}
-              <div>
-                <label className="font-bold text-slate-700 block mb-1.5">نوع مقوا:</label>
-                <select
-                  value={cardboardType}
-                  onChange={(e) => setCardboardType(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-teal-500"
-                >
-                  {CARDBOARD_TYPES.map((c) => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Grammage */}
-              <div>
-                <label className="font-bold text-slate-700 block mb-1.5">گرماژ مقوا:</label>
-                <select
-                  value={cardboardGrammage}
-                  onChange={(e) => setCardboardGrammage(Number(e.target.value))}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-teal-500"
-                >
-                  {GRAMMAGES.map((g) => (
-                    <option key={g.value} value={g.value}>{g.label}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Cellophane */}
-              <div>
-                <label className="font-bold text-slate-700 block mb-1.5">نوع سلفون:</label>
-                <select
-                  value={cellophaneType}
-                  onChange={(e) => setCellophaneType(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-teal-500"
-                >
-                  {CELLOPHANE_TYPES.map((c) => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
+              {/* Tier 1 Primary Material Category (مقوایی / لمینتی / کارتن) */}
+              <div className="md:col-span-3">
+                <label className="font-black text-slate-800 block mb-1.5">
+                  دسته‌بندی کلی ساختار متریال: <span className="text-rose-500">*</span>
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {MAIN_CATEGORIES.map((cat) => {
+                    const isSelected = mainCategory === cat.id;
+                    return (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => {
+                          setMainCategory(cat.id);
+                          setMaterialConstruction(cat.id === 'مقوایی' ? 'مقوای تک‌لا' : cat.id);
+                        }}
+                        className={`p-3 rounded-2xl border text-right transition flex items-center justify-between gap-2 ${
+                          isSelected
+                            ? 'bg-gradient-to-r from-teal-50 to-emerald-50 border-teal-500 shadow-sm text-teal-950 ring-2 ring-teal-500/20'
+                            : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-xl">{cat.icon}</span>
+                          <div>
+                            <div className="font-black text-xs text-slate-900">{cat.label}</div>
+                            <div className="text-[10px] text-slate-500">{cat.desc}</div>
+                          </div>
+                        </div>
+                        {isSelected && <CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0" />}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
-            {/* Material Construction (Single / Sheet / Flute) */}
-            <div>
-              <label className="font-bold text-slate-700 block mb-1.5">
-                نوع ساختار جنس (سینگل / ورق کارتن / مقوا):
-              </label>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-                {MATERIAL_CONSTRUCTIONS.map((mc) => (
-                  <label
-                    key={mc}
-                    className={`p-3 rounded-2xl border cursor-pointer transition flex items-center gap-2.5 ${
-                      materialConstruction === mc
-                        ? 'bg-teal-50 border-teal-500 text-teal-950 font-bold shadow-xs'
-                        : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="material_construct"
-                      checked={materialConstruction === mc}
-                      onChange={() => setMaterialConstruction(mc)}
-                      className="text-teal-600 focus:ring-teal-500"
-                    />
-                    <span>{mc}</span>
-                  </label>
-                ))}
+            {/* TIER 2: SPECIFICATIONS WHEN «مقوایی» IS SELECTED */}
+            {mainCategory === 'مقوایی' && (
+              <div className="bg-slate-50/70 border border-slate-200 rounded-3xl p-4 sm:p-5 space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
+                  <span className="text-xs font-black text-teal-950 flex items-center gap-1.5">
+                    <Sparkles className="w-4 h-4 text-teal-600" />
+                    اطلاعات کامل و اختصاصی جعبه مقوایی (Cardboard Specs)
+                  </span>
+                  <span className="text-[10px] font-bold text-slate-500">
+                    تعیین دقیق گرماژ، متد چاپ، زینک، روکش و تکمیل
+                  </span>
+                </div>
+
+                {/* 1. Cardboard Type & Grammage */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                  {/* Cardboard Type */}
+                  <div className="space-y-1.5">
+                    <label className="font-bold text-slate-800 block">
+                      نوع مقوا (۶ نوع اصلی):
+                    </label>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {CARDBOARD_TYPES.map((type) => {
+                        const isSel = cardboardType === type;
+                        return (
+                          <button
+                            key={type}
+                            type="button"
+                            onClick={() => setCardboardType(type)}
+                            className={`px-2.5 py-2 rounded-xl text-xs font-bold border transition text-center ${
+                              isSel
+                                ? 'bg-teal-600 text-white border-teal-600 shadow-xs'
+                                : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200'
+                            }`}
+                          >
+                            {type}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Cardboard Grammage (28 exact grammages) */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="font-bold text-slate-800">
+                        گرماژ مقوا (۲۸ گرماژ استاندارد):
+                      </label>
+                      <span className="text-[11px] font-mono font-black text-teal-700 bg-teal-100/70 px-2 py-0.5 rounded-lg">
+                        {cardboardGrammage} گرم
+                      </span>
+                    </div>
+                    <select
+                      value={cardboardGrammage}
+                      onChange={(e) => setCardboardGrammage(Number(e.target.value))}
+                      className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-black text-slate-800 focus:outline-none focus:border-teal-500"
+                    >
+                      {GRAMMAGES.map((g) => (
+                        <option key={g} value={g}>
+                          {g} گرم {g === 300 ? '(استاندارد جعبه‌سازی)' : ''} {g === 250 ? '(سبک)' : ''} {g === 350 ? '(سنگین)' : ''}
+                        </option>
+                      ))}
+                    </select>
+                    {/* Quick Grammage Chips */}
+                    <div className="flex items-center gap-1.5 pt-1 overflow-x-auto pb-1 text-[10px]">
+                      <span className="text-slate-400 text-[10px] shrink-0">پرکاربرد:</span>
+                      {[230, 250, 280, 300, 350, 400].map((g) => (
+                        <button
+                          key={g}
+                          type="button"
+                          onClick={() => setCardboardGrammage(g)}
+                          className={`px-2 py-0.5 rounded-lg border font-mono font-bold transition shrink-0 ${
+                            cardboardGrammage === g
+                              ? 'bg-teal-700 text-white border-teal-700'
+                              : 'bg-white hover:bg-slate-100 text-slate-600 border-slate-200'
+                          }`}
+                        >
+                          {g}g
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. Printing Specifications (افست نرمال و افست متالایز) */}
+                <div className="p-3.5 bg-white rounded-2xl border border-slate-200 space-y-3">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <span className="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                      <Printer className="w-4 h-4 text-indigo-600" />
+                      مشخصات چاپ افست (افست نرمال / متالایز)
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      {PRINT_TYPES.map((pt) => (
+                        <button
+                          key={pt}
+                          type="button"
+                          onClick={() => setPrintType(pt)}
+                          className={`px-2.5 py-1 rounded-xl text-xs font-bold border transition ${
+                            printType === pt
+                              ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
+                              : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+                          }`}
+                        >
+                          {pt}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
+                    {/* Print Colors (1 to 6 colors) */}
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">تعداد رنگ چاپ:</label>
+                      <select
+                        value={printColors}
+                        onChange={(e) => setPrintColors(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-2 font-bold text-slate-800 focus:outline-none focus:border-indigo-500 text-xs"
+                      >
+                        {PRINT_COLORS.map((pc) => (
+                          <option key={pc} value={pc}>{pc}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Zinc Status */}
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">وضعیت زینک:</label>
+                      <select
+                        value={printZinc}
+                        onChange={(e) => setPrintZinc(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-2 font-bold text-slate-800 focus:outline-none focus:border-indigo-500 text-xs"
+                      >
+                        {PRINT_ZINC_OPTIONS.map((zo) => (
+                          <option key={zo} value={zo}>{zo}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Print Form Length (mm) */}
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">طول فرم چاپی (mm):</label>
+                      <input
+                        type="number"
+                        placeholder="مثال: ۷۰۰"
+                        value={printFormLength}
+                        onChange={(e) => setPrintFormLength(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-2 font-mono font-bold text-slate-800 focus:outline-none focus:border-indigo-500 text-xs text-center"
+                      />
+                    </div>
+
+                    {/* Print Form Width (mm) & Boxes per sheet */}
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">عرض فرم (mm) / در فرم:</label>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        <input
+                          type="number"
+                          placeholder="عرض mm"
+                          value={printFormWidth}
+                          onChange={(e) => setPrintFormWidth(e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2 py-2 font-mono font-bold text-slate-800 focus:outline-none focus:border-indigo-500 text-xs text-center"
+                        />
+                        <input
+                          type="number"
+                          placeholder="تعداد در فرم"
+                          value={boxesPerSheet}
+                          onChange={(e) => setBoxesPerSheet(e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2 py-2 font-mono font-bold text-slate-800 focus:outline-none focus:border-indigo-500 text-xs text-center"
+                          title="تعداد جعبه در هر شیت فرم"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Spot color checkbox */}
+                  <div className="flex items-center gap-2 pt-1 border-t border-slate-100">
+                    <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700">
+                      <input
+                        type="checkbox"
+                        checked={customSpotColor}
+                        onChange={(e) => setCustomSpotColor(e.target.checked)}
+                        className="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4"
+                      />
+                      <span>دارای رنگ ساختگی پنتون (Spot / Pantone Color)</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* 3. Surface Coatings & Finishing (سلفون، ورنی، لاک، یووی، برجسته) */}
+                <div className="p-3.5 bg-white rounded-2xl border border-slate-200 space-y-3 text-xs">
+                  <span className="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                    <Layers className="w-4 h-4 text-teal-600" />
+                    روکش، پوشش و افکت‌های سطحی (Coatings & UV)
+                  </span>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                    {/* Cellophane */}
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">روکش سلفون:</label>
+                      <select
+                        value={cellophaneType}
+                        onChange={(e) => setCellophaneType(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-2 font-bold text-slate-800 focus:outline-none focus:border-teal-500 text-xs"
+                      >
+                        {CELLOPHANE_TYPES.map((cp) => (
+                          <option key={cp} value={cp}>{cp}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Varnish */}
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">ورنی:</label>
+                      <select
+                        value={varnishType}
+                        onChange={(e) => setVarnishType(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-2 font-bold text-slate-800 focus:outline-none focus:border-teal-500 text-xs"
+                      >
+                        {VARNISH_OPTIONS.map((v) => (
+                          <option key={v} value={v}>{v}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Lacquer */}
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">لاک:</label>
+                      <select
+                        value={lacquerType}
+                        onChange={(e) => setLacquerType(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-2 font-bold text-slate-800 focus:outline-none focus:border-teal-500 text-xs"
+                      >
+                        {LACQUER_OPTIONS.map((l) => (
+                          <option key={l} value={l}>{l}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Special UV */}
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">یو وی (Spot/Special):</label>
+                      <select
+                        value={uvType}
+                        onChange={(e) => setUvType(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-2 font-bold text-slate-800 focus:outline-none focus:border-teal-500 text-xs"
+                      >
+                        {UV_OPTIONS.map((u) => (
+                          <option key={u} value={u}>{u}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Emboss */}
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">برجسته (Emboss):</label>
+                      <select
+                        value={embossType}
+                        onChange={(e) => setEmbossType(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-2 font-bold text-slate-800 focus:outline-none focus:border-teal-500 text-xs"
+                      >
+                        {EMBOSS_OPTIONS.map((eb) => (
+                          <option key={eb} value={eb}>{eb}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 4. Glue & Foil Stamping (چسب و فویل / طلاکوب) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                  {/* Glue */}
+                  <div className="p-3.5 bg-white rounded-2xl border border-slate-200 space-y-2">
+                    <span className="text-xs font-black text-slate-800 block">
+                      مشخصات چسب و لب‌چسب (Gluing Specs)
+                    </span>
+                    <div className="grid grid-cols-3 gap-2">
+                      <div>
+                        <label className="font-bold text-slate-600 block mb-1 text-[11px]">نوع چسب:</label>
+                        <select
+                          value={glueType}
+                          onChange={(e) => setGlueType(e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
+                        >
+                          {GLUE_OPTIONS.map((g) => (
+                            <option key={g} value={g}>{g}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="font-bold text-slate-600 block mb-1 text-[11px]">طول لب‌چسب (mm):</label>
+                        <input
+                          type="number"
+                          placeholder="طول mm"
+                          value={glueLength}
+                          onChange={(e) => setGlueLength(e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2 py-1.5 font-mono font-bold text-slate-800 text-xs text-center focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="font-bold text-slate-600 block mb-1 text-[11px]">عرض لب‌چسب (mm):</label>
+                        <input
+                          type="number"
+                          placeholder="عرض mm"
+                          value={glueWidth}
+                          onChange={(e) => setGlueWidth(e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2 py-1.5 font-mono font-bold text-slate-800 text-xs text-center focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Foil */}
+                  <div className="p-3.5 bg-white rounded-2xl border border-slate-200 space-y-2">
+                    <span className="text-xs font-black text-slate-800 block">
+                      فویل / طلاکوب / نقره‌کوب (Foil Stamping)
+                    </span>
+                    <div className="grid grid-cols-3 gap-2">
+                      <div>
+                        <label className="font-bold text-slate-600 block mb-1 text-[11px]">نوع فویل:</label>
+                        <select
+                          value={foilType}
+                          onChange={(e) => setFoilType(e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
+                        >
+                          {FOIL_OPTIONS.map((f) => (
+                            <option key={f} value={f}>{f}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="font-bold text-slate-600 block mb-1 text-[11px]">طول فویل (mm):</label>
+                        <input
+                          type="number"
+                          disabled={foilType === 'بدون فویل'}
+                          placeholder="طول mm"
+                          value={foilLength}
+                          onChange={(e) => setFoilLength(e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2 py-1.5 font-mono font-bold text-slate-800 text-xs text-center focus:outline-none disabled:opacity-50"
+                        />
+                      </div>
+                      <div>
+                        <label className="font-bold text-slate-600 block mb-1 text-[11px]">عرض فویل (mm):</label>
+                        <input
+                          type="number"
+                          disabled={foilType === 'بدون فویل'}
+                          placeholder="عرض mm"
+                          value={foilWidth}
+                          onChange={(e) => setFoilWidth(e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2 py-1.5 font-mono font-bold text-slate-800 text-xs text-center focus:outline-none disabled:opacity-50"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* TIER 2: SPECIFICATIONS WHEN «لمینتی» IS SELECTED */}
+            {mainCategory === 'لمینتی' && (
+              <div className="bg-amber-50/70 border border-amber-200 rounded-3xl p-5 space-y-4">
+                <div className="flex items-center gap-2 text-amber-950 font-black text-xs">
+                  <Info className="w-4 h-4 text-amber-600" />
+                  <span>مشخصات ساختار کارتن لمینتی (Laminated Box Specs)</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">نوع مقوای رویه:</label>
+                    <select
+                      value={cardboardType}
+                      onChange={(e) => setCardboardType(e.target.value)}
+                      className="w-full bg-white border border-amber-300 rounded-xl px-2.5 py-2 font-bold text-slate-800 text-xs"
+                    >
+                      {CARDBOARD_TYPES.map((t) => (
+                        <option key={t} value={t}>{t}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">نوع سینگل فلوت زیره:</label>
+                    <select
+                      value={materialConstruction}
+                      onChange={(e) => setMaterialConstruction(e.target.value)}
+                      className="w-full bg-white border border-amber-300 rounded-xl px-2.5 py-2 font-bold text-slate-800 text-xs"
+                    >
+                      <option value="لمینت روی سینگل E-Flute (ای فلوت)">لمینت روی سینگل E-Flute (ای فلوت - ظریف)</option>
+                      <option value="لمینت روی سینگل B-Flute (بی فلوت)">لمینت روی سینگل B-Flute (بی فلوت - متوسط)</option>
+                      <option value="لمینت روی سینگل C-Flute (سی فلوت)">لمینت روی سینگل C-Flute (سی فلوت - ضخیم)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">نوع سلفون پوستر:</label>
+                    <select
+                      value={cellophaneType}
+                      onChange={(e) => setCellophaneType(e.target.value)}
+                      className="w-full bg-white border border-amber-300 rounded-xl px-2.5 py-2 font-bold text-slate-800 text-xs"
+                    >
+                      {CELLOPHANE_TYPES.map((cp) => (
+                        <option key={cp} value={cp}>{cp}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <p className="text-[11px] text-amber-800 leading-relaxed bg-white/70 p-2.5 rounded-xl border border-amber-200">
+                  💡 <strong>نکته:</strong> مشخصات تکمیلی لمینتی در این مرحله به صورت پایه ثبت و پس از هماهنگی با واحد فنی و مهندسی نهایی می‌گردد.
+                </p>
+              </div>
+            )}
+
+            {/* TIER 2: SPECIFICATIONS WHEN «کارتن» IS SELECTED */}
+            {mainCategory === 'کارتن' && (
+              <div className="bg-sky-50/70 border border-sky-200 rounded-3xl p-5 space-y-4">
+                <div className="flex items-center gap-2 text-sky-950 font-black text-xs">
+                  <Package className="w-4 h-4 text-sky-600" />
+                  <span>مشخصات کارتن مادر و دایکاتی (Corrugated Carton Specs)</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">نوع ساختار ورق کارتن:</label>
+                    <select
+                      value={materialConstruction}
+                      onChange={(e) => setMaterialConstruction(e.target.value)}
+                      className="w-full bg-white border border-sky-300 rounded-xl px-2.5 py-2 font-bold text-slate-800 text-xs"
+                    >
+                      <option value="کارتن ۳ لایه C-Flute (کارتن مادر)">کارتن ۳ لایه C-Flute (کارتن مادر)</option>
+                      <option value="کارتن ۳ لایه E-Flute (کارتن دایکاتی)">کارتن ۳ لایه E-Flute (کارتن دایکاتی)</option>
+                      <option value="کارتن ۵ لایه BC-Flute (کارتن سنگین صادراتی)">کارتن ۵ لایه BC-Flute (کارتن سنگین صادراتی)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">نوع چاپ کارتن:</label>
+                    <select
+                      value={printType}
+                      onChange={(e) => setPrintType(e.target.value)}
+                      className="w-full bg-white border border-sky-300 rounded-xl px-2.5 py-2 font-bold text-slate-800 text-xs"
+                    >
+                      <option value="چاپ فلکسو ۱ الی ۲ رنگ">چاپ فلکسو ۱ الی ۲ رنگ</option>
+                      <option value="چاپ فلکسو ۳ الی ۴ رنگ">چاپ فلکسو ۳ الی ۴ رنگ</option>
+                      <option value="چاپ سیلک اسکرین">چاپ سیلک اسکرین</option>
+                      <option value="بدون چاپ (کارتن خام)">بدون چاپ (کارتن خام)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">نوع مدل کارتن:</label>
+                    <select
+                      className="w-full bg-white border border-sky-300 rounded-xl px-2.5 py-2 font-bold text-slate-800 text-xs"
+                    >
+                      <option value="چهاردر ساده آمریکایی (RSC)">چهاردر ساده آمریکایی (RSC)</option>
+                      <option value="دایکاتی قفلی (Die-cut)">دایکاتی قفلی (Die-cut)</option>
+                      <option value="سینی و درب جداگانه">سینی و درب جداگانه</option>
+                    </select>
+                  </div>
+                </div>
+                <p className="text-[11px] text-sky-800 leading-relaxed bg-white/70 p-2.5 rounded-xl border border-sky-200">
+                  💡 <strong>نکته:</strong> مشخصات فنی کارتن در مراحل بعدی قابل سفارشی‌سازی کامل خواهد بود.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Section 3: Approximate Dimensions & Notes */}
@@ -2075,6 +2771,175 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
         </div>
       )}
 
+      {/* MODAL: FULL TECHNICAL SPECIFICATIONS DETAIL (شناسنامه فنی کامل استعلام) */}
+      {selectedLeadForDetail && (
+        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 my-8 space-y-5 animate-scaleUp max-h-[90vh] overflow-y-auto" dir="rtl">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2 text-teal-800 font-black text-sm sm:text-base">
+                <Sparkles className="w-5 h-5 text-teal-600" />
+                <span>شناسنامه و مشخصات فنی استعلام #{selectedLeadForDetail.lead_code}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedLeadForDetail(null)}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-xl"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Customer Header */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-gradient-to-r from-teal-50 to-slate-50 rounded-2xl border border-teal-100 text-xs">
+              <div>
+                <span className="text-slate-500">نام مشتری / شرکت:</span>{' '}
+                <strong className="text-slate-900 text-sm">{selectedLeadForDetail.customer_name}</strong>
+              </div>
+              <div>
+                <span className="text-slate-500">شماره تماس مستقیم:</span>{' '}
+                <strong className="text-slate-900 font-mono" dir="ltr">{selectedLeadForDetail.customer_phone}</strong>
+              </div>
+              <div>
+                <span className="text-slate-500">عنوان جعبه / محصول:</span>{' '}
+                <strong className="text-teal-950">{selectedLeadForDetail.product_name}</strong>
+              </div>
+              <div>
+                <span className="text-slate-500">تیراژ درخواستی:</span>{' '}
+                <strong className="text-teal-800 font-mono text-sm">{Number(selectedLeadForDetail.quantity).toLocaleString('fa-IR')} عدد</strong>
+              </div>
+            </div>
+
+            {/* Technical Breakdown Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              {/* Box 1: Material */}
+              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-1.5">
+                <span className="font-black text-slate-800 flex items-center gap-1.5 text-xs text-teal-900">
+                  <Box className="w-4 h-4 text-teal-600" />
+                  متریال و گرماژ
+                </span>
+                <div className="space-y-1 text-slate-700">
+                  <div>دسته‌بندی: <strong>{selectedLeadForDetail.main_category || 'مقوایی'}</strong></div>
+                  <div>نوع مقوا: <strong>{selectedLeadForDetail.cardboard_type || 'ایندربرد'}</strong></div>
+                  <div>گرماژ مقوا: <strong className="font-mono text-teal-700">{selectedLeadForDetail.cardboard_grammage || selectedLeadForDetail.grammage || 300} گرم</strong></div>
+                  {selectedLeadForDetail.box_length && (
+                    <div className="font-mono text-slate-600">ابعاد: {selectedLeadForDetail.box_length} × {selectedLeadForDetail.box_width} × {selectedLeadForDetail.box_height} سانتی‌متر</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Box 2: Print */}
+              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-1.5">
+                <span className="font-black text-slate-800 flex items-center gap-1.5 text-xs text-indigo-900">
+                  <Printer className="w-4 h-4 text-indigo-600" />
+                  مشخصات چاپ
+                </span>
+                <div className="space-y-1 text-slate-700">
+                  <div>متد چاپ: <strong>{selectedLeadForDetail.print_type || 'افست نرمال'}</strong></div>
+                  <div>تعداد رنگ: <strong>{selectedLeadForDetail.print_colors || '۴ رنگ'}</strong></div>
+                  <div>زینک: <strong>{selectedLeadForDetail.print_zinc || 'زینک جدید'}</strong></div>
+                  <div>رنگ ساختگی: <strong>{selectedLeadForDetail.custom_spot_color ? 'دارد (پنتون)' : 'ندارد'}</strong></div>
+                  {selectedLeadForDetail.print_form_length && selectedLeadForDetail.print_form_width && (
+                    <div className="font-mono text-slate-600">فرم چاپی: {selectedLeadForDetail.print_form_length} × {selectedLeadForDetail.print_form_width} mm {selectedLeadForDetail.boxes_per_sheet ? `(${selectedLeadForDetail.boxes_per_sheet} در فرم)` : ''}</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Box 3: Coatings & Finish */}
+              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-1.5">
+                <span className="font-black text-slate-800 flex items-center gap-1.5 text-xs text-cyan-900">
+                  <Layers className="w-4 h-4 text-cyan-600" />
+                  روکش و تکمیل سطحی
+                </span>
+                <div className="space-y-1 text-slate-700">
+                  <div>سلفون: <strong>{selectedLeadForDetail.cellophane_type || 'سلفون حرارتی مات'}</strong></div>
+                  <div>ورنی: <strong>{selectedLeadForDetail.varnish_type || 'بدون ورنی'}</strong></div>
+                  <div>لاک: <strong>{selectedLeadForDetail.lacquer_type || 'بدون لاک'}</strong></div>
+                  <div>یووی: <strong>{selectedLeadForDetail.uv_type || 'بدون یووی'}</strong></div>
+                  <div>برجسته: <strong>{selectedLeadForDetail.emboss_type || 'بدون برجسته'}</strong></div>
+                </div>
+              </div>
+
+              {/* Box 4: Glue & Foil */}
+              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-1.5">
+                <span className="font-black text-slate-800 flex items-center gap-1.5 text-xs text-amber-900">
+                  <SlidersIcon className="w-4 h-4 text-amber-600" />
+                  چسب و فویل / طلاکوب
+                </span>
+                <div className="space-y-1 text-slate-700">
+                  <div>نوع چسب: <strong>{selectedLeadForDetail.glue_type || 'لب چسب'}</strong> {selectedLeadForDetail.glue_length && selectedLeadForDetail.glue_width ? `(${selectedLeadForDetail.glue_length}×${selectedLeadForDetail.glue_width} mm)` : ''}</div>
+                  <div>فویل: <strong>{selectedLeadForDetail.foil_type || 'بدون فویل'}</strong> {selectedLeadForDetail.foil_length && selectedLeadForDetail.foil_width ? `(${selectedLeadForDetail.foil_length}×${selectedLeadForDetail.foil_width} mm)` : ''}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Notes if any */}
+            {selectedLeadForDetail.notes && (
+              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 text-xs space-y-1">
+                <span className="font-bold text-slate-600">توضیحات و نیازمندی‌های مشتری:</span>
+                <p className="text-slate-800 leading-relaxed">{selectedLeadForDetail.notes}</p>
+              </div>
+            )}
+
+            {/* Attached Dieline File */}
+            {selectedLeadForDetail.dieline_filename && (
+              <div className="p-3 bg-teal-50 border border-teal-200 rounded-2xl flex items-center justify-between text-xs flex-wrap gap-2">
+                <div className="flex items-center gap-2">
+                  <Paperclip className="w-4 h-4 text-teal-700 shrink-0" />
+                  <span className="font-bold text-slate-700">فایل خط تیغ پیوست:</span>
+                  <strong className="text-teal-950 font-black">{selectedLeadForDetail.dieline_filename}</strong>
+                </div>
+                {selectedLeadForDetail.dieline_file_url && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setPreviewFile({
+                        file_url: selectedLeadForDetail.dieline_file_url,
+                        original_filename: selectedLeadForDetail.dieline_filename
+                      })}
+                      className="px-3 py-1 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-xs"
+                    >
+                      <Eye className="w-3.5 h-3.5 text-cyan-300" />
+                      <span>مشاهده فایل</span>
+                    </button>
+                    <a
+                      href={selectedLeadForDetail.dieline_file_url}
+                      download={selectedLeadForDetail.dieline_filename}
+                      className="px-3 py-1 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-xs"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>دانلود</span>
+                    </a>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+              {selectedLeadForDetail.estimated_unit_price > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedLeadForPrint(selectedLeadForDetail);
+                    setSelectedLeadForDetail(null);
+                  }}
+                  className="px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-bold flex items-center gap-1.5 border border-indigo-200"
+                >
+                  <Printer className="w-4 h-4" />
+                  <span>چاپ پیش‌فاکتور</span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setSelectedLeadForDetail(null)}
+                className="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold text-xs mr-auto"
+              >
+                بستن
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* MODAL 2: PRINTABLE OFFICIAL QUOTATION SHEET (پیش‌فاکتور استعلام) */}
       {selectedLeadForPrint && (
         <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
@@ -2118,15 +2983,17 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                   <div><span className="text-slate-500">شماره تماس:</span> <strong className="font-mono">{selectedLeadForPrint.customer_phone}</strong></div>
                   <div><span className="text-slate-500">نام محصول / جعبه:</span> <strong>{selectedLeadForPrint.product_name}</strong></div>
                   <div><span className="text-slate-500">تیراژ درخواستی:</span> <strong className="font-mono text-teal-700">{Number(selectedLeadForPrint.quantity).toLocaleString('fa-IR')} عدد</strong></div>
+                  {selectedLeadForPrint.box_length && (
+                    <div><span className="text-slate-500">ابعاد جعبه:</span> <strong className="font-mono">{selectedLeadForPrint.box_length} × {selectedLeadForPrint.box_width} × {selectedLeadForPrint.box_height} cm</strong></div>
+                  )}
                 </div>
 
                 <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-                  <div><span className="text-slate-500">جنس و گراماژ:</span> <strong>{selectedLeadForPrint.cardboard_type} ({selectedLeadForPrint.cardboard_grammage}g)</strong></div>
-                  <div><span className="text-slate-500">نوع ساختار:</span> <strong>{selectedLeadForPrint.material_construction}</strong></div>
-                  <div><span className="text-slate-500">پوشش و سلفون:</span> <strong>{selectedLeadForPrint.cellophane_type}</strong></div>
-                  {selectedLeadForPrint.box_length && (
-                    <div><span className="text-slate-500">ابعاد جعبه:</span> <strong className="font-mono">{selectedLeadForPrint.box_length}×{selectedLeadForPrint.box_width}×{selectedLeadForPrint.box_height} cm</strong></div>
-                  )}
+                  <div><span className="text-slate-500">دسته‌بندی و مقوا:</span> <strong>{selectedLeadForPrint.main_category || 'مقوایی'} - {selectedLeadForPrint.cardboard_type} ({selectedLeadForPrint.cardboard_grammage}g)</strong></div>
+                  <div><span className="text-slate-500">چاپ و زینک:</span> <strong>{selectedLeadForPrint.print_type || 'افست'} - {selectedLeadForPrint.print_colors || '۴ رنگ'} {selectedLeadForPrint.print_zinc ? `(${selectedLeadForPrint.print_zinc})` : ''} {selectedLeadForPrint.custom_spot_color ? '+ پنتون' : ''}</strong></div>
+                  <div><span className="text-slate-500">روکش و سلفون:</span> <strong>{selectedLeadForPrint.cellophane_type || 'سلفون مات'} {selectedLeadForPrint.varnish_type && selectedLeadForPrint.varnish_type !== 'بدون ورنی' ? `+ ${selectedLeadForPrint.varnish_type}` : ''}</strong></div>
+                  <div><span className="text-slate-500">یووی و افکت:</span> <strong>{selectedLeadForPrint.uv_type && selectedLeadForPrint.uv_type !== 'بدون یووی' ? `یووی ${selectedLeadForPrint.uv_type}` : 'بدون یووی'} {selectedLeadForPrint.emboss_type && selectedLeadForPrint.emboss_type !== 'بدون برجسته' ? `+ ${selectedLeadForPrint.emboss_type}` : ''}</strong></div>
+                  <div><span className="text-slate-500">چسب و فویل:</span> <strong>{selectedLeadForPrint.glue_type ? `چسب ${selectedLeadForPrint.glue_type}` : 'لب‌چسب'} {selectedLeadForPrint.foil_type && selectedLeadForPrint.foil_type !== 'بدون فویل' ? `+ ${selectedLeadForPrint.foil_type}` : ''}</strong></div>
                 </div>
               </div>
 
@@ -2522,61 +3389,298 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                 </div>
               </div>
 
-              {/* Material Specs */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1">نوع مقوا:</label>
-                  <select
-                    value={editCardboardType}
-                    onChange={(e) => setEditCardboardType(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2 font-bold text-slate-800 focus:outline-none focus:border-amber-500 text-xs"
-                  >
-                    {CARDBOARD_TYPES.map((t) => (
-                      <option key={t} value={t}>{t}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1">گرماژ مقوا:</label>
-                  <select
-                    value={editCardboardGrammage}
-                    onChange={(e) => setEditCardboardGrammage(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2 font-bold text-slate-800 focus:outline-none focus:border-amber-500 text-xs"
-                  >
-                    {GRAMMAGES.map((g) => (
-                      <option key={g.value} value={g.value}>{g.label}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1">سلفون و روکش:</label>
-                  <select
-                    value={editCellophaneType}
-                    onChange={(e) => setEditCellophaneType(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2 font-bold text-slate-800 focus:outline-none focus:border-amber-500 text-xs"
-                  >
-                    {CELLOPHANE_TYPES.map((cp) => (
-                      <option key={cp} value={cp}>{cp}</option>
-                    ))}
-                  </select>
+              {/* Tier 1: Main Category Selection in Edit Modal */}
+              <div className="space-y-2 pt-2 border-t border-slate-100">
+                <label className="font-black text-slate-800 block mb-1">
+                  دسته‌بندی کلی ساختار متریال: <span className="text-rose-500">*</span>
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {MAIN_CATEGORIES.map((cat) => {
+                    const isSelected = editMainCategory === cat.id;
+                    return (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => {
+                          setEditMainCategory(cat.id);
+                          setEditMaterialConstruction(cat.id === 'مقوایی' ? 'مقوای تک‌لا' : cat.id);
+                        }}
+                        className={`p-2.5 rounded-2xl border text-right transition flex items-center justify-between gap-1.5 ${
+                          isSelected
+                            ? 'bg-amber-50 border-amber-500 shadow-xs text-amber-950 font-bold ring-2 ring-amber-500/20'
+                            : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700'
+                        }`}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-base">{cat.icon}</span>
+                          <span className="text-xs">{cat.label}</span>
+                        </div>
+                        {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-amber-600 shrink-0" />}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
-              {/* Material Construction */}
-              <div>
-                <label className="font-bold text-slate-700 block mb-1">ساختار جنس:</label>
-                <select
-                  value={editMaterialConstruction}
-                  onChange={(e) => setEditMaterialConstruction(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2 font-bold text-slate-800 focus:outline-none focus:border-amber-500 text-xs"
-                >
-                  {MATERIAL_CONSTRUCTIONS.map((mc) => (
-                    <option key={mc} value={mc}>{mc}</option>
-                  ))}
-                </select>
-              </div>
+              {/* TIER 2: EDIT SPECS FOR «مقوایی» */}
+              {editMainCategory === 'مقوایی' && (
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-3">
+                  <div className="text-xs font-black text-amber-900 flex items-center gap-1.5 border-b border-slate-200 pb-1.5">
+                    <Sparkles className="w-4 h-4 text-amber-600" />
+                    <span>مشخصات فنی مقوایی</span>
+                  </div>
+
+                  {/* Cardboard Type & Grammage */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">نوع مقوا:</label>
+                      <select
+                        value={editCardboardType}
+                        onChange={(e) => setEditCardboardType(e.target.value)}
+                        className="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
+                      >
+                        {CARDBOARD_TYPES.map((t) => (
+                          <option key={t} value={t}>{t}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">گرماژ مقوا:</label>
+                      <select
+                        value={editCardboardGrammage}
+                        onChange={(e) => setEditCardboardGrammage(Number(e.target.value))}
+                        className="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
+                      >
+                        {GRAMMAGES.map((g) => (
+                          <option key={g} value={g}>{g} گرم</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Print in Edit Modal */}
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-200">
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">نوع چاپ:</label>
+                      <select
+                        value={editPrintType}
+                        onChange={(e) => setEditPrintType(e.target.value)}
+                        className="w-full bg-white border border-slate-300 rounded-xl px-2 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
+                      >
+                        {PRINT_TYPES.map((pt) => (
+                          <option key={pt} value={pt}>{pt}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">تعداد رنگ:</label>
+                      <select
+                        value={editPrintColors}
+                        onChange={(e) => setEditPrintColors(e.target.value)}
+                        className="w-full bg-white border border-slate-300 rounded-xl px-2 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
+                      >
+                        {PRINT_COLORS.map((pc) => (
+                          <option key={pc} value={pc}>{pc}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">وضعیت زینک:</label>
+                      <select
+                        value={editPrintZinc}
+                        onChange={(e) => setEditPrintZinc(e.target.value)}
+                        className="w-full bg-white border border-slate-300 rounded-xl px-2 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
+                      >
+                        {PRINT_ZINC_OPTIONS.map((zo) => (
+                          <option key={zo} value={zo}>{zo}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">طول و عرض فرم (mm):</label>
+                      <div className="grid grid-cols-2 gap-1">
+                        <input
+                          type="number"
+                          placeholder="طول"
+                          value={editPrintFormLength}
+                          onChange={(e) => setEditPrintFormLength(e.target.value)}
+                          className="w-full bg-white border border-slate-300 rounded-xl px-1.5 py-1.5 font-mono text-center text-xs focus:outline-none"
+                        />
+                        <input
+                          type="number"
+                          placeholder="عرض"
+                          value={editPrintFormWidth}
+                          onChange={(e) => setEditPrintFormWidth(e.target.value)}
+                          className="w-full bg-white border border-slate-300 rounded-xl px-1.5 py-1.5 font-mono text-center text-xs focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Coatings in Edit Modal */}
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-2 border-t border-slate-200">
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1 text-[11px]">سلفون:</label>
+                      <select
+                        value={editCellophaneType}
+                        onChange={(e) => setEditCellophaneType(e.target.value)}
+                        className="w-full bg-white border border-slate-300 rounded-xl px-2 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
+                      >
+                        {CELLOPHANE_TYPES.map((cp) => (
+                          <option key={cp} value={cp}>{cp}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1 text-[11px]">ورنی:</label>
+                      <select
+                        value={editVarnishType}
+                        onChange={(e) => setEditVarnishType(e.target.value)}
+                        className="w-full bg-white border border-slate-300 rounded-xl px-2 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
+                      >
+                        {VARNISH_OPTIONS.map((v) => (
+                          <option key={v} value={v}>{v}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1 text-[11px]">لاک:</label>
+                      <select
+                        value={editLacquerType}
+                        onChange={(e) => setEditLacquerType(e.target.value)}
+                        className="w-full bg-white border border-slate-300 rounded-xl px-2 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
+                      >
+                        {LACQUER_OPTIONS.map((l) => (
+                          <option key={l} value={l}>{l}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1 text-[11px]">یووی:</label>
+                      <select
+                        value={editUvType}
+                        onChange={(e) => setEditUvType(e.target.value)}
+                        className="w-full bg-white border border-slate-300 rounded-xl px-2 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
+                      >
+                        {UV_OPTIONS.map((u) => (
+                          <option key={u} value={u}>{u}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1 text-[11px]">برجسته:</label>
+                      <select
+                        value={editEmbossType}
+                        onChange={(e) => setEditEmbossType(e.target.value)}
+                        className="w-full bg-white border border-slate-300 rounded-xl px-2 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
+                      >
+                        {EMBOSS_OPTIONS.map((eb) => (
+                          <option key={eb} value={eb}>{eb}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Glue & Foil in Edit Modal */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-200">
+                    <div className="grid grid-cols-3 gap-1.5">
+                      <div>
+                        <label className="font-bold text-slate-600 block mb-1 text-[10px]">چسب:</label>
+                        <select
+                          value={editGlueType}
+                          onChange={(e) => setEditGlueType(e.target.value)}
+                          className="w-full bg-white border border-slate-300 rounded-xl px-1.5 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
+                        >
+                          {GLUE_OPTIONS.map((g) => (
+                            <option key={g} value={g}>{g}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="font-bold text-slate-600 block mb-1 text-[10px]">طول چسب (mm):</label>
+                        <input
+                          type="number"
+                          placeholder="طول"
+                          value={editGlueLength}
+                          onChange={(e) => setEditGlueLength(e.target.value)}
+                          className="w-full bg-white border border-slate-300 rounded-xl px-1.5 py-1.5 font-mono text-center text-xs focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="font-bold text-slate-600 block mb-1 text-[10px]">عرض چسب (mm):</label>
+                        <input
+                          type="number"
+                          placeholder="عرض"
+                          value={editGlueWidth}
+                          onChange={(e) => setEditGlueWidth(e.target.value)}
+                          className="w-full bg-white border border-slate-300 rounded-xl px-1.5 py-1.5 font-mono text-center text-xs focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-1.5">
+                      <div>
+                        <label className="font-bold text-slate-600 block mb-1 text-[10px]">فویل:</label>
+                        <select
+                          value={editFoilType}
+                          onChange={(e) => setEditFoilType(e.target.value)}
+                          className="w-full bg-white border border-slate-300 rounded-xl px-1.5 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
+                        >
+                          {FOIL_OPTIONS.map((f) => (
+                            <option key={f} value={f}>{f}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="font-bold text-slate-600 block mb-1 text-[10px]">طول فویل (mm):</label>
+                        <input
+                          type="number"
+                          disabled={editFoilType === 'بدون فویل'}
+                          placeholder="طول"
+                          value={editFoilLength}
+                          onChange={(e) => setEditFoilLength(e.target.value)}
+                          className="w-full bg-white border border-slate-300 rounded-xl px-1.5 py-1.5 font-mono text-center text-xs focus:outline-none disabled:opacity-50"
+                        />
+                      </div>
+                      <div>
+                        <label className="font-bold text-slate-600 block mb-1 text-[10px]">عرض فویل (mm):</label>
+                        <input
+                          type="number"
+                          disabled={editFoilType === 'بدون فویل'}
+                          placeholder="عرض"
+                          value={editFoilWidth}
+                          onChange={(e) => setEditFoilWidth(e.target.value)}
+                          className="w-full bg-white border border-slate-300 rounded-xl px-1.5 py-1.5 font-mono text-center text-xs focus:outline-none disabled:opacity-50"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* TIER 2: EDIT SPECS FOR «لمینتی» OR «کارتن» */}
+              {editMainCategory !== 'مقوایی' && (
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-2xl text-xs space-y-2">
+                  <div className="font-bold text-amber-900">مشخصات ساختار {editMainCategory}:</div>
+                  <select
+                    value={editMaterialConstruction}
+                    onChange={(e) => setEditMaterialConstruction(e.target.value)}
+                    className="w-full bg-white border border-amber-300 rounded-xl px-2.5 py-2 font-bold text-slate-800 text-xs"
+                  >
+                    {MATERIAL_CONSTRUCTIONS.map((mc) => (
+                      <option key={mc} value={mc}>{mc}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               {/* Dimensions */}
               <div className="grid grid-cols-3 gap-3">
