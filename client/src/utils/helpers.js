@@ -527,3 +527,25 @@ export function playNotificationSound() {
     // AudioContext blocked by browser autoplay policy
   }
 }
+
+// Global Toast Popup Dispatcher
+export function showToast(message, options = {}) {
+  const { title = 'اطلاعیه سیستم', type = 'success', duration = 4500 } = options;
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(
+      new CustomEvent('app_toast_notification', {
+        detail: {
+          id: 'toast_' + Date.now() + Math.random().toString(36).substring(2, 6),
+          message,
+          title,
+          type,
+          duration
+        }
+      })
+    );
+  }
+}
+
+export function showSuccessToast(message = 'اطلاعات با موفقیت ثبت و به واحد مربوطه ارسال شد.', title = 'ثبت و ارسال موفق') {
+  showToast(message, { title, type: 'success', duration: 4500 });
+}

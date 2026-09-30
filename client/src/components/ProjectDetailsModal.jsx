@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../api/client';
 import { useAuth } from '../context/AuthContext';
-import { STAGES, formatToman, formatNumber, formatDateFa, canAdvanceStage } from '../utils/helpers';
+import { STAGES, formatToman, formatNumber, formatDateFa, canAdvanceStage, showSuccessToast } from '../utils/helpers';
 import CalculatorView from './CalculatorView';
 import FilePreviewModal from './FilePreviewModal';
 import ProjectN8nPipelineCanvas from './ProjectN8nPipelineCanvas';
@@ -176,6 +176,7 @@ export default function ProjectDetailsModal({ projectId, onClose, onUpdated, onP
     setActionLoading(true);
     try {
       await api.advanceStage(project.id, stageData, customComment);
+      showSuccessToast('مرحله با موفقیت تایید و سفارش به واحد مربوطه ارسال شد.', 'تایید و ارجاع مرحله');
       await fetchProjectDetails();
       if (onUpdated) onUpdated();
     } catch (err) {
@@ -193,6 +194,7 @@ export default function ProjectDetailsModal({ projectId, onClose, onUpdated, onP
     setActionLoading(true);
     try {
       await api.rejectStage(project.id, targetStage, rejectReason);
+      showSuccessToast('درخواست اصلاحیه ثبت و سفارش به واحد مربوطه بازگردانده شد.', 'ارجاع اصلاحیه');
       setShowRejectForm(false);
       setRejectReason('');
       await fetchProjectDetails();

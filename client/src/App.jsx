@@ -37,6 +37,7 @@ import FloatingQuickDock from './components/FloatingQuickDock';
 import BiometricSettingsModal from './components/BiometricSettingsModal';
 import BiometricLockScreen from './components/BiometricLockScreen';
 import SystemAutoUpdateModal from './components/SystemAutoUpdateModal';
+import ToastNotification from './components/ToastNotification';
 import ErrorBoundary from './components/ErrorBoundary';
 import { playNotificationSound } from './utils/helpers';
 import { isAutoBiometricPromptEnabled, detectDeviceBiometrics } from './utils/biometrics';
@@ -826,6 +827,9 @@ export default function App() {
         isOpen={showAutoUpdateModal}
         onClose={() => setShowAutoUpdateModal(false)}
       />
+
+      {/* Global Floating Toast Popup Notification */}
+      <ToastNotification />
     </div>
   );
 }

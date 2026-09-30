@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
 import FilePreviewModal from './FilePreviewModal';
-import { matchProduct } from '../utils/helpers';
+import { matchProduct, showSuccessToast } from '../utils/helpers';
 import {
   Users,
   Send,
@@ -372,6 +372,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
       });
 
       if (res.success) {
+        showSuccessToast('اطلاعات ثبت و به واحد مربوطه ارسال شد.', 'ثبت موفق استعلام');
         setSubmitSuccess({
           code: res.lead_code,
           msg: res.message
@@ -422,7 +423,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
       });
 
       if (res.success) {
-        alert(res.message);
+        showSuccessToast('برآورد قیمت با موفقیت ثبت و به کارتابل بازاریاب و مشتری ارسال شد.', 'ارسال برآورد قیمت');
         setEstimatingLead(null);
         fetchLeads();
       }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../api/client';
-import { matchProduct, formatNumber } from '../utils/helpers';
+import { matchProduct, formatNumber, showSuccessToast } from '../utils/helpers';
 import {
   Save,
   Printer,
@@ -254,10 +254,11 @@ export default function IndustrialOrderForm({ onOrderSaved, onCancel, initialDat
         box_type: `${formData.cardboard_type} - ${formData.sheet_category || ''}`,
         box_structure: `${formData.blade_type} / ${formData.glue_type}`
       });
+      showSuccessToast('اطلاعات پرونده سفارش ثبت و به گردش کار ۱۰ مرحله‌ای کارخانه ارسال شد.', 'ثبت موفق سفارش');
       setSuccessMsg(`سفارش «${formData.title}» با کد آرشیو ${res.archiveCode || formData.archive_code} با موفقیت ثبت شد و وارد مرحله اول خط تولید شد.`);
       setTimeout(() => {
         if (onOrderSaved) onOrderSaved(res);
-      }, 1200);
+      }, 1000);
     } catch (err) {
       setErrorMsg(err.message || 'خطا در برقراری ارتباط با سرور');
     } finally {
