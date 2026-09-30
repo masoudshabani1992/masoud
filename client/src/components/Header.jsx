@@ -23,9 +23,7 @@ import {
   Settings,
   ShieldCheck,
   Zap,
-  ChevronLeft,
-  Fingerprint,
-  Lock
+  ChevronLeft
 } from 'lucide-react';
 
 const TAB_TITLES = {
@@ -97,11 +95,11 @@ export default function Header({
   const IconComp = currentInfo.icon;
 
   return (
-    <header className="bg-white/95 backdrop-blur-md border-b border-slate-200/90 sticky top-0 z-30 shadow-xs px-4 sm:px-6 py-3 no-print">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
+    <header className="bg-white/95 backdrop-blur-md border-b border-slate-200/90 sticky top-0 z-30 shadow-xs px-3 sm:px-6 py-2.5 no-print">
+      <div className="flex items-center justify-between gap-3 w-full">
         
         {/* Right Section: Mobile Toggle & Page Title Breadcrumb */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5 shrink-0 min-w-0">
           
           {/* Mobile Hamburger Button */}
           <button
@@ -113,33 +111,33 @@ export default function Header({
           </button>
 
           {/* Active View Title & Description */}
-          <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center ${currentInfo.color} shadow-inner shrink-0 icon-box-3d`}>
-              <IconComp className="w-5 h-5" />
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className={`w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center ${currentInfo.color} shadow-inner shrink-0 icon-box-3d`}>
+              <IconComp className="w-4.5 h-4.5" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="font-black text-slate-900 text-sm sm:text-base tracking-tight">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                <h1 className="font-black text-slate-900 text-xs sm:text-sm tracking-tight truncate">
                   {currentInfo.title}
                 </h1>
                 {isAdmin ? (
                   <button
                     type="button"
                     onClick={onOpenAutoUpdate}
-                    className="hidden md:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 shadow-2xs transition active:scale-95 cursor-pointer"
+                    className="hidden lg:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 shadow-2xs transition active:scale-95 cursor-pointer shrink-0"
                     title="مدیریت و به‌روزرسانی خودکار سرور (اختصاصی مدیر ارشد سیستم)"
                   >
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    <span>نسخه ۲.۸.۸ (بیلد ۹۱)</span>
+                    <span>نسخه ۲.۸.۹ (بیلد ۹۵)</span>
                     <Zap className="w-3 h-3 text-amber-500" />
                   </button>
                 ) : (
-                  <span className="hidden md:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
-                    نسخه ۲.۸.۸
+                  <span className="hidden lg:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 shrink-0">
+                    نسخه ۲.۸.۹
                   </span>
                 )}
               </div>
-              <p className="text-[11px] text-slate-500 font-medium hidden sm:block">
+              <p className="text-[10px] text-slate-500 font-medium hidden md:block truncate">
                 {currentInfo.desc}
               </p>
             </div>
@@ -147,18 +145,18 @@ export default function Header({
 
         </div>
 
-        {/* Left Section: Universal Actions & Status */}
-        <div className="flex items-center gap-2.5 flex-wrap">
+        {/* Left Section: Universal Actions & Profile Badge (Strictly Single Row) */}
+        <div className="flex items-center gap-2 shrink-0">
           
           {/* Live Persian Date and Clock */}
-          <div className="hidden xl:flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200/80 rounded-xl text-slate-600 text-xs font-bold">
+          <div className="hidden 2xl:flex items-center gap-2 px-2.5 py-1.5 bg-slate-50 border border-slate-200/80 rounded-xl text-slate-600 text-[11px] font-bold">
             <div className="flex items-center gap-1.5 text-slate-500">
-              <Calendar className="w-3.5 h-3.5 text-indigo-500" />
+              <Calendar className="w-3 h-3 text-indigo-500" />
               <span>{dateStr}</span>
             </div>
             <span className="w-1 h-3 bg-slate-300 rounded-full" />
             <div className="flex items-center gap-1 font-mono text-slate-700 font-black">
-              <Clock className="w-3.5 h-3.5 text-amber-500" />
+              <Clock className="w-3 h-3 text-amber-500" />
               <span>{timeStr}</span>
             </div>
           </div>
@@ -167,12 +165,12 @@ export default function Header({
           {onOpenSearch && (
             <button
               onClick={onOpenSearch}
-              className="flex items-center gap-2 px-3 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 hover:text-indigo-700 border border-slate-200 rounded-xl transition text-xs font-bold shadow-2xs group"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 hover:text-indigo-700 border border-slate-200 rounded-xl transition text-xs font-bold shadow-2xs group"
               title="جستجوی سریع همه بخش‌ها و پرونده‌ها (Ctrl + K)"
             >
-              <Search className="w-4 h-4 text-indigo-600 group-hover:scale-110 transition-transform" />
-              <span className="hidden sm:inline">جستجو...</span>
-              <kbd className="hidden lg:inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono text-slate-400 bg-white border border-slate-200 rounded">
+              <Search className="w-3.5 h-3.5 text-indigo-600 group-hover:scale-110 transition-transform" />
+              <span className="hidden sm:inline text-xs">جستجو...</span>
+              <kbd className="hidden xl:inline-flex items-center px-1.5 py-0.5 text-[9px] font-mono text-slate-400 bg-white border border-slate-200 rounded">
                 Ctrl K
               </kbd>
             </button>
@@ -182,14 +180,14 @@ export default function Header({
           {hasPermission('can_view_calculator') && (
             <button
               onClick={() => setActiveTab('calculator')}
-              className={`flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl transition-all shadow-2xs border ${
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-bold rounded-xl transition-all shadow-2xs border ${
                 activeTab === 'calculator'
                   ? 'bg-amber-200 text-amber-950 border-amber-300 font-black ring-2 ring-amber-300/60'
                   : 'text-amber-900 bg-amber-50/80 hover:bg-amber-100/90 border-amber-200/80'
               }`}
               title="ماشین‌حساب برآورد صنعتی قیمت جعبه"
             >
-              <Calculator className="w-4 h-4 text-amber-700" />
+              <Calculator className="w-3.5 h-3.5 text-amber-700" />
               <span className="hidden md:inline">محاسبه قیمت</span>
             </button>
           )}
@@ -197,12 +195,12 @@ export default function Header({
           {/* Notification Bell with Swinging Animation */}
           <button
             onClick={onOpenNotifications}
-            className="relative p-2.5 bg-slate-50/80 hover:bg-violet-50 border border-slate-200 hover:border-violet-300 rounded-xl transition-all text-slate-600 hover:text-violet-700 shadow-2xs group"
+            className="relative p-2 bg-slate-50/80 hover:bg-violet-50 border border-slate-200 hover:border-violet-300 rounded-xl transition-all text-slate-600 hover:text-violet-700 shadow-2xs group"
             title="مرکز اعلان‌ها و نوتیفیکیشن‌ها"
           >
             <Bell className={`w-4 h-4 ${unreadNotificationsCount > 0 ? 'animate-bell text-violet-600' : ''}`} />
             {unreadNotificationsCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-rose-400 text-rose-950 text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center animate-pulse shadow-xs ring-2 ring-white border border-rose-300">
+              <span className="absolute -top-1 -right-1 bg-rose-400 text-rose-950 text-[9px] font-black w-4.5 h-4.5 rounded-full flex items-center justify-center animate-pulse shadow-xs ring-2 ring-white border border-rose-300">
                 {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
               </span>
             )}
@@ -213,31 +211,31 @@ export default function Header({
             <button
               type="button"
               onClick={onToggleTheme}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl transition-all shadow-2xs border cursor-pointer ${
+              className={`flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold rounded-xl transition-all shadow-2xs border cursor-pointer ${
                 currentTheme === 'vision-ui'
-                  ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white border-blue-400/40 shadow-blue-500/25 ring-2 ring-blue-400/30'
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-blue-400/40 shadow-blue-500/25 ring-2 ring-blue-400/30'
                   : 'bg-purple-50 hover:bg-purple-100 text-purple-900 border-purple-200'
               }`}
               title="تغییر پوسته آزمایشی Vision UI / بازگشت به پاستلی کلاسیک"
             >
               <Sparkles className={`w-3.5 h-3.5 ${currentTheme === 'vision-ui' ? 'text-cyan-300 animate-pulse' : 'text-purple-600'}`} />
-              <span className="hidden md:inline">
-                {currentTheme === 'vision-ui' ? 'پوسته Vision UI' : 'پوسته پاستلی'}
+              <span className="hidden lg:inline text-[11px]">
+                {currentTheme === 'vision-ui' ? 'Vision UI' : 'پاستلی'}
               </span>
             </button>
           )}
 
           {/* User Profile Badge (Top Left Corner of the Header) */}
-          <div className="flex items-center gap-2.5 pr-3 pl-1 border-r border-slate-200">
-            <div className="text-left hidden sm:block">
-              <div className="text-xs font-black text-slate-900 leading-tight">
+          <div className="flex items-center gap-2 pr-2.5 pl-0.5 border-r border-slate-200">
+            <div className="text-left hidden md:block">
+              <div className="text-xs font-black text-slate-900 leading-tight truncate max-w-[140px]">
                 {currentUser?.fullName || currentUser?.full_name || 'مهندس مسعود شعبانی'}
               </div>
-              <div className="text-[10px] font-bold text-indigo-700 leading-tight">
+              <div className="text-[9px] font-bold text-indigo-700 leading-tight truncate max-w-[140px]">
                 {currentUser?.department || ROLES.find(r => r.id === role)?.name || 'مدیریت ارشد سیستم (Admin)'}
               </div>
             </div>
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 text-white font-black flex items-center justify-center text-sm shadow-md shadow-indigo-500/20 border border-white/40 shrink-0">
+            <div className="w-8.5 h-8.5 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 text-white font-black flex items-center justify-center text-xs shadow-md shadow-indigo-500/20 border border-white/40 shrink-0">
               {(currentUser?.fullName || currentUser?.full_name || 'م').charAt(0)}
             </div>
           </div>
