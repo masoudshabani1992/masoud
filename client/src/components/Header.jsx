@@ -53,7 +53,8 @@ const TAB_TITLES = {
   storage: { title: 'پوشه Storage و مدیریت فایل‌ها', desc: 'آرشیو فایل‌های خط تیغ و گرافیکی', icon: Settings, color: 'text-cyan-600' },
   logs: { title: 'لاگ و ممیزی کاربران (Audit Trail)', desc: 'ثبت لحظه‌ای تمامی فعالیت‌ها و تغییرات', icon: Settings, color: 'text-rose-600' },
   notification_settings: { title: 'تنظیمات اطلاع‌رسانی خودکار (بله و پیامک)', desc: 'پیکربندی ارسال نوتیفیکیشن به پرسنل در بله و پیامک به کارفرما پس از تایید مشتری', icon: Bell, color: 'text-amber-600' },
-  migration: { title: 'مرکز انتقال و ایمپورت اکسل', desc: 'انتقال سریع اطلاعات از اتوماسیون قدیمی', icon: Layers, color: 'text-amber-600' }
+  migration: { title: 'مرکز انتقال و ایمپورت اکسل', desc: 'انتقال سریع اطلاعات از اتوماسیون قدیمی', icon: Layers, color: 'text-amber-600' },
+  form_options: { title: 'مدیریت فیلدها و گزینه‌های فرم استعلام', desc: 'شخصی‌سازی مقوا، چاپ، روکش‌ها، یووی، طلق، چسب و فویل', icon: Settings, color: 'text-purple-600' }
 };
 
 export default function Header({

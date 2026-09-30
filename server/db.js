@@ -982,6 +982,259 @@ function initDb() {
   } catch (e) {
     console.error('Error seeding activity logs:', e);
   }
+
+  // 1. Table for Form Options & Dynamic Specs Configurator (مدیریت داینامیک فیلدها و فرم‌های استعلام)
+  try {
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS form_options_config (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        config_key TEXT UNIQUE NOT NULL,
+        category TEXT NOT NULL,
+        title TEXT NOT NULL,
+        items_json TEXT NOT NULL,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_by TEXT
+      )
+    `).run();
+
+    const countOptions = db.prepare('SELECT COUNT(*) as count FROM form_options_config').get().count;
+    if (countOptions === 0) {
+      const insertOpt = db.prepare(`
+        INSERT INTO form_options_config (config_key, category, title, items_json, updated_by)
+        VALUES (?, ?, ?, ?, 'مدیر ارشد سیستم')
+      `);
+
+      const defaultOptionsList = [
+        {
+          key: 'cardboard_types',
+          cat: 'cardboard',
+          title: 'انواع مقوا',
+          items: [
+            'ایندربرد',
+            'پشت طوسی (Duplex Board)',
+            'کرافت (Kraft)',
+            'گلاسه (Art Paper)',
+            'فابریانو (Fabriano)',
+            'مقوای بهداشتی (سفید / بهداشتی)',
+            'مقوای متالایز نقره‌ای',
+            'مقوای متالایز طلایی',
+            'مقوای کرجی (مغزی هاردباکس)',
+            'پشت کرم (FBB)',
+            'سایلبورد (Solid Bleached Board)'
+          ]
+        },
+        {
+          key: 'grammages',
+          cat: 'cardboard',
+          title: 'گرماژهای استاندارد مقوا',
+          items: [200, 230, 250, 280, 300, 320, 350, 400, 450, 500]
+        },
+        {
+          key: 'print_types',
+          cat: 'print',
+          title: 'انواع روش چاپ',
+          items: [
+            'افست نرمال',
+            'افست متالایز',
+            'چاپ دیجیتال',
+            'چاپ فلکسوگرافی',
+            'سیلک اسکرین',
+            'بدون چاپ'
+          ]
+        },
+        {
+          key: 'print_colors',
+          cat: 'print',
+          title: 'تعداد رنگ‌های چاپ',
+          items: [
+            '۱ رنگ تک‌رنگ',
+            '۲ رنگ ترکیبی',
+            '۳ رنگ',
+            '۴ رنگ (CMYK استاندارد)',
+            '۵ رنگ (CMYK + رنگ پنتون)',
+            '۶ رنگ (CMYK + ۲ رنگ اختصاصی)'
+          ]
+        },
+        {
+          key: 'print_zinc_options',
+          cat: 'print',
+          title: 'وضعیت زینک چاپ',
+          items: [
+            'زینک جدید',
+            'زینک موجود در بایگانی کارخانه',
+            'زینک تحویلی توسط مشتری',
+            'بدون زینک (پلیت آماده)'
+          ]
+        },
+        {
+          key: 'cellophane_types',
+          cat: 'coating',
+          title: 'انواع و زیرمجموعه سلفون',
+          items: [
+            'سلفون حرارتی مات',
+            'سلفون حرارتی براق',
+            'سلفون مخملی (Soft-Touch)',
+            'سلفون متالایز نقره‌ای',
+            'سلفون متالایز طلایی',
+            'سلفون ضدخش (Anti-Scratch)',
+            'سلفون طرح‌دار / هولوگرام',
+            'سلفون واتربیس مات',
+            'سلفون واتربیس براق'
+          ]
+        },
+        {
+          key: 'varnish_options',
+          cat: 'coating',
+          title: 'انواع و زیرمجموعه ورنی',
+          items: [
+            'ورنی مات افست',
+            'ورنی براق افست',
+            'ورنی پایه‌آب (واتربیس مات)',
+            'ورنی پایه‌آب (واتربیس براق)',
+            'ورنی ضدخش فرابنفش'
+          ]
+        },
+        {
+          key: 'lacquer_options',
+          cat: 'coating',
+          title: 'انواع و زیرمجموعه لاک',
+          items: [
+            'لاک براق حرارتی',
+            'لاک مات',
+            'لاک چاپ و محافظ',
+            'لاک ضدخش'
+          ]
+        },
+        {
+          key: 'uv_cylinder_options',
+          cat: 'coating',
+          title: 'انواع و زیرمجموعه یو وی سیلندری',
+          items: [
+            'یو وی سیلندری براق',
+            'یو وی سیلندری مات',
+            'یو وی سیلندری شنی'
+          ]
+        },
+        {
+          key: 'uv_options',
+          cat: 'special_effects',
+          title: 'انواع یو وی موضعی و افکت‌های خاص',
+          items: [
+            'موضعی براق (Spot UV)',
+            'موضعی شنی (Sand Texture UV)',
+            'هیبرید (Drip-off / مات و براق)',
+            'اکلیلی (Glitter UV)',
+            'یووی برجسته سه‌بعدی (3D High-Build UV)',
+            'یووی فلورسنت و شبرنگ'
+          ]
+        },
+        {
+          key: 'emboss_options',
+          cat: 'special_effects',
+          title: 'انواع برجسته‌کاری و کلیشه',
+          items: [
+            'برجسته (کلیشه جدید)',
+            'برجسته (کلیشه موجود در آرشیو)',
+            'فرورفته (Debossing)',
+            'امباس طرح‌دار سرتاسری (Linen / Leather)',
+            'برجسته کور (Blind Emboss)'
+          ]
+        },
+        {
+          key: 'window_thickness_options',
+          cat: 'window_glue',
+          title: 'ضخامت و نوع طلق پنجره جعبه',
+          items: [
+            '۱۵۰ میکرون (استاندارد جعبه دارویی و بهداشتی)',
+            '۲۰۰ میکرون (مقاوم و ضخیم)',
+            '۲۵۰ میکرون (سخت و ضدضربه)',
+            '۳۰۰ میکرون (فوق ضخیم صنعتی)',
+            'طلق PVC شفاف آنتی‌استاتیک',
+            'طلق PET شفاف غذایی (Food Grade)'
+          ]
+        },
+        {
+          key: 'glue_options',
+          cat: 'window_glue',
+          title: 'انواع چسب و لب‌چسب',
+          items: [
+            'لب چسب خطی اتوماتیک',
+            'چسب گرم (Hot-Melt)',
+            'چسب سرد واتربیس (PVA)',
+            'لمینتی (چسب سیلیکات / چسب نشاسته)',
+            'چسب دوطرفه صنعتی',
+            'چسب لاک‌باتم (۴ گوشه / ۶ گوشه)'
+          ]
+        },
+        {
+          key: 'foil_options',
+          cat: 'special_effects',
+          title: 'انواع فویل و طلاکوب',
+          items: [
+            'طلاکوب براق (Gold Foil)',
+            'طلاکوب مات (Matte Gold)',
+            'نقره‌کوب براق (Silver Foil)',
+            'نقره‌کوب مات (Matte Silver)',
+            'هفت‌رنگ / هولوگرام (Rainbow Hologram)',
+            'مسی و رزگلد (Copper / Rose Gold)',
+            'رنگی‌کوب (قرمز، آبی، سبز متالیک)',
+            'فویل سرد (Cold Foil)'
+          ]
+        },
+        {
+          key: 'material_constructions',
+          cat: 'material',
+          title: 'ساختارهای لمینتی و کارتن',
+          items: [
+            'مقوای تک‌لا (بدون سینگل)',
+            'لمینت روی سینگل E-Flute (ای فلوت)',
+            'لمینت روی سینگل B-Flute (بی فلوت)',
+            'کارتن ۳ لایه C-Flute (کارتن مادر)',
+            'کارتن ۵ لایه BC-Flute (کارتن سنگین صادراتی)',
+            'هاردباکس مغزی کرجی'
+          ]
+        }
+      ];
+
+      defaultOptionsList.forEach(opt => {
+        insertOpt.run(opt.key, opt.cat, opt.title, JSON.stringify(opt.items));
+      });
+    }
+  } catch (e) {
+    console.error('Error creating form_options_config:', e);
+  }
+
+  // 2. Table for Scrolling Announcement Ticker (نوار رونده بالای پنل جهت اعلان پرسنل)
+  try {
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS system_announcements (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT,
+        message TEXT NOT NULL,
+        priority TEXT DEFAULT 'info',
+        is_active INTEGER DEFAULT 1,
+        speed INTEGER DEFAULT 35,
+        created_by_id INTEGER,
+        created_by_name TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `).run();
+
+    const countAnnouncements = db.prepare('SELECT COUNT(*) as count FROM system_announcements').get().count;
+    if (countAnnouncements === 0) {
+      db.prepare(`
+        INSERT INTO system_announcements (title, message, priority, is_active, speed, created_by_id, created_by_name)
+        VALUES (?, ?, ?, 1, 35, 1, 'مهندس مسعود شعبانی (مدیر ارشد)')
+      `).run(
+        'اطلاعیه مدیریت کارخانه',
+        'همکاران گرامی؛ کلیه استعلام‌های بازاریابی ظرف حداکثر ۲ ساعت توسط واحد برآورد تعیین قیمت می‌شوند. رعایت کامل الزامات ایمنی و بهداشت در خطوط تولید الزامی است.',
+        'info'
+      );
+    }
+  } catch (e) {
+    console.error('Error creating system_announcements:', e);
+  }
 }
 
 initDb();

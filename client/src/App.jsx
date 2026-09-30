@@ -32,6 +32,8 @@ import HumanResourcesView from './components/HumanResourcesView';
 import StorageManagerView from './components/StorageManagerView';
 import AuditLogsView from './components/AuditLogsView';
 import NotificationSettingsView from './components/NotificationSettingsView';
+import FormOptionsManagerView from './components/FormOptionsManagerView';
+import TopAnnouncementTicker from './components/TopAnnouncementTicker';
 import CommandPaletteModal from './components/CommandPaletteModal';
 import FloatingQuickDock from './components/FloatingQuickDock';
 import BiometricSettingsModal from './components/BiometricSettingsModal';
@@ -55,6 +57,7 @@ const TAB_PERMISSION_MAP = {
   logs: 'can_manage_users',
   storage: 'can_manage_users',
   notification_settings: 'can_manage_users',
+  form_options: 'can_manage_users',
   migration: 'can_view_migration',
   dieline_generator: 'can_view_studio',
   '3d_studio': 'can_view_studio',
@@ -506,6 +509,9 @@ export default function App() {
 
       {/* Main Content Area Container (Left of Sidebar) */}
       <div className="flex-1 flex flex-col min-w-0 min-h-screen">
+        {/* Scrolling Announcement Ticker for Personnel */}
+        <TopAnnouncementTicker />
+
         {/* Universal Top Header */}
         <Header
           activeTab={activeTab}
@@ -613,6 +619,11 @@ export default function App() {
 
           {/* Automatic Notifications Configuration (بله و پیامک تایید مشتری) */}
           {activeTab === 'notification_settings' && <NotificationSettingsView />}
+
+          {/* Dynamic Form Options & Technical Specs Configurator (Admin Only) */}
+          {activeTab === 'form_options' && (
+            <FormOptionsManagerView onNavigateToMarketing={() => navigateTab('marketing')} />
+          )}
 
           {/* Human Resources & Performance Evaluation System (HR) */}
           {activeTab === 'hr' && <HumanResourcesView />}

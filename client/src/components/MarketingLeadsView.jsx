@@ -413,10 +413,40 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
     }
   };
 
+  const [formOptions, setFormOptions] = useState(null);
+
+  const fetchFormOptions = async () => {
+    try {
+      const res = await api.getFormOptions();
+      if (res && res.success && res.options) {
+        setFormOptions(res.options);
+      }
+    } catch (e) {
+      console.warn('Using default form options fallback');
+    }
+  };
+
   useEffect(() => {
     fetchLeads();
     fetchTargetStats();
+    fetchFormOptions();
   }, []);
+
+  const activeCardboardTypes = formOptions?.cardboard_types?.items || CARDBOARD_TYPES;
+  const activeGrammages = formOptions?.grammages?.items || GRAMMAGES;
+  const activePrintTypes = formOptions?.print_types?.items || PRINT_TYPES;
+  const activePrintColors = formOptions?.print_colors?.items || PRINT_COLORS;
+  const activePrintZincOptions = formOptions?.print_zinc_options?.items || PRINT_ZINC_OPTIONS;
+  const activeCellophaneTypes = formOptions?.cellophane_types?.items || CELLOPHANE_TYPES;
+  const activeVarnishOptions = formOptions?.varnish_options?.items || VARNISH_OPTIONS;
+  const activeLacquerOptions = formOptions?.lacquer_options?.items || LACQUER_OPTIONS;
+  const activeUvCylinderOptions = formOptions?.uv_cylinder_options?.items || UV_CYLINDER_OPTIONS;
+  const activeUvOptions = formOptions?.uv_options?.items || UV_OPTIONS;
+  const activeEmbossOptions = formOptions?.emboss_options?.items || EMBOSS_OPTIONS;
+  const activeWindowThicknessOptions = formOptions?.window_thickness_options?.items || WINDOW_THICKNESS_OPTIONS;
+  const activeGlueOptions = formOptions?.glue_options?.items || GLUE_OPTIONS;
+  const activeFoilOptions = formOptions?.foil_options?.items || FOIL_OPTIONS;
+  const activeMaterialConstructions = formOptions?.material_constructions?.items || MATERIAL_CONSTRUCTIONS;
 
   // File Upload Handler (for Dieline / Artwork)
   const handleFileUpload = (e, isEdit = false) => {
@@ -2241,7 +2271,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                       onChange={(e) => setCardboardType(e.target.value)}
                       className="w-full bg-white border border-slate-300 rounded-2xl px-3.5 py-2.5 text-xs font-black text-slate-800 focus:outline-none focus:border-teal-500 shadow-2xs"
                     >
-                      {CARDBOARD_TYPES.map((type) => (
+                      {activeCardboardTypes.map((type) => (
                         <option key={type} value={type}>مقوای {type}</option>
                       ))}
                     </select>
@@ -2262,7 +2292,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                       onChange={(e) => setCardboardGrammage(Number(e.target.value))}
                       className="w-full bg-white border border-slate-300 rounded-2xl px-3.5 py-2.5 text-xs font-black text-slate-800 focus:outline-none focus:border-teal-500 shadow-2xs"
                     >
-                      {GRAMMAGES.map((g) => (
+                      {activeGrammages.map((g) => (
                         <option key={g} value={g}>
                           {g} گرم {g === 300 ? '(استاندارد جعبه‌سازی)' : ''} {g === 250 ? '(سبک)' : ''} {g === 350 ? '(سنگین)' : ''}
                         </option>
@@ -2310,7 +2340,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                         onChange={(e) => setPrintType(e.target.value)}
                         className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-black text-slate-800 focus:outline-none focus:border-indigo-500 text-xs"
                       >
-                        {PRINT_TYPES.map((pt) => (
+                        {activePrintTypes.map((pt) => (
                           <option key={pt} value={pt}>{pt}</option>
                         ))}
                       </select>
@@ -2327,7 +2357,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                         onChange={(e) => setPrintColors(e.target.value)}
                         className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-bold text-slate-800 focus:outline-none focus:border-indigo-500 text-xs disabled:opacity-50"
                       >
-                        {PRINT_COLORS.map((pc) => (
+                        {activePrintColors.map((pc) => (
                           <option key={pc} value={pc}>{pc}</option>
                         ))}
                       </select>
@@ -2342,7 +2372,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                         onChange={(e) => setPrintZinc(e.target.value)}
                         className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-bold text-slate-800 focus:outline-none focus:border-indigo-500 text-xs disabled:opacity-50"
                       >
-                        {PRINT_ZINC_OPTIONS.map((zo) => (
+                        {activePrintZincOptions.map((zo) => (
                           <option key={zo} value={zo}>{zo}</option>
                         ))}
                       </select>
@@ -2404,7 +2434,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                             onChange={(e) => setCellophaneType(e.target.value)}
                             className="w-full bg-white border border-teal-400 rounded-xl px-3 py-2 font-bold text-teal-950 focus:outline-none text-xs"
                           >
-                            {CELLOPHANE_SUBTYPES.map((cp) => (
+                            {activeCellophaneTypes.map((cp) => (
                               <option key={cp} value={cp}>{cp}</option>
                             ))}
                           </select>
@@ -2419,7 +2449,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                             onChange={(e) => setVarnishType(e.target.value)}
                             className="w-full bg-white border border-teal-400 rounded-xl px-3 py-2 font-bold text-teal-950 focus:outline-none text-xs"
                           >
-                            {VARNISH_SUBTYPES.map((v) => (
+                            {activeVarnishOptions.map((v) => (
                               <option key={v} value={v}>{v}</option>
                             ))}
                           </select>
@@ -2434,7 +2464,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                             onChange={(e) => setLacquerType(e.target.value)}
                             className="w-full bg-white border border-teal-400 rounded-xl px-3 py-2 font-bold text-teal-950 focus:outline-none text-xs"
                           >
-                            {LACQUER_SUBTYPES.map((l) => (
+                            {activeLacquerOptions.map((l) => (
                               <option key={l} value={l}>{l}</option>
                             ))}
                           </select>
@@ -2449,7 +2479,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                             onChange={(e) => setUvCylinderType(e.target.value)}
                             className="w-full bg-white border border-teal-400 rounded-xl px-3 py-2 font-bold text-teal-950 focus:outline-none text-xs"
                           >
-                            {UV_CYLINDER_SUBTYPES.map((u) => (
+                            {activeUvCylinderOptions.map((u) => (
                               <option key={u} value={u}>{u}</option>
                             ))}
                           </select>
@@ -2492,7 +2522,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                           onChange={(e) => setUvType(e.target.value)}
                           className="w-full bg-purple-50/60 border border-purple-300 rounded-xl px-3 py-2 font-bold text-purple-950 text-xs focus:outline-none"
                         >
-                          {SPECIAL_UV_OPTIONS.map((u) => (
+                          {activeUvOptions.map((u) => (
                             <option key={u} value={u}>یووی {u}</option>
                           ))}
                         </select>
@@ -2681,7 +2711,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                           onChange={(e) => setFoilType(e.target.value)}
                           className="w-full bg-amber-50/50 border border-amber-300 rounded-xl px-3 py-2 font-bold text-slate-800 text-xs focus:outline-none"
                         >
-                          {FOIL_OPTIONS.map((f) => (
+                          {activeFoilOptions.map((f) => (
                             <option key={f} value={f}>{f}</option>
                           ))}
                         </select>
@@ -2727,7 +2757,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                       onChange={(e) => setCardboardType(e.target.value)}
                       className="w-full bg-white border border-amber-300 rounded-xl px-2.5 py-2 font-bold text-slate-800 text-xs"
                     >
-                      {CARDBOARD_TYPES.map((t) => (
+                      {activeCardboardTypes.map((t) => (
                         <option key={t} value={t}>{t}</option>
                       ))}
                     </select>
@@ -2751,7 +2781,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                       onChange={(e) => setCellophaneType(e.target.value)}
                       className="w-full bg-white border border-amber-300 rounded-xl px-2.5 py-2 font-bold text-slate-800 text-xs"
                     >
-                      {CELLOPHANE_TYPES.map((cp) => (
+                      {activeCellophaneTypes.map((cp) => (
                         <option key={cp} value={cp}>{cp}</option>
                       ))}
                     </select>
@@ -3725,7 +3755,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                         onChange={(e) => setEditCardboardType(e.target.value)}
                         className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 font-bold text-slate-800 text-xs focus:outline-none focus:border-amber-500"
                       >
-                        {CARDBOARD_TYPES.map((t) => (
+                        {activeCardboardTypes.map((t) => (
                           <option key={t} value={t}>{t}</option>
                         ))}
                       </select>
@@ -3740,7 +3770,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                         onChange={(e) => setEditCardboardGrammage(Number(e.target.value))}
                         className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 font-bold text-slate-800 text-xs focus:outline-none focus:border-amber-500"
                       >
-                        {GRAMMAGES.map((g) => (
+                        {activeGrammages.map((g) => (
                           <option key={g} value={g}>{g} گرم</option>
                         ))}
                       </select>
@@ -3764,7 +3794,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                           onChange={(e) => setEditPrintType(e.target.value)}
                           className="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 font-bold text-slate-800 text-xs focus:outline-none focus:border-blue-500"
                         >
-                          {PRINT_TYPES.map((pt) => (
+                          {activePrintTypes.map((pt) => (
                             <option key={pt} value={pt}>{pt}</option>
                           ))}
                         </select>
@@ -3780,7 +3810,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                           onChange={(e) => setEditPrintColors(e.target.value)}
                           className="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 font-bold text-slate-800 text-xs focus:outline-none focus:border-blue-500 disabled:opacity-50"
                         >
-                          {PRINT_COLORS.map((pc) => (
+                          {activePrintColors.map((pc) => (
                             <option key={pc} value={pc}>{pc}</option>
                           ))}
                         </select>
@@ -3796,7 +3826,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                           onChange={(e) => setEditPrintZinc(e.target.value)}
                           className="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 font-bold text-slate-800 text-xs focus:outline-none focus:border-blue-500 disabled:opacity-50"
                         >
-                          {PRINT_ZINC_OPTIONS.map((zo) => (
+                          {activePrintZincOptions.map((zo) => (
                             <option key={zo} value={zo}>{zo}</option>
                           ))}
                         </select>
@@ -3858,7 +3888,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                           onChange={(e) => setEditCellophaneType(e.target.value)}
                           className="w-full bg-white border border-purple-300 rounded-lg px-2.5 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
                         >
-                          {CELLOPHANE_TYPES.map((cp) => (
+                          {activeCellophaneTypes.map((cp) => (
                             <option key={cp} value={cp}>{cp}</option>
                           ))}
                         </select>
@@ -3873,7 +3903,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                           onChange={(e) => setEditVarnishType(e.target.value)}
                           className="w-full bg-white border border-purple-300 rounded-lg px-2.5 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
                         >
-                          {VARNISH_OPTIONS.map((v) => (
+                          {activeVarnishOptions.map((v) => (
                             <option key={v} value={v}>{v}</option>
                           ))}
                         </select>
@@ -3888,7 +3918,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                           onChange={(e) => setEditLacquerType(e.target.value)}
                           className="w-full bg-white border border-purple-300 rounded-lg px-2.5 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
                         >
-                          {LACQUER_OPTIONS.map((l) => (
+                          {activeLacquerOptions.map((l) => (
                             <option key={l} value={l}>{l}</option>
                           ))}
                         </select>
@@ -3903,7 +3933,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                           onChange={(e) => setEditUvCylinderType(e.target.value)}
                           className="w-full bg-white border border-purple-300 rounded-lg px-2.5 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
                         >
-                          {UV_CYLINDER_OPTIONS.map((u) => (
+                          {activeUvCylinderOptions.map((u) => (
                             <option key={u} value={u}>{u}</option>
                           ))}
                         </select>
@@ -3937,7 +3967,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                           onChange={(e) => setEditUvType(e.target.value)}
                           className="w-full bg-slate-50 border border-amber-300 rounded-lg px-2.5 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
                         >
-                          {UV_OPTIONS.map((u) => (
+                          {activeUvOptions.map((u) => (
                             <option key={u} value={u}>{u}</option>
                           ))}
                         </select>
@@ -3971,7 +4001,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                           onChange={(e) => setEditEmbossType(e.target.value)}
                           className="w-full bg-slate-50 border border-teal-300 rounded-lg px-2.5 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
                         >
-                          {EMBOSS_OPTIONS.map((eb) => (
+                          {activeEmbossOptions.map((eb) => (
                             <option key={eb} value={eb}>{eb}</option>
                           ))}
                         </select>
@@ -4026,7 +4056,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                             onChange={(e) => setEditWindowThickness(e.target.value)}
                             className="w-full bg-slate-50 border border-cyan-300 rounded-lg px-2 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
                           >
-                            {WINDOW_THICKNESS_OPTIONS.map((wt) => (
+                            {activeWindowThicknessOptions.map((wt) => (
                               <option key={wt} value={wt}>{wt}</option>
                             ))}
                           </select>
@@ -4062,7 +4092,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                             onChange={(e) => setEditGlueType(e.target.value)}
                             className="w-full bg-slate-50 border border-emerald-300 rounded-lg px-2 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
                           >
-                            {GLUE_OPTIONS.map((g) => (
+                            {activeGlueOptions.map((g) => (
                               <option key={g} value={g}>{g}</option>
                             ))}
                           </select>
@@ -4118,7 +4148,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                             onChange={(e) => setEditFoilType(e.target.value)}
                             className="w-full bg-slate-50 border border-amber-300 rounded-lg px-2 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
                           >
-                            {FOIL_OPTIONS.map((f) => (
+                            {activeFoilOptions.map((f) => (
                               <option key={f} value={f}>{f}</option>
                             ))}
                           </select>
@@ -4158,7 +4188,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                     onChange={(e) => setEditMaterialConstruction(e.target.value)}
                     className="w-full bg-white border border-amber-300 rounded-xl px-2.5 py-2 font-bold text-slate-800 text-xs"
                   >
-                    {MATERIAL_CONSTRUCTIONS.map((mc) => (
+                    {activeMaterialConstructions.map((mc) => (
                       <option key={mc} value={mc}>{mc}</option>
                     ))}
                   </select>

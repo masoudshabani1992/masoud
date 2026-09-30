@@ -4512,6 +4512,284 @@ app.post('/api/notifications/test-sms', authMiddleware, requireCeoOrAdmin, async
   }
 });
 
+// ==========================================
+// 1. DYNAMIC FORM OPTIONS API (مدیریت داینامیک فیلدها و فرم‌های استعلام توسط مدیر سیستم)
+// ==========================================
+
+// GET /api/settings/form-options (همه کاربران مجاز به دریافت گزینه‌ها برای لود فرم‌ها هستند)
+app.get('/api/settings/form-options', authMiddleware, (req, res) => {
+  try {
+    const rows = db.prepare('SELECT config_key, category, title, items_json, updated_at, updated_by FROM form_options_config').all();
+    const optionsMap = {};
+    rows.forEach(r => {
+      try {
+        optionsMap[r.config_key] = {
+          key: r.config_key,
+          category: r.category,
+          title: r.title,
+          items: JSON.parse(r.items_json),
+          updated_at: r.updated_at,
+          updated_by: r.updated_by
+        };
+      } catch (e) {
+        optionsMap[r.config_key] = { key: r.config_key, category: r.category, title: r.title, items: [] };
+      }
+    });
+    res.json({ success: true, options: optionsMap });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در بارگذاری گزینه‌های فرم: ' + err.message });
+  }
+});
+
+// PUT /api/settings/form-options/:key (ویرایش یک لیست مشخص - انحصاری Admin)
+app.put('/api/settings/form-options/:key', authMiddleware, requireAdmin, (req, res) => {
+  try {
+    const { key } = req.params;
+    const { items, title, category } = req.body;
+
+    if (!Array.isArray(items)) {
+      return res.status(400).json({ error: 'آرایه آیتم‌ها الزامی است.' });
+    }
+
+    const user = req.user;
+    const updaterName = user.full_name || user.fullName || user.username || 'مدیر سیستم';
+
+    const existing = db.prepare('SELECT id FROM form_options_config WHERE config_key = ?').get(key);
+    if (existing) {
+      db.prepare(`
+        UPDATE form_options_config
+        SET items_json = ?,
+            title = COALESCE(?, title),
+            category = COALESCE(?, category),
+            updated_at = CURRENT_TIMESTAMP,
+            updated_by = ?
+        WHERE config_key = ?
+      `).run(JSON.stringify(items), title || null, category || null, updaterName, key);
+    } else {
+      db.prepare(`
+        INSERT INTO form_options_config (config_key, category, title, items_json, updated_by)
+        VALUES (?, ?, ?, ?, ?)
+      `).run(key, category || 'general', title || key, JSON.stringify(items), updaterName);
+    }
+
+    logActivity(req, {
+      action: 'update_form_options',
+      module: 'settings',
+      target_id: key,
+      target_name: title || key,
+      description: `ویرایش گزینه‌های فیلد «${title || key}» در فرم استعلام (${items.length} گزینه)`,
+      details: { key, itemsCount: items.length }
+    });
+
+    res.json({ success: true, message: 'گزینه‌های فرم با موفقیت به‌روزرسانی شدند.' });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در ذخیره گزینه‌های فرم: ' + err.message });
+  }
+});
+
+// POST /api/settings/form-options/reset (بازنشانی به تنظیمات کارخانه - انحصاری Admin)
+app.post('/api/settings/form-options/reset', authMiddleware, requireAdmin, (req, res) => {
+  try {
+    const defaultOptionsList = [
+      { key: 'cardboard_types', cat: 'cardboard', title: 'انواع مقوا', items: ['ایندربرد', 'پشت طوسی (Duplex Board)', 'کرافت (Kraft)', 'گلاسه (Art Paper)', 'فابریانو (Fabriano)', 'مقوای بهداشتی (سفید / بهداشتی)', 'مقوای متالایز نقره‌ای', 'مقوای متالایز طلایی', 'مقوای کرجی (مغزی هاردباکس)', 'پشت کرم (FBB)', 'سایلبورد (Solid Bleached Board)'] },
+      { key: 'grammages', cat: 'cardboard', title: 'گرماژهای استاندارد مقوا', items: [200, 230, 250, 280, 300, 320, 350, 400, 450, 500] },
+      { key: 'print_types', cat: 'print', title: 'انواع روش چاپ', items: ['افست نرمال', 'افست متالایز', 'چاپ دیجیتال', 'چاپ فلکسوگرافی', 'سیلک اسکرین', 'بدون چاپ'] },
+      { key: 'print_colors', cat: 'print', title: 'تعداد رنگ‌های چاپ', items: ['۱ رنگ تک‌رنگ', '۲ رنگ ترکیبی', '۳ رنگ', '۴ رنگ (CMYK استاندارد)', '۵ رنگ (CMYK + رنگ پنتون)', '۶ رنگ (CMYK + ۲ رنگ اختصاصی)'] },
+      { key: 'print_zinc_options', cat: 'print', title: 'وضعیت زینک چاپ', items: ['زینک جدید', 'زینک موجود در بایگانی کارخانه', 'زینک تحویلی توسط مشتری', 'بدون زینک (پلیت آماده)'] },
+      { key: 'cellophane_types', cat: 'coating', title: 'انواع و زیرمجموعه سلفون', items: ['سلفون حرارتی مات', 'سلفون حرارتی براق', 'سلفون مخملی (Soft-Touch)', 'سلفون متالایز نقره‌ای', 'سلفون متالایز طلایی', 'سلفون ضدخش (Anti-Scratch)', 'سلفون طرح‌دار / هولوگرام', 'سلفون واتربیس مات', 'سلفون واتربیس براق'] },
+      { key: 'varnish_options', cat: 'coating', title: 'انواع و زیرمجموعه ورنی', items: ['ورنی مات افست', 'ورنی براق افست', 'ورنی پایه‌آب (واتربیس مات)', 'ورنی پایه‌آب (واتربیس براق)', 'ورنی ضدخش فرابنفش'] },
+      { key: 'lacquer_options', cat: 'coating', title: 'انواع و زیرمجموعه لاک', items: ['لاک براق حرارتی', 'لاک مات', 'لاک چاپ و محافظ', 'لاک ضدخش'] },
+      { key: 'uv_cylinder_options', cat: 'coating', title: 'انواع و زیرمجموعه یو وی سیلندری', items: ['یو وی سیلندری براق', 'یو وی سیلندری مات', 'یو وی سیلندری شنی'] },
+      { key: 'uv_options', cat: 'special_effects', title: 'انواع یو وی موضعی و افکت‌های خاص', items: ['موضعی براق (Spot UV)', 'موضعی شنی (Sand Texture UV)', 'هیبرید (Drip-off / مات و براق)', 'اکلیلی (Glitter UV)', 'یووی برجسته سه‌بعدی (3D High-Build UV)', 'یووی فلورسنت و شبرنگ'] },
+      { key: 'emboss_options', cat: 'special_effects', title: 'انواع برجسته‌کاری و کلیشه', items: ['برجسته (کلیشه جدید)', 'برجسته (کلیشه موجود در آرشیو)', 'فرورفته (Debossing)', 'امباس طرح‌دار سرتاسری (Linen / Leather)', 'برجسته کور (Blind Emboss)'] },
+      { key: 'window_thickness_options', cat: 'window_glue', title: 'ضخامت و نوع طلق پنجره جعبه', items: ['۱۵۰ میکرون (استاندارد جعبه دارویی و بهداشتی)', '۲۰۰ میکرون (مقاوم و ضخیم)', '۲۵۰ میکرون (سخت و ضدضربه)', '۳۰۰ میکرون (فوق ضخیم صنعتی)', 'طلق PVC شفاف آنتی‌استاتیک', 'طلق PET شفاف غذایی (Food Grade)'] },
+      { key: 'glue_options', cat: 'window_glue', title: 'انواع چسب و لب‌چسب', items: ['لب چسب خطی اتوماتیک', 'چسب گرم (Hot-Melt)', 'چسب سرد واتربیس (PVA)', 'لمینتی (چسب سیلیکات / چسب نشاسته)', 'چسب دوطرفه صنعتی', 'چسب لاک‌باتم (۴ گوشه / ۶ گوشه)'] },
+      { key: 'foil_options', cat: 'special_effects', title: 'انواع فویل و طلاکوب', items: ['طلاکوب براق (Gold Foil)', 'طلاکوب مات (Matte Gold)', 'نقره‌کوب براق (Silver Foil)', 'نقره‌کوب مات (Matte Silver)', 'هفت‌رنگ / هولوگرام (Rainbow Hologram)', 'مسی و رزگلد (Copper / Rose Gold)', 'رنگی‌کوب (قرمز، آبی، سبز متالیک)', 'فویل سرد (Cold Foil)'] },
+      { key: 'material_constructions', cat: 'material', title: 'ساختارهای لمینتی و کارتن', items: ['مقوای تک‌لا (بدون سینگل)', 'لمینت روی سینگل E-Flute (ای فلوت)', 'لمینت روی سینگل B-Flute (بی فلوت)', 'کارتن ۳ لایه C-Flute (کارتن مادر)', 'کارتن ۵ لایه BC-Flute (کارتن سنگین صادراتی)', 'هاردباکس مغزی کرجی'] }
+    ];
+
+    const upsertStmt = db.prepare(`
+      INSERT INTO form_options_config (config_key, category, title, items_json, updated_by)
+      VALUES (?, ?, ?, ?, 'بازنشانی پیش‌فرض کارخانه')
+      ON CONFLICT(config_key) DO UPDATE SET
+        category = excluded.category,
+        title = excluded.title,
+        items_json = excluded.items_json,
+        updated_at = CURRENT_TIMESTAMP,
+        updated_by = excluded.updated_by
+    `);
+
+    db.exec('BEGIN TRANSACTION');
+    defaultOptionsList.forEach(opt => {
+      upsertStmt.run(opt.key, opt.cat, opt.title, JSON.stringify(opt.items));
+    });
+    db.exec('COMMIT');
+
+    logActivity(req, {
+      action: 'reset_form_options',
+      module: 'settings',
+      target_id: 'all',
+      target_name: 'گزینه‌های فرم استعلام',
+      description: 'بازنشانی تمامی فیلدها و گزینه‌های فرم استعلام به مقادیر پیش‌فرض کارخانه'
+    });
+
+    res.json({ success: true, message: 'تمامی گزینه‌ها به حالت پیش‌فرض کارخانه بازنشانی شدند.' });
+  } catch (err) {
+    db.exec('ROLLBACK');
+    res.status(500).json({ error: 'خطا در بازنشانی گزینه‌ها: ' + err.message });
+  }
+});
+
+
+// ==========================================
+// 2. SCROLLING ANNOUNCEMENT TICKER API (نوار رونده اعلان پرسنل بالای پنل - مدیریت توسط مدیرعامل و ادمین)
+// ==========================================
+
+// GET /api/announcements/active (دریافت اعلان فعال جاری برای تمامی کاربران)
+app.get('/api/announcements/active', authMiddleware, (req, res) => {
+  try {
+    const active = db.prepare(`
+      SELECT id, title, message, priority, is_active, speed, created_by_name, updated_at
+      FROM system_announcements
+      WHERE is_active = 1
+      ORDER BY id DESC
+      LIMIT 1
+    `).get();
+
+    res.json({ success: true, announcement: active || null });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در دریافت اعلان فعال: ' + err.message });
+  }
+});
+
+// GET /api/announcements (لیست تاریخچه تمامی اعلان‌ها - انحصاری مدیرعامل و ادمین)
+app.get('/api/announcements', authMiddleware, requireCeoOrAdmin, (req, res) => {
+  try {
+    const list = db.prepare('SELECT * FROM system_announcements ORDER BY id DESC LIMIT 50').all();
+    res.json({ success: true, announcements: list });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در دریافت لیست اعلان‌ها: ' + err.message });
+  }
+});
+
+// POST /api/announcements (ثبت یا تغییر پیام نوار رونده - مدیرعامل و ادمین)
+app.post('/api/announcements', authMiddleware, requireCeoOrAdmin, (req, res) => {
+  try {
+    const { title, message, priority, is_active, speed } = req.body;
+
+    if (!message || !message.trim()) {
+      return res.status(400).json({ error: 'متن پیام اعلان الزامی است.' });
+    }
+
+    const user = req.user;
+    const authorName = `${user.full_name || user.fullName || user.username} (${user.role === 'ceo' ? 'مدیرعامل' : 'مدیر ارشد'})`;
+
+    // Deactivate previous ones if activating new one
+    if (is_active !== 0) {
+      db.prepare('UPDATE system_announcements SET is_active = 0').run();
+    }
+
+    const insert = db.prepare(`
+      INSERT INTO system_announcements (
+        title, message, priority, is_active, speed, created_by_id, created_by_name
+      ) VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      (title || 'اطلاعیه مدیریت').trim(),
+      message.trim(),
+      priority || 'info',
+      is_active !== undefined ? (is_active ? 1 : 0) : 1,
+      Number(speed) || 35,
+      user.id,
+      authorName
+    );
+
+    const newId = insert.lastInsertRowid;
+
+    logActivity(req, {
+      action: 'publish_announcement',
+      module: 'announcements',
+      target_id: String(newId),
+      target_name: title || 'اعلان پرسنل',
+      description: `انتشار پیام جدید در نوار رونده پرسنل: «${message.trim().substring(0, 80)}...» با اولویت ${priority || 'info'}`,
+      details: { title, message, priority, is_active, speed }
+    });
+
+    res.json({
+      success: true,
+      id: newId,
+      message: 'پیام نوار رونده با موفقیت ذخیره و در بالای پنل کلیه پرسنل فعال گردید.'
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در ثبت اعلان: ' + err.message });
+  }
+});
+
+// PUT /api/announcements/:id (ویرایش اعلان موجود - مدیرعامل و ادمین)
+app.put('/api/announcements/:id', authMiddleware, requireCeoOrAdmin, (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, message, priority, is_active, speed } = req.body;
+
+    const row = db.prepare('SELECT * FROM system_announcements WHERE id = ?').get(id);
+    if (!row) {
+      return res.status(404).json({ error: 'اعلان مورد نظر یافت نشد.' });
+    }
+
+    // If making active, deactivate others
+    if (is_active === 1 || is_active === true) {
+      db.prepare('UPDATE system_announcements SET is_active = 0 WHERE id != ?').run(id);
+    }
+
+    db.prepare(`
+      UPDATE system_announcements
+      SET title = COALESCE(?, title),
+          message = COALESCE(?, message),
+          priority = COALESCE(?, priority),
+          is_active = COALESCE(?, is_active),
+          speed = COALESCE(?, speed),
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).run(
+      title ? title.trim() : null,
+      message ? message.trim() : null,
+      priority || null,
+      is_active !== undefined ? (is_active ? 1 : 0) : null,
+      speed ? Number(speed) : null,
+      id
+    );
+
+    logActivity(req, {
+      action: 'update_announcement',
+      module: 'announcements',
+      target_id: String(id),
+      target_name: title || row.title,
+      description: `ویرایش مشخصات نوار رونده پرسنل (${id})`
+    });
+
+    res.json({ success: true, message: 'اعلان نوار رونده به‌روزرسانی شد.' });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در ویرایش اعلان: ' + err.message });
+  }
+});
+
+// POST /api/announcements/toggle (فعال/غیرفعال کردن سریع نوار رونده - مدیرعامل و ادمین)
+app.post('/api/announcements/toggle', authMiddleware, requireCeoOrAdmin, (req, res) => {
+  try {
+    const { is_active } = req.body;
+    const activeVal = is_active ? 1 : 0;
+    
+    // Toggle latest announcement
+    const latest = db.prepare('SELECT id FROM system_announcements ORDER BY id DESC LIMIT 1').get();
+    if (latest) {
+      db.prepare('UPDATE system_announcements SET is_active = ? WHERE id = ?').run(activeVal, latest.id);
+    }
+
+    res.json({ success: true, is_active: activeVal });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در تغییر وضعیت اعلان: ' + err.message });
+  }
+});
+
 // Download Setup Package
 app.get('/download-setup', (req, res) => {
   const zipPath = path.join(__dirname, '..', 'box-factory-windows-setup.zip');

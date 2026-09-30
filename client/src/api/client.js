@@ -205,6 +205,18 @@ export const api = {
   testBaleNotification: (token, chatId, template = '', stageNumber = 5) => apiRequest('/notifications/test-bale', { method: 'POST', body: JSON.stringify({ token, chatId, template, stageNumber }) }),
   testCustomerSms: (data) => apiRequest('/notifications/test-sms', { method: 'POST', body: JSON.stringify(data) }),
 
+  // Dynamic Form Options (مدیریت داینامیک فیلدها و فرم‌های استعلام)
+  getFormOptions: () => apiRequest('/settings/form-options'),
+  updateFormOption: (key, data) => apiRequest(`/settings/form-options/${key}`, { method: 'PUT', body: JSON.stringify(data) }),
+  resetFormOptions: () => apiRequest('/settings/form-options/reset', { method: 'POST' }),
+
+  // Scrolling Announcements Ticker (نوار رونده اعلان پرسنل)
+  getActiveAnnouncement: () => apiRequest('/announcements/active'),
+  getAnnouncements: () => apiRequest('/announcements'),
+  createAnnouncement: (data) => apiRequest('/announcements', { method: 'POST', body: JSON.stringify(data) }),
+  updateAnnouncement: (id, data) => apiRequest(`/announcements/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  toggleAnnouncement: (is_active) => apiRequest('/announcements/toggle', { method: 'POST', body: JSON.stringify({ is_active }) }),
+
   // Customers & Analytics
   getCustomers: () => apiRequest('/customers'),
   createCustomer: (data) => apiRequest('/customers', { method: 'POST', body: JSON.stringify(data) }),
