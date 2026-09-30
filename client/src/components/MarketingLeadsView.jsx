@@ -2190,8 +2190,8 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                   <input
                     type="number"
                     required
-                    min="100"
-                    step="500"
+                    min="1"
+                    step="1"
                     placeholder="مثال: ۵۰۰۰"
                     value={quantity}
                     onChange={(e) => setQuantity(e.target.value)}
@@ -3701,8 +3701,8 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                   </label>
                   <input
                     type="number"
-                    min="100"
-                    step="500"
+                    min="1"
+                    step="1"
                     required
                     value={editQuantity}
                     onChange={(e) => setEditQuantity(e.target.value)}

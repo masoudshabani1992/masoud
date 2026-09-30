@@ -662,7 +662,8 @@ export default function CalculatorView({ onApplyToProject, initialSpecs, onLeadE
                 <label className="block text-[11px] font-bold text-slate-600 mb-1">تیراژ سفارش (عدد)</label>
                 <input
                   type="number"
-                  step="500"
+                  min="1"
+                  step="1"
                   value={specs.quantity}
                   onChange={(e) => updateField('quantity', parseInt(e.target.value) || 0)}
                   className="w-full px-3 py-2 text-xs font-mono font-bold rounded-lg border border-indigo-300 bg-indigo-50/50 text-indigo-900 text-center"

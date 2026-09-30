@@ -302,7 +302,8 @@ export default function NewOrderModal({ isOpen, onClose, onCreated }) {
                 <label className="block text-[11px] font-bold text-indigo-800 mb-1">تیراژ (تعداد جعبه)</label>
                 <input
                   type="number"
-                  step="500"
+                  min="1"
+                  step="1"
                   value={formData.quantity}
                   onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
                   className="w-full px-3 py-2 text-xs rounded-lg border-2 border-indigo-300 bg-white font-mono font-bold text-indigo-900"
