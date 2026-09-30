@@ -131,6 +131,11 @@ export const UV_CYLINDER_SUBTYPES = [
   'یو وی سیلندری مات'
 ];
 
+export const UV_CYLINDER_OPTIONS = [
+  'یو وی سیلندری براق',
+  'یو وی سیلندری مات'
+];
+
 export const CELLOPHANE_TYPES = [
   'سلفون حرارتی براق',
   'سلفون حرارتی مات',
