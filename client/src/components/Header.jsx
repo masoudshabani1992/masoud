@@ -67,7 +67,9 @@ export default function Header({
   onOpenLicense,
   onOpenSearch,
   onOpenAutoUpdate,
-  onToggleSidebarMobile
+  onToggleSidebarMobile,
+  currentTheme = 'vision-ui',
+  onToggleTheme
 }) {
   const { currentUser, role, hasPermission } = useAuth();
   const isAdmin = currentUser?.role === 'admin' || role === 'admin';
@@ -205,6 +207,25 @@ export default function Header({
               </span>
             )}
           </button>
+
+          {/* Vision UI vs Pastel Live Theme Switcher */}
+          {onToggleTheme && (
+            <button
+              type="button"
+              onClick={onToggleTheme}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl transition-all shadow-2xs border cursor-pointer ${
+                currentTheme === 'vision-ui'
+                  ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white border-blue-400/40 shadow-blue-500/25 ring-2 ring-blue-400/30'
+                  : 'bg-purple-50 hover:bg-purple-100 text-purple-900 border-purple-200'
+              }`}
+              title="تغییر پوسته آزمایشی Vision UI / بازگشت به پاستلی کلاسیک"
+            >
+              <Sparkles className={`w-3.5 h-3.5 ${currentTheme === 'vision-ui' ? 'text-cyan-300 animate-pulse' : 'text-purple-600'}`} />
+              <span className="hidden md:inline">
+                {currentTheme === 'vision-ui' ? 'پوسته Vision UI' : 'پوسته پاستلی'}
+              </span>
+            </button>
+          )}
 
           {/* User Profile Badge (Top Left Corner of the Header) */}
           <div className="flex items-center gap-2.5 pr-3 pl-1 border-r border-slate-200">

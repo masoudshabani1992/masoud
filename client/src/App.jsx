@@ -98,6 +98,16 @@ const getDefaultTabForUser = (user, checkPermFn) => {
 
 export default function App() {
   const { currentUser, role, hasPermission, logout } = useAuth();
+  const [currentTheme, setCurrentTheme] = useState(() => {
+    return localStorage.getItem('boxfactory_ui_theme') || 'vision-ui';
+  });
+
+  const handleToggleTheme = () => {
+    const nextTheme = currentTheme === 'vision-ui' ? 'pastel' : 'vision-ui';
+    setCurrentTheme(nextTheme);
+    localStorage.setItem('boxfactory_ui_theme', nextTheme);
+  };
+
   const [activeTab, setActiveTab] = useState(() => {
     if (role === 'design') return 'dieline_generator';
     if (role === 'marketer') return 'marketing';
@@ -471,7 +481,14 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 flex font-sans w-full text-slate-800" dir="rtl">
+    <div
+      className={`min-h-screen font-sans w-full transition-colors duration-300 ${
+        currentTheme === 'vision-ui'
+          ? 'theme-vision-ui bg-[#060b26] text-slate-100'
+          : 'bg-slate-100 text-slate-800'
+      }`}
+      dir="rtl"
+    >
       {/* Right Sidebar Modern Navigation */}
       <RightSidebar
         activeTab={activeTab}
@@ -499,6 +516,8 @@ export default function App() {
           onOpenSearch={openSearchModal}
           onOpenAutoUpdate={() => setShowAutoUpdateModal(true)}
           onToggleSidebarMobile={() => setIsMobileSidebarOpen(prev => !prev)}
+          currentTheme={currentTheme}
+          onToggleTheme={handleToggleTheme}
           licenseInfo={licenseState.license}
         />
 
