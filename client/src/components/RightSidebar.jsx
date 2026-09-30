@@ -36,7 +36,8 @@ import {
   SlidersHorizontal,
   Flame,
   Bell,
-  Smartphone
+  Smartphone,
+  Fingerprint
 } from 'lucide-react';
 
 export default function RightSidebar({
@@ -47,6 +48,7 @@ export default function RightSidebar({
   onOpenNotifications,
   onOpenLicense,
   onOpenSearch,
+  onOpenBiometricSettings,
   isOpenMobile,
   onCloseMobile
 }) {
@@ -790,6 +792,20 @@ export default function RightSidebar({
                         <span>۷. انتقال اطلاعات (ایمپورت اکسل)</span>
                       </div>
                       <span className="text-[10px] bg-orange-200 text-orange-900 px-1 py-0.2 rounded font-bold">اکسل</span>
+                    </button>
+
+                    {/* احراز هویت بیومتریک (اثر انگشت و چهره) */}
+                    <button
+                      onClick={() => {
+                        if (onOpenBiometricSettings) onOpenBiometricSettings();
+                      }}
+                      className="w-full text-right px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between text-slate-700 hover:bg-teal-50 hover:text-teal-900"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Fingerprint className="w-3.5 h-3.5 text-teal-600" />
+                        <span>۸. ورود بیومتریک (اثر انگشت و چهره)</span>
+                      </div>
+                      <span className="text-[10px] bg-teal-100 text-teal-800 px-1.5 py-0.2 rounded font-bold">Touch ID</span>
                     </button>
                   </div>
                 )}

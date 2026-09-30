@@ -66,10 +66,8 @@ export default function Header({
   onOpenNotifications,
   onOpenLicense,
   onOpenSearch,
-  onOpenBiometricSettings,
   onOpenAutoUpdate,
-  onToggleSidebarMobile,
-  onLockScreen
+  onToggleSidebarMobile
 }) {
   const { currentUser, role, hasPermission } = useAuth();
   const isAdmin = currentUser?.role === 'admin' || role === 'admin';
@@ -208,42 +206,18 @@ export default function Header({
             )}
           </button>
 
-          {/* Biometric Devices / Passkeys Management */}
-          {onOpenBiometricSettings && (
-            <button
-              onClick={onOpenBiometricSettings}
-              className="p-2.5 bg-teal-50/80 hover:bg-teal-100/90 text-teal-800 border border-teal-200/80 rounded-xl transition-all shadow-2xs flex items-center gap-1.5 text-xs font-bold"
-              title="مدیریت ورود با اثر انگشت یا چهره (بیومتریک)"
-            >
-              <Fingerprint className="w-4 h-4 text-teal-600" />
-              <span className="hidden md:inline">بیومتریک</span>
-            </button>
-          )}
-
-          {/* Quick Lock Button */}
-          {onLockScreen && (
-            <button
-              onClick={onLockScreen}
-              className="p-2.5 bg-slate-100/90 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border border-slate-200 rounded-xl transition-all shadow-2xs flex items-center gap-1.5 text-xs font-bold"
-              title="قفل سریع اتوماسیون با اثر انگشت"
-            >
-              <Lock className="w-4 h-4 text-slate-600" />
-              <span className="hidden lg:inline">قفل برنامه</span>
-            </button>
-          )}
-
-          {/* User Role Indicator Badge */}
-          <div className="hidden sm:flex items-center gap-2 pl-2 border-r border-slate-200 pr-3">
-            <div className="text-left">
-              <div className="text-xs font-black text-slate-800 leading-tight">
-                {currentUser?.fullName || currentUser?.full_name}
+          {/* User Profile Badge (Top Left Corner of the Header) */}
+          <div className="flex items-center gap-2.5 pr-3 pl-1 border-r border-slate-200">
+            <div className="text-left hidden sm:block">
+              <div className="text-xs font-black text-slate-900 leading-tight">
+                {currentUser?.fullName || currentUser?.full_name || 'مهندس مسعود شعبانی'}
               </div>
-              <div className="text-[10px] font-bold text-violet-700 leading-tight">
-                {currentUser?.department || ROLES.find(r => r.id === role)?.name}
+              <div className="text-[10px] font-bold text-indigo-700 leading-tight">
+                {currentUser?.department || ROLES.find(r => r.id === role)?.name || 'مدیریت ارشد سیستم (Admin)'}
               </div>
             </div>
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-violet-200 to-indigo-200 text-indigo-950 font-black flex items-center justify-center text-xs shadow-2xs border border-indigo-200">
-              {currentUser?.fullName?.charAt(0) || 'U'}
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 text-white font-black flex items-center justify-center text-sm shadow-md shadow-indigo-500/20 border border-white/40 shrink-0">
+              {(currentUser?.fullName || currentUser?.full_name || 'م').charAt(0)}
             </div>
           </div>
 

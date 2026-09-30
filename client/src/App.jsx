@@ -98,16 +98,6 @@ const getDefaultTabForUser = (user, checkPermFn) => {
 
 export default function App() {
   const { currentUser, role, hasPermission, logout } = useAuth();
-  const [isBiometricLocked, setIsBiometricLocked] = useState(() => {
-    try {
-      const dev = detectDeviceBiometrics();
-      const autoPrompt = isAutoBiometricPromptEnabled();
-      // If auto-prompt enabled, lock on mobile or upon session restore
-      return autoPrompt;
-    } catch (e) {
-      return false;
-    }
-  });
   const [activeTab, setActiveTab] = useState(() => {
     if (role === 'design') return 'dieline_generator';
     if (role === 'marketer') return 'marketing';
@@ -456,17 +446,6 @@ export default function App() {
     return <LoginView />;
   }
 
-  // If Biometric Lock is active, show Full-Screen Tactile Lock Screen
-  if (isBiometricLocked) {
-    return (
-      <BiometricLockScreen
-        user={currentUser}
-        onUnlock={() => setIsBiometricLocked(false)}
-        onLogout={logout}
-      />
-    );
-  }
-
   let targetStages = [];
   if (role === 'ceo' || role === 'admin') targetStages = [4];
   else if (role === 'sales') targetStages = [1, 3, 6, 8];
@@ -502,6 +481,7 @@ export default function App() {
         onOpenNotifications={openNotificationsModal}
         onOpenLicense={openLicenseModal}
         onOpenSearch={openSearchModal}
+        onOpenBiometricSettings={() => setShowBiometricSettingsModal(true)}
         isOpenMobile={isMobileSidebarOpen}
         onCloseMobile={() => setIsMobileSidebarOpen(false)}
       />
@@ -517,10 +497,8 @@ export default function App() {
           onOpenNotifications={openNotificationsModal}
           onOpenLicense={openLicenseModal}
           onOpenSearch={openSearchModal}
-          onOpenBiometricSettings={() => setShowBiometricSettingsModal(true)}
           onOpenAutoUpdate={() => setShowAutoUpdateModal(true)}
           onToggleSidebarMobile={() => setIsMobileSidebarOpen(prev => !prev)}
-          onLockScreen={() => setIsBiometricLocked(true)}
           licenseInfo={licenseState.license}
         />
 
