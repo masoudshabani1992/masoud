@@ -37,6 +37,11 @@ export default class ErrorBoundary extends React.Component {
             <p className="text-xs text-slate-500 max-w-md leading-relaxed">
               سیستم به طور خودکار از بروز اختلال در سامانه جلوگیری کرد. با دکمه زیر به صفحه اصلی بازگردید.
             </p>
+            {this.state.error && (
+              <div className="mt-3 p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 font-mono text-[11px] text-left dir-ltr max-w-xl mx-auto overflow-x-auto">
+                {this.state.error.toString()}
+              </div>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <button

@@ -113,12 +113,12 @@ export default function App() {
   };
 
   const [activeTab, setActiveTab] = useState(() => {
-    if (role === 'design') return 'dieline_generator';
-    if (role === 'marketer') return 'marketing';
+    if (role === 'design' || role === 'designer') return 'dieline_generator';
+    if (role === 'marketer' || role === 'marketing') return 'marketing';
     if (role === 'secretary') return 'new_order';
-    if (role === 'warehouse') return 'warehouse_cardboard';
+    if (role === 'warehouse' || role === 'procurement') return 'warehouse_cardboard';
     if (role === 'production') return 'production_orders';
-    if (role === 'accounting') return 'calculator';
+    if (role === 'accounting' || role === 'estimation') return 'calculator';
     return 'hub';
   });
   const [projects, setProjects] = useState([]);
