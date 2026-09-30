@@ -220,14 +220,14 @@ export default function SystemAutoUpdateModal({ isOpen, onClose }) {
               <div>
                 <div className="flex items-center gap-2">
                   <h4 className="text-xs font-black text-slate-800">
-                    نسخه فعلی سرور: {updateInfo?.currentVersion || '2.8.7'} (بیلد {updateInfo?.currentBuild || 90})
+                    نسخه فعلی سرور: {updateInfo?.currentVersion || '3.0.0'} (بیلد {updateInfo?.currentBuild || 100})
                   </h4>
                   <span className="text-[9px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full border border-emerald-200">
                     پایدار
                   </span>
                 </div>
                 <p className="text-[11px] text-slate-500 mt-0.5">
-                  آخرین نسخه موجود در گیت‌هاب: <strong className="text-indigo-700 font-mono">{updateInfo?.latestVersion || '2.8.7'}</strong>
+                  آخرین نسخه موجود در گیت‌هاب: <strong className="text-indigo-700 font-mono">{updateInfo?.latestVersion || '3.0.0'}</strong>
                 </p>
               </div>
             </div>

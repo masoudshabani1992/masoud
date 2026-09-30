@@ -67,8 +67,8 @@ export const MAIN_CATEGORIES = [
 ];
 
 export const CARDBOARD_TYPES = [
-  'پشت طوسی',
   'ایندربرد',
+  'پشت طوسی',
   'گلاسه',
   'تحریر',
   'کرافت',
@@ -81,11 +81,11 @@ export const GRAMMAGES = [
 
 export const PRINT_TYPES = [
   'افست نرمال',
-  'افست متالایز'
+  'افست متالایز',
+  'بدون چاپ'
 ];
 
 export const PRINT_COLORS = [
-  'بدون چاپ',
   '۱ رنگ',
   '۲ رنگ',
   '۳ رنگ',
@@ -97,6 +97,38 @@ export const PRINT_COLORS = [
 export const PRINT_ZINC_OPTIONS = [
   'زینک جدید',
   'زینک موجود'
+];
+
+export const COATING_CATEGORIES = [
+  { id: 'سلفون', label: 'سلفون', desc: 'حرارتی، واتربیس، طرح‌دار، مخملی' },
+  { id: 'ورنی', label: 'ورنی', desc: 'مات یا براق' },
+  { id: 'لاک', label: 'لاک', desc: 'لاک محافظ چاپ' },
+  { id: 'یو وی سیلندری', label: 'یو وی سیلندری', desc: 'روکش سراسری سیلندری' },
+  { id: 'بدون روکش', label: 'بدون روکش (حذف)', desc: 'چاپ مستقیم بدون پوشش' }
+];
+
+export const CELLOPHANE_SUBTYPES = [
+  'سلفون حرارتی براق',
+  'سلفون حرارتی مات',
+  'واتربیس براق',
+  'واتربیس مات',
+  'طرح دار',
+  'مخملی'
+];
+
+export const VARNISH_SUBTYPES = [
+  'ورنی مات',
+  'ورنی براق'
+];
+
+export const LACQUER_SUBTYPES = [
+  'لاک براق',
+  'لاک مات'
+];
+
+export const UV_CYLINDER_SUBTYPES = [
+  'یو وی سیلندری براق',
+  'یو وی سیلندری مات'
 ];
 
 export const CELLOPHANE_TYPES = [
@@ -120,6 +152,14 @@ export const LACQUER_OPTIONS = [
   'یو وی سیلندری'
 ];
 
+export const SPECIAL_UV_OPTIONS = [
+  'موضعی',
+  'شنی',
+  'هیبرید',
+  'اکلیلی',
+  '3D'
+];
+
 export const UV_OPTIONS = [
   'بدون یووی',
   'موضعی',
@@ -131,9 +171,17 @@ export const UV_OPTIONS = [
 
 export const EMBOSS_OPTIONS = [
   'بدون برجسته',
-  'برجسته',
-  'کلیشه موجود',
-  'کلیشه جدید'
+  'برجسته (کلیشه جدید)',
+  'برجسته (کلیشه موجود)'
+];
+
+export const WINDOW_THICKNESS_OPTIONS = [
+  '۱۰۰ میکرون (نازک)',
+  '۱۵۰ میکرون (استاندارد)',
+  '۲۰۰ میکرون (مقاوم)',
+  '۲۵۰ میکرون (ضخیم)',
+  '۳۰۰ میکرون (بسیار ضخیم)',
+  'طلق PVC شفاف'
 ];
 
 export const GLUE_OPTIONS = [
@@ -145,7 +193,6 @@ export const GLUE_OPTIONS = [
 ];
 
 export const FOIL_OPTIONS = [
-  'بدون فویل',
   'طلاکوب',
   'نقره کوب',
   'رنگی کوب'
@@ -207,24 +254,47 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
   const [cardboardType, setCardboardType] = useState('ایندربرد');
   const [cardboardGrammage, setCardboardGrammage] = useState(300);
   const [materialConstruction, setMaterialConstruction] = useState('مقوایی');
+  
+  // Print specs
   const [printType, setPrintType] = useState('افست نرمال');
   const [printColors, setPrintColors] = useState('۴ رنگ (CMYK)');
   const [printZinc, setPrintZinc] = useState('زینک جدید');
   const [customSpotColor, setCustomSpotColor] = useState(false);
-  const [printFormLength, setPrintFormLength] = useState('');
-  const [printFormWidth, setPrintFormWidth] = useState('');
-  const [boxesPerSheet, setBoxesPerSheet] = useState('');
+  
+  // Coating specs (سلفون / ورنی / لاک / یو وی سیلندری / بدون روکش)
+  const [coatingCategory, setCoatingCategory] = useState('سلفون');
   const [cellophaneType, setCellophaneType] = useState('سلفون حرارتی مات');
-  const [varnishType, setVarnishType] = useState('بدون ورنی');
-  const [lacquerType, setLacquerType] = useState('بدون لاک');
-  const [uvType, setUvType] = useState('بدون یووی');
-  const [embossType, setEmbossType] = useState('بدون برجسته');
+  const [varnishType, setVarnishType] = useState('ورنی مات');
+  const [lacquerType, setLacquerType] = useState('لاک براق');
+  const [uvCylinderType, setUvCylinderType] = useState('یو وی سیلندری براق');
+  
+  // Special UV section
+  const [hasUv, setHasUv] = useState(false);
+  const [uvType, setUvType] = useState('موضعی');
+  
+  // Emboss section
+  const [hasEmboss, setHasEmboss] = useState(false);
+  const [embossType, setEmbossType] = useState('برجسته (کلیشه جدید)');
+  
+  // Window Patching / طلق section
+  const [hasWindow, setHasWindow] = useState(false);
+  const [windowLength, setWindowLength] = useState('');
+  const [windowWidth, setWindowWidth] = useState('');
+  const [windowThickness, setWindowThickness] = useState('۱۵۰ میکرون (استاندارد)');
+  
+  // Glue section
+  const [hasGlue, setHasGlue] = useState(true);
   const [glueType, setGlueType] = useState('لب چسب');
   const [glueLength, setGlueLength] = useState('');
   const [glueWidth, setGlueWidth] = useState('');
-  const [foilType, setFoilType] = useState('بدون فویل');
+  
+  // Foil section
+  const [hasFoil, setHasFoil] = useState(false);
+  const [foilType, setFoilType] = useState('طلاکوب');
   const [foilLength, setFoilLength] = useState('');
   const [foilWidth, setFoilWidth] = useState('');
+  
+  // Dimensions & General
   const [boxLength, setBoxLength] = useState('');
   const [boxWidth, setBoxWidth] = useState('');
   const [boxHeight, setBoxHeight] = useState('');
@@ -249,20 +319,34 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
   const [editPrintColors, setEditPrintColors] = useState('۴ رنگ (CMYK)');
   const [editPrintZinc, setEditPrintZinc] = useState('زینک جدید');
   const [editCustomSpotColor, setEditCustomSpotColor] = useState(false);
-  const [editPrintFormLength, setEditPrintFormLength] = useState('');
-  const [editPrintFormWidth, setEditPrintFormWidth] = useState('');
-  const [editBoxesPerSheet, setEditBoxesPerSheet] = useState('');
+  
+  const [editCoatingCategory, setEditCoatingCategory] = useState('سلفون');
   const [editCellophaneType, setEditCellophaneType] = useState('سلفون حرارتی مات');
-  const [editVarnishType, setEditVarnishType] = useState('بدون ورنی');
-  const [editLacquerType, setEditLacquerType] = useState('بدون لاک');
-  const [editUvType, setEditUvType] = useState('بدون یووی');
-  const [editEmbossType, setEditEmbossType] = useState('بدون برجسته');
+  const [editVarnishType, setEditVarnishType] = useState('ورنی مات');
+  const [editLacquerType, setEditLacquerType] = useState('لاک براق');
+  const [editUvCylinderType, setEditUvCylinderType] = useState('یو وی سیلندری براق');
+  
+  const [editHasUv, setEditHasUv] = useState(false);
+  const [editUvType, setEditUvType] = useState('موضعی');
+  
+  const [editHasEmboss, setEditHasEmboss] = useState(false);
+  const [editEmbossType, setEditEmbossType] = useState('برجسته (کلیشه جدید)');
+  
+  const [editHasWindow, setEditHasWindow] = useState(false);
+  const [editWindowLength, setEditWindowLength] = useState('');
+  const [editWindowWidth, setEditWindowWidth] = useState('');
+  const [editWindowThickness, setEditWindowThickness] = useState('۱۵۰ میکرون (استاندارد)');
+  
+  const [editHasGlue, setEditHasGlue] = useState(true);
   const [editGlueType, setEditGlueType] = useState('لب چسب');
   const [editGlueLength, setEditGlueLength] = useState('');
   const [editGlueWidth, setEditGlueWidth] = useState('');
-  const [editFoilType, setEditFoilType] = useState('بدون فویل');
+  
+  const [editHasFoil, setEditHasFoil] = useState(false);
+  const [editFoilType, setEditFoilType] = useState('طلاکوب');
   const [editFoilLength, setEditFoilLength] = useState('');
   const [editFoilWidth, setEditFoilWidth] = useState('');
+  
   const [editBoxLength, setEditBoxLength] = useState('');
   const [editBoxWidth, setEditBoxWidth] = useState('');
   const [editBoxHeight, setEditBoxHeight] = useState('');
@@ -383,20 +467,34 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
     setEditPrintColors(specs.print_colors || lead.print_colors || '۴ رنگ (CMYK)');
     setEditPrintZinc(specs.print_zinc || lead.print_zinc || 'زینک جدید');
     setEditCustomSpotColor(!!(specs.custom_spot_color || lead.custom_spot_color));
-    setEditPrintFormLength(specs.print_form_length || lead.print_form_length || '');
-    setEditPrintFormWidth(specs.print_form_width || lead.print_form_width || '');
-    setEditBoxesPerSheet(specs.boxes_per_sheet || lead.boxes_per_sheet || '');
+    
+    setEditCoatingCategory(specs.coating_category || lead.coating_category || 'سلفون');
     setEditCellophaneType(specs.cellophane_type || lead.cellophane_type || 'سلفون حرارتی مات');
-    setEditVarnishType(specs.varnish_type || lead.varnish_type || 'بدون ورنی');
-    setEditLacquerType(specs.lacquer_type || lead.lacquer_type || 'بدون لاک');
-    setEditUvType(specs.uv_type || lead.uv_type || 'بدون یووی');
-    setEditEmbossType(specs.emboss_type || lead.emboss_type || 'بدون برجسته');
+    setEditVarnishType(specs.varnish_type || lead.varnish_type || 'ورنی مات');
+    setEditLacquerType(specs.lacquer_type || lead.lacquer_type || 'لاک براق');
+    setEditUvCylinderType(specs.uv_cylinder_type || 'یو وی سیلندری براق');
+    
+    setEditHasUv(specs.has_uv !== undefined ? !!specs.has_uv : !!(lead.has_uv || (lead.uv_type && lead.uv_type !== 'بدون یووی')));
+    setEditUvType(specs.uv_type && specs.uv_type !== 'بدون یووی' ? specs.uv_type : 'موضعی');
+    
+    setEditHasEmboss(specs.has_emboss !== undefined ? !!specs.has_emboss : !!(lead.has_emboss || (lead.emboss_type && lead.emboss_type !== 'بدون برجسته')));
+    setEditEmbossType(specs.emboss_type && specs.emboss_type !== 'بدون برجسته' ? specs.emboss_type : 'برجسته (کلیشه جدید)');
+    
+    setEditHasWindow(specs.has_window !== undefined ? !!specs.has_window : !!(lead.has_window || lead.window_patching));
+    setEditWindowLength(specs.window_length || lead.window_length || '');
+    setEditWindowWidth(specs.window_width || lead.window_width || '');
+    setEditWindowThickness(specs.window_thickness || lead.window_thickness || '۱۵۰ میکرون (استاندارد)');
+    
+    setEditHasGlue(specs.has_glue !== undefined ? !!specs.has_glue : (lead.has_glue !== undefined ? !!lead.has_glue : true));
     setEditGlueType(specs.glue_type || lead.glue_type || 'لب چسب');
     setEditGlueLength(specs.glue_length || lead.glue_length || '');
     setEditGlueWidth(specs.glue_width || lead.glue_width || '');
-    setEditFoilType(specs.foil_type || lead.foil_type || 'بدون فویل');
+    
+    setEditHasFoil(specs.has_foil !== undefined ? !!specs.has_foil : !!(lead.has_foil || (lead.foil_type && lead.foil_type !== 'بدون فویل')));
+    setEditFoilType(specs.foil_type && specs.foil_type !== 'بدون فویل' ? specs.foil_type : 'طلاکوب');
     setEditFoilLength(specs.foil_length || lead.foil_length || '');
     setEditFoilWidth(specs.foil_width || lead.foil_width || '');
+    
     setEditBoxLength(lead.box_length !== null ? String(lead.box_length) : '');
     setEditBoxWidth(lead.box_width !== null ? String(lead.box_width) : '');
     setEditBoxHeight(lead.box_height !== null ? String(lead.box_height) : '');
@@ -416,6 +514,12 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
 
     setUpdatingLead(true);
     try {
+      const effectiveCoating = editCoatingCategory === 'سلفون' ? editCellophaneType
+        : editCoatingCategory === 'ورنی' ? editVarnishType
+        : editCoatingCategory === 'لاک' ? editLacquerType
+        : editCoatingCategory === 'یو وی سیلندری' ? editUvCylinderType
+        : 'بدون روکش';
+
       const technicalSpecs = {
         main_category: editMainCategory,
         cardboard_type: editCardboardType,
@@ -424,20 +528,27 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
         print_colors: editPrintColors,
         print_zinc: editPrintZinc,
         custom_spot_color: editCustomSpotColor,
-        print_form_length: editPrintFormLength ? Number(editPrintFormLength) : null,
-        print_form_width: editPrintFormWidth ? Number(editPrintFormWidth) : null,
-        boxes_per_sheet: editBoxesPerSheet ? Number(editBoxesPerSheet) : null,
-        cellophane_type: editCellophaneType,
+        coating_category: editCoatingCategory,
+        cellophane_type: effectiveCoating,
         varnish_type: editVarnishType,
         lacquer_type: editLacquerType,
-        uv_type: editUvType,
-        emboss_type: editEmbossType,
-        glue_type: editGlueType,
-        glue_length: editGlueLength ? Number(editGlueLength) : null,
-        glue_width: editGlueWidth ? Number(editGlueWidth) : null,
-        foil_type: editFoilType,
-        foil_length: editFoilLength ? Number(editFoilLength) : null,
-        foil_width: editFoilWidth ? Number(editFoilWidth) : null
+        uv_cylinder_type: editUvCylinderType,
+        has_uv: editHasUv ? 1 : 0,
+        uv_type: editHasUv ? editUvType : 'بدون یووی',
+        has_emboss: editHasEmboss ? 1 : 0,
+        emboss_type: editHasEmboss ? editEmbossType : 'بدون برجسته',
+        has_window: editHasWindow ? 1 : 0,
+        window_length: editHasWindow && editWindowLength ? Number(editWindowLength) : null,
+        window_width: editHasWindow && editWindowWidth ? Number(editWindowWidth) : null,
+        window_thickness: editHasWindow ? editWindowThickness : null,
+        has_glue: editHasGlue ? 1 : 0,
+        glue_type: editHasGlue ? editGlueType : 'بدون چسب',
+        glue_length: editHasGlue && editGlueLength ? Number(editGlueLength) : null,
+        glue_width: editHasGlue && editGlueWidth ? Number(editGlueWidth) : null,
+        has_foil: editHasFoil ? 1 : 0,
+        foil_type: editHasFoil ? editFoilType : 'بدون فویل',
+        foil_length: editHasFoil && editFoilLength ? Number(editFoilLength) : null,
+        foil_width: editHasFoil && editFoilWidth ? Number(editFoilWidth) : null
       };
 
       const res = await api.updateMarketingLead(editingLead.id, {
@@ -453,20 +564,26 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
         print_colors: editPrintColors,
         print_zinc: editPrintZinc,
         custom_spot_color: editCustomSpotColor,
-        print_form_length: editPrintFormLength ? Number(editPrintFormLength) : null,
-        print_form_width: editPrintFormWidth ? Number(editPrintFormWidth) : null,
-        boxes_per_sheet: editBoxesPerSheet ? Number(editBoxesPerSheet) : null,
-        cellophane_type: editCellophaneType,
+        coating_category: editCoatingCategory,
+        cellophane_type: effectiveCoating,
         varnish_type: editVarnishType,
         lacquer_type: editLacquerType,
-        uv_type: editUvType,
-        emboss_type: editEmbossType,
-        glue_type: editGlueType,
-        glue_length: editGlueLength ? Number(editGlueLength) : null,
-        glue_width: editGlueWidth ? Number(editGlueWidth) : null,
-        foil_type: editFoilType,
-        foil_length: editFoilLength ? Number(editFoilLength) : null,
-        foil_width: editFoilWidth ? Number(editFoilWidth) : null,
+        has_uv: editHasUv ? 1 : 0,
+        uv_type: editHasUv ? editUvType : 'بدون یووی',
+        has_emboss: editHasEmboss ? 1 : 0,
+        emboss_type: editHasEmboss ? editEmbossType : 'بدون برجسته',
+        has_window: editHasWindow ? 1 : 0,
+        window_length: editHasWindow && editWindowLength ? Number(editWindowLength) : null,
+        window_width: editHasWindow && editWindowWidth ? Number(editWindowWidth) : null,
+        window_thickness: editHasWindow ? editWindowThickness : null,
+        has_glue: editHasGlue ? 1 : 0,
+        glue_type: editHasGlue ? editGlueType : 'بدون چسب',
+        glue_length: editHasGlue && editGlueLength ? Number(editGlueLength) : null,
+        glue_width: editHasGlue && editGlueWidth ? Number(editGlueWidth) : null,
+        has_foil: editHasFoil ? 1 : 0,
+        foil_type: editHasFoil ? editFoilType : 'بدون فویل',
+        foil_length: editHasFoil && editFoilLength ? Number(editFoilLength) : null,
+        foil_width: editHasFoil && editFoilWidth ? Number(editFoilWidth) : null,
         box_length: editBoxLength ? Number(editBoxLength) : null,
         box_width: editBoxWidth ? Number(editBoxWidth) : null,
         box_height: editBoxHeight ? Number(editBoxHeight) : null,
@@ -527,6 +644,12 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
     setSubmitting(true);
     setSubmitSuccess(null);
     try {
+      const effectiveCoating = coatingCategory === 'سلفون' ? cellophaneType
+        : coatingCategory === 'ورنی' ? varnishType
+        : coatingCategory === 'لاک' ? lacquerType
+        : coatingCategory === 'یو وی سیلندری' ? uvCylinderType
+        : 'بدون روکش';
+
       const technicalSpecs = {
         main_category: mainCategory,
         cardboard_type: cardboardType,
@@ -535,20 +658,27 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
         print_colors: printColors,
         print_zinc: printZinc,
         custom_spot_color: customSpotColor,
-        print_form_length: printFormLength ? Number(printFormLength) : null,
-        print_form_width: printFormWidth ? Number(printFormWidth) : null,
-        boxes_per_sheet: boxesPerSheet ? Number(boxesPerSheet) : null,
-        cellophane_type: cellophaneType,
+        coating_category: coatingCategory,
+        cellophane_type: effectiveCoating,
         varnish_type: varnishType,
         lacquer_type: lacquerType,
-        uv_type: uvType,
-        emboss_type: embossType,
-        glue_type: glueType,
-        glue_length: glueLength ? Number(glueLength) : null,
-        glue_width: glueWidth ? Number(glueWidth) : null,
-        foil_type: foilType,
-        foil_length: foilLength ? Number(foilLength) : null,
-        foil_width: foilWidth ? Number(foilWidth) : null
+        uv_cylinder_type: uvCylinderType,
+        has_uv: hasUv ? 1 : 0,
+        uv_type: hasUv ? uvType : 'بدون یووی',
+        has_emboss: hasEmboss ? 1 : 0,
+        emboss_type: hasEmboss ? embossType : 'بدون برجسته',
+        has_window: hasWindow ? 1 : 0,
+        window_length: hasWindow && windowLength ? Number(windowLength) : null,
+        window_width: hasWindow && windowWidth ? Number(windowWidth) : null,
+        window_thickness: hasWindow ? windowThickness : null,
+        has_glue: hasGlue ? 1 : 0,
+        glue_type: hasGlue ? glueType : 'بدون چسب',
+        glue_length: hasGlue && glueLength ? Number(glueLength) : null,
+        glue_width: hasGlue && glueWidth ? Number(glueWidth) : null,
+        has_foil: hasFoil ? 1 : 0,
+        foil_type: hasFoil ? foilType : 'بدون فویل',
+        foil_length: hasFoil && foilLength ? Number(foilLength) : null,
+        foil_width: hasFoil && foilWidth ? Number(foilWidth) : null
       };
 
       const res = await api.createMarketingLead({
@@ -564,20 +694,26 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
         print_colors: printColors,
         print_zinc: printZinc,
         custom_spot_color: customSpotColor,
-        print_form_length: printFormLength ? Number(printFormLength) : null,
-        print_form_width: printFormWidth ? Number(printFormWidth) : null,
-        boxes_per_sheet: boxesPerSheet ? Number(boxesPerSheet) : null,
-        cellophane_type: cellophaneType,
+        coating_category: coatingCategory,
+        cellophane_type: effectiveCoating,
         varnish_type: varnishType,
         lacquer_type: lacquerType,
-        uv_type: uvType,
-        emboss_type: embossType,
-        glue_type: glueType,
-        glue_length: glueLength ? Number(glueLength) : null,
-        glue_width: glueWidth ? Number(glueWidth) : null,
-        foil_type: foilType,
-        foil_length: foilLength ? Number(foilLength) : null,
-        foil_width: foilWidth ? Number(foilWidth) : null,
+        has_uv: hasUv ? 1 : 0,
+        uv_type: hasUv ? uvType : 'بدون یووی',
+        has_emboss: hasEmboss ? 1 : 0,
+        emboss_type: hasEmboss ? embossType : 'بدون برجسته',
+        has_window: hasWindow ? 1 : 0,
+        window_length: hasWindow && windowLength ? Number(windowLength) : null,
+        window_width: hasWindow && windowWidth ? Number(windowWidth) : null,
+        window_thickness: hasWindow ? windowThickness : null,
+        has_glue: hasGlue ? 1 : 0,
+        glue_type: hasGlue ? glueType : 'بدون چسب',
+        glue_length: hasGlue && glueLength ? Number(glueLength) : null,
+        glue_width: hasGlue && glueWidth ? Number(glueWidth) : null,
+        has_foil: hasFoil ? 1 : 0,
+        foil_type: hasFoil ? foilType : 'بدون فویل',
+        foil_length: hasFoil && foilLength ? Number(foilLength) : null,
+        foil_width: hasFoil && foilWidth ? Number(foilWidth) : null,
         box_length: boxLength ? Number(boxLength) : null,
         box_width: boxWidth ? Number(boxWidth) : null,
         box_height: boxHeight ? Number(boxHeight) : null,
@@ -605,18 +741,25 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
         setPrintColors('۴ رنگ (CMYK)');
         setPrintZinc('زینک جدید');
         setCustomSpotColor(false);
-        setPrintFormLength('');
-        setPrintFormWidth('');
-        setBoxesPerSheet('');
+        setCoatingCategory('سلفون');
         setCellophaneType('سلفون حرارتی مات');
-        setVarnishType('بدون ورنی');
-        setLacquerType('بدون لاک');
-        setUvType('بدون یووی');
-        setEmbossType('بدون برجسته');
+        setVarnishType('ورنی مات');
+        setLacquerType('لاک براق');
+        setUvCylinderType('یو وی سیلندری براق');
+        setHasUv(false);
+        setUvType('موضعی');
+        setHasEmboss(false);
+        setEmbossType('برجسته (کلیشه جدید)');
+        setHasWindow(false);
+        setWindowLength('');
+        setWindowWidth('');
+        setWindowThickness('۱۵۰ میکرون (استاندارد)');
+        setHasGlue(true);
         setGlueType('لب چسب');
         setGlueLength('');
         setGlueWidth('');
-        setFoilType('بدون فویل');
+        setHasFoil(false);
+        setFoilType('طلاکوب');
         setFoilLength('');
         setFoilWidth('');
         setBoxLength('');
@@ -2086,32 +2229,22 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                   </span>
                 </div>
 
-                {/* 1. Cardboard Type & Grammage */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                  {/* Cardboard Type */}
+                {/* 1. Cardboard Type (لیستی) & Grammage */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                  {/* Cardboard Type as Select List */}
                   <div className="space-y-1.5">
                     <label className="font-bold text-slate-800 block">
-                      نوع مقوا (۶ نوع اصلی):
+                      نوع مقوا (انتخاب از لیست): <span className="text-rose-500">*</span>
                     </label>
-                    <div className="grid grid-cols-3 gap-1.5">
-                      {CARDBOARD_TYPES.map((type) => {
-                        const isSel = cardboardType === type;
-                        return (
-                          <button
-                            key={type}
-                            type="button"
-                            onClick={() => setCardboardType(type)}
-                            className={`px-2.5 py-2 rounded-xl text-xs font-bold border transition text-center ${
-                              isSel
-                                ? 'bg-teal-600 text-white border-teal-600 shadow-xs'
-                                : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200'
-                            }`}
-                          >
-                            {type}
-                          </button>
-                        );
-                      })}
-                    </div>
+                    <select
+                      value={cardboardType}
+                      onChange={(e) => setCardboardType(e.target.value)}
+                      className="w-full bg-white border border-slate-300 rounded-2xl px-3.5 py-2.5 text-xs font-black text-slate-800 focus:outline-none focus:border-teal-500 shadow-2xs"
+                    >
+                      {CARDBOARD_TYPES.map((type) => (
+                        <option key={type} value={type}>مقوای {type}</option>
+                      ))}
+                    </select>
                   </div>
 
                   {/* Cardboard Grammage (28 exact grammages) */}
@@ -2127,7 +2260,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                     <select
                       value={cardboardGrammage}
                       onChange={(e) => setCardboardGrammage(Number(e.target.value))}
-                      className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-black text-slate-800 focus:outline-none focus:border-teal-500"
+                      className="w-full bg-white border border-slate-300 rounded-2xl px-3.5 py-2.5 text-xs font-black text-slate-800 focus:outline-none focus:border-teal-500 shadow-2xs"
                     >
                       {GRAMMAGES.map((g) => (
                         <option key={g} value={g}>
@@ -2156,39 +2289,43 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                   </div>
                 </div>
 
-                {/* 2. Printing Specifications (افست نرمال و افست متالایز) */}
-                <div className="p-3.5 bg-white rounded-2xl border border-slate-200 space-y-3">
-                  <div className="flex items-center justify-between flex-wrap gap-2">
+                {/* 2. Printing Specifications (نوع چاپ اول -> بعد تعداد رنگ -> زینک و رنگ ساختگی - ابعاد فرم حذف شد) */}
+                <div className="p-4 bg-white rounded-2xl border border-slate-200 space-y-3">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-2">
                     <span className="text-xs font-black text-slate-800 flex items-center gap-1.5">
                       <Printer className="w-4 h-4 text-indigo-600" />
-                      مشخصات چاپ افست (افست نرمال / متالایز)
+                      مشخصات چاپ افست
                     </span>
-                    <div className="flex items-center gap-1.5">
-                      {PRINT_TYPES.map((pt) => (
-                        <button
-                          key={pt}
-                          type="button"
-                          onClick={() => setPrintType(pt)}
-                          className={`px-2.5 py-1 rounded-xl text-xs font-bold border transition ${
-                            printType === pt
-                              ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
-                              : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
-                          }`}
-                        >
-                          {pt}
-                        </button>
-                      ))}
-                    </div>
+                    <span className="text-[11px] font-bold text-slate-500">انتخاب روش چاپ و تعداد رنگ</span>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
-                    {/* Print Colors (1 to 6 colors) */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                    {/* Step 1: Print Type Selection */}
                     <div>
-                      <label className="font-bold text-slate-700 block mb-1">تعداد رنگ چاپ:</label>
+                      <label className="font-bold text-slate-700 block mb-1">
+                        ۱. نوع چاپ: <span className="text-rose-500">*</span>
+                      </label>
                       <select
+                        value={printType}
+                        onChange={(e) => setPrintType(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-black text-slate-800 focus:outline-none focus:border-indigo-500 text-xs"
+                      >
+                        {PRINT_TYPES.map((pt) => (
+                          <option key={pt} value={pt}>{pt}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Step 2: Number of Colors (1 to 6) */}
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">
+                        ۲. تعداد رنگ چاپ:
+                      </label>
+                      <select
+                        disabled={printType === 'بدون چاپ'}
                         value={printColors}
                         onChange={(e) => setPrintColors(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-2 font-bold text-slate-800 focus:outline-none focus:border-indigo-500 text-xs"
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-bold text-slate-800 focus:outline-none focus:border-indigo-500 text-xs disabled:opacity-50"
                       >
                         {PRINT_COLORS.map((pc) => (
                           <option key={pc} value={pc}>{pc}</option>
@@ -2200,159 +2337,293 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                     <div>
                       <label className="font-bold text-slate-700 block mb-1">وضعیت زینک:</label>
                       <select
+                        disabled={printType === 'بدون چاپ'}
                         value={printZinc}
                         onChange={(e) => setPrintZinc(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-2 font-bold text-slate-800 focus:outline-none focus:border-indigo-500 text-xs"
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-bold text-slate-800 focus:outline-none focus:border-indigo-500 text-xs disabled:opacity-50"
                       >
                         {PRINT_ZINC_OPTIONS.map((zo) => (
                           <option key={zo} value={zo}>{zo}</option>
                         ))}
                       </select>
                     </div>
-
-                    {/* Print Form Length (mm) */}
-                    <div>
-                      <label className="font-bold text-slate-700 block mb-1">طول فرم چاپی (mm):</label>
-                      <input
-                        type="number"
-                        placeholder="مثال: ۷۰۰"
-                        value={printFormLength}
-                        onChange={(e) => setPrintFormLength(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-2 font-mono font-bold text-slate-800 focus:outline-none focus:border-indigo-500 text-xs text-center"
-                      />
-                    </div>
-
-                    {/* Print Form Width (mm) & Boxes per sheet */}
-                    <div>
-                      <label className="font-bold text-slate-700 block mb-1">عرض فرم (mm) / در فرم:</label>
-                      <div className="grid grid-cols-2 gap-1.5">
-                        <input
-                          type="number"
-                          placeholder="عرض mm"
-                          value={printFormWidth}
-                          onChange={(e) => setPrintFormWidth(e.target.value)}
-                          className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2 py-2 font-mono font-bold text-slate-800 focus:outline-none focus:border-indigo-500 text-xs text-center"
-                        />
-                        <input
-                          type="number"
-                          placeholder="تعداد در فرم"
-                          value={boxesPerSheet}
-                          onChange={(e) => setBoxesPerSheet(e.target.value)}
-                          className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2 py-2 font-mono font-bold text-slate-800 focus:outline-none focus:border-indigo-500 text-xs text-center"
-                          title="تعداد جعبه در هر شیت فرم"
-                        />
-                      </div>
-                    </div>
                   </div>
 
                   {/* Spot color checkbox */}
-                  <div className="flex items-center gap-2 pt-1 border-t border-slate-100">
-                    <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700">
+                  {printType !== 'بدون چاپ' && (
+                    <div className="flex items-center gap-2 pt-1 border-t border-slate-100">
+                      <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700">
+                        <input
+                          type="checkbox"
+                          checked={customSpotColor}
+                          onChange={(e) => setCustomSpotColor(e.target.checked)}
+                          className="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4"
+                        />
+                        <span>دارای رنگ ساختگی پنتون (Spot / Pantone Color)</span>
+                      </label>
+                    </div>
+                  )}
+                </div>
+
+                {/* 3. Surface Coatings Section (سلفون / ورنی / لاک / یو وی سیلندری با زیرمجموعه پویا) */}
+                <div className="p-4 bg-white rounded-2xl border border-slate-200 space-y-3 text-xs">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                    <span className="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                      <Layers className="w-4 h-4 text-teal-600" />
+                      روکش و پوشش چاپ (سلفون / ورنی / لاک / یو وی سیلندری)
+                    </span>
+                    <span className="text-[11px] font-bold text-teal-800 bg-teal-50 px-2 py-0.5 rounded-lg border border-teal-200">
+                      {coatingCategory}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Primary Coating Type */}
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">
+                        انتخاب نوع روکش اصلی:
+                      </label>
+                      <select
+                        value={coatingCategory}
+                        onChange={(e) => setCoatingCategory(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-black text-slate-800 focus:outline-none focus:border-teal-500 text-xs"
+                      >
+                        {COATING_CATEGORIES.map((cat) => (
+                          <option key={cat.id} value={cat.id}>{cat.label}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Dynamic Sub-Option Selection */}
+                    <div>
+                      {coatingCategory === 'سلفون' && (
+                        <div>
+                          <label className="font-bold text-slate-700 block mb-1">نوع سلفون:</label>
+                          <select
+                            value={cellophaneType}
+                            onChange={(e) => setCellophaneType(e.target.value)}
+                            className="w-full bg-white border border-teal-400 rounded-xl px-3 py-2 font-bold text-teal-950 focus:outline-none text-xs"
+                          >
+                            {CELLOPHANE_SUBTYPES.map((cp) => (
+                              <option key={cp} value={cp}>{cp}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+
+                      {coatingCategory === 'ورنی' && (
+                        <div>
+                          <label className="font-bold text-slate-700 block mb-1">نوع ورنی:</label>
+                          <select
+                            value={varnishType}
+                            onChange={(e) => setVarnishType(e.target.value)}
+                            className="w-full bg-white border border-teal-400 rounded-xl px-3 py-2 font-bold text-teal-950 focus:outline-none text-xs"
+                          >
+                            {VARNISH_SUBTYPES.map((v) => (
+                              <option key={v} value={v}>{v}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+
+                      {coatingCategory === 'لاک' && (
+                        <div>
+                          <label className="font-bold text-slate-700 block mb-1">نوع لاک:</label>
+                          <select
+                            value={lacquerType}
+                            onChange={(e) => setLacquerType(e.target.value)}
+                            className="w-full bg-white border border-teal-400 rounded-xl px-3 py-2 font-bold text-teal-950 focus:outline-none text-xs"
+                          >
+                            {LACQUER_SUBTYPES.map((l) => (
+                              <option key={l} value={l}>{l}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+
+                      {coatingCategory === 'یو وی سیلندری' && (
+                        <div>
+                          <label className="font-bold text-slate-700 block mb-1">نوع یو وی سیلندری:</label>
+                          <select
+                            value={uvCylinderType}
+                            onChange={(e) => setUvCylinderType(e.target.value)}
+                            className="w-full bg-white border border-teal-400 rounded-xl px-3 py-2 font-bold text-teal-950 focus:outline-none text-xs"
+                          >
+                            {UV_CYLINDER_SUBTYPES.map((u) => (
+                              <option key={u} value={u}>{u}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+
+                      {coatingCategory === 'بدون روکش' && (
+                        <div className="p-2.5 bg-slate-100 rounded-xl border border-slate-200 text-slate-500 font-bold text-xs flex items-center gap-1.5 mt-5">
+                          <span>بدون روکش و پوشش سلفون یا ورنی</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 4. DEDICATED SECTION: یو وی موضعی / تخصصی (اگر یو وی دارد) */}
+                <div className="p-4 bg-white rounded-2xl border border-slate-200 space-y-3 text-xs">
+                  <div className="flex items-center justify-between">
+                    <label className="flex items-center gap-2 cursor-pointer font-black text-slate-800 text-xs">
                       <input
                         type="checkbox"
-                        checked={customSpotColor}
-                        onChange={(e) => setCustomSpotColor(e.target.checked)}
-                        className="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4"
+                        checked={hasUv}
+                        onChange={(e) => setHasUv(e.target.checked)}
+                        className="rounded text-purple-600 focus:ring-purple-500 w-4 h-4"
                       />
-                      <span>دارای رنگ ساختگی پنتون (Spot / Pantone Color)</span>
+                      <Sparkles className="w-4 h-4 text-purple-600" />
+                      <span>یو وی موضعی / تخصصی (Spot UV)</span>
                     </label>
-                  </div>
-                </div>
-
-                {/* 3. Surface Coatings & Finishing (سلفون، ورنی، لاک، یووی، برجسته) */}
-                <div className="p-3.5 bg-white rounded-2xl border border-slate-200 space-y-3 text-xs">
-                  <span className="text-xs font-black text-slate-800 flex items-center gap-1.5">
-                    <Layers className="w-4 h-4 text-teal-600" />
-                    روکش، پوشش و افکت‌های سطحی (Coatings & UV)
-                  </span>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-                    {/* Cellophane */}
-                    <div>
-                      <label className="font-bold text-slate-700 block mb-1">روکش سلفون:</label>
-                      <select
-                        value={cellophaneType}
-                        onChange={(e) => setCellophaneType(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-2 font-bold text-slate-800 focus:outline-none focus:border-teal-500 text-xs"
-                      >
-                        {CELLOPHANE_TYPES.map((cp) => (
-                          <option key={cp} value={cp}>{cp}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Varnish */}
-                    <div>
-                      <label className="font-bold text-slate-700 block mb-1">ورنی:</label>
-                      <select
-                        value={varnishType}
-                        onChange={(e) => setVarnishType(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-2 font-bold text-slate-800 focus:outline-none focus:border-teal-500 text-xs"
-                      >
-                        {VARNISH_OPTIONS.map((v) => (
-                          <option key={v} value={v}>{v}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Lacquer */}
-                    <div>
-                      <label className="font-bold text-slate-700 block mb-1">لاک:</label>
-                      <select
-                        value={lacquerType}
-                        onChange={(e) => setLacquerType(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-2 font-bold text-slate-800 focus:outline-none focus:border-teal-500 text-xs"
-                      >
-                        {LACQUER_OPTIONS.map((l) => (
-                          <option key={l} value={l}>{l}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Special UV */}
-                    <div>
-                      <label className="font-bold text-slate-700 block mb-1">یو وی (Spot/Special):</label>
-                      <select
-                        value={uvType}
-                        onChange={(e) => setUvType(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-2 font-bold text-slate-800 focus:outline-none focus:border-teal-500 text-xs"
-                      >
-                        {UV_OPTIONS.map((u) => (
-                          <option key={u} value={u}>{u}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Emboss */}
-                    <div>
-                      <label className="font-bold text-slate-700 block mb-1">برجسته (Emboss):</label>
-                      <select
-                        value={embossType}
-                        onChange={(e) => setEmbossType(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-2 font-bold text-slate-800 focus:outline-none focus:border-teal-500 text-xs"
-                      >
-                        {EMBOSS_OPTIONS.map((eb) => (
-                          <option key={eb} value={eb}>{eb}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 4. Glue & Foil Stamping (چسب و فویل / طلاکوب) */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                  {/* Glue */}
-                  <div className="p-3.5 bg-white rounded-2xl border border-slate-200 space-y-2">
-                    <span className="text-xs font-black text-slate-800 block">
-                      مشخصات چسب و لب‌چسب (Gluing Specs)
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${hasUv ? 'bg-purple-100 text-purple-800 border border-purple-200' : 'bg-slate-100 text-slate-500'}`}>
+                      {hasUv ? 'فعال' : 'ندارد'}
                     </span>
-                    <div className="grid grid-cols-3 gap-2">
+                  </div>
+
+                  {hasUv && (
+                    <div className="pt-2 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-3 animate-fadeIn">
                       <div>
-                        <label className="font-bold text-slate-600 block mb-1 text-[11px]">نوع چسب:</label>
+                        <label className="font-bold text-slate-700 block mb-1">نوع یووی موضعی:</label>
+                        <select
+                          value={uvType}
+                          onChange={(e) => setUvType(e.target.value)}
+                          className="w-full bg-purple-50/60 border border-purple-300 rounded-xl px-3 py-2 font-bold text-purple-950 text-xs focus:outline-none"
+                        >
+                          {SPECIAL_UV_OPTIONS.map((u) => (
+                            <option key={u} value={u}>یووی {u}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="text-[11px] text-purple-800 bg-purple-50/50 p-2.5 rounded-xl border border-purple-100 flex items-center">
+                        افکت یووی موضعی روی نواحی منتخب طرح چاپی یا سلفون مات اعمال می‌گردد.
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 5. DEDICATED SECTION: برجسته‌کاری (اگر برجسته دارد) */}
+                <div className="p-4 bg-white rounded-2xl border border-slate-200 space-y-3 text-xs">
+                  <div className="flex items-center justify-between">
+                    <label className="flex items-center gap-2 cursor-pointer font-black text-slate-800 text-xs">
+                      <input
+                        type="checkbox"
+                        checked={hasEmboss}
+                        onChange={(e) => setHasEmboss(e.target.checked)}
+                        className="rounded text-amber-600 focus:ring-amber-500 w-4 h-4"
+                      />
+                      <SlidersIcon className="w-4 h-4 text-amber-600" />
+                      <span>برجسته‌کاری (Embossing)</span>
+                    </label>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${hasEmboss ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-slate-100 text-slate-500'}`}>
+                      {hasEmboss ? 'فعال' : 'ندارد'}
+                    </span>
+                  </div>
+
+                  {hasEmboss && (
+                    <div className="pt-2 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-3 animate-fadeIn">
+                      <div>
+                        <label className="font-bold text-slate-700 block mb-1">نوع و وضعیت کلیشه برجسته:</label>
+                        <select
+                          value={embossType}
+                          onChange={(e) => setEmbossType(e.target.value)}
+                          className="w-full bg-amber-50/60 border border-amber-300 rounded-xl px-3 py-2 font-bold text-amber-950 text-xs focus:outline-none"
+                        >
+                          <option value="برجسته (کلیشه جدید)">برجسته با ساخت کلیشه جدید</option>
+                          <option value="برجسته (کلیشه موجود)">برجسته با کلیشه موجود از قبل</option>
+                        </select>
+                      </div>
+                      <div className="text-[11px] text-amber-800 bg-amber-50/50 p-2.5 rounded-xl border border-amber-100 flex items-center">
+                        عملیات امباس و برجسته‌سازی لوگو و نوشتار با کلیشه فلزی حرارتی.
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 6. DEDICATED SECTION: طلق پنجره جعبه (طول ، عرض ، ضخامت) */}
+                <div className="p-4 bg-white rounded-2xl border border-slate-200 space-y-3 text-xs">
+                  <div className="flex items-center justify-between">
+                    <label className="flex items-center gap-2 cursor-pointer font-black text-slate-800 text-xs">
+                      <input
+                        type="checkbox"
+                        checked={hasWindow}
+                        onChange={(e) => setHasWindow(e.target.checked)}
+                        className="rounded text-cyan-600 focus:ring-cyan-500 w-4 h-4"
+                      />
+                      <Box className="w-4 h-4 text-cyan-600" />
+                      <span>پنجره طلق‌دار (Window Patching)</span>
+                    </label>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${hasWindow ? 'bg-cyan-100 text-cyan-800 border border-cyan-200' : 'bg-slate-100 text-slate-500'}`}>
+                      {hasWindow ? 'دارد' : 'بدون طلق'}
+                    </span>
+                  </div>
+
+                  {hasWindow && (
+                    <div className="pt-2 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-3 animate-fadeIn">
+                      <div>
+                        <label className="font-bold text-slate-700 block mb-1">طول طلق (mm):</label>
+                        <input
+                          type="number"
+                          placeholder="مثال: ۸۰"
+                          value={windowLength}
+                          onChange={(e) => setWindowLength(e.target.value)}
+                          className="w-full bg-cyan-50/50 border border-cyan-300 rounded-xl px-3 py-2 font-mono font-bold text-center text-slate-800 text-xs focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="font-bold text-slate-700 block mb-1">عرض طلق (mm):</label>
+                        <input
+                          type="number"
+                          placeholder="مثال: ۵۰"
+                          value={windowWidth}
+                          onChange={(e) => setWindowWidth(e.target.value)}
+                          className="w-full bg-cyan-50/50 border border-cyan-300 rounded-xl px-3 py-2 font-mono font-bold text-center text-slate-800 text-xs focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="font-bold text-slate-700 block mb-1">ضخامت طلق:</label>
+                        <select
+                          value={windowThickness}
+                          onChange={(e) => setWindowThickness(e.target.value)}
+                          className="w-full bg-cyan-50/50 border border-cyan-300 rounded-xl px-3 py-2 font-bold text-slate-800 text-xs focus:outline-none"
+                        >
+                          {WINDOW_THICKNESS_OPTIONS.map((th) => (
+                            <option key={th} value={th}>{th}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 7. DEDICATED SECTION: چسب و لب‌چسب (فقط ابعاد اگر چسب دارد) */}
+                <div className="p-4 bg-white rounded-2xl border border-slate-200 space-y-3 text-xs">
+                  <div className="flex items-center justify-between">
+                    <label className="flex items-center gap-2 cursor-pointer font-black text-slate-800 text-xs">
+                      <input
+                        type="checkbox"
+                        checked={hasGlue}
+                        onChange={(e) => setHasGlue(e.target.checked)}
+                        className="rounded text-teal-600 focus:ring-teal-500 w-4 h-4"
+                      />
+                      <CheckCircle className="w-4 h-4 text-teal-600" />
+                      <span>چسب و اتصال جعبه (Gluing)</span>
+                    </label>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${hasGlue ? 'bg-teal-100 text-teal-800 border border-teal-200' : 'bg-slate-100 text-slate-500'}`}>
+                      {hasGlue ? 'دارد' : 'بدون چسب (قفل شونده)'}
+                    </span>
+                  </div>
+
+                  {hasGlue && (
+                    <div className="pt-2 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-3 animate-fadeIn">
+                      <div>
+                        <label className="font-bold text-slate-700 block mb-1">نوع چسب:</label>
                         <select
                           value={glueType}
                           onChange={(e) => setGlueType(e.target.value)}
-                          className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
+                          className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-bold text-slate-800 text-xs focus:outline-none"
                         >
                           {GLUE_OPTIONS.map((g) => (
                             <option key={g} value={g}>{g}</option>
@@ -2360,40 +2631,55 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                         </select>
                       </div>
                       <div>
-                        <label className="font-bold text-slate-600 block mb-1 text-[11px]">طول لب‌چسب (mm):</label>
+                        <label className="font-bold text-slate-700 block mb-1">طول لب‌چسب (mm):</label>
                         <input
                           type="number"
                           placeholder="طول mm"
                           value={glueLength}
                           onChange={(e) => setGlueLength(e.target.value)}
-                          className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2 py-1.5 font-mono font-bold text-slate-800 text-xs text-center focus:outline-none"
+                          className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-mono font-bold text-center text-slate-800 text-xs focus:outline-none"
                         />
                       </div>
                       <div>
-                        <label className="font-bold text-slate-600 block mb-1 text-[11px]">عرض لب‌چسب (mm):</label>
+                        <label className="font-bold text-slate-700 block mb-1">عرض لب‌چسب (mm):</label>
                         <input
                           type="number"
                           placeholder="عرض mm"
                           value={glueWidth}
                           onChange={(e) => setGlueWidth(e.target.value)}
-                          className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2 py-1.5 font-mono font-bold text-slate-800 text-xs text-center focus:outline-none"
+                          className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-mono font-bold text-center text-slate-800 text-xs focus:outline-none"
                         />
                       </div>
                     </div>
+                  )}
+                </div>
+
+                {/* 8. DEDICATED SECTION: فویل و طلاکوب */}
+                <div className="p-4 bg-white rounded-2xl border border-slate-200 space-y-3 text-xs">
+                  <div className="flex items-center justify-between">
+                    <label className="flex items-center gap-2 cursor-pointer font-black text-slate-800 text-xs">
+                      <input
+                        type="checkbox"
+                        checked={hasFoil}
+                        onChange={(e) => setHasFoil(e.target.checked)}
+                        className="rounded text-amber-500 focus:ring-amber-400 w-4 h-4"
+                      />
+                      <Sparkles className="w-4 h-4 text-amber-500" />
+                      <span>فویل و طلاکوب / نقره‌کوب (Hot Foil)</span>
+                    </label>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${hasFoil ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-slate-100 text-slate-500'}`}>
+                      {hasFoil ? 'دارد' : 'بدون فویل'}
+                    </span>
                   </div>
 
-                  {/* Foil */}
-                  <div className="p-3.5 bg-white rounded-2xl border border-slate-200 space-y-2">
-                    <span className="text-xs font-black text-slate-800 block">
-                      فویل / طلاکوب / نقره‌کوب (Foil Stamping)
-                    </span>
-                    <div className="grid grid-cols-3 gap-2">
+                  {hasFoil && (
+                    <div className="pt-2 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-3 animate-fadeIn">
                       <div>
-                        <label className="font-bold text-slate-600 block mb-1 text-[11px]">نوع فویل:</label>
+                        <label className="font-bold text-slate-700 block mb-1">نوع فویل:</label>
                         <select
                           value={foilType}
                           onChange={(e) => setFoilType(e.target.value)}
-                          className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
+                          className="w-full bg-amber-50/50 border border-amber-300 rounded-xl px-3 py-2 font-bold text-slate-800 text-xs focus:outline-none"
                         >
                           {FOIL_OPTIONS.map((f) => (
                             <option key={f} value={f}>{f}</option>
@@ -2401,29 +2687,27 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                         </select>
                       </div>
                       <div>
-                        <label className="font-bold text-slate-600 block mb-1 text-[11px]">طول فویل (mm):</label>
+                        <label className="font-bold text-slate-700 block mb-1">طول فویل (mm):</label>
                         <input
                           type="number"
-                          disabled={foilType === 'بدون فویل'}
                           placeholder="طول mm"
                           value={foilLength}
                           onChange={(e) => setFoilLength(e.target.value)}
-                          className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2 py-1.5 font-mono font-bold text-slate-800 text-xs text-center focus:outline-none disabled:opacity-50"
+                          className="w-full bg-amber-50/50 border border-amber-300 rounded-xl px-3 py-2 font-mono font-bold text-center text-slate-800 text-xs focus:outline-none"
                         />
                       </div>
                       <div>
-                        <label className="font-bold text-slate-600 block mb-1 text-[11px]">عرض فویل (mm):</label>
+                        <label className="font-bold text-slate-700 block mb-1">عرض فویل (mm):</label>
                         <input
                           type="number"
-                          disabled={foilType === 'بدون فویل'}
                           placeholder="عرض mm"
                           value={foilWidth}
                           onChange={(e) => setFoilWidth(e.target.value)}
-                          className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2 py-1.5 font-mono font-bold text-slate-800 text-xs text-center focus:outline-none disabled:opacity-50"
+                          className="w-full bg-amber-50/50 border border-amber-300 rounded-xl px-3 py-2 font-mono font-bold text-center text-slate-800 text-xs focus:outline-none"
                         />
                       </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
             )}
@@ -3424,20 +3708,22 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
 
               {/* TIER 2: EDIT SPECS FOR «مقوایی» */}
               {editMainCategory === 'مقوایی' && (
-                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-3">
-                  <div className="text-xs font-black text-amber-900 flex items-center gap-1.5 border-b border-slate-200 pb-1.5">
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-4">
+                  <div className="text-xs font-black text-amber-900 flex items-center gap-1.5 border-b border-slate-200 pb-2">
                     <Sparkles className="w-4 h-4 text-amber-600" />
                     <span>مشخصات فنی مقوایی</span>
                   </div>
 
-                  {/* Cardboard Type & Grammage */}
+                  {/* 1. نوع و گرماژ مقوا (لیستی Dropdown) */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="font-bold text-slate-700 block mb-1">نوع مقوا:</label>
+                      <label className="font-bold text-slate-700 block mb-1">
+                        نوع مقوا: <span className="text-rose-500">*</span>
+                      </label>
                       <select
                         value={editCardboardType}
                         onChange={(e) => setEditCardboardType(e.target.value)}
-                        className="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
+                        className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 font-bold text-slate-800 text-xs focus:outline-none focus:border-amber-500"
                       >
                         {CARDBOARD_TYPES.map((t) => (
                           <option key={t} value={t}>{t}</option>
@@ -3446,11 +3732,13 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                     </div>
 
                     <div>
-                      <label className="font-bold text-slate-700 block mb-1">گرماژ مقوا:</label>
+                      <label className="font-bold text-slate-700 block mb-1">
+                        گرماژ مقوا: <span className="text-rose-500">*</span>
+                      </label>
                       <select
                         value={editCardboardGrammage}
                         onChange={(e) => setEditCardboardGrammage(Number(e.target.value))}
-                        className="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
+                        className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 font-bold text-slate-800 text-xs focus:outline-none focus:border-amber-500"
                       >
                         {GRAMMAGES.map((g) => (
                           <option key={g} value={g}>{g} گرم</option>
@@ -3459,209 +3747,404 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                     </div>
                   </div>
 
-                  {/* Print in Edit Modal */}
-                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-200">
-                    <div>
-                      <label className="font-bold text-slate-700 block mb-1">نوع چاپ:</label>
-                      <select
-                        value={editPrintType}
-                        onChange={(e) => setEditPrintType(e.target.value)}
-                        className="w-full bg-white border border-slate-300 rounded-xl px-2 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
-                      >
-                        {PRINT_TYPES.map((pt) => (
-                          <option key={pt} value={pt}>{pt}</option>
-                        ))}
-                      </select>
+                  {/* 2. مشخصات چاپ: ابتدا نوع چاپ -> سپس تعداد رنگ */}
+                  <div className="bg-white border border-slate-200 rounded-xl p-3 space-y-3">
+                    <div className="text-[11px] font-black text-slate-800 flex items-center gap-1.5 border-b border-slate-100 pb-1.5">
+                      <Layers className="w-3.5 h-3.5 text-blue-600" />
+                      <span>مشخصات چاپ</span>
                     </div>
 
-                    <div>
-                      <label className="font-bold text-slate-700 block mb-1">تعداد رنگ:</label>
-                      <select
-                        value={editPrintColors}
-                        onChange={(e) => setEditPrintColors(e.target.value)}
-                        className="w-full bg-white border border-slate-300 rounded-xl px-2 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
-                      >
-                        {PRINT_COLORS.map((pc) => (
-                          <option key={pc} value={pc}>{pc}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="font-bold text-slate-700 block mb-1">وضعیت زینک:</label>
-                      <select
-                        value={editPrintZinc}
-                        onChange={(e) => setEditPrintZinc(e.target.value)}
-                        className="w-full bg-white border border-slate-300 rounded-xl px-2 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
-                      >
-                        {PRINT_ZINC_OPTIONS.map((zo) => (
-                          <option key={zo} value={zo}>{zo}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="font-bold text-slate-700 block mb-1">طول و عرض فرم (mm):</label>
-                      <div className="grid grid-cols-2 gap-1">
-                        <input
-                          type="number"
-                          placeholder="طول"
-                          value={editPrintFormLength}
-                          onChange={(e) => setEditPrintFormLength(e.target.value)}
-                          className="w-full bg-white border border-slate-300 rounded-xl px-1.5 py-1.5 font-mono text-center text-xs focus:outline-none"
-                        />
-                        <input
-                          type="number"
-                          placeholder="عرض"
-                          value={editPrintFormWidth}
-                          onChange={(e) => setEditPrintFormWidth(e.target.value)}
-                          className="w-full bg-white border border-slate-300 rounded-xl px-1.5 py-1.5 font-mono text-center text-xs focus:outline-none"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Coatings in Edit Modal */}
-                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-2 border-t border-slate-200">
-                    <div>
-                      <label className="font-bold text-slate-700 block mb-1 text-[11px]">سلفون:</label>
-                      <select
-                        value={editCellophaneType}
-                        onChange={(e) => setEditCellophaneType(e.target.value)}
-                        className="w-full bg-white border border-slate-300 rounded-xl px-2 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
-                      >
-                        {CELLOPHANE_TYPES.map((cp) => (
-                          <option key={cp} value={cp}>{cp}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="font-bold text-slate-700 block mb-1 text-[11px]">ورنی:</label>
-                      <select
-                        value={editVarnishType}
-                        onChange={(e) => setEditVarnishType(e.target.value)}
-                        className="w-full bg-white border border-slate-300 rounded-xl px-2 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
-                      >
-                        {VARNISH_OPTIONS.map((v) => (
-                          <option key={v} value={v}>{v}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="font-bold text-slate-700 block mb-1 text-[11px]">لاک:</label>
-                      <select
-                        value={editLacquerType}
-                        onChange={(e) => setEditLacquerType(e.target.value)}
-                        className="w-full bg-white border border-slate-300 rounded-xl px-2 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
-                      >
-                        {LACQUER_OPTIONS.map((l) => (
-                          <option key={l} value={l}>{l}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="font-bold text-slate-700 block mb-1 text-[11px]">یووی:</label>
-                      <select
-                        value={editUvType}
-                        onChange={(e) => setEditUvType(e.target.value)}
-                        className="w-full bg-white border border-slate-300 rounded-xl px-2 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
-                      >
-                        {UV_OPTIONS.map((u) => (
-                          <option key={u} value={u}>{u}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="font-bold text-slate-700 block mb-1 text-[11px]">برجسته:</label>
-                      <select
-                        value={editEmbossType}
-                        onChange={(e) => setEditEmbossType(e.target.value)}
-                        className="w-full bg-white border border-slate-300 rounded-xl px-2 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
-                      >
-                        {EMBOSS_OPTIONS.map((eb) => (
-                          <option key={eb} value={eb}>{eb}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Glue & Foil in Edit Modal */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-200">
-                    <div className="grid grid-cols-3 gap-1.5">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div>
-                        <label className="font-bold text-slate-600 block mb-1 text-[10px]">چسب:</label>
+                        <label className="font-bold text-slate-700 block mb-1 text-[11px]">
+                          ۱. نوع چاپ:
+                        </label>
                         <select
-                          value={editGlueType}
-                          onChange={(e) => setEditGlueType(e.target.value)}
-                          className="w-full bg-white border border-slate-300 rounded-xl px-1.5 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
+                          value={editPrintType}
+                          onChange={(e) => setEditPrintType(e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 font-bold text-slate-800 text-xs focus:outline-none focus:border-blue-500"
                         >
-                          {GLUE_OPTIONS.map((g) => (
-                            <option key={g} value={g}>{g}</option>
+                          {PRINT_TYPES.map((pt) => (
+                            <option key={pt} value={pt}>{pt}</option>
                           ))}
                         </select>
                       </div>
-                      <div>
-                        <label className="font-bold text-slate-600 block mb-1 text-[10px]">طول چسب (mm):</label>
-                        <input
-                          type="number"
-                          placeholder="طول"
-                          value={editGlueLength}
-                          onChange={(e) => setEditGlueLength(e.target.value)}
-                          className="w-full bg-white border border-slate-300 rounded-xl px-1.5 py-1.5 font-mono text-center text-xs focus:outline-none"
-                        />
-                      </div>
-                      <div>
-                        <label className="font-bold text-slate-600 block mb-1 text-[10px]">عرض چسب (mm):</label>
-                        <input
-                          type="number"
-                          placeholder="عرض"
-                          value={editGlueWidth}
-                          onChange={(e) => setEditGlueWidth(e.target.value)}
-                          className="w-full bg-white border border-slate-300 rounded-xl px-1.5 py-1.5 font-mono text-center text-xs focus:outline-none"
-                        />
-                      </div>
-                    </div>
 
-                    <div className="grid grid-cols-3 gap-1.5">
                       <div>
-                        <label className="font-bold text-slate-600 block mb-1 text-[10px]">فویل:</label>
+                        <label className="font-bold text-slate-700 block mb-1 text-[11px]">
+                          ۲. تعداد رنگ چاپ:
+                        </label>
                         <select
-                          value={editFoilType}
-                          onChange={(e) => setEditFoilType(e.target.value)}
-                          className="w-full bg-white border border-slate-300 rounded-xl px-1.5 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
+                          disabled={editPrintType === 'بدون چاپ'}
+                          value={editPrintColors}
+                          onChange={(e) => setEditPrintColors(e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 font-bold text-slate-800 text-xs focus:outline-none focus:border-blue-500 disabled:opacity-50"
                         >
-                          {FOIL_OPTIONS.map((f) => (
-                            <option key={f} value={f}>{f}</option>
+                          {PRINT_COLORS.map((pc) => (
+                            <option key={pc} value={pc}>{pc}</option>
                           ))}
                         </select>
                       </div>
+
                       <div>
-                        <label className="font-bold text-slate-600 block mb-1 text-[10px]">طول فویل (mm):</label>
-                        <input
-                          type="number"
-                          disabled={editFoilType === 'بدون فویل'}
-                          placeholder="طول"
-                          value={editFoilLength}
-                          onChange={(e) => setEditFoilLength(e.target.value)}
-                          className="w-full bg-white border border-slate-300 rounded-xl px-1.5 py-1.5 font-mono text-center text-xs focus:outline-none disabled:opacity-50"
-                        />
-                      </div>
-                      <div>
-                        <label className="font-bold text-slate-600 block mb-1 text-[10px]">عرض فویل (mm):</label>
-                        <input
-                          type="number"
-                          disabled={editFoilType === 'بدون فویل'}
-                          placeholder="عرض"
-                          value={editFoilWidth}
-                          onChange={(e) => setEditFoilWidth(e.target.value)}
-                          className="w-full bg-white border border-slate-300 rounded-xl px-1.5 py-1.5 font-mono text-center text-xs focus:outline-none disabled:opacity-50"
-                        />
+                        <label className="font-bold text-slate-700 block mb-1 text-[11px]">
+                          وضعیت زینک:
+                        </label>
+                        <select
+                          disabled={editPrintType === 'بدون چاپ'}
+                          value={editPrintZinc}
+                          onChange={(e) => setEditPrintZinc(e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 font-bold text-slate-800 text-xs focus:outline-none focus:border-blue-500 disabled:opacity-50"
+                        >
+                          {PRINT_ZINC_OPTIONS.map((zo) => (
+                            <option key={zo} value={zo}>{zo}</option>
+                          ))}
+                        </select>
                       </div>
                     </div>
+
+                    <div className="flex items-center gap-2 pt-1 border-t border-slate-100">
+                      <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={editCustomSpotColor}
+                          onChange={(e) => setEditCustomSpotColor(e.target.checked)}
+                          className="rounded text-amber-600 focus:ring-amber-500 w-3.5 h-3.5"
+                        />
+                        <span>دارای رنگ ساختگی (پنتون Spot Color)</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* 3. روکش سطح (سلفون / ورنی / لاک / یو وی سیلندری / بدون روکش) */}
+                  <div className="bg-white border border-slate-200 rounded-xl p-3 space-y-3">
+                    <div className="text-[11px] font-black text-slate-800 flex items-center gap-1.5 border-b border-slate-100 pb-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-purple-600" />
+                      <span>روکش سطح</span>
+                    </div>
+
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1.5 text-[11px]">
+                        انتخاب نوع روکش اصلی:
+                      </label>
+                      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                        {COATING_CATEGORIES.map((coat) => {
+                          const isSel = editCoatingCategory === coat.id;
+                          return (
+                            <button
+                              key={coat.id}
+                              type="button"
+                              onClick={() => setEditCoatingCategory(coat.id)}
+                              className={`p-2 rounded-xl border text-center transition flex flex-col items-center justify-center gap-0.5 ${
+                                isSel
+                                  ? 'bg-purple-50 border-purple-500 text-purple-900 font-black shadow-xs ring-2 ring-purple-500/20'
+                                  : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700'
+                              }`}
+                            >
+                              <span className="text-xs">{coat.label}</span>
+                              <span className="text-[9px] text-slate-500">{coat.desc}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Dynamic Sub-type selector based on primary coating */}
+                    {editCoatingCategory === 'سلفون' && (
+                      <div className="bg-purple-50/50 p-2.5 rounded-lg border border-purple-200 text-xs">
+                        <label className="font-bold text-purple-950 block mb-1 text-[11px]">زیرمجموعه سلفون:</label>
+                        <select
+                          value={editCellophaneType}
+                          onChange={(e) => setEditCellophaneType(e.target.value)}
+                          className="w-full bg-white border border-purple-300 rounded-lg px-2.5 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
+                        >
+                          {CELLOPHANE_TYPES.map((cp) => (
+                            <option key={cp} value={cp}>{cp}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {editCoatingCategory === 'ورنی' && (
+                      <div className="bg-purple-50/50 p-2.5 rounded-lg border border-purple-200 text-xs">
+                        <label className="font-bold text-purple-950 block mb-1 text-[11px]">زیرمجموعه ورنی:</label>
+                        <select
+                          value={editVarnishType}
+                          onChange={(e) => setEditVarnishType(e.target.value)}
+                          className="w-full bg-white border border-purple-300 rounded-lg px-2.5 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
+                        >
+                          {VARNISH_OPTIONS.map((v) => (
+                            <option key={v} value={v}>{v}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {editCoatingCategory === 'لاک' && (
+                      <div className="bg-purple-50/50 p-2.5 rounded-lg border border-purple-200 text-xs">
+                        <label className="font-bold text-purple-950 block mb-1 text-[11px]">زیرمجموعه لاک:</label>
+                        <select
+                          value={editLacquerType}
+                          onChange={(e) => setEditLacquerType(e.target.value)}
+                          className="w-full bg-white border border-purple-300 rounded-lg px-2.5 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
+                        >
+                          {LACQUER_OPTIONS.map((l) => (
+                            <option key={l} value={l}>{l}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {editCoatingCategory === 'یو وی سیلندری' && (
+                      <div className="bg-purple-50/50 p-2.5 rounded-lg border border-purple-200 text-xs">
+                        <label className="font-bold text-purple-950 block mb-1 text-[11px]">زیرمجموعه یو وی سیلندری:</label>
+                        <select
+                          value={editUvCylinderType}
+                          onChange={(e) => setEditUvCylinderType(e.target.value)}
+                          className="w-full bg-white border border-purple-300 rounded-lg px-2.5 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
+                        >
+                          {UV_CYLINDER_OPTIONS.map((u) => (
+                            <option key={u} value={u}>{u}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 4. سکشن اختصاصی یو وی موضعی/تخصصی */}
+                  <div className="bg-white border border-slate-200 rounded-xl p-3 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 font-black text-slate-800 text-[11px]">
+                        <Zap className="w-3.5 h-3.5 text-amber-500" />
+                        <span>یو وی (موضعی و افکت‌های خاص)</span>
+                      </div>
+                      <label className="flex items-center gap-1.5 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={editHasUv}
+                          onChange={(e) => setEditHasUv(e.target.checked)}
+                          className="rounded text-amber-600 focus:ring-amber-500 w-3.5 h-3.5"
+                        />
+                        <span className="text-xs font-bold text-slate-700">دارد</span>
+                      </label>
+                    </div>
+
+                    {editHasUv && (
+                      <div className="pt-2 border-t border-slate-100">
+                        <label className="font-bold text-slate-600 block mb-1 text-[11px]">نوع یووی موضعی:</label>
+                        <select
+                          value={editUvType}
+                          onChange={(e) => setEditUvType(e.target.value)}
+                          className="w-full bg-slate-50 border border-amber-300 rounded-lg px-2.5 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
+                        >
+                          {UV_OPTIONS.map((u) => (
+                            <option key={u} value={u}>{u}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 5. سکشن اختصاصی برجسته (Embossing) */}
+                  <div className="bg-white border border-slate-200 rounded-xl p-3 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 font-black text-slate-800 text-[11px]">
+                        <Sparkles className="w-3.5 h-3.5 text-teal-600" />
+                        <span>برجسته / فرورفته (Emboss / Deboss)</span>
+                      </div>
+                      <label className="flex items-center gap-1.5 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={editHasEmboss}
+                          onChange={(e) => setEditHasEmboss(e.target.checked)}
+                          className="rounded text-teal-600 focus:ring-teal-500 w-3.5 h-3.5"
+                        />
+                        <span className="text-xs font-bold text-slate-700">دارد</span>
+                      </label>
+                    </div>
+
+                    {editHasEmboss && (
+                      <div className="pt-2 border-t border-slate-100">
+                        <label className="font-bold text-slate-600 block mb-1 text-[11px]">وضعیت کلیشه برجسته:</label>
+                        <select
+                          value={editEmbossType}
+                          onChange={(e) => setEditEmbossType(e.target.value)}
+                          className="w-full bg-slate-50 border border-teal-300 rounded-lg px-2.5 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
+                        >
+                          {EMBOSS_OPTIONS.map((eb) => (
+                            <option key={eb} value={eb}>{eb}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 6. سکشن اختصاصی طلق (پنجره جعبه) با ویژگی‌های طول، عرض و ضخامت */}
+                  <div className="bg-white border border-slate-200 rounded-xl p-3 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 font-black text-slate-800 text-[11px]">
+                        <Eye className="w-3.5 h-3.5 text-cyan-600" />
+                        <span>طلق (پنجره‌دار / Window Patching)</span>
+                      </div>
+                      <label className="flex items-center gap-1.5 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={editHasWindow}
+                          onChange={(e) => setEditHasWindow(e.target.checked)}
+                          className="rounded text-cyan-600 focus:ring-cyan-500 w-3.5 h-3.5"
+                        />
+                        <span className="text-xs font-bold text-slate-700">دارد</span>
+                      </label>
+                    </div>
+
+                    {editHasWindow && (
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 border-t border-slate-100">
+                        <div>
+                          <label className="font-bold text-slate-600 block mb-1 text-[10px]">طول طلق (mm):</label>
+                          <input
+                            type="number"
+                            placeholder="طول"
+                            value={editWindowLength}
+                            onChange={(e) => setEditWindowLength(e.target.value)}
+                            className="w-full bg-slate-50 border border-cyan-300 rounded-lg px-2 py-1.5 font-mono text-center text-xs focus:outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="font-bold text-slate-600 block mb-1 text-[10px]">عرض طلق (mm):</label>
+                          <input
+                            type="number"
+                            placeholder="عرض"
+                            value={editWindowWidth}
+                            onChange={(e) => setEditWindowWidth(e.target.value)}
+                            className="w-full bg-slate-50 border border-cyan-300 rounded-lg px-2 py-1.5 font-mono text-center text-xs focus:outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="font-bold text-slate-600 block mb-1 text-[10px]">ضخامت طلق:</label>
+                          <select
+                            value={editWindowThickness}
+                            onChange={(e) => setEditWindowThickness(e.target.value)}
+                            className="w-full bg-slate-50 border border-cyan-300 rounded-lg px-2 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
+                          >
+                            {WINDOW_THICKNESS_OPTIONS.map((wt) => (
+                              <option key={wt} value={wt}>{wt}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 7. سکشن چسب: ابعاد طول و عرض لب‌چسب */}
+                  <div className="bg-white border border-slate-200 rounded-xl p-3 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 font-black text-slate-800 text-[11px]">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>چسب (لب‌چسب جعبه)</span>
+                      </div>
+                      <label className="flex items-center gap-1.5 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={editHasGlue}
+                          onChange={(e) => setEditHasGlue(e.target.checked)}
+                          className="rounded text-emerald-600 focus:ring-emerald-500 w-3.5 h-3.5"
+                        />
+                        <span className="text-xs font-bold text-slate-700">دارد</span>
+                      </label>
+                    </div>
+
+                    {editHasGlue && (
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 border-t border-slate-100">
+                        <div>
+                          <label className="font-bold text-slate-600 block mb-1 text-[10px]">نوع چسب:</label>
+                          <select
+                            value={editGlueType}
+                            onChange={(e) => setEditGlueType(e.target.value)}
+                            className="w-full bg-slate-50 border border-emerald-300 rounded-lg px-2 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
+                          >
+                            {GLUE_OPTIONS.map((g) => (
+                              <option key={g} value={g}>{g}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="font-bold text-slate-600 block mb-1 text-[10px]">طول لب‌چسب (mm):</label>
+                          <input
+                            type="number"
+                            placeholder="طول"
+                            value={editGlueLength}
+                            onChange={(e) => setEditGlueLength(e.target.value)}
+                            className="w-full bg-slate-50 border border-emerald-300 rounded-lg px-2 py-1.5 font-mono text-center text-xs focus:outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="font-bold text-slate-600 block mb-1 text-[10px]">عرض لب‌چسب (mm):</label>
+                          <input
+                            type="number"
+                            placeholder="عرض"
+                            value={editGlueWidth}
+                            onChange={(e) => setEditGlueWidth(e.target.value)}
+                            className="w-full bg-slate-50 border border-emerald-300 rounded-lg px-2 py-1.5 font-mono text-center text-xs focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 8. سکشن فویل و طلاکوب */}
+                  <div className="bg-white border border-slate-200 rounded-xl p-3 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 font-black text-slate-800 text-[11px]">
+                        <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                        <span>فویل (طلاکوب / نقره‌کوب)</span>
+                      </div>
+                      <label className="flex items-center gap-1.5 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={editHasFoil}
+                          onChange={(e) => setEditHasFoil(e.target.checked)}
+                          className="rounded text-amber-600 focus:ring-amber-500 w-3.5 h-3.5"
+                        />
+                        <span className="text-xs font-bold text-slate-700">دارد</span>
+                      </label>
+                    </div>
+
+                    {editHasFoil && (
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 border-t border-slate-100">
+                        <div>
+                          <label className="font-bold text-slate-600 block mb-1 text-[10px]">نوع فویل:</label>
+                          <select
+                            value={editFoilType}
+                            onChange={(e) => setEditFoilType(e.target.value)}
+                            className="w-full bg-slate-50 border border-amber-300 rounded-lg px-2 py-1.5 font-bold text-slate-800 text-xs focus:outline-none"
+                          >
+                            {FOIL_OPTIONS.map((f) => (
+                              <option key={f} value={f}>{f}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="font-bold text-slate-600 block mb-1 text-[10px]">طول فویل (mm):</label>
+                          <input
+                            type="number"
+                            placeholder="طول"
+                            value={editFoilLength}
+                            onChange={(e) => setEditFoilLength(e.target.value)}
+                            className="w-full bg-slate-50 border border-amber-300 rounded-lg px-2 py-1.5 font-mono text-center text-xs focus:outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="font-bold text-slate-600 block mb-1 text-[10px]">عرض فویل (mm):</label>
+                          <input
+                            type="number"
+                            placeholder="عرض"
+                            value={editFoilWidth}
+                            onChange={(e) => setEditFoilWidth(e.target.value)}
+                            className="w-full bg-slate-50 border border-amber-300 rounded-lg px-2 py-1.5 font-mono text-center text-xs focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

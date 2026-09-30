@@ -30,13 +30,13 @@ function getCurrentVersionInfo() {
     if (fs.existsSync(pkgPath)) {
       const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
       return {
-        version: pkg.version || '2.8.9',
-        build: 95,
+        version: pkg.version || '3.0.0',
+        build: 100,
         description: pkg.description || 'سامانه اتوماسیون کارخانه جعبه‌سازی'
       };
     }
   } catch (e) {}
-  return { version: '2.8.9', build: 95 };
+  return { version: '3.0.0', build: 100 };
 }
 
 function fetchJsonUrl(url) {

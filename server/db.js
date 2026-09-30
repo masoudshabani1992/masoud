@@ -655,11 +655,20 @@ function initDb() {
   try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN print_form_length REAL").run(); } catch (e) {}
   try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN print_form_width REAL").run(); } catch (e) {}
   try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN boxes_per_sheet INTEGER").run(); } catch (e) {}
+  try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN coating_category TEXT DEFAULT 'سلفون'").run(); } catch (e) {}
   try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN varnish_type TEXT").run(); } catch (e) {}
   try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN lacquer_type TEXT").run(); } catch (e) {}
+  try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN has_uv INTEGER DEFAULT 0").run(); } catch (e) {}
+  try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN has_emboss INTEGER DEFAULT 0").run(); } catch (e) {}
+  try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN has_window INTEGER DEFAULT 0").run(); } catch (e) {}
+  try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN window_length REAL").run(); } catch (e) {}
+  try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN window_width REAL").run(); } catch (e) {}
+  try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN window_thickness TEXT").run(); } catch (e) {}
+  try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN has_glue INTEGER DEFAULT 1").run(); } catch (e) {}
   try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN glue_type TEXT").run(); } catch (e) {}
   try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN glue_length REAL").run(); } catch (e) {}
   try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN glue_width REAL").run(); } catch (e) {}
+  try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN has_foil INTEGER DEFAULT 0").run(); } catch (e) {}
   try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN foil_length REAL").run(); } catch (e) {}
   try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN foil_width REAL").run(); } catch (e) {}
   try { db.prepare("ALTER TABLE marketing_leads ADD COLUMN technical_specs_json TEXT").run(); } catch (e) {}
