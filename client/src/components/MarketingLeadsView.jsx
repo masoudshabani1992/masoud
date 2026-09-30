@@ -28,6 +28,7 @@ import {
   Check,
   XCircle,
   Boxes,
+  Box,
   Printer,
   MessageSquare,
   History,
