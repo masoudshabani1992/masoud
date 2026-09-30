@@ -432,21 +432,21 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
     fetchFormOptions();
   }, []);
 
-  const activeCardboardTypes = formOptions?.cardboard_types?.items || CARDBOARD_TYPES;
-  const activeGrammages = formOptions?.grammages?.items || GRAMMAGES;
-  const activePrintTypes = formOptions?.print_types?.items || PRINT_TYPES;
-  const activePrintColors = formOptions?.print_colors?.items || PRINT_COLORS;
-  const activePrintZincOptions = formOptions?.print_zinc_options?.items || PRINT_ZINC_OPTIONS;
-  const activeCellophaneTypes = formOptions?.cellophane_types?.items || CELLOPHANE_TYPES;
-  const activeVarnishOptions = formOptions?.varnish_options?.items || VARNISH_OPTIONS;
-  const activeLacquerOptions = formOptions?.lacquer_options?.items || LACQUER_OPTIONS;
-  const activeUvCylinderOptions = formOptions?.uv_cylinder_options?.items || UV_CYLINDER_OPTIONS;
-  const activeUvOptions = formOptions?.uv_options?.items || UV_OPTIONS;
-  const activeEmbossOptions = formOptions?.emboss_options?.items || EMBOSS_OPTIONS;
-  const activeWindowThicknessOptions = formOptions?.window_thickness_options?.items || WINDOW_THICKNESS_OPTIONS;
-  const activeGlueOptions = formOptions?.glue_options?.items || GLUE_OPTIONS;
-  const activeFoilOptions = formOptions?.foil_options?.items || FOIL_OPTIONS;
-  const activeMaterialConstructions = formOptions?.material_constructions?.items || MATERIAL_CONSTRUCTIONS;
+  const activeCardboardTypes = Array.isArray(formOptions?.cardboard_types?.items) ? formOptions.cardboard_types.items : CARDBOARD_TYPES;
+  const activeGrammages = Array.isArray(formOptions?.grammages?.items) ? formOptions.grammages.items : GRAMMAGES;
+  const activePrintTypes = Array.isArray(formOptions?.print_types?.items) ? formOptions.print_types.items : PRINT_TYPES;
+  const activePrintColors = Array.isArray(formOptions?.print_colors?.items) ? formOptions.print_colors.items : PRINT_COLORS;
+  const activePrintZincOptions = Array.isArray(formOptions?.print_zinc_options?.items) ? formOptions.print_zinc_options.items : PRINT_ZINC_OPTIONS;
+  const activeCellophaneTypes = Array.isArray(formOptions?.cellophane_types?.items) ? formOptions.cellophane_types.items : CELLOPHANE_TYPES;
+  const activeVarnishOptions = Array.isArray(formOptions?.varnish_options?.items) ? formOptions.varnish_options.items : VARNISH_OPTIONS;
+  const activeLacquerOptions = Array.isArray(formOptions?.lacquer_options?.items) ? formOptions.lacquer_options.items : LACQUER_OPTIONS;
+  const activeUvCylinderOptions = Array.isArray(formOptions?.uv_cylinder_options?.items) ? formOptions.uv_cylinder_options.items : UV_CYLINDER_OPTIONS;
+  const activeUvOptions = Array.isArray(formOptions?.uv_options?.items) ? formOptions.uv_options.items : UV_OPTIONS;
+  const activeEmbossOptions = Array.isArray(formOptions?.emboss_options?.items) ? formOptions.emboss_options.items : EMBOSS_OPTIONS;
+  const activeWindowThicknessOptions = Array.isArray(formOptions?.window_thickness_options?.items) ? formOptions.window_thickness_options.items : WINDOW_THICKNESS_OPTIONS;
+  const activeGlueOptions = Array.isArray(formOptions?.glue_options?.items) ? formOptions.glue_options.items : GLUE_OPTIONS;
+  const activeFoilOptions = Array.isArray(formOptions?.foil_options?.items) ? formOptions.foil_options.items : FOIL_OPTIONS;
+  const activeMaterialConstructions = Array.isArray(formOptions?.material_constructions?.items) ? formOptions.material_constructions.items : MATERIAL_CONSTRUCTIONS;
 
   // File Upload Handler (for Dieline / Artwork)
   const handleFileUpload = (e, isEdit = false) => {
@@ -945,7 +945,9 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
   };
 
   // Filter Leads
-  const filteredLeads = leads.filter((l) => {
+  const safeLeads = Array.isArray(leads) ? leads : [];
+  const filteredLeads = safeLeads.filter((l) => {
+    if (!l) return false;
     // 1. Marketer Privacy Isolation
     if (isMarketer && l.marketer_id && currentUser?.id && l.marketer_id !== currentUser.id && l.marketer_name !== currentUser?.fullName && l.marketer_name !== currentUser?.username) {
       return false;
@@ -960,16 +962,16 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
   });
 
   // Calculate Metrics
-  const totalLeads = leads.length;
-  const pendingCount = leads.filter(l => l.status === 'pending_commercial').length;
-  const needsRevisionCount = leads.filter(l => l.status === 'needs_revision').length;
-  const estimatedCount = leads.filter(l => l.status === 'estimated').length;
-  const approvedCount = leads.filter(l => l.status === 'customer_approved').length;
-  const convertedCount = leads.filter(l => l.status === 'converted_to_order').length;
-  const rejectedCount = leads.filter(l => l.status === 'customer_rejected').length;
+  const totalLeads = safeLeads.length;
+  const pendingCount = safeLeads.filter(l => l && l.status === 'pending_commercial').length;
+  const needsRevisionCount = safeLeads.filter(l => l && l.status === 'needs_revision').length;
+  const estimatedCount = safeLeads.filter(l => l && l.status === 'estimated').length;
+  const approvedCount = safeLeads.filter(l => l && l.status === 'customer_approved').length;
+  const convertedCount = safeLeads.filter(l => l && l.status === 'converted_to_order').length;
+  const rejectedCount = safeLeads.filter(l => l && l.status === 'customer_rejected').length;
 
-  const totalConvertedValue = leads
-    .filter(l => l.status === 'converted_to_order' || l.status === 'customer_approved')
+  const totalConvertedValue = safeLeads
+    .filter(l => l && (l.status === 'converted_to_order' || l.status === 'customer_approved'))
     .reduce((sum, l) => sum + (l.estimated_total_price || 0), 0);
 
   const conversionRate = totalLeads > 0 ? Math.round(((approvedCount + convertedCount) / totalLeads) * 100) : 0;
@@ -1088,7 +1090,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
             {/* Management Controls & Month Selector */}
             <div className="flex items-center gap-2 flex-wrap">
               {/* Filter by Marketer (for CEO / Sales) */}
-              {isCommercialOrCeo && targetStats?.all_marketers_leaderboard?.length > 1 && (
+              {isCommercialOrCeo && Array.isArray(targetStats?.all_marketers_leaderboard) && targetStats.all_marketers_leaderboard.length > 1 && (
                 <select
                   value={selectedMarketerId}
                   onChange={(e) => {
@@ -1108,7 +1110,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
               )}
 
               {/* Month Selector */}
-              {targetStats?.history_months?.length > 0 && (
+              {Array.isArray(targetStats?.history_months) && targetStats.history_months.length > 0 && (
                 <select
                   value={selectedMonth || targetStats?.current_period?.yearMonth}
                   onChange={(e) => {
@@ -2619,7 +2621,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                           onChange={(e) => setWindowThickness(e.target.value)}
                           className="w-full bg-cyan-50/50 border border-cyan-300 rounded-xl px-3 py-2 font-bold text-slate-800 text-xs focus:outline-none"
                         >
-                          {WINDOW_THICKNESS_OPTIONS.map((th) => (
+                          {activeWindowThicknessOptions.map((th) => (
                             <option key={th} value={th}>{th}</option>
                           ))}
                         </select>
@@ -2655,7 +2657,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                           onChange={(e) => setGlueType(e.target.value)}
                           className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-bold text-slate-800 text-xs focus:outline-none"
                         >
-                          {GLUE_OPTIONS.map((g) => (
+                          {activeGlueOptions.map((g) => (
                             <option key={g} value={g}>{g}</option>
                           ))}
                         </select>
@@ -3048,7 +3050,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
               </div>
 
               {/* Previous Follow-up History */}
-              {selectedLeadForFollowup.followup_logs?.length > 0 && (
+              {Array.isArray(selectedLeadForFollowup?.followup_logs) && selectedLeadForFollowup.followup_logs.length > 0 && (
                 <div className="space-y-1.5 pt-2 border-t border-slate-100 max-h-40 overflow-y-auto">
                   <span className="text-[11px] font-bold text-slate-500">تاریخچه پیگیری‌های قبلی:</span>
                   {selectedLeadForFollowup.followup_logs.map((log, i) => (

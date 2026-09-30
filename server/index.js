@@ -4519,6 +4519,18 @@ app.post('/api/notifications/test-sms', authMiddleware, requireCeoOrAdmin, async
 // GET /api/settings/form-options (همه کاربران مجاز به دریافت گزینه‌ها برای لود فرم‌ها هستند)
 app.get('/api/settings/form-options', authMiddleware, (req, res) => {
   try {
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS form_options_config (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        config_key TEXT UNIQUE NOT NULL,
+        category TEXT NOT NULL,
+        title TEXT NOT NULL,
+        items_json TEXT NOT NULL,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_by TEXT
+      )
+    `).run();
+
     const rows = db.prepare('SELECT config_key, category, title, items_json, updated_at, updated_by FROM form_options_config').all();
     const optionsMap = {};
     rows.forEach(r => {
