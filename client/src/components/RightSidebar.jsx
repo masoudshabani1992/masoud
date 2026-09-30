@@ -121,7 +121,7 @@ export default function RightSidebar({
 
       {/* Main Right Sidebar Container with Soft Pastel Border & Background */}
       <aside
-        className={`fixed lg:sticky top-0 right-0 h-screen w-72 bg-white/95 backdrop-blur-xl border-l border-slate-200/90 shadow-sm z-50 flex flex-col justify-between transition-transform duration-300 ease-in-out ${
+        className={`fixed lg:sticky top-0 right-0 h-screen w-72 shrink-0 bg-white/95 backdrop-blur-xl border-l border-slate-200/90 shadow-sm z-50 flex flex-col justify-between transition-transform duration-300 ease-in-out ${
           isOpenMobile ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'
         }`}
       >

@@ -482,7 +482,7 @@ export default function App() {
 
   return (
     <div
-      className={`min-h-screen font-sans w-full transition-colors duration-300 ${
+      className={`min-h-screen flex font-sans w-full transition-colors duration-300 ${
         currentTheme === 'vision-ui'
           ? 'theme-vision-ui bg-[#060b26] text-slate-100'
           : 'bg-slate-100 text-slate-800'
