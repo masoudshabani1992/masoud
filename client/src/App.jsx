@@ -33,6 +33,7 @@ import StorageManagerView from './components/StorageManagerView';
 import AuditLogsView from './components/AuditLogsView';
 import NotificationSettingsView from './components/NotificationSettingsView';
 import FormOptionsManagerView from './components/FormOptionsManagerView';
+import SystemCustomizerView from './components/SystemCustomizerView';
 import TopAnnouncementTicker from './components/TopAnnouncementTicker';
 import CommandPaletteModal from './components/CommandPaletteModal';
 import FloatingQuickDock from './components/FloatingQuickDock';
@@ -58,6 +59,7 @@ const TAB_PERMISSION_MAP = {
   storage: 'can_manage_users',
   notification_settings: 'can_manage_users',
   form_options: 'can_manage_users',
+  system_customizer: 'can_manage_users',
   migration: 'can_view_migration',
   dieline_generator: 'can_view_studio',
   '3d_studio': 'can_view_studio',
@@ -623,6 +625,11 @@ export default function App() {
           {/* Dynamic Form Options & Technical Specs Configurator (Admin Only) */}
           {activeTab === 'form_options' && (
             <FormOptionsManagerView onNavigateToMarketing={() => navigateTab('marketing')} />
+          )}
+
+          {/* Dynamic System Titles, Modules & Capabilities Customizer (Admin Only) */}
+          {activeTab === 'system_customizer' && (
+            <SystemCustomizerView onShowToast={showToast} currentUser={currentUser} />
           )}
 
           {/* Human Resources & Performance Evaluation System (HR) */}

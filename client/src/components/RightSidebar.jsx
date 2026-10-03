@@ -37,7 +37,8 @@ import {
   Flame,
   Bell,
   Smartphone,
-  Fingerprint
+  Fingerprint,
+  Wand2
 } from 'lucide-react';
 
 export default function RightSidebar({
@@ -823,6 +824,24 @@ export default function RightSidebar({
                           <span>۹. فیلدها و گزینه‌های استعلام</span>
                         </div>
                         <span className="text-[9px] bg-purple-100 text-purple-800 font-mono px-1 py-0.2 rounded font-black">Admin</span>
+                      </button>
+                    )}
+
+                    {/* مدیریت عناوین، ماژول‌ها و قابلیت‌های سامانه (Admin Only) */}
+                    {isAdmin && (
+                      <button
+                        onClick={() => handleNavClick('system_customizer')}
+                        className={`w-full text-right px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between ${
+                          activeTab === 'system_customizer'
+                            ? 'bg-indigo-100 text-indigo-950 font-black border border-indigo-300/80 shadow-2xs'
+                            : 'text-slate-600 hover:bg-indigo-50 hover:text-indigo-900'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <Wand2 className="w-3.5 h-3.5 text-indigo-600" />
+                          <span>۱۰. عناوین و ماژول‌های سامانه</span>
+                        </div>
+                        <span className="text-[9px] bg-indigo-100 text-indigo-800 font-mono px-1 py-0.2 rounded font-black">Admin</span>
                       </button>
                     )}
                   </div>

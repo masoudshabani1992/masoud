@@ -217,6 +217,19 @@ export const api = {
   updateAnnouncement: (id, data) => apiRequest(`/announcements/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   toggleAnnouncement: (is_active) => apiRequest('/announcements/toggle', { method: 'POST', body: JSON.stringify({ is_active }) }),
 
+  // Dynamic UI Titles & Headers Customization (مدیریت عناوین و متون صفحات)
+  getUiTitles: () => apiRequest('/settings/ui-titles'),
+  updateUiTitle: (key, data) => apiRequest(`/settings/ui-titles/${key}`, { method: 'PUT', body: JSON.stringify(data) }),
+  batchUpdateUiTitles: (titles) => apiRequest('/settings/ui-titles/batch', { method: 'POST', body: JSON.stringify({ titles }) }),
+  resetUiTitles: () => apiRequest('/settings/ui-titles/reset', { method: 'POST' }),
+
+  // Dynamic Features & Capabilities Config (مدیریت قابلیت‌ها و ماژول‌های سامانه)
+  getFeaturesConfig: () => apiRequest('/settings/features'),
+  createOrUpdateFeature: (data) => apiRequest('/settings/features', { method: 'POST', body: JSON.stringify(data) }),
+  toggleFeature: (id) => apiRequest(`/settings/features/${id}/toggle`, { method: 'PUT' }),
+  deleteFeature: (id) => apiRequest(`/settings/features/${id}`, { method: 'DELETE' }),
+  resetFeaturesConfig: () => apiRequest('/settings/features/reset', { method: 'POST' }),
+
   // Customers & Analytics
   getCustomers: () => apiRequest('/customers'),
   createCustomer: (data) => apiRequest('/customers', { method: 'POST', body: JSON.stringify(data) }),
@@ -231,3 +244,5 @@ export const api = {
     return apiRequest('/upload', { method: 'POST', body: formData });
   }
 };
+
+export default api;

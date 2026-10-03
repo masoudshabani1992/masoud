@@ -420,6 +420,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
   };
 
   const [formOptions, setFormOptions] = useState(null);
+  const [customTitles, setCustomTitles] = useState(null);
 
   const fetchFormOptions = async () => {
     try {
@@ -432,10 +433,22 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
     }
   };
 
+  const fetchCustomTitles = async () => {
+    try {
+      const res = await api.getUiTitles();
+      if (res && res.success && res.titles) {
+        setCustomTitles(res.titles);
+      }
+    } catch (e) {
+      console.warn('Using default UI titles fallback');
+    }
+  };
+
   useEffect(() => {
     fetchLeads();
     fetchTargetStats();
     fetchFormOptions();
+    fetchCustomTitles();
   }, []);
 
   const activeCardboardTypes = Array.isArray(formOptions?.cardboard_types?.items) ? formOptions.cardboard_types.items : CARDBOARD_TYPES;
@@ -996,13 +1009,15 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
             </div>
             <div>
               <div className="flex items-center gap-2.5 flex-wrap">
-                <h1 className="text-xl sm:text-2xl font-black text-white">پروفایل و کارتابل پیگیری استعلامات بازاریاب</h1>
+                <h1 className="text-xl sm:text-2xl font-black text-white">
+                  {customTitles?.marketing_header?.title || 'پروفایل و کارتابل پیگیری استعلامات بازاریاب'}
+                </h1>
                 <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-teal-500/20 text-teal-300 border border-teal-400/30">
                   {currentUser?.fullName || currentUser?.full_name || 'کارشناس بازاریابی'}
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-teal-100/80 mt-1 max-w-2xl leading-relaxed">
-                سامانه رهگیری لحظه‌ای نتیجه استعلام‌ها، مشاهده قیمت‌های اعلام‌شده توسط واحد بازرگانی، ثبت لاگ تماس و پیگیری مشتری، و صدور پیش‌فاکتور رسمی.
+                {customTitles?.marketing_header?.subtitle || 'سامانه رهگیری لحظه‌ای نتیجه استعلام‌ها، مشاهده قیمت‌های اعلام‌شده توسط واحد بازرگانی، ثبت لاگ تماس و پیگیری مشتری، و صدور پیش‌فاکتور رسمی.'}
               </p>
             </div>
           </div>
@@ -2337,7 +2352,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                     <span className="text-[11px] font-bold text-slate-500">انتخاب روش چاپ و تعداد رنگ</span>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                     {/* Step 1: Print Type Selection */}
                     <div>
                       <label className="font-bold text-slate-700 block mb-1">
@@ -2367,21 +2382,6 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                       >
                         {activePrintColors.map((pc) => (
                           <option key={pc} value={pc}>{pc}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Zinc Status */}
-                    <div>
-                      <label className="font-bold text-slate-700 block mb-1">وضعیت زینک:</label>
-                      <select
-                        disabled={printType === 'بدون چاپ'}
-                        value={printZinc}
-                        onChange={(e) => setPrintZinc(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-bold text-slate-800 focus:outline-none focus:border-indigo-500 text-xs disabled:opacity-50"
-                      >
-                        {activePrintZincOptions.map((zo) => (
-                          <option key={zo} value={zo}>{zo}</option>
                         ))}
                       </select>
                     </div>
@@ -3792,7 +3792,7 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                       <span>مشخصات چاپ</span>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="font-bold text-slate-700 block mb-1 text-[11px]">
                           ۱. نوع چاپ:
@@ -3820,22 +3820,6 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
                         >
                           {activePrintColors.map((pc) => (
                             <option key={pc} value={pc}>{pc}</option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="font-bold text-slate-700 block mb-1 text-[11px]">
-                          وضعیت زینک:
-                        </label>
-                        <select
-                          disabled={editPrintType === 'بدون چاپ'}
-                          value={editPrintZinc}
-                          onChange={(e) => setEditPrintZinc(e.target.value)}
-                          className="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 font-bold text-slate-800 text-xs focus:outline-none focus:border-blue-500 disabled:opacity-50"
-                        >
-                          {activePrintZincOptions.map((zo) => (
-                            <option key={zo} value={zo}>{zo}</option>
                           ))}
                         </select>
                       </div>

@@ -1256,6 +1256,169 @@ function initDb() {
   } catch (e) {
     console.error('Error creating system_announcements:', e);
   }
+
+  // 3. Table for Dynamic System Titles & Header Text Customization
+  try {
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS system_ui_titles (
+        key TEXT PRIMARY KEY,
+        category TEXT NOT NULL,
+        title TEXT NOT NULL,
+        subtitle TEXT,
+        description TEXT,
+        default_title TEXT NOT NULL,
+        default_subtitle TEXT,
+        default_description TEXT,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_by TEXT
+      )
+    `).run();
+
+    const countTitles = db.prepare('SELECT COUNT(*) as count FROM system_ui_titles').get().count;
+    if (countTitles === 0) {
+      const insertTitle = db.prepare(`
+        INSERT INTO system_ui_titles (key, category, title, subtitle, description, default_title, default_subtitle, default_description, updated_by)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'مدیر ارشد سیستم')
+      `);
+
+      const defaultTitlesList = [
+        {
+          key: 'marketing_header',
+          category: 'marketing',
+          title: 'پروفایل و کارتابل پیگیری استعلامات بازاریاب',
+          subtitle: 'سامانه رهگیری لحظه‌ای نتیجه استعلام‌ها، مشاهده قیمت‌های اعلام‌شده توسط واحد بازرگانی، ثبت لاگ تماس و پیگیری مشتری، و صدور پیش‌فاکتور رسمی.',
+          description: 'عنوان اصلی و توضیحات بالای کارتابل بازاریاب'
+        },
+        {
+          key: 'marketing_form',
+          category: 'marketing',
+          title: 'فرم ثبت استعلام صنعتی جدید',
+          subtitle: 'ورود مشخصات فنی، متریال، ابعاد، چاپ، روکش، یووی، برجسته، طلق، چسب و تیراژ جعبه',
+          description: 'عنوان و زیرعنوان فرم ثبت استعلام جدید'
+        },
+        {
+          key: 'calculator_header',
+          category: 'calculator',
+          title: 'ماشین‌حساب هوشمند و صنعتی برآورد قیمت جعبه و کارتن',
+          subtitle: 'محاسبه دقیق و خودکار هزینه‌های مقوا، چاپ، روکش، تیغ، قالب، لترپرس، لب‌چسب و مارژین سود خالص',
+          description: 'عنوان و توضیحات صفحه ماشین‌حساب قیمت'
+        },
+        {
+          key: 'dashboard_header',
+          category: 'dashboard',
+          title: 'داشبورد و آمار تحلیلی مانیتورینگ کارخانه',
+          subtitle: 'پایش شاخص‌های کلیدی عملکرد (KPI)، میزان فروش ماهانه، سفارشات فعال و راندمان خطوط تولید',
+          description: 'عنوان بالای صفحه داشبورد مدیریتی'
+        },
+        {
+          key: 'workflow_header',
+          category: 'workflow',
+          title: 'گردش کار ۱۰ مرحله تولید صنعتی و کانبان خطوط',
+          subtitle: 'جریان پیوسته و هوشمند سفارشات از استعلام تا تحویل نهایی با پایپ‌لاین گرافیکی و نودهای تعاملی',
+          description: 'عنوان صفحه گردش کار و کانبان'
+        },
+        {
+          key: 'production_header',
+          category: 'production',
+          title: 'کارتابل دستورات تولید و کارت‌های کارگاهی',
+          subtitle: 'سیستم ۴ رنگی کنترل وضعیت، صدور کارت کار، برنامه چاپ افست، دیجیتال و خدمات تکمیلی',
+          description: 'عنوان صفحه کارتابل تولید'
+        },
+        {
+          key: 'warehouse_header',
+          category: 'warehouse',
+          title: 'سامانه هوشمند مدیریت انبارهای شش‌گانه متریال',
+          subtitle: 'پایش لحظه‌ای موجودی و حواله‌های انبار مقوا، ورق کارتن، سینگل‌فلوت، سلفون، طلق PVC و مرکب چاپ',
+          description: 'عنوان صفحه انبارهای متریال'
+        },
+        {
+          key: 'studio_header',
+          category: 'studio',
+          title: 'استودیو طراحی امیران، گسترده دایکات و ماک‌آپ سه‌بعدی',
+          subtitle: 'طراحی پارامتریک خط تیغ ۲۲ قالب استاندارد، چیدمان بهینه شیت و خروجی مستقیم CorelDRAW و Illustrator',
+          description: 'عنوان استودیو طراحی و قالب‌سازی'
+        },
+        {
+          key: 'ai_header',
+          category: 'ai',
+          title: 'دستیار هوشمند بسته‌بندی و پیش‌پرواز تولید',
+          subtitle: 'استخراج هوشمند مشخصات استعلام با پردازش زبان طبیعی (NLP)، بهینه‌سازی شیت چاپی و عیب‌یابی فنی',
+          description: 'عنوان دستیار هوش مصنوعی'
+        },
+        {
+          key: 'hr_header',
+          category: 'hr',
+          title: 'ارزیابی عملکرد پرسنل و پرونده دیجیتال کارگزینی',
+          subtitle: 'سیستم ۵ محوره ارزیابی ماهانه، مانیتورینگ تارگت‌های بازاریابی و پاداش بهره‌وری منابع انسانی',
+          description: 'عنوان ماژول منابع انسانی HR'
+        },
+        {
+          key: 'app_branding',
+          category: 'branding',
+          title: 'شرکت آرمان امیران',
+          subtitle: 'اتوماسیون تولید (MIS)',
+          description: 'برندینگ سربرگ و هدر اصلی سامانه'
+        }
+      ];
+
+      defaultTitlesList.forEach(item => {
+        insertTitle.run(item.key, item.category, item.title, item.subtitle, item.description, item.title, item.subtitle, item.description);
+      });
+    }
+  } catch (e) {
+    console.error('Error creating system_ui_titles:', e);
+  }
+
+  // 4. Table for System Features & Capabilities Config (کم و زیاد کردن و تغییر نام ماژول‌ها)
+  try {
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS system_features_config (
+        id TEXT PRIMARY KEY,
+        category TEXT NOT NULL,
+        name TEXT NOT NULL,
+        title TEXT NOT NULL,
+        description TEXT,
+        icon TEXT,
+        badge TEXT,
+        color TEXT,
+        is_enabled INTEGER DEFAULT 1,
+        sort_order INTEGER DEFAULT 0,
+        is_custom INTEGER DEFAULT 0,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_by TEXT
+      )
+    `).run();
+
+    const countFeatures = db.prepare('SELECT COUNT(*) as count FROM system_features_config').get().count;
+    if (countFeatures === 0) {
+      const insertFeat = db.prepare(`
+        INSERT INTO system_features_config (id, category, name, title, description, icon, badge, color, is_enabled, sort_order, is_custom, updated_by)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, 0, 'مدیر ارشد سیستم')
+      `);
+
+      const defaultFeaturesList = [
+        { id: 'feat_marketing', category: 'marketing', name: 'کارتابل استعلامات بازاریابی', title: 'ثبت، پیگیری و صدور پیش‌فاکتور استعلامات', description: 'مدیریت لیدها، تعیین مشخصات فنی متریال و پیگیری لحظه‌ای قیمت‌ها', icon: 'Users', badge: 'استعلام', color: 'emerald', sort: 1 },
+        { id: 'feat_calculator', category: 'marketing', name: 'ماشین‌حساب برآورد قیمت', title: 'فرمولاسیون هوشمند بهای تمام‌شده', description: 'محاسبه هزینه‌های مقوا، چاپ، روکش، قالب و سود خالص', icon: 'Calculator', badge: 'مالی', color: 'teal', sort: 2 },
+        { id: 'feat_production_orders', category: 'production', name: 'دستور تولید صنعتی (افست و دیجیتال)', title: 'کارت‌های کارگاهی و برنامه تولید', description: 'کنترل ۴ رنگی وضعیت چاپ، صدور حواله تولید و کارت فرآیند', icon: 'Layers', badge: '۳ رنگ', color: 'indigo', sort: 3 },
+        { id: 'feat_warehouse', category: 'warehouse', name: 'انبارداری شش‌گانه متریال', title: 'مدیریت و کنترل موجودی انبارها', description: 'انبار مقوا، ورق کارتن، سینگل، سلفون، طلق PVC و مرکب چاپ', icon: 'PackageCheck', badge: '۶ بخش', color: 'amber', sort: 4 },
+        { id: 'feat_workflow_kanban', category: 'workflow', name: 'گردش کار ۱۰ مرحله و کانبان', title: 'پایش و رهگیری خطوط تولید کارخانه', description: 'تابلوی تعاملی کانبان با ۱۰ مرحله استاندارد تولید جعبه و کارتن', icon: 'Kanban', badge: '۱۰ مرحله', color: 'purple', sort: 5 },
+        { id: 'feat_n8n_pipeline', category: 'workflow', name: 'پایپ‌لاین تعاملی گرافیکی n8n', title: 'نمای شبکه نودها و اتصالات نوری', description: 'شبیه‌ساز بصری جریان سفارشات با کابل‌های نورانی و انیمیشن زنده', icon: 'Activity', badge: 'گرافیکی', color: 'violet', sort: 6 },
+        { id: 'feat_dieline_studio', category: 'studio', name: 'استودیو طراحی ۲D و ۳D امیران', title: 'طراحی پارامتریک خط تیغ و ماک‌آپ ۳بعدی', description: '۲۲ قالب استاندارد، تاخوردگی ۳D، چیدمان شیت و خروجی CorelDRAW و AI', icon: 'Box', badge: '3D/CAD', color: 'amber', sort: 7 },
+        { id: 'feat_ai_assistant', category: 'ai', name: 'دستیار هوش مصنوعی و بهینه‌ساز شیت', title: 'پردازش متن استعلام و چیدمان شیت چاپی', description: 'استخراج هوشمند متریال و ابعاد با NLP و حداقل‌سازی پرت مقوا', icon: 'Sparkles', badge: 'AI', color: 'fuchsia', sort: 8 },
+        { id: 'feat_biometric', category: 'security', name: 'ورود بیومتریک و اثر انگشت', title: 'احراز هویت سریع با اثر انگشت و چهره', description: 'پشتیبانی از سنسورهای Touch ID، Windows Hello و اثر انگشت گوشی', icon: 'Fingerprint', badge: 'Touch ID', color: 'cyan', sort: 9 },
+        { id: 'feat_bale_sms', category: 'notifications', name: 'اطلاع‌رسانی بله و پیامک مشتری', title: 'ارسال خودکار پیام به پرسنل و مشتریان', description: 'اتصال به روبات پیام‌رسان بله و سامانه پیامک ملی‌پیامک در ۳ گام کلیدی', icon: 'Bell', badge: 'پیام‌رسان', color: 'rose', sort: 10 },
+        { id: 'feat_hr_evaluation', category: 'hr', name: 'ارزیابی عملکرد پرسنل و تارگت ماهانه', title: 'پرونده کارگزینی و شاخص‌های KPI', description: 'ارزیابی ۵ محوره ماهانه و تارگت‌های اختصاصی بازاریابان با لیدربرد', icon: 'Award', badge: 'HR', color: 'orange', sort: 11 },
+        { id: 'feat_excel_migration', category: 'data', name: 'انتقال اطلاعات و ایمپورت اکسل', title: 'ورود سریع داده‌های اتوماسیون قدیمی', description: 'ایمپورت فایل‌های اکسل، CSV و پشتیبان‌های داده‌ای به پایگاه داده', icon: 'FileSpreadsheet', badge: 'اکسل', color: 'blue', sort: 12 },
+        { id: 'feat_activity_logs', category: 'security', name: 'لاگ و ممیزی فعالیت کاربران', title: 'ردیابی و بایگانی کلیه اقدامات سیستم', description: 'ثبت زمان، آی‌پی، کاربر و جزییات تغییرات سفارشات و دسترسی‌ها', icon: 'ShieldAlert', badge: 'Admin', color: 'slate', sort: 13 }
+      ];
+
+      defaultFeaturesList.forEach(feat => {
+        insertFeat.run(feat.id, feat.category, feat.name, feat.title, feat.description, feat.icon, feat.badge, feat.color, feat.sort);
+      });
+    }
+  } catch (e) {
+    console.error('Error creating system_features_config:', e);
+  }
 }
 
 initDb();

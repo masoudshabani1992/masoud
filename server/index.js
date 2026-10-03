@@ -4812,6 +4812,329 @@ app.post('/api/announcements/toggle', authMiddleware, requireCeoOrAdmin, (req, r
   }
 });
 
+// ==========================================
+// 3. SYSTEM UI TITLES & HEADERS CUSTOMIZATION API (انحصاری Admin)
+// ==========================================
+
+// GET /api/settings/ui-titles (دریافت تمامی عناوین و متون بخش‌ها برای همه کاربران)
+app.get('/api/settings/ui-titles', authMiddleware, (req, res) => {
+  try {
+    const rows = db.prepare('SELECT * FROM system_ui_titles').all();
+    const titlesMap = {};
+    rows.forEach(r => {
+      titlesMap[r.key] = {
+        key: r.key,
+        category: r.category,
+        title: r.title,
+        subtitle: r.subtitle || '',
+        description: r.description || '',
+        default_title: r.default_title,
+        default_subtitle: r.default_subtitle || '',
+        default_description: r.default_description || '',
+        updated_at: r.updated_at,
+        updated_by: r.updated_by
+      };
+    });
+    res.json({ success: true, titles: titlesMap, list: rows });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در دریافت عناوین سامانه: ' + err.message });
+  }
+});
+
+// PUT /api/settings/ui-titles/:key (ویرایش عنوان یا زیرعنوان یک بخش - Admin)
+app.put('/api/settings/ui-titles/:key', authMiddleware, requireAdmin, (req, res) => {
+  try {
+    const { key } = req.params;
+    const { title, subtitle, description, category } = req.body;
+
+    if (!title || !title.trim()) {
+      return res.status(400).json({ error: 'عنوان نمی‌تواند خالی باشد.' });
+    }
+
+    const user = req.user;
+    const updaterName = user.full_name || user.fullName || user.username || 'مدیر سیستم';
+
+    const existing = db.prepare('SELECT * FROM system_ui_titles WHERE key = ?').get(key);
+    if (existing) {
+      db.prepare(`
+        UPDATE system_ui_titles
+        SET title = ?,
+            subtitle = ?,
+            description = COALESCE(?, description),
+            category = COALESCE(?, category),
+            updated_at = CURRENT_TIMESTAMP,
+            updated_by = ?
+        WHERE key = ?
+      `).run(title.trim(), (subtitle || '').trim(), description || null, category || null, updaterName, key);
+    } else {
+      db.prepare(`
+        INSERT INTO system_ui_titles (key, category, title, subtitle, description, default_title, default_subtitle, default_description, updated_by)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        key,
+        category || 'general',
+        title.trim(),
+        (subtitle || '').trim(),
+        description || '',
+        title.trim(),
+        (subtitle || '').trim(),
+        description || '',
+        updaterName
+      );
+    }
+
+    logActivity(req, {
+      action: 'update_ui_title',
+      module: 'settings',
+      target_id: key,
+      target_name: title.trim(),
+      description: `ویرایش عنوان بخش «${existing?.description || key}» به «${title.trim()}»`,
+      details: { key, title, subtitle }
+    });
+
+    res.json({ success: true, message: 'عنوان و متن بخش با موفقیت به‌روزرسانی شد.' });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در ذخیره عنوان: ' + err.message });
+  }
+});
+
+// POST /api/settings/ui-titles/batch (به‌روزرسانی دسته‌جمعی عناوین - Admin)
+app.post('/api/settings/ui-titles/batch', authMiddleware, requireAdmin, (req, res) => {
+  try {
+    const { titles } = req.body;
+    if (!titles || typeof titles !== 'object') {
+      return res.status(400).json({ error: 'فرمت داده‌های ارسالی نامعتبر است.' });
+    }
+
+    const user = req.user;
+    const updaterName = user.full_name || user.fullName || user.username || 'مدیر سیستم';
+
+    const updateStmt = db.prepare(`
+      UPDATE system_ui_titles
+      SET title = ?,
+          subtitle = ?,
+          updated_at = CURRENT_TIMESTAMP,
+          updated_by = ?
+      WHERE key = ?
+    `);
+
+    db.exec('BEGIN TRANSACTION');
+    Object.keys(titles).forEach(k => {
+      const item = titles[k];
+      if (item && item.title) {
+        updateStmt.run(item.title.trim(), (item.subtitle || '').trim(), updaterName, k);
+      }
+    });
+    db.exec('COMMIT');
+
+    logActivity(req, {
+      action: 'batch_update_ui_titles',
+      module: 'settings',
+      target_id: 'all',
+      target_name: 'عناوین و متون سامانه',
+      description: 'به‌روزرسانی دسته‌جمعی عناوین، زیرعنوان‌ها و متون صفحات اتوماسیون'
+    });
+
+    res.json({ success: true, message: 'کلیه عناوین و متون با موفقیت به‌روزرسانی شدند.' });
+  } catch (err) {
+    try { db.exec('ROLLBACK'); } catch (e) {}
+    res.status(500).json({ error: 'خطا در ذخیره دسته‌جمعی عناوین: ' + err.message });
+  }
+});
+
+// POST /api/settings/ui-titles/reset (بازنشانی تمامی عناوین به متون پیش‌فرض کارخانه - Admin)
+app.post('/api/settings/ui-titles/reset', authMiddleware, requireAdmin, (req, res) => {
+  try {
+    db.prepare(`
+      UPDATE system_ui_titles
+      SET title = default_title,
+          subtitle = default_subtitle,
+          description = default_description,
+          updated_at = CURRENT_TIMESTAMP,
+          updated_by = 'بازنشانی پیش‌فرض کارخانه'
+    `).run();
+
+    logActivity(req, {
+      action: 'reset_ui_titles',
+      module: 'settings',
+      target_id: 'all',
+      target_name: 'عناوین سامانه',
+      description: 'بازنشانی تمامی عناوین و متون بخش‌های اتوماسیون به مقادیر اولیه کارخانه'
+    });
+
+    res.json({ success: true, message: 'عناوین و متون با موفقیت به حالت پیش‌فرض کارخانه بازنشانی شدند.' });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در بازنشانی عناوین: ' + err.message });
+  }
+});
+
+
+// ==========================================
+// 4. SYSTEM FEATURES & MODULES MANAGER API (مدیریت قابلیت‌ها و ماژول‌های سامانه - انحصاری Admin)
+// ==========================================
+
+// GET /api/settings/features (دریافت لیست ماژول‌ها و قابلیت‌ها)
+app.get('/api/settings/features', authMiddleware, (req, res) => {
+  try {
+    const list = db.prepare('SELECT * FROM system_features_config ORDER BY sort_order ASC, id ASC').all();
+    res.json({ success: true, features: list });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در دریافت قابلیت‌های سامانه: ' + err.message });
+  }
+});
+
+// POST /api/settings/features (افزودن قابلیت یا ماژول جدید - Admin)
+app.post('/api/settings/features', authMiddleware, requireAdmin, (req, res) => {
+  try {
+    const { id, name, title, description, category, icon, badge, color, is_enabled, sort_order } = req.body;
+
+    if (!name || !name.trim()) {
+      return res.status(400).json({ error: 'نام قابلیت الزامی است.' });
+    }
+
+    const featId = (id || `feat_custom_${Date.now()}`).trim();
+    const user = req.user;
+    const updaterName = user.full_name || user.fullName || user.username || 'مدیر سیستم';
+
+    db.prepare(`
+      INSERT INTO system_features_config (
+        id, category, name, title, description, icon, badge, color, is_enabled, sort_order, is_custom, updated_by
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        name = excluded.name,
+        title = excluded.title,
+        description = excluded.description,
+        category = excluded.category,
+        icon = excluded.icon,
+        badge = excluded.badge,
+        color = excluded.color,
+        is_enabled = excluded.is_enabled,
+        sort_order = excluded.sort_order,
+        updated_at = CURRENT_TIMESTAMP,
+        updated_by = excluded.updated_by
+    `).run(
+      featId,
+      category || 'custom',
+      name.trim(),
+      (title || name).trim(),
+      description || '',
+      icon || 'Sliders',
+      badge || 'ماژول',
+      color || 'indigo',
+      is_enabled !== undefined ? (is_enabled ? 1 : 0) : 1,
+      Number(sort_order) || 50,
+      updaterName
+    );
+
+    logActivity(req, {
+      action: 'create_or_update_feature',
+      module: 'settings',
+      target_id: featId,
+      target_name: name.trim(),
+      description: `افزودن / ویرایش ماژول «${name.trim()}» در قابلیت‌های سامانه`
+    });
+
+    res.json({ success: true, id: featId, message: 'ماژول با موفقیت ذخیره شد.' });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در ذخیره ماژول: ' + err.message });
+  }
+});
+
+// PUT /api/settings/features/:id/toggle (فعال/غیرفعال‌سازی ماژول - Admin)
+app.put('/api/settings/features/:id/toggle', authMiddleware, requireAdmin, (req, res) => {
+  try {
+    const { id } = req.params;
+    const row = db.prepare('SELECT * FROM system_features_config WHERE id = ?').get(id);
+    if (!row) {
+      return res.status(404).json({ error: 'قابلیت مورد نظر یافت نشد.' });
+    }
+
+    const nextState = row.is_enabled === 1 ? 0 : 1;
+    db.prepare('UPDATE system_features_config SET is_enabled = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(nextState, id);
+
+    logActivity(req, {
+      action: 'toggle_feature',
+      module: 'settings',
+      target_id: id,
+      target_name: row.name,
+      description: `تغییر وضعیت قابلیت «${row.name}» به ${nextState === 1 ? 'فعال' : 'غیرفعال'}`
+    });
+
+    res.json({ success: true, is_enabled: nextState, message: `قابلیت «${row.name}» ${nextState === 1 ? 'فعال' : 'غیرفعال'} شد.` });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در تغییر وضعیت قابلیت: ' + err.message });
+  }
+});
+
+// DELETE /api/settings/features/:id (حذف ماژول سفارشی - Admin)
+app.delete('/api/settings/features/:id', authMiddleware, requireAdmin, (req, res) => {
+  try {
+    const { id } = req.params;
+    const row = db.prepare('SELECT * FROM system_features_config WHERE id = ?').get(id);
+    if (!row) {
+      return res.status(404).json({ error: 'ماژول مورد نظر یافت نشد.' });
+    }
+
+    db.prepare('DELETE FROM system_features_config WHERE id = ?').run(id);
+
+    logActivity(req, {
+      action: 'delete_feature',
+      module: 'settings',
+      target_id: id,
+      target_name: row.name,
+      description: `حذف ماژول «${row.name}» از قابلیت‌های سامانه`
+    });
+
+    res.json({ success: true, message: `ماژول «${row.name}» با موفقیت حذف شد.` });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در حذف ماژول: ' + err.message });
+  }
+});
+
+// POST /api/settings/features/reset (بازنشانی لیست ماژول‌ها به حالت اولیه کارخانه - Admin)
+app.post('/api/settings/features/reset', authMiddleware, requireAdmin, (req, res) => {
+  try {
+    db.prepare('DELETE FROM system_features_config').run();
+
+    const insertFeat = db.prepare(`
+      INSERT INTO system_features_config (id, category, name, title, description, icon, badge, color, is_enabled, sort_order, is_custom, updated_by)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, 0, 'بازنشانی پیش‌فرض کارخانه')
+    `);
+
+    const defaultFeaturesList = [
+      { id: 'feat_marketing', category: 'marketing', name: 'کارتابل استعلامات بازاریابی', title: 'ثبت، پیگیری و صدور پیش‌فاکتور استعلامات', description: 'مدیریت لیدها، تعیین مشخصات فنی متریال و پیگیری لحظه‌ای قیمت‌ها', icon: 'Users', badge: 'استعلام', color: 'emerald', sort: 1 },
+      { id: 'feat_calculator', category: 'marketing', name: 'ماشین‌حساب برآورد قیمت', title: 'فرمولاسیون هوشمند بهای تمام‌شده', description: 'محاسبه هزینه‌های مقوا، چاپ، زینک، روکش، قالب و سود خالص', icon: 'Calculator', badge: 'مالی', color: 'teal', sort: 2 },
+      { id: 'feat_production_orders', category: 'production', name: 'دستور تولید صنعتی (افست و دیجیتال)', title: 'کارت‌های کارگاهی و برنامه تولید', description: 'کنترل ۴ رنگی وضعیت چاپ، صدور حواله تولید و کارت فرآیند', icon: 'Layers', badge: '۳ رنگ', color: 'indigo', sort: 3 },
+      { id: 'feat_warehouse', category: 'warehouse', name: 'انبارداری شش‌گانه متریال', title: 'مدیریت و کنترل موجودی انبارها', description: 'انبار مقوا، ورق کارتن، سینگل، سلفون، طلق PVC و مرکب چاپ', icon: 'PackageCheck', badge: '۶ بخش', color: 'amber', sort: 4 },
+      { id: 'feat_workflow_kanban', category: 'workflow', name: 'گردش کار ۱۰ مرحله و کانبان', title: 'پایش و رهگیری خطوط تولید کارخانه', description: 'تابلوی تعاملی کانبان با ۱۰ مرحله استاندارد تولید جعبه و کارتن', icon: 'Kanban', badge: '۱۰ مرحله', color: 'purple', sort: 5 },
+      { id: 'feat_n8n_pipeline', category: 'workflow', name: 'پایپ‌لاین تعاملی گرافیکی n8n', title: 'نمای شبکه نودها و اتصالات نوری', description: 'شبیه‌ساز بصری جریان سفارشات با کابل‌های نورانی و انیمیشن زنده', icon: 'Activity', badge: 'گرافیکی', color: 'violet', sort: 6 },
+      { id: 'feat_dieline_studio', category: 'studio', name: 'استودیو طراحی ۲D و ۳D امیران', title: 'طراحی پارامتریک خط تیغ و ماک‌آپ ۳بعدی', description: '۲۲ قالب استاندارد، تاخوردگی ۳D، چیدمان شیت و خروجی CorelDRAW و AI', icon: 'Box', badge: '3D/CAD', color: 'amber', sort: 7 },
+      { id: 'feat_ai_assistant', category: 'ai', name: 'دستیار هوش مصنوعی و بهینه‌ساز شیت', title: 'پردازش متن استعلام و چیدمان شیت چاپی', description: 'استخراج هوشمند متریال و ابعاد با NLP و حداقل‌سازی پرت مقوا', icon: 'Sparkles', badge: 'AI', color: 'fuchsia', sort: 8 },
+      { id: 'feat_biometric', category: 'security', name: 'ورود بیومتریک و اثر انگشت', title: 'احراز هویت سریع با اثر انگشت و چهره', description: 'پشتیبانی از سنسورهای Touch ID، Windows Hello و اثر انگشت گوشی', icon: 'Fingerprint', badge: 'Touch ID', color: 'cyan', sort: 9 },
+      { id: 'feat_bale_sms', category: 'notifications', name: 'اطلاع‌رسانی بله و پیامک مشتری', title: 'ارسال خودکار پیام به پرسنل و مشتریان', description: 'اتصال به روبات پیام‌رسان بله و سامانه پیامک ملی‌پیامک در ۳ گام کلیدی', icon: 'Bell', badge: 'پیام‌رسان', color: 'rose', sort: 10 },
+      { id: 'feat_hr_evaluation', category: 'hr', name: 'ارزیابی عملکرد پرسنل و تارگت ماهانه', title: 'پرونده کارگزینی و شاخص‌های KPI', description: 'ارزیابی ۵ محوره ماهانه و تارگت‌های اختصاصی بازاریابان با لیدربرد', icon: 'Award', badge: 'HR', color: 'orange', sort: 11 },
+      { id: 'feat_excel_migration', category: 'data', name: 'انتقال اطلاعات و ایمپورت اکسل', title: 'ورود سریع داده‌های اتوماسیون قدیمی', description: 'ایمپورت فایل‌های اکسل، CSV و پشتیبان‌های داده‌ای به پایگاه داده', icon: 'FileSpreadsheet', badge: 'اکسل', color: 'blue', sort: 12 },
+      { id: 'feat_activity_logs', category: 'security', name: 'لاگ و ممیزی فعالیت کاربران', title: 'ردیابی و بایگانی کلیه اقدامات سیستم', description: 'ثبت زمان، آی‌پی، کاربر و جزییات تغییرات سفارشات و دسترسی‌ها', icon: 'ShieldAlert', badge: 'Admin', color: 'slate', sort: 13 }
+    ];
+
+    defaultFeaturesList.forEach(feat => {
+      insertFeat.run(feat.id, feat.category, feat.name, feat.title, feat.description, feat.icon, feat.badge, feat.color, feat.sort);
+    });
+
+    logActivity(req, {
+      action: 'reset_features',
+      module: 'settings',
+      target_id: 'all',
+      target_name: 'قابلیت‌های سیستم',
+      description: 'بازنشانی لیست ماژول‌ها و قابلیت‌های سامانه به مقادیر پیش‌فرض کارخانه'
+    });
+
+    res.json({ success: true, message: 'لیست قابلیت‌ها به حالت اولیه کارخانه بازنشانی شد.' });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در بازنشانی قابلیت‌ها: ' + err.message });
+  }
+});
+
 // Download Setup Package
 app.get('/download-setup', (req, res) => {
   const zipPath = path.join(__dirname, '..', 'box-factory-windows-setup.zip');
