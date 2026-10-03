@@ -8,14 +8,30 @@ echo      Be-roozresani narmafzar bedoone az dast raftane etelaate ghabli
 echo ===============================================================================
 echo.
 
-:: 1. Check Node.js
+:: 1. Detect Node.js
 where node >nul 2>nul
-if %errorlevel% neq 0 (
-    echo [ERROR] Node.js is NOT installed!
-    pause
-    exit /b 1
+if %errorlevel% equ 0 goto :NODE_FOUND
+
+if exist "C:\Program Files\nodejs\node.exe" (
+    set "PATH=C:\Program Files\nodejs;%PATH%"
+    goto :NODE_FOUND
+)
+if exist "C:\Program Files (x86)\nodejs\node.exe" (
+    set "PATH=C:\Program Files (x86)\nodejs;%PATH%"
+    goto :NODE_FOUND
+)
+if exist "%LOCALAPPDATA%\Programs\nodejs\node.exe" (
+    set "PATH=%LOCALAPPDATA%\Programs\nodejs;%PATH%"
+    goto :NODE_FOUND
+)
+if exist "%ProgramFiles%\nodejs\node.exe" (
+    set "PATH=%ProgramFiles%\nodejs;%PATH%"
+    goto :NODE_FOUND
 )
 
+goto :NO_NODE
+
+:NODE_FOUND
 :: 2. Set root directory
 cd /d "%~dp0\.."
 set "ROOT_DIR=%cd%"
@@ -30,7 +46,7 @@ if "%datetime%"=="" (
 
 set "BACKUP_DIR=%ROOT_DIR%\backups\%BACKUP_TAG%"
 
-echo [1/4] Creating Automated Safety Backup of Database & Files...
+echo [1/4] Creating Automated Safety Backup of Database and Files...
 echo Destination: %BACKUP_DIR%
 mkdir "%BACKUP_DIR%" 2>nul
 mkdir "%BACKUP_DIR%\server" 2>nul
@@ -40,7 +56,7 @@ if exist "%ROOT_DIR%\server\factory.db" (
     copy /y "%ROOT_DIR%\server\factory.db" "%BACKUP_DIR%\server\factory.db" >nul
     echo   [OK] Database backed up: factory.db
 ) else (
-    echo   [INFO] No previous database found (New installation).
+    echo   [INFO] No previous database found.
 )
 
 :: Backup License
@@ -52,11 +68,11 @@ if exist "%ROOT_DIR%\server\license.lic" (
 :: Backup Storage files
 if exist "%ROOT_DIR%\storage" (
     xcopy /e /i /y "%ROOT_DIR%\storage" "%BACKUP_DIR%\storage" >nul 2>nul
-    echo   [OK] User uploaded files in Storage/ preserved.
+    echo   [OK] User uploaded files in Storage folder preserved.
 )
 
 echo.
-echo [2/4] Updating Dependencies & Modules...
+echo [2/4] Updating Dependencies and Modules...
 cd "%ROOT_DIR%\server"
 call npm install --no-audit >nul 2>nul
 
@@ -78,7 +94,7 @@ echo [4/4] Running Safe Non-Destructive Database Schema Migration...
 node -e "
 try {
   const dbModule = require('./server/db');
-  console.log('  [OK] Database schema verified & updated successfully.');
+  console.log('  [OK] Database schema verified and updated successfully.');
 } catch (e) {
   console.log('  [WARN] Schema check completed.');
 }
@@ -91,11 +107,11 @@ echo          Be-roozresani ba movafaghiat va bedoone paksazi anjam shod!
 echo ===============================================================================
 echo.
 echo Summary of Protected Data:
-echo   - All Production Orders & Archive Codes: PRESERVED
-echo   - All Customer Records & Phonebook:      PRESERVED
-echo   - All Marketing Leads & Inquiries:       PRESERVED
+echo   - All Production Orders and Archive Codes: PRESERVED
+echo   - All Customer Records and Phonebook:      PRESERVED
+echo   - All Marketing Leads and Inquiries:       PRESERVED
 echo   - All Uploaded Files in Storage Folder:  PRESERVED
-echo   - Software License & Copy-Protection:    PRESERVED
+echo   - Software License and Copy-Protection:    PRESERVED
 echo.
 echo A safety backup is saved at:
 echo   %BACKUP_DIR%
@@ -105,3 +121,9 @@ pause >nul
 
 cd "%ROOT_DIR%\windows-setup"
 call start-server.bat
+goto :EOF
+
+:NO_NODE
+echo [ERROR] Node.js is NOT installed!
+pause
+exit /b 1

@@ -1,25 +1,25 @@
 @echo off
-chcp 65001 >nul
-title ابزار انتقال اطلاعات - اتوماسیون آرمان امیران
-color 0b
+setlocal EnableDelayedExpansion
+title Box Factory ERP - Data Migration Tool
+color 0B
 
 echo ======================================================================
-echo    مرکز انتقال و ورود اطلاعات اتوماسیون تولید آرمان امیران
+echo    Box Factory ERP - Data Import and Migration Tool
+echo    Abzar Enteghal va Voroode Etelaat Az Excel va JSON
 echo ======================================================================
 echo.
-echo این اسکریپت به شما امکان می دهد فایل های اکسل (.xlsx, .xls, .csv) یا
-echo بک آپ JSON اتوماسیون قبلی را مستقیماً وارد پایگاه داده کنید.
+echo In abzar be shoma emkan midahad file-haye Excel (.xlsx, .xls, .csv)
+echo ya backup JSON ghabli ra vared database konid.
 echo.
 
-set /p FILE_PATH="لطفاً مسیر یا نام فایل اکسل/جیسون را وارد کرده یا آن را بکشید و اینجا رها کنید (Drag and Drop): "
+set /p FILE_PATH="Lotfan masir ya name file Excel/JSON ra vared konid (Drag and Drop): "
 
 if "%FILE_PATH%"=="" (
-    echo [خطا] هیچ فایلی انتخاب نشد.
+    echo [ERROR] Hich fili entekhab nashod.
     pause
     exit /b 1
 )
 
-:: Remove quotes if present
 set FILE_PATH=%FILE_PATH:"=%
 
 cd /d "%~dp0\.."
@@ -27,6 +27,6 @@ node server/migrate-tool.js "%FILE_PATH%" auto
 
 echo.
 echo ======================================================================
-echo عملیات انتقال به پایان رسید.
+echo Amaliat ba movafaghiat be payan resid.
 echo ======================================================================
 pause

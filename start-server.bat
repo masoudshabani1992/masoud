@@ -1,76 +1,111 @@
 @echo off
-chcp 65001 >nul 2>nul
+setlocal EnableDelayedExpansion
 title Box Factory ERP - Production Server
 color 0A
 
 cd /d "%~dp0"
 
-echo ===============================================================================
-echo       سامانه جامع اتوماسیون کارخانه جعبه و کارتن سازی آرمان امیران
-echo                  BOX FACTORY ERP - SERVER LAUNCHER
-echo ===============================================================================
-echo.
-
-:: 1. Verify Node.js is installed
+:: -----------------------------------------------------------------------------
+:: Step 1: Detect Node.js (including default Windows installation folders)
+:: -----------------------------------------------------------------------------
 where node >nul 2>nul
-if %errorlevel% neq 0 (
-    color 0C
-    echo ===============================================================================
-    echo [خطای مهم] نرم افزار Node.js روی این ویندوز نصب نیست!
-    echo [ERROR] Node.js is NOT installed on this machine!
-    echo ===============================================================================
-    echo.
-    echo برای اجرای سامانه فقط کافیست یکبار نرم افزار رایگان Node.js را نصب کنید:
-    echo 1. به وبسایت زیر بروید:
-    echo    https://nodejs.org
-    echo 2. نسخه LTS (دکمه سبز سمت چپ) را دانلود و مثل نرم افزارهای عادی نصب کنید (Next -> Next).
-    echo 3. پس از اتمام نصب، دوباره روی همین فایل start-server.bat کلیک کنید.
-    echo.
-    echo ===============================================================================
-    pause
-    exit /b 1
+if %errorlevel% equ 0 goto :NODE_FOUND
+
+if exist "C:\Program Files\nodejs\node.exe" (
+    set "PATH=C:\Program Files\nodejs;%PATH%"
+    goto :NODE_FOUND
+)
+if exist "C:\Program Files (x86)\nodejs\node.exe" (
+    set "PATH=C:\Program Files (x86)\nodejs;%PATH%"
+    goto :NODE_FOUND
+)
+if exist "%LOCALAPPDATA%\Programs\nodejs\node.exe" (
+    set "PATH=%LOCALAPPDATA%\Programs\nodejs;%PATH%"
+    goto :NODE_FOUND
+)
+if exist "%ProgramFiles%\nodejs\node.exe" (
+    set "PATH=%ProgramFiles%\nodejs;%PATH%"
+    goto :NODE_FOUND
 )
 
-:: 2. Display Node info & check server modules
-echo [OK] Node.js Version:
+goto :NODE_MISSING
+
+:NODE_FOUND
+cls
+echo ===============================================================================
+echo       Box Factory ERP - Arman Amiran Packaging Automation Server
+echo       Samaneh Jame Automasion Karkhaneh Jabeh va Kartonsazi
+echo ===============================================================================
+echo.
+echo [OK] Node.js is ready:
 node -v
 echo.
 
-if not exist "server\node_modules\express" (
-    echo [1/2] Installing required server dependencies (first run only)...
-    cd server
-    call npm install --no-audit
-    cd ..
-    echo [OK] Server dependencies installed successfully.
-    echo.
-)
+:: -----------------------------------------------------------------------------
+:: Step 2: Check server dependencies
+:: -----------------------------------------------------------------------------
+if exist "server\node_modules\express" goto :START_SERVER
 
-:: 3. Server Startup
+echo [1/2] Installing required server dependencies (first run only)...
+echo Lotfan kami sabr konid...
+cd server
+call npm install --no-audit
+cd ..
+echo [OK] Dependencies installed successfully.
+echo.
+
+:START_SERVER
 echo ===============================================================================
-echo               سرور اتوماسیون با موفقیت روشن شد و آماده استفاده است
-echo                    SERVER IS RUNNING ON PORT 3001
+echo                  SERVER IS RUNNING ON PORT 3001
+echo            Server ba movafaghiat roshan shod va amadeh ast
 echo ===============================================================================
 echo.
-echo [1] دسترسی روی همین سیستم (Local Access):
+echo [1] Dastresi rooye hamin computer (Local Access):
 echo     http://localhost:3001
 echo.
-echo [2] دسترسی از گوشی، تبلت و کامپیوترهای دیگر کارخانه (LAN / WiFi):
+echo [2] Dastresi az goushi, tablet va digar computer-ha (LAN / WiFi):
 ipconfig | findstr /i "IPv4"
-echo     پورت: 3001 (مثال: http://192.168.1.100:3001)
+echo     Port: 3001  -  Mesal: http://192.168.1.100:3001
 echo.
 echo ===============================================================================
-echo توجه: این پنجره را نبندید تا سیستم برای سایر همکاران فعال بماند.
 echo NOTE: Do NOT close this window while users are working.
+echo Tavajoh: In panjereh ra nabandid ta etesal bargharar bemanad.
 echo ===============================================================================
 echo.
 
 node server/index.js
-if %errorlevel% neq 0 (
-    echo.
-    echo [خطا در اجرا] در حال بررسی ماژول های سرور...
-    cd server
-    call npm install
-    cd ..
-    node server/index.js
-)
+if %errorlevel% neq 0 goto :SERVER_ERROR
+goto :END
+
+:SERVER_ERROR
+echo.
+echo [WARN] Server stopped unexpectedly. Retrying module check...
+cd server
+call npm install --no-audit
+cd ..
+node server/index.js
+goto :END
+
+:NODE_MISSING
+color 0C
+cls
+echo ===============================================================================
+echo [ERROR] Node.js is NOT installed on this Windows computer!
+echo [KHATA] Narm-afzar Node.js rooye in computer nasb nist!
+echo ===============================================================================
+echo.
+echo Baraye ejraye automasion, lotfan yekbar narmafzar rayegan Node.js ra nasb konid:
+echo.
+echo   1. Website Node.js dar moroorgar shoma baz mishavad: https://nodejs.org
+echo   2. Dokmeh sabz rang Node.js (LTS) ra download va nasb konid.
+echo   3. Pas az nasb, hamin file start-server.bat ra mojadadan ejra konid.
+echo.
+echo ===============================================================================
+echo Dar hal baz kardan safheye download Node.js dar moroorgar...
+start https://nodejs.org
+echo.
+pause
+exit /b 1
+
+:END
 pause
