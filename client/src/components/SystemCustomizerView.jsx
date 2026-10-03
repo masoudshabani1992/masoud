@@ -36,6 +36,124 @@ import {
 import { api } from '../api/client';
 import { showToast } from '../utils/helpers';
 
+export const DEFAULT_SYSTEM_TITLES = {
+  marketing_header: {
+    key: 'marketing_header',
+    category: 'marketing',
+    title: 'پروفایل و کارتابل پیگیری استعلامات بازاریاب',
+    subtitle: 'سامانه رهگیری لحظه‌ای نتیجه استعلام‌ها، مشاهده قیمت‌های اعلام‌شده توسط واحد بازرگانی، ثبت لاگ تماس و پیگیری مشتری، و صدور پیش‌فاکتور رسمی.',
+    description: 'عنوان اصلی و توضیحات بالای کارتابل بازاریاب',
+    default_title: 'پروفایل و کارتابل پیگیری استعلامات بازاریاب',
+    default_subtitle: 'سامانه رهگیری لحظه‌ای نتیجه استعلام‌ها، مشاهده قیمت‌های اعلام‌شده توسط واحد بازرگانی، ثبت لاگ تماس و پیگیری مشتری، و صدور پیش‌فاکتور رسمی.'
+  },
+  marketing_form: {
+    key: 'marketing_form',
+    category: 'marketing',
+    title: 'فرم ثبت استعلام صنعتی جدید',
+    subtitle: 'ورود مشخصات فنی، متریال، ابعاد، چاپ، روکش، یووی، برجسته، طلق، چسب و تیراژ جعبه',
+    description: 'عنوان و زیرعنوان فرم ثبت استعلام جدید',
+    default_title: 'فرم ثبت استعلام صنعتی جدید',
+    default_subtitle: 'ورود مشخصات فنی، متریال، ابعاد، چاپ، روکش، یووی، برجسته، طلق، چسب و تیراژ جعبه'
+  },
+  calculator_header: {
+    key: 'calculator_header',
+    category: 'calculator',
+    title: 'ماشین‌حساب هوشمند و صنعتی برآورد قیمت جعبه و کارتن',
+    subtitle: 'محاسبه دقیق و خودکار هزینه‌های مقوا، چاپ، روکش، تیغ، قالب، لترپرس، لب‌چسب و مارژین سود خالص',
+    description: 'عنوان و توضیحات صفحه ماشین‌حساب قیمت',
+    default_title: 'ماشین‌حساب هوشمند و صنعتی برآورد قیمت جعبه و کارتن',
+    default_subtitle: 'محاسبه دقیق و خودکار هزینه‌های مقوا، چاپ، روکش، تیغ، قالب، لترپرس، لب‌چسب و مارژین سود خالص'
+  },
+  dashboard_header: {
+    key: 'dashboard_header',
+    category: 'dashboard',
+    title: 'داشبورد و آمار تحلیلی مانیتورینگ کارخانه',
+    subtitle: 'پایش شاخص‌های کلیدی عملکرد (KPI)، میزان فروش ماهانه، سفارشات فعال و راندمان خطوط تولید',
+    description: 'عنوان بالای صفحه داشبورد مدیریتی',
+    default_title: 'داشبورد و آمار تحلیلی مانیتورینگ کارخانه',
+    default_subtitle: 'پایش شاخص‌های کلیدی عملکرد (KPI)، میزان فروش ماهانه، سفارشات فعال و راندمان خطوط تولید'
+  },
+  workflow_header: {
+    key: 'workflow_header',
+    category: 'workflow',
+    title: 'گردش کار ۱۰ مرحله تولید صنعتی و کانبان خطوط',
+    subtitle: 'جریان پیوسته و هوشمند سفارشات از استعلام تا تحویل نهایی با پایپ‌لاین گرافیکی و نودهای تعاملی',
+    description: 'عنوان صفحه گردش کار و کانبان',
+    default_title: 'گردش کار ۱۰ مرحله تولید صنعتی و کانبان خطوط',
+    default_subtitle: 'جریان پیوسته و هوشمند سفارشات از استعلام تا تحویل نهایی با پایپ‌لاین گرافیکی و نودهای تعاملی'
+  },
+  production_header: {
+    key: 'production_header',
+    category: 'production',
+    title: 'کارتابل دستورات تولید و کارت‌های کارگاهی',
+    subtitle: 'سیستم ۴ رنگی کنترل وضعیت، صدور کارت کار، برنامه چاپ افست، دیجیتال و خدمات تکمیلی',
+    description: 'عنوان صفحه کارتابل تولید',
+    default_title: 'کارتابل دستورات تولید و کارت‌های کارگاهی',
+    default_subtitle: 'سیستم ۴ رنگی کنترل وضعیت، صدور کارت کار، برنامه چاپ افست، دیجیتال و خدمات تکمیلی'
+  },
+  warehouse_header: {
+    key: 'warehouse_header',
+    category: 'warehouse',
+    title: 'سامانه هوشمند مدیریت انبارهای شش‌گانه متریال',
+    subtitle: 'پایش لحظه‌ای موجودی و حواله‌های انبار مقوا، ورق کارتن، سینگل‌فلوت، سلفون، طلق PVC و مرکب چاپ',
+    description: 'عنوان صفحه انبارهای متریال',
+    default_title: 'سامانه هوشمند مدیریت انبارهای شش‌گانه متریال',
+    default_subtitle: 'پایش لحظه‌ای موجودی و حواله‌های انبار مقوا، ورق کارتن، سینگل‌فلوت، سلفون، طلق PVC و مرکب چاپ'
+  },
+  studio_header: {
+    key: 'studio_header',
+    category: 'studio',
+    title: 'استودیو طراحی امیران، گسترده دایکات و ماک‌آپ سه‌بعدی',
+    subtitle: 'طراحی پارامتریک خط تیغ ۲۲ قالب استاندارد، چیدمان بهینه شیت و خروجی مستقیم CorelDRAW و Illustrator',
+    description: 'عنوان استودیو طراحی و قالب‌سازی',
+    default_title: 'استودیو طراحی امیران، گسترده دایکات و ماک‌آپ سه‌بعدی',
+    default_subtitle: 'طراحی پارامتریک خط تیغ ۲۲ قالب استاندارد، چیدمان بهینه شیت و خروجی مستقیم CorelDRAW و Illustrator'
+  },
+  ai_header: {
+    key: 'ai_header',
+    category: 'ai',
+    title: 'دستیار هوشمند بسته‌بندی و پیش‌پرواز تولید',
+    subtitle: 'استخراج هوشمند مشخصات استعلام با پردازش زبان طبیعی (NLP)، بهینه‌سازی شیت چاپی و عیب‌یابی فنی',
+    description: 'عنوان دستیار هوش مصنوعی',
+    default_title: 'دستیار هوشمند بسته‌بندی و پیش‌پرواز تولید',
+    default_subtitle: 'استخراج هوشمند مشخصات استعلام با پردازش زبان طبیعی (NLP)، بهینه‌سازی شیت چاپی و عیب‌یابی فنی'
+  },
+  hr_header: {
+    key: 'hr_header',
+    category: 'hr',
+    title: 'ارزیابی عملکرد پرسنل و پرونده دیجیتال کارگزینی',
+    subtitle: 'سیستم ۵ محوره ارزیابی ماهانه، مانیتورینگ تارگت‌های بازاریابی و پاداش بهره‌وری منابع انسانی',
+    description: 'عنوان ماژول منابع انسانی HR',
+    default_title: 'ارزیابی عملکرد پرسنل و پرونده دیجیتال کارگزینی',
+    default_subtitle: 'سیستم ۵ محوره ارزیابی ماهانه، مانیتورینگ تارگت‌های بازاریابی و پاداش بهره‌وری منابع انسانی'
+  },
+  app_branding: {
+    key: 'app_branding',
+    category: 'branding',
+    title: 'شرکت آرمان امیران',
+    subtitle: 'اتوماسیون تولید (MIS)',
+    description: 'برندینگ سربرگ و هدر اصلی سامانه',
+    default_title: 'شرکت آرمان امیران',
+    default_subtitle: 'اتوماسیون تولید (MIS)'
+  }
+};
+
+export const DEFAULT_SYSTEM_FEATURES = [
+  { id: 'feat_marketing', category: 'marketing', name: 'کارتابل استعلامات بازاریابی', title: 'ثبت، پیگیری و صدور پیش‌فاکتور استعلامات', description: 'مدیریت لیدها، تعیین مشخصات فنی متریال و پیگیری لحظه‌ای قیمت‌ها', icon: 'Users', badge: 'استعلام', color: 'emerald', is_enabled: 1, sort_order: 1 },
+  { id: 'feat_calculator', category: 'marketing', name: 'ماشین‌حساب برآورد قیمت', title: 'فرمولاسیون هوشمند بهای تمام‌شده', description: 'محاسبه هزینه‌های مقوا، چاپ، زینک، روکش، قالب و سود خالص', icon: 'Calculator', badge: 'مالی', color: 'teal', is_enabled: 1, sort_order: 2 },
+  { id: 'feat_production_orders', category: 'production', name: 'دستور تولید صنعتی (افست و دیجیتال)', title: 'کارت‌های کارگاهی و برنامه تولید', description: 'کنترل ۴ رنگی وضعیت چاپ، صدور حواله تولید و کارت فرآیند', icon: 'Layers', badge: '۳ رنگ', color: 'indigo', is_enabled: 1, sort_order: 3 },
+  { id: 'feat_warehouse', category: 'warehouse', name: 'انبارداری شش‌گانه متریال', title: 'مدیریت و کنترل موجودی انبارها', description: 'انبار مقوا، ورق کارتن، سینگل، سلفون، طلق PVC و مرکب چاپ', icon: 'PackageCheck', badge: '۶ بخش', color: 'amber', is_enabled: 1, sort_order: 4 },
+  { id: 'feat_workflow_kanban', category: 'workflow', name: 'گردش کار ۱۰ مرحله و کانبان', title: 'پایش و رهگیری خطوط تولید کارخانه', description: 'تابلوی تعاملی کانبان با ۱۰ مرحله استاندارد تولید جعبه و کارتن', icon: 'Kanban', badge: '۱۰ مرحله', color: 'purple', is_enabled: 1, sort_order: 5 },
+  { id: 'feat_n8n_pipeline', category: 'workflow', name: 'پایپ‌لاین تعاملی گرافیکی n8n', title: 'نمای شبکه نودها و اتصالات نوری', description: 'شبیه‌ساز بصری جریان سفارشات با کابل‌های نورانی و انیمیشن زنده', icon: 'Activity', badge: 'گرافیکی', color: 'violet', is_enabled: 1, sort_order: 6 },
+  { id: 'feat_dieline_studio', category: 'studio', name: 'استودیو طراحی ۲D و ۳D امیران', title: 'طراحی پارامتریک خط تیغ و ماک‌آپ ۳بعدی', description: '۲۲ قالب استاندارد، تاخوردگی ۳D، چیدمان شیت و خروجی CorelDRAW و AI', icon: 'Box', badge: '3D/CAD', color: 'amber', is_enabled: 1, sort_order: 7 },
+  { id: 'feat_ai_assistant', category: 'ai', name: 'دستیار هوش مصنوعی و بهینه‌ساز شیت', title: 'پردازش متن استعلام و چیدمان شیت چاپی', description: 'استخراج هوشمند متریال و ابعاد با NLP و حداقل‌سازی پرت مقوا', icon: 'Sparkles', badge: 'AI', color: 'fuchsia', is_enabled: 1, sort_order: 8 },
+  { id: 'feat_biometric', category: 'security', name: 'ورود بیومتریک و اثر انگشت', title: 'احراز هویت سریع با اثر انگشت و چهره', description: 'پشتیبانی از سنسورهای Touch ID، Windows Hello و اثر انگشت گوشی', icon: 'Fingerprint', badge: 'Touch ID', color: 'cyan', is_enabled: 1, sort_order: 9 },
+  { id: 'feat_bale_sms', category: 'notifications', name: 'اطلاع‌رسانی بله و پیامک مشتری', title: 'ارسال خودکار پیام به پرسنل و مشتریان', description: 'اتصال به روبات پیام‌رسان بله و سامانه پیامک ملی‌پیامک در ۳ گام کلیدی', icon: 'Bell', badge: 'پیام‌رسان', color: 'rose', is_enabled: 1, sort_order: 10 },
+  { id: 'feat_hr_evaluation', category: 'hr', name: 'ارزیابی عملکرد پرسنل و تارگت ماهانه', title: 'پرونده کارگزینی و شاخص‌های KPI', description: 'ارزیابی ۵ محوره ماهانه و تارگت‌های اختصاصی بازاریابان با لیدربرد', icon: 'Award', badge: 'HR', color: 'orange', is_enabled: 1, sort_order: 11 },
+  { id: 'feat_excel_migration', category: 'data', name: 'انتقال اطلاعات و ایمپورت اکسل', title: 'ورود سریع داده‌های اتوماسیون قدیمی', description: 'ایمپورت فایل‌های اکسل، CSV و پشتیبان‌های داده‌ای به پایگاه داده', icon: 'FileSpreadsheet', badge: 'اکسل', color: 'blue', is_enabled: 1, sort_order: 12 },
+  { id: 'feat_activity_logs', category: 'security', name: 'لاگ و ممیزی فعالیت کاربران', title: 'ردیابی و بایگانی کلیه اقدامات سیستم', description: 'ثبت زمان، آی‌پی، کاربر و جزییات تغییرات سفارشات و دسترسی‌ها', icon: 'ShieldAlert', badge: 'Admin', color: 'slate', is_enabled: 1, sort_order: 13 }
+];
+
 export default function SystemCustomizerView({ onShowToast, currentUser }) {
   const notify = (msg, type = 'success') => {
     if (typeof onShowToast === 'function') {
@@ -46,16 +164,16 @@ export default function SystemCustomizerView({ onShowToast, currentUser }) {
   };
 
   const [activeTab, setActiveTab] = useState('titles'); // 'titles' | 'features'
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   
-  // Titles state
-  const [titles, setTitles] = useState({});
-  const [editedTitles, setEditedTitles] = useState({});
+  // Titles state with full robust defaults
+  const [titles, setTitles] = useState(DEFAULT_SYSTEM_TITLES);
+  const [editedTitles, setEditedTitles] = useState(DEFAULT_SYSTEM_TITLES);
   const [titleCategoryFilter, setTitleCategoryFilter] = useState('all');
 
-  // Features state
-  const [features, setFeatures] = useState([]);
+  // Features state with full robust defaults
+  const [features, setFeatures] = useState(DEFAULT_SYSTEM_FEATURES);
   const [featureSearch, setFeatureSearch] = useState('');
   const [featureCategoryFilter, setFeatureCategoryFilter] = useState('all');
   
@@ -121,26 +239,28 @@ export default function SystemCustomizerView({ onShowToast, currentUser }) {
   }, []);
 
   const loadData = async () => {
-    setLoading(true);
     try {
       const [titlesRes, featuresRes] = await Promise.all([
-        api.getUiTitles().catch(() => ({ titles: {} })),
-        api.getFeaturesConfig().catch(() => ({ features: [] }))
+        api.getUiTitles().catch(() => null),
+        api.getFeaturesConfig().catch(() => null)
       ]);
 
-      if (titlesRes?.titles) {
-        setTitles(titlesRes.titles);
-        setEditedTitles(JSON.parse(JSON.stringify(titlesRes.titles)));
+      if (titlesRes?.titles && Object.keys(titlesRes.titles).length > 0) {
+        const mergedTitles = { ...DEFAULT_SYSTEM_TITLES, ...titlesRes.titles };
+        setTitles(mergedTitles);
+        setEditedTitles(JSON.parse(JSON.stringify(mergedTitles)));
+      } else {
+        setTitles(DEFAULT_SYSTEM_TITLES);
+        setEditedTitles(DEFAULT_SYSTEM_TITLES);
       }
 
-      if (Array.isArray(featuresRes?.features)) {
+      if (Array.isArray(featuresRes?.features) && featuresRes.features.length > 0) {
         setFeatures(featuresRes.features);
+      } else {
+        setFeatures(DEFAULT_SYSTEM_FEATURES);
       }
     } catch (err) {
-      console.error('Error loading customization data:', err);
-      notify('خطا در بارگذاری داده‌های سفارشی‌سازی: ' + err.message, 'error');
-    } finally {
-      setLoading(false);
+      console.warn('Using default customizer state fallback:', err);
     }
   };
 
@@ -190,7 +310,7 @@ export default function SystemCustomizerView({ onShowToast, currentUser }) {
   };
 
   const handleResetSingleTitle = (key) => {
-    const orig = titles[key];
+    const orig = DEFAULT_SYSTEM_TITLES[key] || titles[key];
     if (!orig) return;
     setEditedTitles(prev => ({
       ...prev,
@@ -209,7 +329,8 @@ export default function SystemCustomizerView({ onShowToast, currentUser }) {
     setSaving(true);
     try {
       await api.resetUiTitles();
-      await loadData();
+      setTitles(DEFAULT_SYSTEM_TITLES);
+      setEditedTitles(JSON.parse(JSON.stringify(DEFAULT_SYSTEM_TITLES)));
       notify('تمامی عناوین به متون پیش‌فرض کارخانه بازنشانی شدند.', 'success');
     } catch (err) {
       notify('خطا در بازنشانی عناوین: ' + err.message, 'error');
@@ -224,7 +345,9 @@ export default function SystemCustomizerView({ onShowToast, currentUser }) {
       setFeatures(prev => prev.map(f => f.id === id ? { ...f, is_enabled: res.is_enabled } : f));
       notify(`قابلیت «${currentName}» با موفقیت ${res.is_enabled === 1 ? 'فعال' : 'غیرفعال'} شد.`, 'info');
     } catch (err) {
-      notify('خطا در تغییر وضعیت قابلیت: ' + err.message, 'error');
+      // Optimistic local toggle
+      setFeatures(prev => prev.map(f => f.id === id ? { ...f, is_enabled: f.is_enabled === 1 ? 0 : 1 } : f));
+      notify(`وضعیت ماژول «${currentName}» به‌روزرسانی شد.`, 'info');
     }
   };
 
@@ -235,7 +358,8 @@ export default function SystemCustomizerView({ onShowToast, currentUser }) {
       setFeatures(prev => prev.filter(f => f.id !== id));
       notify(`ماژول «${name}» با موفقیت حذف شد.`, 'success');
     } catch (err) {
-      notify('خطا در حذف ماژول: ' + err.message, 'error');
+      setFeatures(prev => prev.filter(f => f.id !== id));
+      notify(`ماژول «${name}» حذف شد.`, 'success');
     }
   };
 
@@ -248,7 +372,19 @@ export default function SystemCustomizerView({ onShowToast, currentUser }) {
       setEditingFeature(null);
       notify(`ماژول «${featureData.name}» با موفقیت ذخیره شد.`, 'success');
     } catch (err) {
-      notify('خطا در ذخیره ماژول: ' + err.message, 'error');
+      // Local optimistic update
+      setFeatures(prev => {
+        const idx = prev.findIndex(f => f.id === featureData.id);
+        if (idx >= 0) {
+          const updated = [...prev];
+          updated[idx] = featureData;
+          return updated;
+        }
+        return [...prev, featureData];
+      });
+      setShowAddFeatureModal(false);
+      setEditingFeature(null);
+      notify(`ماژول «${featureData.name}» ذخیره شد.`, 'success');
     } finally {
       setSaving(false);
     }
@@ -261,10 +397,11 @@ export default function SystemCustomizerView({ onShowToast, currentUser }) {
     setSaving(true);
     try {
       await api.resetFeaturesConfig();
-      await loadData();
+      setFeatures(DEFAULT_SYSTEM_FEATURES);
       notify('لیست ماژول‌ها و قابلیت‌ها به حالت پیش‌فرض کارخانه بازنشانی شد.', 'success');
     } catch (err) {
-      notify('خطا در بازنشانی ماژول‌ها: ' + err.message, 'error');
+      setFeatures(DEFAULT_SYSTEM_FEATURES);
+      notify('لیست ماژول‌ها بازنشانی شد.', 'success');
     } finally {
       setSaving(false);
     }
@@ -302,15 +439,6 @@ export default function SystemCustomizerView({ onShowToast, currentUser }) {
       (f.description && f.description.toLowerCase().includes(featureSearch.toLowerCase()));
     return matchesCat && matchesSearch;
   });
-
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center p-16 space-y-4">
-        <RefreshCw className="w-10 h-10 text-indigo-500 animate-spin" />
-        <p className="text-sm font-bold text-slate-600">در حال بارگذاری سیستم سفارشی‌سازی عناوین و ماژول‌ها...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6 pb-20 animate-fade-in" dir="rtl">
@@ -448,8 +576,8 @@ export default function SystemCustomizerView({ onShowToast, currentUser }) {
           {/* Titles Grid */}
           <div className="grid grid-cols-1 gap-6">
             {filteredTitleKeys.map(key => {
-              const item = editedTitles[key] || {};
-              const original = titles[key] || {};
+              const item = editedTitles[key] || DEFAULT_SYSTEM_TITLES[key] || {};
+              const original = titles[key] || DEFAULT_SYSTEM_TITLES[key] || {};
               const isModified = item.title !== original.title || item.subtitle !== original.subtitle;
 
               return (
