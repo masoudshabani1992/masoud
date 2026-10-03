@@ -4,10 +4,23 @@ title License Key Generator - Masoud Shabani
 color 0B
 cls
 
-cd /d "%~dp0"
-if exist "..\server\license-generator.js" (
-    cd /d "%~dp0\.."
+:: -----------------------------------------------------------------------------
+:: Step 1: Resolve Root Project Directory
+:: -----------------------------------------------------------------------------
+set "SCRIPT_DIR=%~dp0"
+if "%SCRIPT_DIR:~-1%"=="\" set "SCRIPT_DIR=%SCRIPT_DIR:~0,-1%"
+
+if exist "%SCRIPT_DIR%\server\license-generator.js" (
+    set "ROOT_DIR=%SCRIPT_DIR%"
+) else if exist "%SCRIPT_DIR%\..\server\license-generator.js" (
+    pushd "%SCRIPT_DIR%\.."
+    set "ROOT_DIR=!cd!"
+    popd
+) else (
+    set "ROOT_DIR=%SCRIPT_DIR%"
 )
+
+cd /d "%ROOT_DIR%"
 
 :: Detect Node.js
 where node >nul 2>nul
@@ -37,7 +50,7 @@ pause
 exit /b 1
 
 :RUN_GEN
-node server\license-generator.js
+node "%ROOT_DIR%\server\license-generator.js"
 
 echo.
 echo =======================================================================

@@ -2,41 +2,59 @@
 setlocal EnableDelayedExpansion
 title Box Factory ERP - Safe In-Place System Update (Bedoone Paksazi Etelaat)
 
+:: -----------------------------------------------------------------------------
+:: Step 1: Resolve Root Project Directory
+:: -----------------------------------------------------------------------------
+set "SCRIPT_DIR=%~dp0"
+if "%SCRIPT_DIR:~-1%"=="\" set "SCRIPT_DIR=%SCRIPT_DIR:~0,-1%"
+
+if exist "%SCRIPT_DIR%\server\index.js" (
+    set "ROOT_DIR=%SCRIPT_DIR%"
+) else if exist "%SCRIPT_DIR%\..\server\index.js" (
+    pushd "%SCRIPT_DIR%\.."
+    set "ROOT_DIR=!cd!"
+    popd
+) else (
+    set "ROOT_DIR=%SCRIPT_DIR%"
+)
+
+cd /d "%ROOT_DIR%"
+
 echo ===============================================================================
 echo            Box Factory ERP - Safe Update System (Update Khodkar)
 echo      Be-roozresani narmafzar bedoone az dast raftane etelaate ghabli
 echo ===============================================================================
 echo.
 
-:: 1. Detect Node.js
+:: -----------------------------------------------------------------------------
+:: Step 2: Detect Node.js
+:: -----------------------------------------------------------------------------
 where node >nul 2>nul
-if %errorlevel% equ 0 goto :NODE_FOUND
+if %errorlevel% equ 0 goto :NODE_OK
 
 if exist "C:\Program Files\nodejs\node.exe" (
     set "PATH=C:\Program Files\nodejs;%PATH%"
-    goto :NODE_FOUND
+    goto :NODE_OK
 )
 if exist "C:\Program Files (x86)\nodejs\node.exe" (
     set "PATH=C:\Program Files (x86)\nodejs;%PATH%"
-    goto :NODE_FOUND
+    goto :NODE_OK
 )
 if exist "%LOCALAPPDATA%\Programs\nodejs\node.exe" (
     set "PATH=%LOCALAPPDATA%\Programs\nodejs;%PATH%"
-    goto :NODE_FOUND
+    goto :NODE_OK
 )
 if exist "%ProgramFiles%\nodejs\node.exe" (
     set "PATH=%ProgramFiles%\nodejs;%PATH%"
-    goto :NODE_FOUND
+    goto :NODE_OK
 )
 
 goto :NO_NODE
 
-:NODE_FOUND
-:: 2. Set root directory
-cd /d "%~dp0\.."
-set "ROOT_DIR=%cd%"
-
-:: 3. Generate Timestamp for Safety Backup
+:NODE_OK
+:: -----------------------------------------------------------------------------
+:: Step 3: Generate Timestamp for Safety Backup
+:: -----------------------------------------------------------------------------
 for /f "tokens=2 delims==" %%I in ('wmic os get localdatetime /value 2^>nul') do set datetime=%%I
 if "%datetime%"=="" (
     set "BACKUP_TAG=backup-%date:~10,4%-%date:~4,2%-%date:~7,2%"
@@ -73,18 +91,18 @@ if exist "%ROOT_DIR%\storage" (
 
 echo.
 echo [2/4] Updating Dependencies and Modules...
-cd "%ROOT_DIR%\server"
+cd /d "%ROOT_DIR%\server"
 call npm install --no-audit >nul 2>nul
+cd /d "%ROOT_DIR%"
 
 echo.
 echo [3/4] Verifying Client UI Assets...
-cd "%ROOT_DIR%"
-if not exist "client\dist\index.html" (
+if not exist "%ROOT_DIR%\client\dist\index.html" (
     echo Compiling UI bundle...
-    cd client
+    cd /d "%ROOT_DIR%\client"
     call npm install --no-audit >nul 2>nul
     call npm run build
-    cd "%ROOT_DIR%"
+    cd /d "%ROOT_DIR%"
 ) else (
     echo   [OK] Latest Client UI build verified.
 )
@@ -119,8 +137,7 @@ echo.
 echo Press any key to restart the Box Factory ERP server...
 pause >nul
 
-cd "%ROOT_DIR%\windows-setup"
-call start-server.bat
+call "%ROOT_DIR%\start-server.bat"
 goto :EOF
 
 :NO_NODE

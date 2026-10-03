@@ -3,58 +3,74 @@ setlocal EnableDelayedExpansion
 title Box Factory ERP - Production Server
 color 0A
 
-cd /d "%~dp0"
+:: -----------------------------------------------------------------------------
+:: Step 1: Resolve Root Project Directory
+:: -----------------------------------------------------------------------------
+set "SCRIPT_DIR=%~dp0"
+if "%SCRIPT_DIR:~-1%"=="\" set "SCRIPT_DIR=%SCRIPT_DIR:~0,-1%"
+
+if exist "%SCRIPT_DIR%\server\index.js" (
+    set "ROOT_DIR=%SCRIPT_DIR%"
+) else if exist "%SCRIPT_DIR%\..\server\index.js" (
+    pushd "%SCRIPT_DIR%\.."
+    set "ROOT_DIR=!cd!"
+    popd
+) else (
+    set "ROOT_DIR=%SCRIPT_DIR%"
+)
+
+cd /d "%ROOT_DIR%"
 
 :: -----------------------------------------------------------------------------
-:: Step 1: Detect Node.js (including default Windows installation folders)
+:: Step 2: Detect Node.js (PATH + Default Windows Locations)
 :: -----------------------------------------------------------------------------
 where node >nul 2>nul
-if %errorlevel% equ 0 goto :NODE_FOUND
+if %errorlevel% equ 0 goto :NODE_OK
 
 if exist "C:\Program Files\nodejs\node.exe" (
     set "PATH=C:\Program Files\nodejs;%PATH%"
-    goto :NODE_FOUND
+    goto :NODE_OK
 )
 if exist "C:\Program Files (x86)\nodejs\node.exe" (
     set "PATH=C:\Program Files (x86)\nodejs;%PATH%"
-    goto :NODE_FOUND
+    goto :NODE_OK
 )
 if exist "%LOCALAPPDATA%\Programs\nodejs\node.exe" (
     set "PATH=%LOCALAPPDATA%\Programs\nodejs;%PATH%"
-    goto :NODE_FOUND
+    goto :NODE_OK
 )
 if exist "%ProgramFiles%\nodejs\node.exe" (
     set "PATH=%ProgramFiles%\nodejs;%PATH%"
-    goto :NODE_FOUND
+    goto :NODE_OK
 )
 
-goto :NODE_MISSING
+goto :NODE_ERROR
 
-:NODE_FOUND
+:NODE_OK
 cls
 echo ===============================================================================
 echo       Box Factory ERP - Arman Amiran Packaging Automation Server
 echo       Samaneh Jame Automasion Karkhaneh Jabeh va Kartonsazi
 echo ===============================================================================
 echo.
-echo [OK] Node.js is ready:
+echo [OK] Node.js Version:
 node -v
 echo.
 
 :: -----------------------------------------------------------------------------
-:: Step 2: Check server dependencies
+:: Step 3: Check and Install Server Dependencies if needed
 :: -----------------------------------------------------------------------------
-if exist "server\node_modules\express" goto :START_SERVER
+if exist "%ROOT_DIR%\server\node_modules\express" goto :LAUNCH_SERVER
 
 echo [1/2] Installing required server dependencies (first run only)...
 echo Lotfan kami sabr konid...
-cd server
+cd /d "%ROOT_DIR%\server"
 call npm install --no-audit
-cd ..
+cd /d "%ROOT_DIR%"
 echo [OK] Dependencies installed successfully.
 echo.
 
-:START_SERVER
+:LAUNCH_SERVER
 echo ===============================================================================
 echo                  SERVER IS RUNNING ON PORT 3001
 echo            Server ba movafaghiat roshan shod va amadeh ast
@@ -73,20 +89,20 @@ echo Tavajoh: In panjereh ra nabandid ta etesal bargharar bemanad.
 echo ===============================================================================
 echo.
 
-node server/index.js
-if %errorlevel% neq 0 goto :SERVER_ERROR
+node "%ROOT_DIR%\server\index.js"
+if %errorlevel% neq 0 goto :SERVER_CRASH
 goto :END
 
-:SERVER_ERROR
+:SERVER_CRASH
 echo.
-echo [WARN] Server stopped unexpectedly. Retrying module check...
-cd server
+echo [WARN] Server encountered an issue. Verifying server dependencies...
+cd /d "%ROOT_DIR%\server"
 call npm install --no-audit
-cd ..
-node server/index.js
+cd /d "%ROOT_DIR%"
+node "%ROOT_DIR%\server\index.js"
 goto :END
 
-:NODE_MISSING
+:NODE_ERROR
 color 0C
 cls
 echo ===============================================================================
@@ -96,14 +112,12 @@ echo ===========================================================================
 echo.
 echo Baraye ejraye automasion, lotfan yekbar narmafzar rayegan Node.js ra nasb konid:
 echo.
-echo   1. Website Node.js dar moroorgar shoma baz mishavad: https://nodejs.org
-echo   2. Dokmeh sabz rang Node.js (LTS) ra download va nasb konid.
+echo   1. Safheye download dar moroorgar baz mishavad (https://nodejs.org).
+echo   2. Noskheh LTS (Dokmeh sabz rang) ra download va nasb konid.
 echo   3. Pas az nasb, hamin file start-server.bat ra mojadadan ejra konid.
 echo.
 echo ===============================================================================
-echo Dar hal baz kardan safheye download Node.js dar moroorgar...
 start https://nodejs.org
-echo.
 pause
 exit /b 1
 

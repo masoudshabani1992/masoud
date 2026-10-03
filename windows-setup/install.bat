@@ -3,6 +3,24 @@ setlocal EnableDelayedExpansion
 title Box Factory ERP - Windows Server Installer
 color 0B
 
+:: -----------------------------------------------------------------------------
+:: Step 1: Resolve Root Project Directory
+:: -----------------------------------------------------------------------------
+set "SCRIPT_DIR=%~dp0"
+if "%SCRIPT_DIR:~-1%"=="\" set "SCRIPT_DIR=%SCRIPT_DIR:~0,-1%"
+
+if exist "%SCRIPT_DIR%\server\index.js" (
+    set "ROOT_DIR=%SCRIPT_DIR%"
+) else if exist "%SCRIPT_DIR%\..\server\index.js" (
+    pushd "%SCRIPT_DIR%\.."
+    set "ROOT_DIR=!cd!"
+    popd
+) else (
+    set "ROOT_DIR=%SCRIPT_DIR%"
+)
+
+cd /d "%ROOT_DIR%"
+
 echo ===============================================================================
 echo            Box Factory ERP - Automated Windows Server Installer
 echo            Nasb va Rah-andazi Automasion Karkhaneh Jabehsazi
@@ -10,60 +28,57 @@ echo ===========================================================================
 echo.
 
 :: -----------------------------------------------------------------------------
-:: Step 1: Detect Node.js
+:: Step 2: Detect Node.js
 :: -----------------------------------------------------------------------------
 where node >nul 2>nul
-if %errorlevel% equ 0 goto :NODE_FOUND
+if %errorlevel% equ 0 goto :NODE_OK
 
 if exist "C:\Program Files\nodejs\node.exe" (
     set "PATH=C:\Program Files\nodejs;%PATH%"
-    goto :NODE_FOUND
+    goto :NODE_OK
 )
 if exist "C:\Program Files (x86)\nodejs\node.exe" (
     set "PATH=C:\Program Files (x86)\nodejs;%PATH%"
-    goto :NODE_FOUND
+    goto :NODE_OK
 )
 if exist "%LOCALAPPDATA%\Programs\nodejs\node.exe" (
     set "PATH=%LOCALAPPDATA%\Programs\nodejs;%PATH%"
-    goto :NODE_FOUND
+    goto :NODE_OK
 )
 if exist "%ProgramFiles%\nodejs\node.exe" (
     set "PATH=%ProgramFiles%\nodejs;%PATH%"
-    goto :NODE_FOUND
+    goto :NODE_OK
 )
 
-goto :NODE_MISSING
+goto :NODE_ERROR
 
-:NODE_FOUND
+:NODE_OK
 echo [OK] Node.js Version:
 node -v
 echo.
 
 :: -----------------------------------------------------------------------------
-:: Step 2: Root directory & Database preservation check
+:: Step 3: Database Preservation Check
 :: -----------------------------------------------------------------------------
-cd /d "%~dp0\.."
-set "ROOT_DIR=%cd%"
-
 if exist "%ROOT_DIR%\server\factory.db" (
     echo [SECURITY INFO] Previous database detected. All existing orders are preserved.
     echo.
 )
 
 :: -----------------------------------------------------------------------------
-:: Step 3: Server dependencies
+:: Step 4: Server Dependencies
 :: -----------------------------------------------------------------------------
 if exist "%ROOT_DIR%\server\node_modules\express" (
     echo [1/2] Server modules already installed [OK]
 ) else (
     echo [1/2] Installing server dependencies...
-    cd "%ROOT_DIR%\server"
+    cd /d "%ROOT_DIR%\server"
     call npm install --no-audit
-    cd "%ROOT_DIR%"
+    cd /d "%ROOT_DIR%"
 )
 
 :: -----------------------------------------------------------------------------
-:: Step 4: Windows Firewall rule
+:: Step 5: Windows Firewall Rule
 :: -----------------------------------------------------------------------------
 echo.
 echo [2/2] Opening Network Port 3001 in Windows Firewall...
@@ -86,11 +101,10 @@ echo.
 echo ===============================================================================
 echo Press any key to start the ERP server now...
 pause >nul
-cd /d "%~dp0"
-call start-server.bat
+call "%ROOT_DIR%\start-server.bat"
 goto :EOF
 
-:NODE_MISSING
+:NODE_ERROR
 color 0C
 cls
 echo ===============================================================================

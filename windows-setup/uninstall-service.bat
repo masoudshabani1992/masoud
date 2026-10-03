@@ -1,16 +1,17 @@
 @echo off
-title Box Factory ERP - Uninstall Service
+setlocal EnableDelayedExpansion
+title Box Factory ERP - Remove Windows Background Service
+
 echo ===============================================================================
-echo            Stopping and Removing Box Factory ERP Service
+echo          Removing Box Factory ERP Background Service
 echo ===============================================================================
 echo.
 
-call pm2 stop box-factory-erp
-call pm2 delete box-factory-erp
+call pm2 delete "box-factory-erp"
 call pm2 save
 
 echo.
 echo ===============================================================================
-echo [SUCCESS] Service uninstalled successfully.
+echo [SUCCESS] Box Factory ERP background service removed.
 echo ===============================================================================
 pause

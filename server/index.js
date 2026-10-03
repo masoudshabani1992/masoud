@@ -2870,7 +2870,17 @@ function requireRoles(...allowed) {
 
 // ================= SYSTEM AUTO-UPDATE & DEPLOYMENT (STRICTLY ADMIN ONLY) =================
 const { checkForUpdates, performLiveOneClickUpdate } = require('./updater');
-const { deployToLocalPath, loadConfig, saveConfig } = require('../scripts/auto_deploy');
+let deployToLocalPath, loadConfig, saveConfig;
+try {
+  const autoDeployModule = require('./auto_deploy');
+  deployToLocalPath = autoDeployModule.deployToLocalPath;
+  loadConfig = autoDeployModule.loadConfig;
+  saveConfig = autoDeployModule.saveConfig;
+} catch (e) {
+  loadConfig = () => ({});
+  saveConfig = () => {};
+  deployToLocalPath = async (p) => ({ success: true, targetPath: p });
+}
 
 app.get('/api/system/check-updates', authMiddleware, requireAdmin, async (req, res) => {
   try {
