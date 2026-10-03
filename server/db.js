@@ -1,9 +1,30 @@
-const { DatabaseSync } = require('node:sqlite');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 
 const dbPath = path.join(__dirname, 'factory.db');
-const db = new DatabaseSync(dbPath);
+
+let db = null;
+
+// 1. Try native node:sqlite (Node 22.5+)
+try {
+  const { DatabaseSync } = require('node:sqlite');
+  if (typeof DatabaseSync === 'function') {
+    db = new DatabaseSync(dbPath);
+  }
+} catch (e) {
+  // Not Node 22 or node:sqlite not enabled
+}
+
+// 2. Try better-sqlite3 (Node 16 / 18 / 20 / 22)
+if (!db) {
+  try {
+    const Database = require('better-sqlite3');
+    db = new Database(dbPath);
+  } catch (e) {
+    console.error('Error initializing SQLite database engine:', e);
+    throw new Error('No compatible SQLite database engine found. Please ensure Node.js is installed and run: cd server && npm install');
+  }
+}
 
 function initDb() {
   db.exec(`

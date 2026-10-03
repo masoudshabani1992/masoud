@@ -31,10 +31,19 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-:: 2. Display Node info
+:: 2. Display Node info & check server modules
 echo [OK] Node.js Version:
 node -v
 echo.
+
+if not exist "server\node_modules\express" (
+    echo [1/2] Installing required server dependencies (first run only)...
+    cd server
+    call npm install --no-audit
+    cd ..
+    echo [OK] Server dependencies installed successfully.
+    echo.
+)
 
 :: 3. Server Startup
 echo ===============================================================================
