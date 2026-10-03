@@ -42,6 +42,9 @@ import BiometricLockScreen from './components/BiometricLockScreen';
 import SystemAutoUpdateModal from './components/SystemAutoUpdateModal';
 import ToastNotification from './components/ToastNotification';
 import ErrorBoundary from './components/ErrorBoundary';
+import { CustomizerProvider } from './context/CustomizerContext';
+import ElementorFloatingBar from './components/ElementorFloatingBar';
+import ElementorInspectorDrawer from './components/ElementorInspectorDrawer';
 import { playNotificationSound, showToast } from './utils/helpers';
 import { isAutoBiometricPromptEnabled, detectDeviceBiometrics } from './utils/biometrics';
 
@@ -487,14 +490,15 @@ export default function App() {
   };
 
   return (
-    <div
-      className={`min-h-screen flex font-sans w-full transition-colors duration-300 ${
-        currentTheme === 'vision-ui'
-          ? 'theme-vision-ui bg-[#060b26] text-slate-100'
-          : 'bg-slate-100 text-slate-800'
-      }`}
-      dir="rtl"
-    >
+    <CustomizerProvider currentUser={currentUser}>
+      <div
+        className={`min-h-screen flex font-sans w-full transition-colors duration-300 ${
+          currentTheme === 'vision-ui'
+            ? 'theme-vision-ui bg-[#060b26] text-slate-100'
+            : 'bg-slate-100 text-slate-800'
+        }`}
+        dir="rtl"
+      >
       {/* Right Sidebar Modern Navigation */}
       <RightSidebar
         activeTab={activeTab}
@@ -848,6 +852,13 @@ export default function App() {
 
       {/* Global Floating Toast Popup Notification */}
       <ToastNotification />
+
+      {/* WordPress Elementor In-Place Visual Live Editor Toolbar (Admin only) */}
+      <ElementorFloatingBar />
+
+      {/* WordPress Elementor Side Inspector Drawer Panel */}
+      <ElementorInspectorDrawer />
     </div>
+  </CustomizerProvider>
   );
 }

@@ -46,14 +46,185 @@ export const DEFAULT_SYSTEM_TITLES = {
     default_title: 'پروفایل و کارتابل پیگیری استعلامات بازاریاب',
     default_subtitle: 'سامانه رهگیری لحظه‌ای نتیجه استعلام‌ها، مشاهده قیمت‌های اعلام‌شده توسط واحد بازرگانی، ثبت لاگ تماس و پیگیری مشتری، و صدور پیش‌فاکتور رسمی.'
   },
+  mkt_kpi_card: {
+    key: 'mkt_kpi_card',
+    category: 'marketing',
+    title: 'هدف‌گذاری و تارگت ماهانه بازاریاب',
+    subtitle: 'کارشناس بازاریابی و مانیتورینگ تحقق شاخص‌های کلیدی عملکرد (KPI)',
+    description: 'کارت تارگت و ارزیابی پیشرفت ماهانه بازاریاب',
+    default_title: 'هدف‌گذاری و تارگت ماهانه بازاریاب',
+    default_subtitle: 'کارشناس بازاریابی و مانیتورینگ تحقق شاخص‌های کلیدی عملکرد (KPI)'
+  },
+  mkt_stat_leads: {
+    key: 'mkt_stat_leads',
+    category: 'marketing',
+    title: 'کل استعلام‌ها',
+    subtitle: 'موردی ثبت‌شده در این ماه',
+    description: 'کارت شمارنده کل استعلام‌های بازاریاب',
+    default_title: 'کل استعلام‌ها',
+    default_subtitle: 'موردی ثبت‌شده در این ماه'
+  },
+  mkt_stat_pending: {
+    key: 'mkt_stat_pending',
+    category: 'marketing',
+    title: 'در انتظار برآورد',
+    subtitle: 'واحد بازرگانی و مالی',
+    description: 'کارت استعلام‌های در حال بررسی قیمت',
+    default_title: 'در انتظار برآورد',
+    default_subtitle: 'واحد بازرگانی و مالی'
+  },
+  mkt_stat_ready: {
+    key: 'mkt_stat_ready',
+    category: 'marketing',
+    title: 'قیمت‌گذاری شده',
+    subtitle: 'آماده اعلام و صدور پیش‌فاکتور',
+    description: 'کارت استعلام‌های آماده پاسخ به مشتری',
+    default_title: 'قیمت‌گذاری شده',
+    default_subtitle: 'آماده اعلام و صدور پیش‌فاکتور'
+  },
+  mkt_stat_approved: {
+    key: 'mkt_stat_approved',
+    category: 'marketing',
+    title: 'تایید مشتری',
+    subtitle: 'توافق نهایی و آماده تولید',
+    description: 'کارت استعلام‌های تاییدشده توسط مشتری',
+    default_title: 'تایید مشتری',
+    default_subtitle: 'توافق نهایی و آماده تولید'
+  },
+  mkt_stat_prod: {
+    key: 'mkt_stat_prod',
+    category: 'marketing',
+    title: 'تبدیل به سفارش تولید',
+    subtitle: 'ارسال مستقیم به خطوط کارخانه',
+    description: 'کارت پروژه‌های در حال تولید کارخانه',
+    default_title: 'تبدیل به سفارش تولید',
+    default_subtitle: 'ارسال مستقیم به خطوط کارخانه'
+  },
+  mkt_stat_revenue: {
+    key: 'mkt_stat_revenue',
+    category: 'marketing',
+    title: 'ارزش استعلام‌های تایید شده',
+    subtitle: 'مجموع مبالغ تاییدشده ماه',
+    description: 'کارت ارزش ریالی فروش بازاریاب',
+    default_title: 'ارزش استعلام‌های تایید شده',
+    default_subtitle: 'مجموع مبالغ تاییدشده ماه'
+  },
   marketing_form: {
     key: 'marketing_form',
     category: 'marketing',
-    title: 'فرم ثبت استعلام صنعتی جدید',
-    subtitle: 'ورود مشخصات فنی، متریال، ابعاد، چاپ، روکش، یووی، برجسته، طلق، چسب و تیراژ جعبه',
+    title: 'فرم ثبت استعلام جدید توسط بازاریاب',
+    subtitle: 'اطلاعات مشتری و مشخصات فنی جعبه را وارد فرمایید تا مستقیماً به کارتابل مدیر بازرگانی و ماشین حساب برآورد ارسال گردد.',
     description: 'عنوان و زیرعنوان فرم ثبت استعلام جدید',
-    default_title: 'فرم ثبت استعلام صنعتی جدید',
-    default_subtitle: 'ورود مشخصات فنی، متریال، ابعاد، چاپ، روکش، یووی، برجسته، طلق، چسب و تیراژ جعبه'
+    default_title: 'فرم ثبت استعلام جدید توسط بازاریاب',
+    default_subtitle: 'اطلاعات مشتری و مشخصات فنی جعبه را وارد فرمایید تا مستقیماً به کارتابل مدیر بازرگانی و ماشین حساب برآورد ارسال گردد.'
+  },
+  mkt_sec1_title: {
+    key: 'mkt_sec1_title',
+    category: 'marketing',
+    title: '۱. اطلاعات پایه مشتری و محصول',
+    subtitle: 'نام مشتری، شماره تماس و مشخصات اصلی محصول',
+    description: 'سکشن اول فرم استعلام بازاریابی',
+    default_title: '۱. اطلاعات پایه مشتری و محصول',
+    default_subtitle: 'نام مشتری، شماره تماس و مشخصات اصلی محصول'
+  },
+  mkt_sec2_title: {
+    key: 'mkt_sec2_title',
+    category: 'marketing',
+    title: '۲. مشخصات ساختار فیزیکی، متریال، چاپ و تکمیل جعبه',
+    subtitle: 'تعیین دسته‌بندی مقوایی، لمینتی یا کارتن و جزییات تخصصی تولید',
+    description: 'سکشن دوم فرم مشخصات فنی و چاپ',
+    default_title: '۲. مشخصات ساختار فیزیکی، متریال، چاپ و تکمیل جعبه',
+    default_subtitle: 'تعیین دسته‌بندی مقوایی، لمینتی یا کارتن و جزییات تخصصی تولید'
+  },
+  mkt_cardboard_title: {
+    key: 'mkt_cardboard_title',
+    category: 'marketing',
+    title: 'اطلاعات کامل و اختصاصی جعبه مقوایی (Cardboard Specs)',
+    subtitle: 'تعیین دقیق گرماژ، متد چاپ، زینک، روکش و تکمیل',
+    description: 'هدر مشخصات جعبه مقوایی در فرم استعلام',
+    default_title: 'اطلاعات کامل و اختصاصی جعبه مقوایی (Cardboard Specs)',
+    default_subtitle: 'تعیین دقیق گرماژ، متد چاپ، زینک، روکش و تکمیل'
+  },
+  mkt_sec_print: {
+    key: 'mkt_sec_print',
+    category: 'marketing',
+    title: 'مشخصات چاپ افست',
+    subtitle: 'انتخاب روش چاپ و تعداد رنگ',
+    description: 'سکشن مشخصات چاپ و رنگ‌های افست',
+    default_title: 'مشخصات چاپ افست',
+    default_subtitle: 'انتخاب روش چاپ و تعداد رنگ'
+  },
+  mkt_sec_coating: {
+    key: 'mkt_sec_coating',
+    category: 'marketing',
+    title: 'روکش و پوشش چاپ (سلفون / ورنی / لاک / یو وی سیلندری)',
+    subtitle: 'انتخاب نوع روکش، براق/مات/طرح‌دار و ضخامت پوشش',
+    description: 'سکشن روکش و لایه‌های محافظ چاپ',
+    default_title: 'روکش و پوشش چاپ (سلفون / ورنی / لاک / یو وی سیلندری)',
+    default_subtitle: 'انتخاب نوع روکش، براق/مات/طرح‌دار و ضخامت پوشش'
+  },
+  mkt_sec_uv: {
+    key: 'mkt_sec_uv',
+    category: 'marketing',
+    title: 'یو وی موضعی و برجسته (Spot UV & Drip Off)',
+    subtitle: 'اعمال جلوه‌های مات و براق شنی و شابلونی بر روی بسته‌بندی',
+    description: 'سکشن اختصاصی یووی موضعی',
+    default_title: 'یو وی موضعی و برجسته (Spot UV & Drip Off)',
+    default_subtitle: 'اعمال جلوه‌های مات و براق شنی و شابلونی بر روی بسته‌بندی'
+  },
+  mkt_sec_emboss: {
+    key: 'mkt_sec_emboss',
+    category: 'marketing',
+    title: 'برجسته‌کاری (Embossing)',
+    subtitle: 'عملیات امباس و برجسته‌سازی لوگو و نوشتار با کلیشه فلزی حرارتی',
+    description: 'سکشن اختصاصی برجسته‌کاری',
+    default_title: 'برجسته‌کاری (Embossing)',
+    default_subtitle: 'عملیات امباس و برجسته‌سازی لوگو و نوشتار با کلیشه فلزی حرارتی'
+  },
+  mkt_sec_window: {
+    key: 'mkt_sec_window',
+    category: 'marketing',
+    title: 'پنجره طلق‌دار (Window Patching)',
+    subtitle: 'پنجره شفاف PVC / PET با ابعاد دقیق طول، عرض و ضخامت',
+    description: 'سکشن اختصاصی طلق و پنجره جعبه',
+    default_title: 'پنجره طلق‌دار (Window Patching)',
+    default_subtitle: 'پنجره شفاف PVC / PET با ابعاد دقیق طول، عرض و ضخامت'
+  },
+  mkt_sec_glue: {
+    key: 'mkt_sec_glue',
+    category: 'marketing',
+    title: 'چسب و اتصال جعبه (Gluing)',
+    subtitle: 'تعیین لب‌چسب، چسب گرم، سرد یا قفل سرخود',
+    description: 'سکشن اختصاصی چسب و اتصال جعبه',
+    default_title: 'چسب و اتصال جعبه (Gluing)',
+    default_subtitle: 'تعیین لب‌چسب، چسب گرم، سرد یا قفل سرخود'
+  },
+  mkt_sec_foil: {
+    key: 'mkt_sec_foil',
+    category: 'marketing',
+    title: 'فویل و طلاکوب / نقره‌کوب (Hot Foil)',
+    subtitle: 'جلوه‌های متالیک براق و هولوگرام با کلیشه حرارتی',
+    description: 'سکشن اختصاصی طلاکوب و فویل',
+    default_title: 'فویل و طلاکوب / نقره‌کوب (Hot Foil)',
+    default_subtitle: 'جلوه‌های متالیک براق و هولوگرام با کلیشه حرارتی'
+  },
+  mkt_sec3_dimensions: {
+    key: 'mkt_sec3_dimensions',
+    category: 'marketing',
+    title: '۳. ابعاد تقریبی (سانتی‌متر) و توضیحات تکمیلی',
+    subtitle: 'طول، عرض، ارتفاع و نکات خاص مورد نیاز مشتری',
+    description: 'سکشن ابعاد و توضیحات تکمیلی جعبه',
+    default_title: '۳. ابعاد تقریبی (سانتی‌متر) و توضیحات تکمیلی',
+    default_subtitle: 'طول، عرض، ارتفاع و نکات خاص مورد نیاز مشتری'
+  },
+  mkt_sec4_upload: {
+    key: 'mkt_sec4_upload',
+    category: 'marketing',
+    title: '۴. پیوست فایل خط تیغ، قالب یا طرح چاپی (اختیاری)',
+    subtitle: 'فرمت‌های مجاز: PDF, AI, CDR, EPS, DXF, SVG, JPG, PNG, ZIP (حداکثر ۲۵ مگابایت)',
+    description: 'سکشن آپلود فایل خط تیغ و قالب',
+    default_title: '۴. پیوست فایل خط تیغ، قالب یا طرح چاپی (اختیاری)',
+    default_subtitle: 'فرمت‌های مجاز: PDF, AI, CDR, EPS, DXF, SVG, JPG, PNG, ZIP (حداکثر ۲۵ مگابایت)'
   },
   calculator_header: {
     key: 'calculator_header',

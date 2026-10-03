@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
 import FilePreviewModal from './FilePreviewModal';
+import EditableElement from './EditableElement';
+import { useUiCustomizer } from '../context/CustomizerContext';
 import { matchProduct, showSuccessToast } from '../utils/helpers';
 import {
   Users,
@@ -1007,19 +1009,29 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-teal-500 to-emerald-600 flex items-center justify-center text-white shadow-lg shadow-teal-900/40 border border-teal-400/30">
               <Users className="w-8 h-8" />
             </div>
-            <div>
-              <div className="flex items-center gap-2.5 flex-wrap">
-                <h1 className="text-xl sm:text-2xl font-black text-white">
-                  {customTitles?.marketing_header?.title || 'پروفایل و کارتابل پیگیری استعلامات بازاریاب'}
-                </h1>
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-teal-500/20 text-teal-300 border border-teal-400/30">
-                  {currentUser?.fullName || currentUser?.full_name || 'کارشناس بازاریابی'}
-                </span>
-              </div>
-              <p className="text-xs sm:text-sm text-teal-100/80 mt-1 max-w-2xl leading-relaxed">
-                {customTitles?.marketing_header?.subtitle || 'سامانه رهگیری لحظه‌ای نتیجه استعلام‌ها، مشاهده قیمت‌های اعلام‌شده توسط واحد بازرگانی، ثبت لاگ تماس و پیگیری مشتری، و صدور پیش‌فاکتور رسمی.'}
-              </p>
-            </div>
+            <EditableElement
+              keyId="marketing_header"
+              defaultTitle="پروفایل و کارتابل پیگیری استعلامات بازاریاب"
+              defaultSubtitle="سامانه رهگیری لحظه‌ای نتیجه استعلام‌ها، مشاهده قیمت‌های اعلام‌شده توسط واحد بازرگانی، ثبت لاگ تماس و پیگیری مشتری، و صدور پیش‌فاکتور رسمی."
+              category="marketing"
+              description="عنوان اصلی و زیرعنوان کارتابل بازاریاب"
+            >
+              {({ title, subtitle }) => (
+                <div>
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <h1 className="text-xl sm:text-2xl font-black text-white">
+                      {title}
+                    </h1>
+                    <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-teal-500/20 text-teal-300 border border-teal-400/30">
+                      {currentUser?.fullName || currentUser?.full_name || 'کارشناس بازاریابی'}
+                    </span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-teal-100/80 mt-1 max-w-2xl leading-relaxed">
+                    {subtitle}
+                  </p>
+                </div>
+              )}
+            </EditableElement>
           </div>
 
           {/* Action Tabs */}
@@ -1083,29 +1095,39 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
               <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-teal-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-teal-100 shrink-0">
                 <Target className="w-6 h-6" />
               </div>
-              <div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h2 className="text-base sm:text-lg font-black text-slate-900">
-                    هدف‌گذاری و تارگت استعلام ماهانه ({targetStats?.current_period?.fullMonthText || 'ماه جاری'})
-                  </h2>
-                  {targetStats?.kpi?.is_target_achieved ? (
-                    <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1 animate-pulse">
-                      <Trophy className="w-3.5 h-3.5 text-amber-600" />
-                      <span>تارگت محقق شد! 🎉</span>
-                    </span>
-                  ) : (
-                    <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1">
-                      <Flame className="w-3.5 h-3.5 text-amber-600" />
-                      <span>در حال تلاش برای تکمیل تارگت</span>
-                    </span>
-                  )}
-                </div>
-                <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-2 flex-wrap">
-                  <span>کارشناس: <strong className="text-slate-800">{targetStats?.marketer?.full_name || currentUser?.fullName || 'بازاریاب'}</strong></span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
-                  <span>تارگت مصوب مدیریت: <strong className="text-teal-700 font-black">{targetStats?.targets?.inquiries || 20} استعلام قیمت در ماه</strong></span>
-                </div>
-              </div>
+              <EditableElement
+                keyId="mkt_kpi_card"
+                defaultTitle={`هدف‌گذاری و تارگت استعلام ماهانه (${targetStats?.current_period?.fullMonthText || 'ماه جاری'})`}
+                defaultSubtitle={`کارشناس: ${targetStats?.marketer?.full_name || currentUser?.fullName || 'بازاریاب'} | تارگت مصوب مدیریت: ${targetStats?.targets?.inquiries || 20} استعلام قیمت در ماه`}
+                category="marketing"
+                description="کارت تارگت و ارزیابی پیشرفت ماهانه بازاریاب"
+              >
+                {({ title, subtitle }) => (
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h2 className="text-base sm:text-lg font-black text-slate-900">
+                        {title}
+                      </h2>
+                      {targetStats?.kpi?.is_target_achieved ? (
+                        <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1 animate-pulse">
+                          <Trophy className="w-3.5 h-3.5 text-amber-600" />
+                          <span>تارگت محقق شد! 🎉</span>
+                        </span>
+                      ) : (
+                        <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1">
+                          <Flame className="w-3.5 h-3.5 text-amber-600" />
+                          <span>در حال تلاش برای تکمیل تارگت</span>
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-2 flex-wrap">
+                      <span>کارشناس: <strong className="text-slate-800">{targetStats?.marketer?.full_name || currentUser?.fullName || 'بازاریاب'}</strong></span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                      <span>تارگت مصوب مدیریت: <strong className="text-teal-700 font-black">{targetStats?.targets?.inquiries || 20} استعلام قیمت در ماه</strong></span>
+                    </div>
+                  </div>
+                )}
+              </EditableElement>
             </div>
 
             {/* Management Controls & Month Selector */}
@@ -1427,60 +1449,90 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
       {/* Marketer Performance & Status Counters */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {/* Total Leads */}
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-500 text-xs font-bold">
-            <span>کل استعلام‌ها</span>
-            <Boxes className="w-4 h-4 text-slate-400" />
-          </div>
-          <div className="mt-2 flex items-baseline justify-between">
-            <span className="text-xl font-black text-slate-900 font-mono">{totalLeads}</span>
-            <span className="text-[10px] text-slate-400">موردی</span>
-          </div>
-        </div>
+        <EditableElement
+          keyId="mkt_stat_leads"
+          defaultTitle="کل استعلام‌ها"
+          defaultSubtitle="موردی"
+          category="marketing"
+          description="کارت شمارنده کل استعلام‌ها"
+        >
+          {({ title, subtitle }) => (
+            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between h-full">
+              <div className="flex items-center justify-between text-slate-500 text-xs font-bold">
+                <span>{title}</span>
+                <Boxes className="w-4 h-4 text-slate-400" />
+              </div>
+              <div className="mt-2 flex items-baseline justify-between">
+                <span className="text-xl font-black text-slate-900 font-mono">{totalLeads}</span>
+                <span className="text-[10px] text-slate-400">{subtitle}</span>
+              </div>
+            </div>
+          )}
+        </EditableElement>
 
         {/* Pending Estimation (Yellow) */}
-        <button
-          onClick={() => setStatusFilter(statusFilter === 'pending_commercial' ? 'all' : 'pending_commercial')}
-          className={`p-4 rounded-2xl border text-right transition-all flex flex-col justify-between ${
-            statusFilter === 'pending_commercial'
-              ? 'bg-amber-50 border-amber-500 ring-2 ring-amber-400 shadow-md'
-              : 'bg-white border-amber-200 hover:border-amber-300 shadow-xs'
-          }`}
+        <EditableElement
+          keyId="mkt_stat_pending"
+          defaultTitle="در انتظار برآورد"
+          defaultSubtitle="واحد بازرگانی"
+          category="marketing"
+          description="کارت استعلام‌های در حال بررسی قیمت"
         >
-          <div className="flex items-center justify-between text-amber-800 text-xs font-bold">
-            <span>در انتظار برآورد</span>
-            <Clock className="w-4 h-4 text-amber-600" />
-          </div>
-          <div className="mt-2 flex items-baseline justify-between">
-            <span className="text-xl font-black text-amber-900 font-mono">{pendingCount}</span>
-            <span className="text-[10px] text-amber-700">واحد بازرگانی</span>
-          </div>
-        </button>
+          {({ title, subtitle }) => (
+            <button
+              onClick={() => setStatusFilter(statusFilter === 'pending_commercial' ? 'all' : 'pending_commercial')}
+              className={`p-4 rounded-2xl border text-right transition-all flex flex-col justify-between w-full h-full ${
+                statusFilter === 'pending_commercial'
+                  ? 'bg-amber-50 border-amber-500 ring-2 ring-amber-400 shadow-md'
+                  : 'bg-white border-amber-200 hover:border-amber-300 shadow-xs'
+              }`}
+            >
+              <div className="flex items-center justify-between text-amber-800 text-xs font-bold">
+                <span>{title}</span>
+                <Clock className="w-4 h-4 text-amber-600" />
+              </div>
+              <div className="mt-2 flex items-baseline justify-between">
+                <span className="text-xl font-black text-amber-900 font-mono">{pendingCount}</span>
+                <span className="text-[10px] text-amber-700">{subtitle}</span>
+              </div>
+            </button>
+          )}
+        </EditableElement>
 
         {/* Estimated / Price Ready (Green) */}
-        <button
-          onClick={() => setStatusFilter(statusFilter === 'estimated' ? 'all' : 'estimated')}
-          className={`p-4 rounded-2xl border text-right transition-all flex flex-col justify-between ${
-            statusFilter === 'estimated'
-              ? 'bg-emerald-50 border-emerald-500 ring-2 ring-emerald-400 shadow-md'
-              : 'bg-white border-emerald-200 hover:border-emerald-300 shadow-xs'
-          }`}
+        <EditableElement
+          keyId="mkt_stat_ready"
+          defaultTitle="قیمت‌گذاری شده"
+          defaultSubtitle="آماده اعلام"
+          category="marketing"
+          description="کارت استعلام‌های آماده پاسخ به مشتری"
         >
-          <div className="flex items-center justify-between text-emerald-800 text-xs font-bold">
-            <span>قیمت‌گذاری شده</span>
-            <DollarSign className="w-4 h-4 text-emerald-600" />
-          </div>
-          <div className="mt-2 flex items-baseline justify-between">
-            <span className="text-xl font-black text-emerald-900 font-mono">{estimatedCount}</span>
-            <span className="text-[10px] text-emerald-700">آماده اعلام</span>
-          </div>
-        </button>
+          {({ title, subtitle }) => (
+            <button
+              onClick={() => setStatusFilter(statusFilter === 'estimated' ? 'all' : 'estimated')}
+              className={`p-4 rounded-2xl border text-right transition-all flex flex-col justify-between w-full h-full ${
+                statusFilter === 'estimated'
+                  ? 'bg-emerald-50 border-emerald-500 ring-2 ring-emerald-400 shadow-md'
+                  : 'bg-white border-emerald-200 hover:border-emerald-300 shadow-xs'
+              }`}
+            >
+              <div className="flex items-center justify-between text-emerald-800 text-xs font-bold">
+                <span>{title}</span>
+                <DollarSign className="w-4 h-4 text-emerald-600" />
+              </div>
+              <div className="mt-2 flex items-baseline justify-between">
+                <span className="text-xl font-black text-emerald-900 font-mono">{estimatedCount}</span>
+                <span className="text-[10px] text-emerald-700">{subtitle}</span>
+              </div>
+            </button>
+          )}
+        </EditableElement>
 
         {/* Needs Revision (Rose / Amber Alert) */}
         {needsRevisionCount > 0 && (
           <button
             onClick={() => setStatusFilter(statusFilter === 'needs_revision' ? 'all' : 'needs_revision')}
-            className={`p-4 rounded-2xl border text-right transition-all flex flex-col justify-between animate-pulse ${
+            className={`p-4 rounded-2xl border text-right transition-all flex flex-col justify-between ${
               statusFilter === 'needs_revision'
                 ? 'bg-rose-50 border-rose-500 ring-2 ring-rose-400 shadow-md'
                 : 'bg-rose-50/50 border-rose-200 hover:border-rose-300 shadow-xs'
@@ -1498,56 +1550,86 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
         )}
 
         {/* Customer Approved (Sky) */}
-        <button
-          onClick={() => setStatusFilter(statusFilter === 'customer_approved' ? 'all' : 'customer_approved')}
-          className={`p-4 rounded-2xl border text-right transition-all flex flex-col justify-between ${
-            statusFilter === 'customer_approved'
-              ? 'bg-sky-50 border-sky-500 ring-2 ring-sky-400 shadow-md'
-              : 'bg-white border-sky-200 hover:border-sky-300 shadow-xs'
-          }`}
+        <EditableElement
+          keyId="mkt_stat_approved"
+          defaultTitle="تایید مشتری"
+          defaultSubtitle="آماده پیش‌فاکتور"
+          category="marketing"
+          description="کارت استعلام‌های تاییدشده توسط مشتری"
         >
-          <div className="flex items-center justify-between text-sky-800 text-xs font-bold">
-            <span>تایید مشتری</span>
-            <Check className="w-4 h-4 text-sky-600" />
-          </div>
-          <div className="mt-2 flex items-baseline justify-between">
-            <span className="text-xl font-black text-sky-900 font-mono">{approvedCount}</span>
-            <span className="text-[10px] text-sky-700">آماده پیش‌فاکتور</span>
-          </div>
-        </button>
+          {({ title, subtitle }) => (
+            <button
+              onClick={() => setStatusFilter(statusFilter === 'customer_approved' ? 'all' : 'customer_approved')}
+              className={`p-4 rounded-2xl border text-right transition-all flex flex-col justify-between w-full h-full ${
+                statusFilter === 'customer_approved'
+                  ? 'bg-sky-50 border-sky-500 ring-2 ring-sky-400 shadow-md'
+                  : 'bg-white border-sky-200 hover:border-sky-300 shadow-xs'
+              }`}
+            >
+              <div className="flex items-center justify-between text-sky-800 text-xs font-bold">
+                <span>{title}</span>
+                <Check className="w-4 h-4 text-sky-600" />
+              </div>
+              <div className="mt-2 flex items-baseline justify-between">
+                <span className="text-xl font-black text-sky-900 font-mono">{approvedCount}</span>
+                <span className="text-[10px] text-sky-700">{subtitle}</span>
+              </div>
+            </button>
+          )}
+        </EditableElement>
 
         {/* In Production (Indigo) */}
-        <button
-          onClick={() => setStatusFilter(statusFilter === 'converted_to_order' ? 'all' : 'converted_to_order')}
-          className={`p-4 rounded-2xl border text-right transition-all flex flex-col justify-between ${
-            statusFilter === 'converted_to_order'
-              ? 'bg-indigo-50 border-indigo-500 ring-2 ring-indigo-400 shadow-md'
-              : 'bg-white border-indigo-200 hover:border-indigo-300 shadow-xs'
-          }`}
+        <EditableElement
+          keyId="mkt_stat_prod"
+          defaultTitle="در حال تولید سالن"
+          defaultSubtitle="سفارش رسمی"
+          category="marketing"
+          description="کارت پروژه‌های در حال تولید کارخانه"
         >
-          <div className="flex items-center justify-between text-indigo-800 text-xs font-bold">
-            <span>در حال تولید سالن</span>
-            <TrendingUp className="w-4 h-4 text-indigo-600" />
-          </div>
-          <div className="mt-2 flex items-baseline justify-between">
-            <span className="text-xl font-black text-indigo-900 font-mono">{convertedCount}</span>
-            <span className="text-[10px] text-indigo-700">سفارش رسمی</span>
-          </div>
-        </button>
+          {({ title, subtitle }) => (
+            <button
+              onClick={() => setStatusFilter(statusFilter === 'converted_to_order' ? 'all' : 'converted_to_order')}
+              className={`p-4 rounded-2xl border text-right transition-all flex flex-col justify-between w-full h-full ${
+                statusFilter === 'converted_to_order'
+                  ? 'bg-indigo-50 border-indigo-500 ring-2 ring-indigo-400 shadow-md'
+                  : 'bg-white border-indigo-200 hover:border-indigo-300 shadow-xs'
+              }`}
+            >
+              <div className="flex items-center justify-between text-indigo-800 text-xs font-bold">
+                <span>{title}</span>
+                <TrendingUp className="w-4 h-4 text-indigo-600" />
+              </div>
+              <div className="mt-2 flex items-baseline justify-between">
+                <span className="text-xl font-black text-indigo-900 font-mono">{convertedCount}</span>
+                <span className="text-[10px] text-indigo-700">{subtitle}</span>
+              </div>
+            </button>
+          )}
+        </EditableElement>
 
         {/* Conversion Rate & Total Value */}
-        <div className="bg-gradient-to-tr from-slate-900 to-teal-900 text-white p-4 rounded-2xl shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between text-teal-300 text-xs font-bold">
-            <span>نرخ تبدیل موفق</span>
-            <Award className="w-4 h-4 text-amber-400" />
-          </div>
-          <div className="mt-2 flex items-baseline justify-between">
-            <span className="text-xl font-black text-amber-300 font-mono">{conversionRate}٪</span>
-            <span className="text-[10px] text-teal-200">
-              {totalConvertedValue > 0 ? `${(totalConvertedValue / 1000000).toFixed(1)} م ت` : 'موفق'}
-            </span>
-          </div>
-        </div>
+        <EditableElement
+          keyId="mkt_stat_revenue"
+          defaultTitle="نرخ تبدیل موفق"
+          defaultSubtitle="مجموع مبالغ تاییدشده"
+          category="marketing"
+          description="کارت ارزش ریالی فروش بازاریاب"
+        >
+          {({ title, subtitle }) => (
+            <div className="bg-gradient-to-tr from-slate-900 to-teal-900 text-white p-4 rounded-2xl shadow-xs flex flex-col justify-between h-full">
+              <div className="flex items-center justify-between text-teal-300 text-xs font-bold">
+                <span>{title}</span>
+                <Award className="w-4 h-4 text-amber-400" />
+              </div>
+              <div className="mt-2 flex items-baseline justify-between">
+                <span className="text-xl font-black text-amber-300 font-mono">{conversionRate}٪</span>
+                <span className="text-[10px] text-teal-200">
+                  {totalConvertedValue > 0 ? `${(totalConvertedValue / 1000000).toFixed(1)} م ت` : subtitle}
+                </span>
+              </div>
+            </div>
+          )}
+        </EditableElement>
       </div>
 
       {/* TAB 1: LEADS LIST & REALTIME TRACKER */}
@@ -2095,15 +2177,25 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
       {activeTab === 'new_lead' && (
         <form onSubmit={handleSubmitLead} className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
           <div className="border-b border-slate-100 pb-4 flex items-center justify-between flex-wrap gap-2">
-            <div>
-              <h2 className="text-base font-black text-slate-800 flex items-center gap-2">
-                <PlusCircle className="w-5 h-5 text-teal-600" />
-                فرم ثبت استعلام جدید توسط بازاریاب
-              </h2>
-              <p className="text-xs text-slate-500 mt-1">
-                اطلاعات مشتری و مشخصات فنی جعبه را وارد فرمایید تا مستقیماً به کارتابل مدیر بازرگانی و ماشین حساب برآورد ارسال گردد.
-              </p>
-            </div>
+            <EditableElement
+              keyId="marketing_form"
+              defaultTitle="فرم ثبت استعلام جدید توسط بازاریاب"
+              defaultSubtitle="اطلاعات مشتری و مشخصات فنی جعبه را وارد فرمایید تا مستقیماً به کارتابل مدیر بازرگانی و ماشین حساب برآورد ارسال گردد."
+              category="marketing"
+              description="عنوان و زیرعنوان فرم ثبت استعلام جدید"
+            >
+              {({ title, subtitle }) => (
+                <div>
+                  <h2 className="text-base font-black text-slate-800 flex items-center gap-2">
+                    <PlusCircle className="w-5 h-5 text-teal-600" />
+                    {title}
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-1">
+                    {subtitle}
+                  </p>
+                </div>
+              )}
+            </EditableElement>
             <span className="text-xs bg-teal-50 text-teal-800 border border-teal-200 px-3 py-1 rounded-full font-bold">
               ثبت استعلام میدانی
             </span>
@@ -2129,10 +2221,20 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
 
           {/* Section 1: Customer Info */}
           <div className="space-y-3">
-            <h3 className="text-xs font-black text-slate-700 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-teal-600" />
-              ۱. مشخصات مشتری و سفارش
-            </h3>
+            <EditableElement
+              keyId="mkt_sec1_title"
+              defaultTitle="۱. اطلاعات پایه مشتری و محصول"
+              defaultSubtitle="نام مشتری، شماره تماس و مشخصات اصلی محصول"
+              category="marketing"
+              description="سکشن اول فرم استعلام"
+            >
+              {({ title }) => (
+                <h3 className="text-xs font-black text-slate-700 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-teal-600" />
+                  {title}
+                </h3>
+              )}
+            </EditableElement>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
               <div>
                 <label className="font-bold text-slate-700 block mb-1.5">
@@ -2184,15 +2286,25 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
 
           {/* Section 2: Technical Specs (Hierarchical: مقوایی / لمینتی / کارتن) */}
           <div className="space-y-4 pt-3 border-t border-slate-100">
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <h3 className="text-xs font-black text-slate-800 flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-teal-600 shadow-sm" />
-                ۲. مشخصات فنی متریال و تیراژ
-              </h3>
-              <span className="text-[11px] font-bold text-teal-800 bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200">
-                فرم استاندارد محاسبه بهای تمام‌شده جعبه
-              </span>
-            </div>
+            <EditableElement
+              keyId="mkt_sec2_title"
+              defaultTitle="۲. مشخصات ساختار فیزیکی، متریال، چاپ و تکمیل جعبه"
+              defaultSubtitle="فرم استاندارد محاسبه بهای تمام‌شده جعبه"
+              category="marketing"
+              description="سکشن دوم مشخصات فنی و چاپ"
+            >
+              {({ title, subtitle }) => (
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <h3 className="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-teal-600 shadow-sm" />
+                    {title}
+                  </h3>
+                  <span className="text-[11px] font-bold text-teal-800 bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200">
+                    {subtitle}
+                  </span>
+                </div>
+              )}
+            </EditableElement>
 
             {/* Quantity and Tier 1 Material Category Selection */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
@@ -2272,15 +2384,25 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
             {/* TIER 2: SPECIFICATIONS WHEN «مقوایی» IS SELECTED */}
             {mainCategory === 'مقوایی' && (
               <div className="bg-slate-50/70 border border-slate-200 rounded-3xl p-4 sm:p-5 space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
-                  <span className="text-xs font-black text-teal-950 flex items-center gap-1.5">
-                    <Sparkles className="w-4 h-4 text-teal-600" />
-                    اطلاعات کامل و اختصاصی جعبه مقوایی (Cardboard Specs)
-                  </span>
-                  <span className="text-[10px] font-bold text-slate-500">
-                    تعیین دقیق گرماژ، متد چاپ، زینک، روکش و تکمیل
-                  </span>
-                </div>
+                <EditableElement
+                  keyId="mkt_cardboard_title"
+                  defaultTitle="اطلاعات کامل و اختصاصی جعبه مقوایی (Cardboard Specs)"
+                  defaultSubtitle="تعیین دقیق گرماژ، متد چاپ، زینک، روکش و تکمیل"
+                  category="marketing"
+                  description="هدر مشخصات جعبه مقوایی در فرم استعلام"
+                >
+                  {({ title, subtitle }) => (
+                    <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
+                      <span className="text-xs font-black text-teal-950 flex items-center gap-1.5">
+                        <Sparkles className="w-4 h-4 text-teal-600" />
+                        {title}
+                      </span>
+                      <span className="text-[10px] font-bold text-slate-500">
+                        {subtitle}
+                      </span>
+                    </div>
+                  )}
+                </EditableElement>
 
                 {/* 1. Cardboard Type (لیستی) & Grammage */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
@@ -2344,13 +2466,23 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
 
                 {/* 2. Printing Specifications (نوع چاپ اول -> بعد تعداد رنگ -> زینک و رنگ ساختگی - ابعاد فرم حذف شد) */}
                 <div className="p-4 bg-white rounded-2xl border border-slate-200 space-y-3">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                    <span className="text-xs font-black text-slate-800 flex items-center gap-1.5">
-                      <Printer className="w-4 h-4 text-indigo-600" />
-                      مشخصات چاپ افست
-                    </span>
-                    <span className="text-[11px] font-bold text-slate-500">انتخاب روش چاپ و تعداد رنگ</span>
-                  </div>
+                  <EditableElement
+                    keyId="mkt_sec_print"
+                    defaultTitle="مشخصات چاپ افست"
+                    defaultSubtitle="انتخاب روش چاپ و تعداد رنگ"
+                    category="marketing"
+                    description="سکشن مشخصات چاپ و رنگ‌های افست"
+                  >
+                    {({ title, subtitle }) => (
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                        <span className="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                          <Printer className="w-4 h-4 text-indigo-600" />
+                          {title}
+                        </span>
+                        <span className="text-[11px] font-bold text-slate-500">{subtitle}</span>
+                      </div>
+                    )}
+                  </EditableElement>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                     {/* Step 1: Print Type Selection */}
@@ -2405,15 +2537,25 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
 
                 {/* 3. Surface Coatings Section (سلفون / ورنی / لاک / یو وی سیلندری با زیرمجموعه پویا) */}
                 <div className="p-4 bg-white rounded-2xl border border-slate-200 space-y-3 text-xs">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                    <span className="text-xs font-black text-slate-800 flex items-center gap-1.5">
-                      <Layers className="w-4 h-4 text-teal-600" />
-                      روکش و پوشش چاپ (سلفون / ورنی / لاک / یو وی سیلندری)
-                    </span>
-                    <span className="text-[11px] font-bold text-teal-800 bg-teal-50 px-2 py-0.5 rounded-lg border border-teal-200">
-                      {coatingCategory}
-                    </span>
-                  </div>
+                  <EditableElement
+                    keyId="mkt_sec_coating"
+                    defaultTitle="روکش و پوشش چاپ (سلفون / ورنی / لاک / یو وی سیلندری)"
+                    defaultSubtitle="انتخاب نوع روکش، براق/مات/طرح‌دار و ضخامت پوشش"
+                    category="marketing"
+                    description="سکشن روکش و لایه‌های محافظ چاپ"
+                  >
+                    {({ title }) => (
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                        <span className="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                          <Layers className="w-4 h-4 text-teal-600" />
+                          {title}
+                        </span>
+                        <span className="text-[11px] font-bold text-teal-800 bg-teal-50 px-2 py-0.5 rounded-lg border border-teal-200">
+                          {coatingCategory}
+                        </span>
+                      </div>
+                    )}
+                  </EditableElement>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {/* Primary Coating Type */}
@@ -2505,21 +2647,31 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
 
                 {/* 4. DEDICATED SECTION: یو وی موضعی / تخصصی (اگر یو وی دارد) */}
                 <div className="p-4 bg-white rounded-2xl border border-slate-200 space-y-3 text-xs">
-                  <div className="flex items-center justify-between">
-                    <label className="flex items-center gap-2 cursor-pointer font-black text-slate-800 text-xs">
-                      <input
-                        type="checkbox"
-                        checked={hasUv}
-                        onChange={(e) => setHasUv(e.target.checked)}
-                        className="rounded text-purple-600 focus:ring-purple-500 w-4 h-4"
-                      />
-                      <Sparkles className="w-4 h-4 text-purple-600" />
-                      <span>یو وی موضعی / تخصصی (Spot UV)</span>
-                    </label>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${hasUv ? 'bg-purple-100 text-purple-800 border border-purple-200' : 'bg-slate-100 text-slate-500'}`}>
-                      {hasUv ? 'فعال' : 'ندارد'}
-                    </span>
-                  </div>
+                  <EditableElement
+                    keyId="mkt_sec_uv"
+                    defaultTitle="یو وی موضعی و برجسته (Spot UV & Drip Off)"
+                    defaultSubtitle="اعمال جلوه‌های مات و براق شنی و شابلونی بر روی بسته‌بندی"
+                    category="marketing"
+                    description="سکشن اختصاصی یووی موضعی"
+                  >
+                    {({ title }) => (
+                      <div className="flex items-center justify-between">
+                        <label className="flex items-center gap-2 cursor-pointer font-black text-slate-800 text-xs">
+                          <input
+                            type="checkbox"
+                            checked={hasUv}
+                            onChange={(e) => setHasUv(e.target.checked)}
+                            className="rounded text-purple-600 focus:ring-purple-500 w-4 h-4"
+                          />
+                          <Sparkles className="w-4 h-4 text-purple-600" />
+                          <span>{title}</span>
+                        </label>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${hasUv ? 'bg-purple-100 text-purple-800 border border-purple-200' : 'bg-slate-100 text-slate-500'}`}>
+                          {hasUv ? 'فعال' : 'ندارد'}
+                        </span>
+                      </div>
+                    )}
+                  </EditableElement>
 
                   {hasUv && (
                     <div className="pt-2 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-3 animate-fadeIn">
@@ -2544,21 +2696,31 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
 
                 {/* 5. DEDICATED SECTION: برجسته‌کاری (اگر برجسته دارد) */}
                 <div className="p-4 bg-white rounded-2xl border border-slate-200 space-y-3 text-xs">
-                  <div className="flex items-center justify-between">
-                    <label className="flex items-center gap-2 cursor-pointer font-black text-slate-800 text-xs">
-                      <input
-                        type="checkbox"
-                        checked={hasEmboss}
-                        onChange={(e) => setHasEmboss(e.target.checked)}
-                        className="rounded text-amber-600 focus:ring-amber-500 w-4 h-4"
-                      />
-                      <SlidersIcon className="w-4 h-4 text-amber-600" />
-                      <span>برجسته‌کاری (Embossing)</span>
-                    </label>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${hasEmboss ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-slate-100 text-slate-500'}`}>
-                      {hasEmboss ? 'فعال' : 'ندارد'}
-                    </span>
-                  </div>
+                  <EditableElement
+                    keyId="mkt_sec_emboss"
+                    defaultTitle="برجسته‌کاری (Embossing)"
+                    defaultSubtitle="عملیات امباس و برجسته‌سازی لوگو و نوشتار با کلیشه فلزی حرارتی"
+                    category="marketing"
+                    description="سکشن اختصاصی برجسته‌کاری"
+                  >
+                    {({ title }) => (
+                      <div className="flex items-center justify-between">
+                        <label className="flex items-center gap-2 cursor-pointer font-black text-slate-800 text-xs">
+                          <input
+                            type="checkbox"
+                            checked={hasEmboss}
+                            onChange={(e) => setHasEmboss(e.target.checked)}
+                            className="rounded text-amber-600 focus:ring-amber-500 w-4 h-4"
+                          />
+                          <SlidersIcon className="w-4 h-4 text-amber-600" />
+                          <span>{title}</span>
+                        </label>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${hasEmboss ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-slate-100 text-slate-500'}`}>
+                          {hasEmboss ? 'فعال' : 'ندارد'}
+                        </span>
+                      </div>
+                    )}
+                  </EditableElement>
 
                   {hasEmboss && (
                     <div className="pt-2 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-3 animate-fadeIn">
@@ -2582,21 +2744,31 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
 
                 {/* 6. DEDICATED SECTION: طلق پنجره جعبه (طول ، عرض ، ضخامت) */}
                 <div className="p-4 bg-white rounded-2xl border border-slate-200 space-y-3 text-xs">
-                  <div className="flex items-center justify-between">
-                    <label className="flex items-center gap-2 cursor-pointer font-black text-slate-800 text-xs">
-                      <input
-                        type="checkbox"
-                        checked={hasWindow}
-                        onChange={(e) => setHasWindow(e.target.checked)}
-                        className="rounded text-cyan-600 focus:ring-cyan-500 w-4 h-4"
-                      />
-                      <Box className="w-4 h-4 text-cyan-600" />
-                      <span>پنجره طلق‌دار (Window Patching)</span>
-                    </label>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${hasWindow ? 'bg-cyan-100 text-cyan-800 border border-cyan-200' : 'bg-slate-100 text-slate-500'}`}>
-                      {hasWindow ? 'دارد' : 'بدون طلق'}
-                    </span>
-                  </div>
+                  <EditableElement
+                    keyId="mkt_sec_window"
+                    defaultTitle="پنجره طلق‌دار (Window Patching)"
+                    defaultSubtitle="پنجره شفاف PVC / PET با ابعاد دقیق طول، عرض و ضخامت"
+                    category="marketing"
+                    description="سکشن اختصاصی طلق و پنجره جعبه"
+                  >
+                    {({ title }) => (
+                      <div className="flex items-center justify-between">
+                        <label className="flex items-center gap-2 cursor-pointer font-black text-slate-800 text-xs">
+                          <input
+                            type="checkbox"
+                            checked={hasWindow}
+                            onChange={(e) => setHasWindow(e.target.checked)}
+                            className="rounded text-cyan-600 focus:ring-cyan-500 w-4 h-4"
+                          />
+                          <Box className="w-4 h-4 text-cyan-600" />
+                          <span>{title}</span>
+                        </label>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${hasWindow ? 'bg-cyan-100 text-cyan-800 border border-cyan-200' : 'bg-slate-100 text-slate-500'}`}>
+                          {hasWindow ? 'دارد' : 'بدون طلق'}
+                        </span>
+                      </div>
+                    )}
+                  </EditableElement>
 
                   {hasWindow && (
                     <div className="pt-2 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-3 animate-fadeIn">
@@ -2638,21 +2810,31 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
 
                 {/* 7. DEDICATED SECTION: چسب و لب‌چسب (فقط ابعاد اگر چسب دارد) */}
                 <div className="p-4 bg-white rounded-2xl border border-slate-200 space-y-3 text-xs">
-                  <div className="flex items-center justify-between">
-                    <label className="flex items-center gap-2 cursor-pointer font-black text-slate-800 text-xs">
-                      <input
-                        type="checkbox"
-                        checked={hasGlue}
-                        onChange={(e) => setHasGlue(e.target.checked)}
-                        className="rounded text-teal-600 focus:ring-teal-500 w-4 h-4"
-                      />
-                      <CheckCircle className="w-4 h-4 text-teal-600" />
-                      <span>چسب و اتصال جعبه (Gluing)</span>
-                    </label>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${hasGlue ? 'bg-teal-100 text-teal-800 border border-teal-200' : 'bg-slate-100 text-slate-500'}`}>
-                      {hasGlue ? 'دارد' : 'بدون چسب (قفل شونده)'}
-                    </span>
-                  </div>
+                  <EditableElement
+                    keyId="mkt_sec_glue"
+                    defaultTitle="چسب و اتصال جعبه (Gluing)"
+                    defaultSubtitle="تعیین لب‌چسب، چسب گرم، سرد یا قفل سرخود"
+                    category="marketing"
+                    description="سکشن اختصاصی چسب و اتصال جعبه"
+                  >
+                    {({ title }) => (
+                      <div className="flex items-center justify-between">
+                        <label className="flex items-center gap-2 cursor-pointer font-black text-slate-800 text-xs">
+                          <input
+                            type="checkbox"
+                            checked={hasGlue}
+                            onChange={(e) => setHasGlue(e.target.checked)}
+                            className="rounded text-teal-600 focus:ring-teal-500 w-4 h-4"
+                          />
+                          <CheckCircle className="w-4 h-4 text-teal-600" />
+                          <span>{title}</span>
+                        </label>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${hasGlue ? 'bg-teal-100 text-teal-800 border border-teal-200' : 'bg-slate-100 text-slate-500'}`}>
+                          {hasGlue ? 'دارد' : 'بدون چسب (قفل شونده)'}
+                        </span>
+                      </div>
+                    )}
+                  </EditableElement>
 
                   {hasGlue && (
                     <div className="pt-2 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-3 animate-fadeIn">
@@ -2694,21 +2876,31 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
 
                 {/* 8. DEDICATED SECTION: فویل و طلاکوب */}
                 <div className="p-4 bg-white rounded-2xl border border-slate-200 space-y-3 text-xs">
-                  <div className="flex items-center justify-between">
-                    <label className="flex items-center gap-2 cursor-pointer font-black text-slate-800 text-xs">
-                      <input
-                        type="checkbox"
-                        checked={hasFoil}
-                        onChange={(e) => setHasFoil(e.target.checked)}
-                        className="rounded text-amber-500 focus:ring-amber-400 w-4 h-4"
-                      />
-                      <Sparkles className="w-4 h-4 text-amber-500" />
-                      <span>فویل و طلاکوب / نقره‌کوب (Hot Foil)</span>
-                    </label>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${hasFoil ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-slate-100 text-slate-500'}`}>
-                      {hasFoil ? 'دارد' : 'بدون فویل'}
-                    </span>
-                  </div>
+                  <EditableElement
+                    keyId="mkt_sec_foil"
+                    defaultTitle="فویل و طلاکوب / نقره‌کوب (Hot Foil)"
+                    defaultSubtitle="جلوه‌های متالیک براق و هولوگرام با کلیشه حرارتی"
+                    category="marketing"
+                    description="سکشن اختصاصی طلاکوب و فویل"
+                  >
+                    {({ title }) => (
+                      <div className="flex items-center justify-between">
+                        <label className="flex items-center gap-2 cursor-pointer font-black text-slate-800 text-xs">
+                          <input
+                            type="checkbox"
+                            checked={hasFoil}
+                            onChange={(e) => setHasFoil(e.target.checked)}
+                            className="rounded text-amber-500 focus:ring-amber-400 w-4 h-4"
+                          />
+                          <Sparkles className="w-4 h-4 text-amber-500" />
+                          <span>{title}</span>
+                        </label>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${hasFoil ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-slate-100 text-slate-500'}`}>
+                          {hasFoil ? 'دارد' : 'بدون فویل'}
+                        </span>
+                      </div>
+                    )}
+                  </EditableElement>
 
                   {hasFoil && (
                     <div className="pt-2 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-3 animate-fadeIn">
@@ -2854,10 +3046,20 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
 
           {/* Section 3: Approximate Dimensions & Notes */}
           <div className="space-y-3 pt-2">
-            <h3 className="text-xs font-black text-slate-700 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-teal-600" />
-              ۳. ابعاد تقریبی (سانتی‌متر) و توضیحات تکمیلی
-            </h3>
+            <EditableElement
+              keyId="mkt_sec3_dimensions"
+              defaultTitle="۳. ابعاد تقریبی (سانتی‌متر) و توضیحات تکمیلی"
+              defaultSubtitle="طول، عرض، ارتفاع و نکات خاص مورد نیاز مشتری"
+              category="marketing"
+              description="سکشن ابعاد و توضیحات تکمیلی جعبه"
+            >
+              {({ title }) => (
+                <h3 className="text-xs font-black text-slate-700 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-teal-600" />
+                  {title}
+                </h3>
+              )}
+            </EditableElement>
             
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
               <div>
@@ -2913,10 +3115,20 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
 
           {/* Section 4: Dieline & Artwork Upload (Optional) */}
           <div className="space-y-3 pt-2">
-            <h3 className="text-xs font-black text-slate-700 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-teal-600" />
-              ۴. پیوست فایل خط تیغ، قالب یا طرح چاپی (اختیاری)
-            </h3>
+            <EditableElement
+              keyId="mkt_sec4_upload"
+              defaultTitle="۴. پیوست فایل خط تیغ، قالب یا طرح چاپی (اختیاری)"
+              defaultSubtitle="فرمت‌های مجاز: PDF, AI, CDR, EPS, DXF, SVG, JPG, PNG, ZIP (حداکثر ۲۵ مگابایت)"
+              category="marketing"
+              description="سکشن آپلود فایل خط تیغ و قالب"
+            >
+              {({ title }) => (
+                <h3 className="text-xs font-black text-slate-700 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-teal-600" />
+                  {title}
+                </h3>
+              )}
+            </EditableElement>
 
             <div className="border-2 border-dashed border-slate-200 hover:border-teal-500 rounded-2xl p-4 sm:p-6 text-center transition bg-slate-50/50">
               <input
