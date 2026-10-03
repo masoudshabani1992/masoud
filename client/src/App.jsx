@@ -42,7 +42,7 @@ import BiometricLockScreen from './components/BiometricLockScreen';
 import SystemAutoUpdateModal from './components/SystemAutoUpdateModal';
 import ToastNotification from './components/ToastNotification';
 import ErrorBoundary from './components/ErrorBoundary';
-import { playNotificationSound } from './utils/helpers';
+import { playNotificationSound, showToast } from './utils/helpers';
 import { isAutoBiometricPromptEnabled, detectDeviceBiometrics } from './utils/biometrics';
 
 const TAB_PERMISSION_MAP = {

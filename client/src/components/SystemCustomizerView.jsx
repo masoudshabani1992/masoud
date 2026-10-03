@@ -34,8 +34,17 @@ import {
   X
 } from 'lucide-react';
 import { api } from '../api/client';
+import { showToast } from '../utils/helpers';
 
 export default function SystemCustomizerView({ onShowToast, currentUser }) {
+  const notify = (msg, type = 'success') => {
+    if (typeof onShowToast === 'function') {
+      onShowToast(msg, type);
+    } else {
+      showToast(msg, { type });
+    }
+  };
+
   const [activeTab, setActiveTab] = useState('titles'); // 'titles' | 'features'
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -129,7 +138,7 @@ export default function SystemCustomizerView({ onShowToast, currentUser }) {
       }
     } catch (err) {
       console.error('Error loading customization data:', err);
-      if (onShowToast) onShowToast('خطا در بارگذاری داده‌های سفارشی‌سازی: ' + err.message, 'error');
+      notify('خطا در بارگذاری داده‌های سفارشی‌سازی: ' + err.message, 'error');
     } finally {
       setLoading(false);
     }
@@ -159,11 +168,9 @@ export default function SystemCustomizerView({ onShowToast, currentUser }) {
       });
 
       setTitles(prev => ({ ...prev, [key]: item }));
-      if (onShowToast) {
-        onShowToast(`عنوان و متن بخش «${item.description || item.title}» با موفقیت ذخیره شد.`, 'success');
-      }
+      notify(`عنوان و متن بخش «${item.description || item.title}» با موفقیت ذخیره شد.`, 'success');
     } catch (err) {
-      if (onShowToast) onShowToast('خطا در ذخیره عنوان: ' + err.message, 'error');
+      notify('خطا در ذخیره عنوان: ' + err.message, 'error');
     } finally {
       setSaving(false);
     }
@@ -174,11 +181,9 @@ export default function SystemCustomizerView({ onShowToast, currentUser }) {
     try {
       await api.batchUpdateUiTitles(editedTitles);
       setTitles(JSON.parse(JSON.stringify(editedTitles)));
-      if (onShowToast) {
-        onShowToast('کلیه عناوین و متون بخش‌های سامانه با موفقیت در سیستم ذخیره شدند.', 'success');
-      }
+      notify('کلیه عناوین و متون بخش‌های سامانه با موفقیت در سیستم ذخیره شدند.', 'success');
     } catch (err) {
-      if (onShowToast) onShowToast('خطا در ذخیره دسته‌جمعی عناوین: ' + err.message, 'error');
+      notify('خطا در ذخیره دسته‌جمعی عناوین: ' + err.message, 'error');
     } finally {
       setSaving(false);
     }
@@ -205,11 +210,9 @@ export default function SystemCustomizerView({ onShowToast, currentUser }) {
     try {
       await api.resetUiTitles();
       await loadData();
-      if (onShowToast) {
-        onShowToast('تمامی عناوین به متون پیش‌فرض کارخانه بازنشانی شدند.', 'success');
-      }
+      notify('تمامی عناوین به متون پیش‌فرض کارخانه بازنشانی شدند.', 'success');
     } catch (err) {
-      if (onShowToast) onShowToast('خطا در بازنشانی عناوین: ' + err.message, 'error');
+      notify('خطا در بازنشانی عناوین: ' + err.message, 'error');
     } finally {
       setSaving(false);
     }
@@ -219,11 +222,9 @@ export default function SystemCustomizerView({ onShowToast, currentUser }) {
     try {
       const res = await api.toggleFeature(id);
       setFeatures(prev => prev.map(f => f.id === id ? { ...f, is_enabled: res.is_enabled } : f));
-      if (onShowToast) {
-        onShowToast(`قابلیت «${currentName}» با موفقیت ${res.is_enabled === 1 ? 'فعال' : 'غیرفعال'} شد.`, 'info');
-      }
+      notify(`قابلیت «${currentName}» با موفقیت ${res.is_enabled === 1 ? 'فعال' : 'غیرفعال'} شد.`, 'info');
     } catch (err) {
-      if (onShowToast) onShowToast('خطا در تغییر وضعیت قابلیت: ' + err.message, 'error');
+      notify('خطا در تغییر وضعیت قابلیت: ' + err.message, 'error');
     }
   };
 
@@ -232,9 +233,9 @@ export default function SystemCustomizerView({ onShowToast, currentUser }) {
     try {
       await api.deleteFeature(id);
       setFeatures(prev => prev.filter(f => f.id !== id));
-      if (onShowToast) onShowToast(`ماژول «${name}» با موفقیت حذف شد.`, 'success');
+      notify(`ماژول «${name}» با موفقیت حذف شد.`, 'success');
     } catch (err) {
-      if (onShowToast) onShowToast('خطا در حذف ماژول: ' + err.message, 'error');
+      notify('خطا در حذف ماژول: ' + err.message, 'error');
     }
   };
 
@@ -245,11 +246,9 @@ export default function SystemCustomizerView({ onShowToast, currentUser }) {
       await loadData();
       setShowAddFeatureModal(false);
       setEditingFeature(null);
-      if (onShowToast) {
-        onShowToast(`ماژول «${featureData.name}» با موفقیت ذخیره شد.`, 'success');
-      }
+      notify(`ماژول «${featureData.name}» با موفقیت ذخیره شد.`, 'success');
     } catch (err) {
-      if (onShowToast) onShowToast('خطا در ذخیره ماژول: ' + err.message, 'error');
+      notify('خطا در ذخیره ماژول: ' + err.message, 'error');
     } finally {
       setSaving(false);
     }
@@ -263,11 +262,9 @@ export default function SystemCustomizerView({ onShowToast, currentUser }) {
     try {
       await api.resetFeaturesConfig();
       await loadData();
-      if (onShowToast) {
-        onShowToast('لیست ماژول‌ها و قابلیت‌ها به حالت پیش‌فرض کارخانه بازنشانی شد.', 'success');
-      }
+      notify('لیست ماژول‌ها و قابلیت‌ها به حالت پیش‌فرض کارخانه بازنشانی شد.', 'success');
     } catch (err) {
-      if (onShowToast) onShowToast('خطا در بازنشانی ماژول‌ها: ' + err.message, 'error');
+      notify('خطا در بازنشانی ماژول‌ها: ' + err.message, 'error');
     } finally {
       setSaving(false);
     }
