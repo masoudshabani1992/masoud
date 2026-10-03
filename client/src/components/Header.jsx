@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { ROLES, formatToman, formatNumber } from '../utils/helpers';
+import { ROLES, formatToman, formatNumber, APP_VERSION_TITLE, APP_VERSION_SHORT } from '../utils/helpers';
 import {
   Menu,
   Search,
@@ -129,12 +129,12 @@ export default function Header({
                     title="مدیریت و به‌روزرسانی خودکار سرور (اختصاصی مدیر ارشد سیستم)"
                   >
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    <span>نسخه ۲.۸.۹ (بیلد ۹۵)</span>
+                    <span>{APP_VERSION_TITLE}</span>
                     <Zap className="w-3 h-3 text-amber-500" />
                   </button>
                 ) : (
                   <span className="hidden lg:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 shrink-0">
-                    نسخه ۲.۸.۹
+                    {APP_VERSION_SHORT}
                   </span>
                 )}
               </div>

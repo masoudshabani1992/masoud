@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { ROLES } from '../utils/helpers';
+import { ROLES, APP_VERSION, APP_VERSION_TITLE, APP_VERSION_BADGE } from '../utils/helpers';
 import {
   Boxes,
   LayoutGrid,
@@ -145,8 +145,8 @@ export default function RightSidebar({
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                   <span className="text-[11px] font-bold text-slate-500">اتوماسیون تولید (MIS)</span>
-                  <span className="px-1.5 py-0.2 rounded-md text-[10px] font-black bg-purple-100 text-purple-800 border border-purple-300" title="نسخه ۲.۸.۱ - بیلد ۸۴">
-                    v2.8.1
+                  <span className="px-1.5 py-0.2 rounded-md text-[10px] font-black bg-purple-100 text-purple-800 border border-purple-300" title={APP_VERSION_TITLE}>
+                    {APP_VERSION_BADGE}
                   </span>
                 </div>
               </div>

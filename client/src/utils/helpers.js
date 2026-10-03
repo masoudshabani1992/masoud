@@ -549,3 +549,13 @@ export function showToast(message, options = {}) {
 export function showSuccessToast(message = 'اطلاعات با موفقیت ثبت و به واحد مربوطه ارسال شد.', title = 'ثبت و ارسال موفق') {
   showToast(message, { title, type: 'success', duration: 4500 });
 }
+
+// ==========================================
+// UNIFIED APPLICATION VERSIONING (مرجع واحد و یکپارچه نسخه و بیلد سیستم)
+// ==========================================
+export const APP_VERSION = 'v3.0.0';
+export const APP_BUILD = '100';
+export const APP_VERSION_TITLE = 'نسخه ۳.۰.۰ (بیلد ۱۰۰)';
+export const APP_VERSION_SHORT = 'نسخه ۳.۰.۰';
+export const APP_VERSION_BADGE = 'v3.0.0';
+

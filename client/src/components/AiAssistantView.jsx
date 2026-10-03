@@ -184,7 +184,7 @@ export default function AiAssistantView({ onTransferToOrderForm }) {
                   <span>دستیار هوش مصنوعی کارخانه (AI Packaging Assistant)</span>
                 </h1>
                 <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                  Amiran AI Engine v2.5
+                  Amiran AI Engine v3.0
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl leading-relaxed">

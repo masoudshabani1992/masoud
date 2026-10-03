@@ -76,7 +76,7 @@ export async function exportDielineToCdr(dielineData, options = {}) {
       <corel:author>Amiran Packaging Studio</corel:author>
       <corel:units>millimeters</corel:units>
       <corel:dimensions length="${length}" width="${width}" height="${height}" caliper="${thickness}" material="${material}" />
-      <corel:generator>Amiran CAD Engine v2.5 / Masoud Shabani</corel:generator>
+      <corel:generator>Amiran CAD Engine v3.0 / Masoud Shabani</corel:generator>
     </corel:info>
   </metadata>
 
