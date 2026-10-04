@@ -2859,6 +2859,13 @@ function requireCeo(req, res, next) {
   next();
 }
 
+function requireAdminOrCustomizer(req, res, next) {
+  if (['admin', 'ceo'].includes(req.user?.role) || req.user?.permissions?.settings || req.user?.permissions?.customizer) {
+    return next();
+  }
+  return res.status(403).json({ error: 'دسترسی غیرمجاز: این بخش مختص مدیریت سیستم است.' });
+}
+
 function requireRoles(...allowed) {
   return (req, res, next) => {
     if (['admin', 'ceo'].includes(req.user?.role) || allowed.includes(req.user?.role)) {
@@ -5067,8 +5074,8 @@ app.get('/api/settings/ui-titles', authMiddleware, (req, res) => {
   }
 });
 
-// PUT /api/settings/ui-titles/:key (ویرایش عنوان یا زیرعنوان یک بخش - Admin)
-app.put('/api/settings/ui-titles/:key', authMiddleware, requireAdmin, (req, res) => {
+// PUT /api/settings/ui-titles/:key (ویرایش عنوان یا زیرعنوان یک بخش)
+app.put('/api/settings/ui-titles/:key', authMiddleware, requireAdminOrCustomizer, (req, res) => {
   try {
     const { key } = req.params;
     const { title, subtitle, description, category } = req.body;
@@ -5124,8 +5131,8 @@ app.put('/api/settings/ui-titles/:key', authMiddleware, requireAdmin, (req, res)
   }
 });
 
-// POST /api/settings/ui-titles/batch (به‌روزرسانی دسته‌جمعی عناوین - Admin)
-app.post('/api/settings/ui-titles/batch', authMiddleware, requireAdmin, (req, res) => {
+// POST /api/settings/ui-titles/batch (به‌روزرسانی دسته‌جمعی عناوین)
+app.post('/api/settings/ui-titles/batch', authMiddleware, requireAdminOrCustomizer, (req, res) => {
   try {
     const { titles } = req.body;
     if (!titles || typeof titles !== 'object') {
@@ -5168,8 +5175,8 @@ app.post('/api/settings/ui-titles/batch', authMiddleware, requireAdmin, (req, re
   }
 });
 
-// POST /api/settings/ui-titles/reset (بازنشانی تمامی عناوین به متون پیش‌فرض کارخانه - Admin)
-app.post('/api/settings/ui-titles/reset', authMiddleware, requireAdmin, (req, res) => {
+// POST /api/settings/ui-titles/reset (بازنشانی تمامی عناوین به متون پیش‌فرض کارخانه)
+app.post('/api/settings/ui-titles/reset', authMiddleware, requireAdminOrCustomizer, (req, res) => {
   try {
     db.prepare(`
       UPDATE system_ui_titles
@@ -5431,8 +5438,8 @@ app.get('/api/settings/fonts', authMiddleware, (req, res) => {
   }
 });
 
-// POST /api/settings/fonts/upload (آپلود فونت سفارشی جدید - Admin)
-app.post('/api/settings/fonts/upload', authMiddleware, requireAdmin, fontUpload.single('font_file'), (req, res) => {
+// POST /api/settings/fonts/upload (آپلود فونت سفارشی جدید)
+app.post('/api/settings/fonts/upload', authMiddleware, requireAdminOrCustomizer, fontUpload.single('font_file'), (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'لطفاً فایل فونت را انتخاب نمایید.' });
@@ -5489,8 +5496,8 @@ app.post('/api/settings/fonts/upload', authMiddleware, requireAdmin, fontUpload.
   }
 });
 
-// PUT /api/settings/fonts/:id (ویرایش نام یا وضعیت فونت - Admin)
-app.put('/api/settings/fonts/:id', authMiddleware, requireAdmin, (req, res) => {
+// PUT /api/settings/fonts/:id (ویرایش نام یا وضعیت فونت)
+app.put('/api/settings/fonts/:id', authMiddleware, requireAdminOrCustomizer, (req, res) => {
   try {
     const { id } = req.params;
     const { name, preview_text, is_active, sort_order } = req.body;
@@ -5530,8 +5537,8 @@ app.put('/api/settings/fonts/:id', authMiddleware, requireAdmin, (req, res) => {
   }
 });
 
-// DELETE /api/settings/fonts/:id (حذف فونت سفارشی - Admin)
-app.delete('/api/settings/fonts/:id', authMiddleware, requireAdmin, (req, res) => {
+// DELETE /api/settings/fonts/:id (حذف فونت سفارشی)
+app.delete('/api/settings/fonts/:id', authMiddleware, requireAdminOrCustomizer, (req, res) => {
   try {
     const { id } = req.params;
     const font = db.prepare('SELECT * FROM system_fonts WHERE id = ?').get(id);
@@ -5593,8 +5600,8 @@ app.get('/api/settings/typography', authMiddleware, (req, res) => {
   }
 });
 
-// PUT /api/settings/typography (ذخیره و اعمال تنظیمات فونت و اندازه قلم - Admin)
-app.put('/api/settings/typography', authMiddleware, requireAdmin, (req, res) => {
+// PUT /api/settings/typography (ذخیره و اعمال تنظیمات فونت و اندازه قلم)
+app.put('/api/settings/typography', authMiddleware, requireAdminOrCustomizer, (req, res) => {
   try {
     const {
       body_font_family,
@@ -5651,8 +5658,8 @@ app.put('/api/settings/typography', authMiddleware, requireAdmin, (req, res) => 
   }
 });
 
-// POST /api/settings/typography/reset (بازنشانی تایپوگرافی به فونت پیش‌فرض کارخانه - Admin)
-app.post('/api/settings/typography/reset', authMiddleware, requireAdmin, (req, res) => {
+// POST /api/settings/typography/reset (بازنشانی تایپوگرافی به فونت پیش‌فرض کارخانه)
+app.post('/api/settings/typography/reset', authMiddleware, requireAdminOrCustomizer, (req, res) => {
   try {
     const defaultTypography = {
       body_font_family: 'Vazirmatn',

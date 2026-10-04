@@ -107,10 +107,7 @@ export default function TypographySettingsView({ onBackToSettings }) {
   // Submit Save
   const handleSaveAll = async (e) => {
     if (e) e.preventDefault();
-    const success = await saveTypography(formState);
-    if (success) {
-      showToast('تنظیمات فونت و تایپوگرافی با موفقیت در کل سامانه اعمال شد.', { type: 'success' });
-    }
+    await saveTypography(formState);
   };
 
   // Submit Reset
