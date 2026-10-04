@@ -59,12 +59,26 @@
   --system-letter-spacing: 0px;
   --system-body-weight: 500;
   --system-heading-weight: 800;
+  font-family: var(--system-font-family);
+}
+
+@theme {
+  --font-sans: var(--system-font-family);
+  --font-mono: var(--system-numbers-font-family);
+  --font-heading: var(--system-heading-font-family);
+}
+
+html, body, #root {
+  font-family: var(--system-font-family) !important;
+}
+
+* {
+  font-family: inherit;
 }
 
 @layer base {
   * {
     border-color: #e2e8f0;
-    font-family: var(--system-font-family) !important;
   }
 
   body {
@@ -79,15 +93,15 @@
     overflow-x: hidden;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1, h2, h3, h4, h5, h6, .font-heading {
     font-family: var(--system-heading-font-family, var(--system-font-family)) !important;
   }
 
-  .font-mono, .font-numbers, code, pre {
+  .font-mono, .font-numbers, code, pre, kbd, samp {
     font-family: var(--system-numbers-font-family, monospace) !important;
   }
 
-  input, button, select, textarea {
+  input, button, select, textarea, optgroup, option {
     font-family: var(--system-font-family) !important;
   }
 }

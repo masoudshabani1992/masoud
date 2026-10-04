@@ -127,6 +127,30 @@ export function TypographyProvider({ children, currentUser }) {
       cssRules += `\n/* User Custom Typography CSS */\n${config.custom_css}\n`;
     }
 
+    // Force global element typography rules across ALL panels, modals, and tables
+    cssRules += `
+      html {
+        font-size: ${16 * scale}px !important;
+      }
+      body, #root {
+        font-family: ${bodyFamily} !important;
+        line-height: ${lineHeight} !important;
+        letter-spacing: ${letterSpacing}px !important;
+      }
+      *, *::before, *::after {
+        font-family: ${bodyFamily};
+      }
+      h1, h2, h3, h4, h5, h6, .font-heading, th, [class*="heading"] {
+        font-family: ${headingFamily} !important;
+      }
+      .font-mono, .font-numbers, code, pre, kbd, samp {
+        font-family: ${numbersFamily} !important;
+      }
+      input, button, select, textarea, optgroup, option {
+        font-family: ${bodyFamily} !important;
+      }
+    `;
+
     dynamicStyleEl.textContent = cssRules;
 
     // Cache in localStorage
@@ -164,19 +188,60 @@ export function TypographyProvider({ children, currentUser }) {
     }
   }, [applyTypographyStyles]);
 
+  // Initial load + Real-time cross-tab and cross-window sync
   useEffect(() => {
     loadTypographyData();
-  }, [loadTypographyData]);
+
+    // 1. Listen for storage changes from other tabs / windows
+    const handleStorageChange = (e) => {
+      if (e.key === 'box_factory_typography' && e.newValue) {
+        try {
+          const remoteTypo = JSON.parse(e.newValue);
+          setTypography(remoteTypo);
+          applyTypographyStyles(remoteTypo, fonts);
+        } catch (err) {}
+      }
+    };
+
+    // 2. Custom in-app event for immediate cross-panel sync
+    const handleCustomSync = (e) => {
+      if (e.detail) {
+        setTypography(e.detail);
+        applyTypographyStyles(e.detail, fonts);
+      }
+    };
+
+    // 3. Sync from backend on window focus
+    const handleWindowFocus = () => {
+      loadTypographyData();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('boxfactory_typography_updated', handleCustomSync);
+    window.addEventListener('focus', handleWindowFocus);
+
+    // 4. Background polling every 20 seconds to keep all network PCs/tablets in sync
+    const pollInterval = setInterval(() => {
+      loadTypographyData();
+    }, 20000);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('boxfactory_typography_updated', handleCustomSync);
+      window.removeEventListener('focus', handleWindowFocus);
+      clearInterval(pollInterval);
+    };
+  }, [loadTypographyData, applyTypographyStyles, fonts]);
 
   // Quick live preview without saving
   const previewTypography = (previewConfig) => {
     const merged = { ...typography, ...previewConfig };
-    applyTypographyStyles(merged);
+    applyTypographyStyles(merged, fonts);
   };
 
   // Revert preview to current active
   const cancelPreview = () => {
-    applyTypographyStyles(typography);
+    applyTypographyStyles(typography, fonts);
   };
 
   // Save typography configuration permanently to backend SQLite
@@ -193,6 +258,11 @@ export function TypographyProvider({ children, currentUser }) {
     applyTypographyStyles(payload, fonts);
     setTypography(payload);
 
+    // Dispatch custom event for all components in the app
+    try {
+      window.dispatchEvent(new CustomEvent('boxfactory_typography_updated', { detail: payload }));
+    } catch (e) {}
+
     try {
       const res = await api.updateTypography(payload);
       
@@ -203,6 +273,9 @@ export function TypographyProvider({ children, currentUser }) {
           localStorage.setItem('box_factory_typography', JSON.stringify(updated));
         } catch (e) {}
         applyTypographyStyles(updated, fonts);
+        try {
+          window.dispatchEvent(new CustomEvent('boxfactory_typography_updated', { detail: updated }));
+        } catch (e) {}
         showToast(res.message || 'تنظیمات فونت و اندازه قلم با موفقیت در سراسر سامانه اعمال و ذخیره شد.', { type: 'success' });
         return true;
       } else {
@@ -227,6 +300,10 @@ export function TypographyProvider({ children, currentUser }) {
     } catch (e) {}
     setTypography(defaults);
     applyTypographyStyles(defaults, fonts);
+
+    try {
+      window.dispatchEvent(new CustomEvent('boxfactory_typography_updated', { detail: defaults }));
+    } catch (e) {}
 
     try {
       const res = await api.resetTypography();
