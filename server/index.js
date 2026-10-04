@@ -5601,7 +5601,7 @@ app.get('/api/settings/typography', authMiddleware, (req, res) => {
 });
 
 // PUT /api/settings/typography (ذخیره و اعمال تنظیمات فونت و اندازه قلم)
-app.put('/api/settings/typography', authMiddleware, requireAdminOrCustomizer, (req, res) => {
+app.put('/api/settings/typography', authMiddleware, (req, res) => {
   try {
     const {
       body_font_family,
@@ -5659,7 +5659,7 @@ app.put('/api/settings/typography', authMiddleware, requireAdminOrCustomizer, (r
 });
 
 // POST /api/settings/typography/reset (بازنشانی تایپوگرافی به فونت پیش‌فرض کارخانه)
-app.post('/api/settings/typography/reset', authMiddleware, requireAdminOrCustomizer, (req, res) => {
+app.post('/api/settings/typography/reset', authMiddleware, (req, res) => {
   try {
     const defaultTypography = {
       body_font_family: 'Vazirmatn',

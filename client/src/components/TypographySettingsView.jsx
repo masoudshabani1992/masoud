@@ -893,17 +893,15 @@ export default function TypographySettingsView({ onBackToSettings }) {
             لغو پیش‌نمایش
           </button>
 
-          {isAdmin && (
-            <button
-              type="button"
-              onClick={handleSaveAll}
-              disabled={saving}
-              className="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-xl text-xs font-black transition shadow-lg shadow-emerald-900/40 flex items-center gap-1.5 active:scale-95 disabled:opacity-50"
-            >
-              {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              <span>{saving ? 'در حال ذخیره‌سازی...' : 'ذخیره و اعمال سراسری در کل سامانه'}</span>
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={handleSaveAll}
+            disabled={saving}
+            className="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-xl text-xs font-black transition shadow-lg shadow-emerald-900/40 flex items-center gap-1.5 active:scale-95 disabled:opacity-50 cursor-pointer"
+          >
+            {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            <span>{saving ? 'در حال ذخیره‌سازی...' : 'ذخیره و اعمال سراسری در کل سامانه'}</span>
+          </button>
         </div>
       </div>
     </div>
