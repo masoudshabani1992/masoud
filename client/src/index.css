@@ -49,14 +49,29 @@
   font-display: swap;
 }
 
+:root {
+  --system-font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Tahoma, sans-serif;
+  --system-heading-font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Tahoma, sans-serif;
+  --system-numbers-font-family: 'Vazirmatn', monospace, sans-serif;
+  --system-font-scale: 1;
+  --system-font-size-base: 14px;
+  --system-line-height-scale: 1.6;
+  --system-letter-spacing: 0px;
+  --system-body-weight: 500;
+  --system-heading-weight: 800;
+}
+
 @layer base {
   * {
     border-color: #e2e8f0;
-    font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Tahoma, sans-serif !important;
+    font-family: var(--system-font-family) !important;
   }
 
   body {
-    font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Tahoma, sans-serif !important;
+    font-family: var(--system-font-family) !important;
+    font-size: var(--system-font-size-base, 14px);
+    line-height: var(--system-line-height-scale, 1.6);
+    letter-spacing: var(--system-letter-spacing, 0px);
     direction: rtl;
     text-align: right;
     background-color: #f7f9fc;
@@ -64,8 +79,16 @@
     overflow-x: hidden;
   }
 
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--system-heading-font-family, var(--system-font-family)) !important;
+  }
+
+  .font-mono, .font-numbers, code, pre {
+    font-family: var(--system-numbers-font-family, monospace) !important;
+  }
+
   input, button, select, textarea {
-    font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Tahoma, sans-serif !important;
+    font-family: var(--system-font-family) !important;
   }
 }
 

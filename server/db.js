@@ -1419,6 +1419,83 @@ function initDb() {
   } catch (e) {
     console.error('Error creating system_features_config:', e);
   }
+
+  // 5. Table for System Fonts & Typography Management (مدیریت و آپلود فونت‌ها و مقیاس تایپوگرافی)
+  try {
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS system_fonts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        font_family TEXT NOT NULL,
+        category TEXT DEFAULT 'persian',
+        file_name TEXT,
+        file_path TEXT,
+        file_url TEXT,
+        file_size INTEGER DEFAULT 0,
+        format TEXT DEFAULT 'woff2',
+        weights TEXT DEFAULT '["400","500","700","800","900"]',
+        preview_text TEXT DEFAULT 'بسته‌بندی و جعبه‌سازی آرمان امیران ۱۴۰۵',
+        is_custom INTEGER DEFAULT 0,
+        is_active INTEGER DEFAULT 1,
+        sort_order INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        created_by TEXT DEFAULT 'مدیر ارشد سیستم'
+      )
+    `).run();
+
+    const countFonts = db.prepare('SELECT COUNT(*) as count FROM system_fonts').get().count;
+    if (countFonts === 0) {
+      const insertFont = db.prepare(`
+        INSERT INTO system_fonts (name, font_family, category, format, weights, preview_text, is_custom, is_active, sort_order, created_by)
+        VALUES (?, ?, ?, ?, ?, ?, 0, 1, ?, 'سیستم پیش‌فرض کارخانه')
+      `);
+
+      const defaultFontsList = [
+        { name: 'وزیرمتن (Vazirmatn - پیش‌فرض استاندارد)', font_family: 'Vazirmatn', category: 'persian', format: 'woff2', weights: '["400","500","600","700","800","900"]', preview: 'کیفیت و دقت بی‌نظیر در تولید انواع جعبه و کارتن صادراتی', sort: 1 },
+        { name: 'ایران‌سنس (IRANSans)', font_family: 'IRANSans', category: 'persian', format: 'woff2', weights: '["300","400","500","700"]', preview: 'اتوماسیون صنعتی مدیریت چاپ و بسته‌بندی آرمان امیران', sort: 2 },
+        { name: 'ایران‌یکان (IRANYekan)', font_family: 'IRANYekan', category: 'persian', format: 'woff2', weights: '["400","500","700","800"]', preview: 'محاسبه بهای تمام‌شده و کنترل کیفی جعبه‌های دارویی و صنعتی', sort: 3 },
+        { name: 'یکان‌بخ (Yekan Bakh)', font_family: 'Yekan Bakh', category: 'persian', format: 'woff2', weights: '["400","600","700","900"]', preview: 'پایپ‌لاین ۱۰ مرحله تولید، چاپ افست، سلفون و لترپرس', sort: 4 },
+        { name: 'شبنم (Shabnam)', font_family: 'Shabnam', category: 'persian', format: 'woff2', weights: '["400","500","700"]', preview: 'پایش آنلاین انبار مقوا، ورق سینگل و حواله‌های تحویل', sort: 5 },
+        { name: 'ساحل (Sahel)', font_family: 'Sahel', category: 'persian', format: 'woff2', weights: '["400","700"]', preview: 'برآورد هوشمند قیمت و فرمولاسیون سود و هزینه تمام‌شده', sort: 6 },
+        { name: 'صمیم (Samim)', font_family: 'Samim', category: 'persian', format: 'woff2', weights: '["400","700"]', preview: 'استودیو طراحی دایکات، خط تیغ و ماک‌آپ سه‌بعدی', sort: 7 },
+        { name: 'دانا (Dana)', font_family: 'Dana', category: 'persian', format: 'woff2', weights: '["400","500","700","800"]', preview: 'سیستم هوشمند ارزیابی عملکرد و تارگت‌های بازاریابی', sort: 8 },
+        { name: 'تنها (Tanha)', font_family: 'Tanha', category: 'persian', format: 'woff2', weights: '["400"]', preview: 'کارتابل پیگیری سریع استعلامات مشتریان و تایید سفارشات', sort: 9 },
+        { name: 'استعداد (Estedad)', font_family: 'Estedad', category: 'persian', format: 'woff2', weights: '["400","700","900"]', preview: 'تولید مکانیزه انواع جعبه مقوایی، هاردباکس و کارتن لمینتی', sort: 10 },
+        { name: 'پینار (Pinar)', font_family: 'Pinar', category: 'persian', format: 'woff2', weights: '["400","600","800"]', preview: 'کنترل دقیق فرآیند چاپ، روکش ورنی و یووی موضعی', sort: 11 },
+        { name: 'پرستو (Parastoo)', font_family: 'Parastoo', category: 'persian', format: 'woff2', weights: '["400","700"]', preview: 'گزارش‌گیری جامع آماری و ممیزی فعالیت‌های پرسنل', sort: 12 },
+        { name: 'ترافیک (Traffic)', font_family: 'Traffic', category: 'persian', format: 'ttf', weights: '["400","700"]', preview: 'صنایع بسته‌بندی آرمان امیران - کیفیت ماندگار', sort: 13 },
+        { name: 'تیتر (Titr - ویژه عناوین و هدرها)', font_family: 'Titr', category: 'persian', format: 'ttf', weights: '["700","900"]', preview: 'کارخانه مدرن چاپ و جعبه‌سازی آرمان امیران', sort: 14 },
+        { name: 'تاهوما (Tahoma - فونت استاندارد سیستم)', font_family: 'Tahoma', category: 'system', format: 'system', weights: '["400","700"]', preview: 'سیستم جامع مدیریت اطلاعات اتوماسیون صنعتی (ERP/MIS)', sort: 15 },
+        { name: 'وزیر کد (Vazir Code - فونت مونو اسپیس ویژه ارقام و کدها)', font_family: 'Vazir Code', category: 'monospace', format: 'woff2', weights: '["400","700"]', preview: 'MKT-1405-8921 | ۴۵,۶۵۰,۰۰۰ تومان | تیراژ: ۲۵,۰۰۰ عدد', sort: 16 }
+      ];
+
+      defaultFontsList.forEach(f => {
+        insertFont.run(f.name, f.font_family, f.category, f.format, f.weights, f.preview, f.sort);
+      });
+    }
+
+    // Default typography config in settings
+    const existingTypo = db.prepare('SELECT value FROM settings WHERE key = ?').get('system_typography');
+    if (!existingTypo) {
+      const defaultTypography = {
+        body_font_family: 'Vazirmatn',
+        heading_font_family: 'Vazirmatn',
+        numbers_font_family: 'Vazirmatn',
+        font_scale: 100, // percentage: 80% to 140%
+        base_font_size: 14, // px
+        body_font_weight: '500',
+        heading_font_weight: '800',
+        line_height: 1.6,
+        letter_spacing: 0,
+        custom_css: '',
+        updated_at: new Date().toISOString(),
+        updated_by: 'مدیر ارشد سیستم'
+      };
+      db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('system_typography', JSON.stringify(defaultTypography));
+    }
+  } catch (e) {
+    console.error('Error creating system_fonts & typography:', e);
+  }
 }
 
 initDb();

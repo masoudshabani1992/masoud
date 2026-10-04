@@ -230,6 +230,15 @@ export const api = {
   deleteFeature: (id) => apiRequest(`/settings/features/${id}`, { method: 'DELETE' }),
   resetFeaturesConfig: () => apiRequest('/settings/features/reset', { method: 'POST' }),
 
+  // System Fonts & Typography Management (مدیریت، آپلود و تنظیم فونت و اندازه قلم)
+  getFonts: () => apiRequest('/settings/fonts'),
+  uploadFont: (formData) => apiRequest('/settings/fonts/upload', { method: 'POST', body: formData }),
+  updateFont: (id, data) => apiRequest(`/settings/fonts/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteFont: (id) => apiRequest(`/settings/fonts/${id}`, { method: 'DELETE' }),
+  getTypography: () => apiRequest('/settings/typography'),
+  updateTypography: (data) => apiRequest('/settings/typography', { method: 'PUT', body: JSON.stringify(data) }),
+  resetTypography: () => apiRequest('/settings/typography/reset', { method: 'POST' }),
+
   // Customers & Analytics
   getCustomers: () => apiRequest('/customers'),
   createCustomer: (data) => apiRequest('/customers', { method: 'POST', body: JSON.stringify(data) }),

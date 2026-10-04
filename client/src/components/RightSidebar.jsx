@@ -38,7 +38,8 @@ import {
   Bell,
   Smartphone,
   Fingerprint,
-  Wand2
+  Wand2,
+  Type
 } from 'lucide-react';
 
 export default function RightSidebar({
@@ -63,7 +64,7 @@ export default function RightSidebar({
     if (['production_orders', 'production_orders_offset', 'digital_orders', 'service_orders'].includes(activeTab)) return 'prod';
     if (['warehouse_inventory', 'warehouse_cardboard', 'warehouse_sheet_carton', 'warehouse_single_face', 'warehouse_cellophane', 'warehouse_pvc_film', 'warehouse_ink'].includes(activeTab)) return 'wh';
     if (['dashboard', 'kanban', 'archive'].includes(activeTab)) return 'dash';
-    if (['users', 'hr', 'storage', 'logs', 'notification_settings', 'migration'].includes(activeTab)) return 'settings';
+    if (['users', 'hr', 'storage', 'logs', 'notification_settings', 'migration', 'form_options', 'system_customizer', 'typography_settings'].includes(activeTab)) return 'settings';
     return null;
   });
 
@@ -842,6 +843,24 @@ export default function RightSidebar({
                           <span>۱۰. عناوین و ماژول‌های سامانه</span>
                         </div>
                         <span className="text-[9px] bg-indigo-100 text-indigo-800 font-mono px-1 py-0.2 rounded font-black">Admin</span>
+                      </button>
+                    )}
+
+                    {/* مدیریت فونت‌ها و تایپوگرافی سامانه (Admin Only) */}
+                    {isAdmin && (
+                      <button
+                        onClick={() => handleNavClick('typography_settings')}
+                        className={`w-full text-right px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between ${
+                          activeTab === 'typography_settings'
+                            ? 'bg-purple-100 text-purple-950 font-black border border-purple-300/80 shadow-2xs'
+                            : 'text-slate-600 hover:bg-purple-50 hover:text-purple-900'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <Type className="w-3.5 h-3.5 text-purple-600" />
+                          <span>۱۱. فونت‌ها و تایپوگرافی سامانه</span>
+                        </div>
+                        <span className="text-[9px] bg-purple-100 text-purple-800 font-mono px-1 py-0.2 rounded font-black">Font</span>
                       </button>
                     )}
                   </div>

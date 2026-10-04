@@ -34,6 +34,7 @@ import AuditLogsView from './components/AuditLogsView';
 import NotificationSettingsView from './components/NotificationSettingsView';
 import FormOptionsManagerView from './components/FormOptionsManagerView';
 import SystemCustomizerView from './components/SystemCustomizerView';
+import TypographySettingsView from './components/TypographySettingsView';
 import TopAnnouncementTicker from './components/TopAnnouncementTicker';
 import CommandPaletteModal from './components/CommandPaletteModal';
 import FloatingQuickDock from './components/FloatingQuickDock';
@@ -43,6 +44,7 @@ import SystemAutoUpdateModal from './components/SystemAutoUpdateModal';
 import ToastNotification from './components/ToastNotification';
 import ErrorBoundary from './components/ErrorBoundary';
 import { CustomizerProvider } from './context/CustomizerContext';
+import { TypographyProvider } from './context/TypographyContext';
 import ElementorFloatingBar from './components/ElementorFloatingBar';
 import ElementorInspectorDrawer from './components/ElementorInspectorDrawer';
 import { playNotificationSound, showToast } from './utils/helpers';
@@ -63,6 +65,7 @@ const TAB_PERMISSION_MAP = {
   notification_settings: 'can_manage_users',
   form_options: 'can_manage_users',
   system_customizer: 'can_manage_users',
+  typography_settings: 'can_manage_users',
   migration: 'can_view_migration',
   dieline_generator: 'can_view_studio',
   '3d_studio': 'can_view_studio',
@@ -490,15 +493,16 @@ export default function App() {
   };
 
   return (
-    <CustomizerProvider currentUser={currentUser}>
-      <div
-        className={`min-h-screen flex font-sans w-full transition-colors duration-300 ${
-          currentTheme === 'vision-ui'
-            ? 'theme-vision-ui bg-[#060b26] text-slate-100'
-            : 'bg-slate-100 text-slate-800'
-        }`}
-        dir="rtl"
-      >
+    <TypographyProvider currentUser={currentUser}>
+      <CustomizerProvider currentUser={currentUser}>
+        <div
+          className={`min-h-screen flex font-sans w-full transition-colors duration-300 ${
+            currentTheme === 'vision-ui'
+              ? 'theme-vision-ui bg-[#060b26] text-slate-100'
+              : 'bg-slate-100 text-slate-800'
+          }`}
+          dir="rtl"
+        >
       {/* Right Sidebar Modern Navigation */}
       <RightSidebar
         activeTab={activeTab}
@@ -634,6 +638,11 @@ export default function App() {
           {/* Dynamic System Titles, Modules & Capabilities Customizer (Admin Only) */}
           {activeTab === 'system_customizer' && (
             <SystemCustomizerView onShowToast={showToast} currentUser={currentUser} />
+          )}
+
+          {/* System Fonts & Typography Management (Admin Only) */}
+          {activeTab === 'typography_settings' && (
+            <TypographySettingsView onBackToSettings={() => navigateTab('system_customizer')} />
           )}
 
           {/* Human Resources & Performance Evaluation System (HR) */}
@@ -860,5 +869,6 @@ export default function App() {
       <ElementorInspectorDrawer />
     </div>
   </CustomizerProvider>
+  </TypographyProvider>
   );
 }

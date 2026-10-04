@@ -35,6 +35,7 @@ import {
 } from 'lucide-react';
 import { api } from '../api/client';
 import { showToast } from '../utils/helpers';
+import TypographySettingsView from './TypographySettingsView';
 
 export const DEFAULT_SYSTEM_TITLES = {
   marketing_header: {
@@ -720,6 +721,23 @@ export default function SystemCustomizerView({ onShowToast, currentUser }) {
             {features.length} ماژول
           </span>
         </button>
+
+        <button
+          onClick={() => setActiveTab('typography')}
+          className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-black transition-all ${
+            activeTab === 'typography'
+              ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
+              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+          }`}
+        >
+          <Sliders className="w-4 h-4" />
+          <span>۳. مدیریت فونت‌ها و مقیاس اندازه قلم (Font & Size)</span>
+          <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
+            activeTab === 'typography' ? 'bg-indigo-700 text-white' : 'bg-slate-100 text-slate-600'
+          }`}>
+            فونت و مقیاس
+          </span>
+        </button>
       </div>
 
       {/* ========================================================================= */}
@@ -968,6 +986,13 @@ export default function SystemCustomizerView({ onShowToast, currentUser }) {
             })}
           </div>
         </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* TAB 3: SYSTEM FONTS & TYPOGRAPHY MANAGER                                  */}
+      {/* ========================================================================= */}
+      {activeTab === 'typography' && (
+        <TypographySettingsView />
       )}
 
       {/* ========================================================================= */}

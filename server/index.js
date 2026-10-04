@@ -5389,6 +5389,309 @@ app.post('/api/settings/features/reset', authMiddleware, requireAdmin, (req, res
   }
 });
 
+// ==========================================
+// 5. SYSTEM FONTS & TYPOGRAPHY MANAGER API (مدیریت، آپلود و سفارشی‌سازی فونت‌ها و مقیاس اندازه قلم)
+// ==========================================
+
+const FONTS_STORAGE_DIR = path.join(ROOT_STORAGE_DIR, 'fonts');
+if (!fs.existsSync(FONTS_STORAGE_DIR)) {
+  fs.mkdirSync(FONTS_STORAGE_DIR, { recursive: true });
+}
+
+// Multer storage engine for custom font uploads
+const fontStorageEngine = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, FONTS_STORAGE_DIR),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    const base = path.basename(file.originalname, ext).replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 40);
+    cb(null, `font_${Date.now()}_${base}${ext}`);
+  }
+});
+
+const fontUpload = multer({
+  storage: fontStorageEngine,
+  limits: { fileSize: 15 * 1024 * 1024 }, // 15MB font limit
+  fileFilter: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (['.woff2', '.woff', '.ttf', '.otf', '.eot'].includes(ext)) {
+      cb(null, true);
+    } else {
+      cb(new Error('فرمت فایل فونت باید یکی از پسوندهای woff2, woff, ttf, otf باشد.'));
+    }
+  }
+});
+
+// GET /api/settings/fonts (دریافت لیست فونت‌های استاندارد و آپلود شده)
+app.get('/api/settings/fonts', authMiddleware, (req, res) => {
+  try {
+    let rows = db.prepare('SELECT * FROM system_fonts ORDER BY sort_order ASC, is_custom ASC, id ASC').all();
+    res.json({ success: true, fonts: rows });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در دریافت لیست فونت‌ها: ' + err.message });
+  }
+});
+
+// POST /api/settings/fonts/upload (آپلود فونت سفارشی جدید - Admin)
+app.post('/api/settings/fonts/upload', authMiddleware, requireAdmin, fontUpload.single('font_file'), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'لطفاً فایل فونت را انتخاب نمایید.' });
+    }
+
+    const {
+      name,
+      font_family,
+      category = 'custom',
+      weights = '["400","500","700","900"]',
+      preview_text = 'بسته‌بندی و چاپ جعبه آرمان امیران ۱۴۰۵'
+    } = req.body;
+
+    const fontName = (name || path.basename(req.file.originalname, path.extname(req.file.originalname))).trim();
+    const familyName = (font_family || fontName.replace(/[^a-zA-Z0-9]/g, '')).trim();
+    const ext = path.extname(req.file.originalname).toLowerCase().replace('.', '');
+    const fileUrl = `/api/storage/fonts/${req.file.filename}`;
+
+    const user = req.user;
+    const creatorName = user.full_name || user.fullName || user.username || 'مدیر سیستم';
+
+    const info = db.prepare(`
+      INSERT INTO system_fonts (
+        name, font_family, category, file_name, file_path, file_url,
+        file_size, format, weights, preview_text, is_custom, is_active,
+        sort_order, created_by
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 1, 50, ?)
+    `).run(
+      fontName,
+      familyName,
+      category,
+      req.file.originalname,
+      req.file.path,
+      fileUrl,
+      req.file.size,
+      ext,
+      weights,
+      preview_text,
+      creatorName
+    );
+
+    logActivity(req, {
+      action: 'upload_font',
+      module: 'settings',
+      target_id: String(info.lastInsertRowid),
+      target_name: fontName,
+      description: `آپلود و ثبت فونت جدید «${fontName}» (${ext.toUpperCase()}) در سامانه`
+    });
+
+    const newFont = db.prepare('SELECT * FROM system_fonts WHERE id = ?').get(info.lastInsertRowid);
+    res.json({ success: true, message: `فونت «${fontName}» با موفقیت افزوده شد.`, font: newFont });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در آپلود فونت: ' + err.message });
+  }
+});
+
+// PUT /api/settings/fonts/:id (ویرایش نام یا وضعیت فونت - Admin)
+app.put('/api/settings/fonts/:id', authMiddleware, requireAdmin, (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, preview_text, is_active, sort_order } = req.body;
+
+    const font = db.prepare('SELECT * FROM system_fonts WHERE id = ?').get(id);
+    if (!font) {
+      return res.status(404).json({ error: 'فونت مورد نظر یافت نشد.' });
+    }
+
+    db.prepare(`
+      UPDATE system_fonts
+      SET name = COALESCE(?, name),
+          preview_text = COALESCE(?, preview_text),
+          is_active = COALESCE(?, is_active),
+          sort_order = COALESCE(?, sort_order)
+      WHERE id = ?
+    `).run(
+      name ? name.trim() : null,
+      preview_text !== undefined ? preview_text : null,
+      is_active !== undefined ? Number(is_active) : null,
+      sort_order !== undefined ? Number(sort_order) : null,
+      id
+    );
+
+    logActivity(req, {
+      action: 'update_font',
+      module: 'settings',
+      target_id: String(id),
+      target_name: font.name,
+      description: `ویرایش اطلاعات فونت «${font.name}»`
+    });
+
+    const updated = db.prepare('SELECT * FROM system_fonts WHERE id = ?').get(id);
+    res.json({ success: true, message: 'اطلاعات فونت با موفقیت به‌روزرسانی شد.', font: updated });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در ویرایش فونت: ' + err.message });
+  }
+});
+
+// DELETE /api/settings/fonts/:id (حذف فونت سفارشی - Admin)
+app.delete('/api/settings/fonts/:id', authMiddleware, requireAdmin, (req, res) => {
+  try {
+    const { id } = req.params;
+    const font = db.prepare('SELECT * FROM system_fonts WHERE id = ?').get(id);
+    if (!font) {
+      return res.status(404).json({ error: 'فونت مورد نظر یافت نشد.' });
+    }
+
+    if (font.is_custom === 0) {
+      return res.status(400).json({ error: 'امکان حذف فونت‌های پیش‌فرض و سیستمی وجود ندارد. می‌توانید آن را غیرفعال نمایید.' });
+    }
+
+    // Remove physical file if exists
+    if (font.file_path && fs.existsSync(font.file_path)) {
+      try { fs.unlinkSync(font.file_path); } catch (e) {}
+    }
+
+    db.prepare('DELETE FROM system_fonts WHERE id = ?').run(id);
+
+    logActivity(req, {
+      action: 'delete_font',
+      module: 'settings',
+      target_id: String(id),
+      target_name: font.name,
+      description: `حذف فونت سفارشی «${font.name}» از سامانه`
+    });
+
+    res.json({ success: true, message: `فونت «${font.name}» با موفقیت حذف گردید.` });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در حذف فونت: ' + err.message });
+  }
+});
+
+// GET /api/settings/typography (دریافت پیکربندی تایپوگرافی و مقیاس اندازه قلم)
+app.get('/api/settings/typography', authMiddleware, (req, res) => {
+  try {
+    const row = db.prepare('SELECT value FROM settings WHERE key = ?').get('system_typography');
+    let config = {
+      body_font_family: 'Vazirmatn',
+      heading_font_family: 'Vazirmatn',
+      numbers_font_family: 'Vazirmatn',
+      font_scale: 100, // 80% to 140%
+      base_font_size: 14, // px
+      body_font_weight: '500',
+      heading_font_weight: '800',
+      line_height: 1.6,
+      letter_spacing: 0,
+      custom_css: ''
+    };
+
+    if (row && row.value) {
+      try {
+        config = { ...config, ...JSON.parse(row.value) };
+      } catch (e) {}
+    }
+
+    res.json({ success: true, typography: config });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در دریافت تنظیمات تایپوگرافی: ' + err.message });
+  }
+});
+
+// PUT /api/settings/typography (ذخیره و اعمال تنظیمات فونت و اندازه قلم - Admin)
+app.put('/api/settings/typography', authMiddleware, requireAdmin, (req, res) => {
+  try {
+    const {
+      body_font_family,
+      heading_font_family,
+      numbers_font_family,
+      font_scale,
+      base_font_size,
+      body_font_weight,
+      heading_font_weight,
+      line_height,
+      letter_spacing,
+      custom_css
+    } = req.body;
+
+    const user = req.user;
+    const updaterName = user.full_name || user.fullName || user.username || 'مدیر سیستم';
+
+    const typographyConfig = {
+      body_font_family: body_font_family || 'Vazirmatn',
+      heading_font_family: heading_font_family || body_font_family || 'Vazirmatn',
+      numbers_font_family: numbers_font_family || 'Vazirmatn',
+      font_scale: Number(font_scale) || 100,
+      base_font_size: Number(base_font_size) || 14,
+      body_font_weight: String(body_font_weight || '500'),
+      heading_font_weight: String(heading_font_weight || '800'),
+      line_height: Number(line_height) || 1.6,
+      letter_spacing: Number(letter_spacing) || 0,
+      custom_css: custom_css || '',
+      updated_at: new Date().toISOString(),
+      updated_by: updaterName
+    };
+
+    db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run(
+      'system_typography',
+      JSON.stringify(typographyConfig)
+    );
+
+    logActivity(req, {
+      action: 'update_typography',
+      module: 'settings',
+      target_id: 'typography',
+      target_name: 'تنظیمات فونت و تایپوگرافی',
+      description: `به‌روزرسانی فونت سراسری به «${typographyConfig.body_font_family}» با مقیاس ${typographyConfig.font_scale}٪`,
+      details: typographyConfig
+    });
+
+    res.json({
+      success: true,
+      message: 'تنظیمات فونت و اندازه قلم با موفقیت در سراسر سامانه اعمال شد.',
+      typography: typographyConfig
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در ذخیره تنظیمات تایپوگرافی: ' + err.message });
+  }
+});
+
+// POST /api/settings/typography/reset (بازنشانی تایپوگرافی به فونت پیش‌فرض کارخانه - Admin)
+app.post('/api/settings/typography/reset', authMiddleware, requireAdmin, (req, res) => {
+  try {
+    const defaultTypography = {
+      body_font_family: 'Vazirmatn',
+      heading_font_family: 'Vazirmatn',
+      numbers_font_family: 'Vazirmatn',
+      font_scale: 100,
+      base_font_size: 14,
+      body_font_weight: '500',
+      heading_font_weight: '800',
+      line_height: 1.6,
+      letter_spacing: 0,
+      custom_css: '',
+      updated_at: new Date().toISOString(),
+      updated_by: 'بازنشانی پیش‌فرض کارخانه'
+    };
+
+    db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run(
+      'system_typography',
+      JSON.stringify(defaultTypography)
+    );
+
+    logActivity(req, {
+      action: 'reset_typography',
+      module: 'settings',
+      target_id: 'typography',
+      target_name: 'تایپوگرافی سامانه',
+      description: 'بازنشانی فونت و اندازه قلم به حالت استاندارد کارخانه (وزیرمتن)'
+    });
+
+    res.json({
+      success: true,
+      message: 'تنظیمات تایپوگرافی به فونت استاندارد پیش‌فرض (وزیرمتن ۱۰۰٪) بازنشانی شد.',
+      typography: defaultTypography
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'خطا در بازنشانی تایپوگرافی: ' + err.message });
+  }
+});
+
 // Download Setup Package
 app.get('/download-setup', (req, res) => {
   const zipPath = path.join(__dirname, '..', 'box-factory-windows-setup.zip');
