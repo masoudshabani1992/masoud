@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 110" fill="none" className="w-full h-auto">
+  <!-- 3D Cube Icon (Right Side in RTL) -->
+  <g transform="translate(370, 10)">
+    <!-- Main Navy Cube Body (Left & Bottom Faces) -->
+    <path d="M45 42 L45 92 L5 68 L5 20 Z" fill="#0f2b48" />
+    <path d="M45 42 L85 20 L85 68 L45 92 Z" fill="#1b3f66" />
+    <!-- White Cutout Inner Corners -->
+    <path d="M45 42 L45 58 L20 44 L20 29 Z" fill="#ffffff" opacity="0.95" />
+    <path d="M45 42 L70 29 L70 44 L45 58 Z" fill="#e2e8f0" />
+    <!-- Gold/Amber Top Right Accent Block -->
+    <path d="M45 10 L75 25 L55 35 L25 20 Z" fill="#e59819" />
+    <path d="M75 25 L75 52 L55 62 L55 35 Z" fill="#f59e0b" />
+    <path d="M55 35 L55 62 L38 52 L38 27 Z" fill="#d97706" />
+    <!-- Crisp 3D Highlights -->
+    <path d="M45 42 L85 20 M45 42 L5 20 M45 42 L45 92" stroke="#ffffff" stroke-width="1.5" stroke-linejoin="round" opacity="0.3" />
+  </g>
+
+  <!-- Persian Typography Text (Right-to-Left Layout) -->
+  <!-- Line 1: صنایع چاپ و بسته بندی -->
+  <text x="350" y="44" font-family="'Vazirmatn', 'IRANSans', 'Tahoma', sans-serif" font-weight="800" font-size="28" fill="#113355" text-anchor="end" letter-spacing="-0.5">
+    صنایع چاپ و بسته بندی
+  </text>
+
+  <!-- Line 2: امیران -->
+  <text x="350" y="94" font-family="'Vazirmatn', 'IRANSans', 'Tahoma', sans-serif" font-weight="900" font-size="44" fill="#113355" text-anchor="end" letter-spacing="-1">
+    امــیــــران
+  </text>
+
+  <!-- Horizontal Accent Baseline Underline -->
+  <path d="M40 92 L225 92" stroke="#113355" stroke-width="4.5" stroke-linecap="round" />
+</svg>

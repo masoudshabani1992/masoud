@@ -12,6 +12,7 @@ import {
   Sparkles,
   QrCode
 } from 'lucide-react';
+import AmiranBrandLogo from './AmiranBrandLogo';
 
 export default function PrintTicketModal({ project, onClose }) {
   const { role } = useAuth();
@@ -91,15 +92,10 @@ export default function PrintTicketModal({ project, onClose }) {
           {/* Header of Invoice / Job Ticket */}
           <div className="border-b-2 border-slate-900 pb-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-slate-900 text-white rounded-xl flex items-center justify-center">
-                <Boxes className="w-7 h-7 text-amber-400" />
-              </div>
-              <div>
-                <h1 className="text-base font-black text-slate-900">
-                  مجتمع چاپ و بسته‌بندی امیران
-                </h1>
-                <p className="text-[10px] text-slate-600">
-                  تولیدکننده تخصصی انواع کارتن‌های لمینتی صادراتی، جعبه‌های دارویی، فست‌فود و هاردباکس
+              <AmiranBrandLogo variant="horizontal" theme="light" size="lg" />
+              <div className="border-r border-slate-300 pr-3 mr-2 hidden sm:block">
+                <p className="text-[10px] text-slate-600 max-w-xs leading-relaxed">
+                  تولیدکننده تخصصی انواع کارتن‌های لمینتی صادراتی، جعبه‌های دارویی، بهداشتی، فست‌فود و هاردباکس
                 </p>
               </div>
             </div>

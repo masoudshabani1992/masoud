@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ShieldAlert, Key, Copy, Check, Lock, Cpu, Building2, User, RefreshCw, AlertCircle, FileText, CheckCircle2, Sparkles } from 'lucide-react';
 import { api } from '../api/client';
+import AmiranBrandLogo from './AmiranBrandLogo';
 
 const MASTER_PERMANENT_KEY = 'LIC1-eyJ2IjoxLCJoaWQiOiJBTlkiLCJjb21wYW55Ijoi2LXZhtin24zYuSDahtin2b4g2Ygg2KjYs9iq2YfigIzYqNmG2K_bjCDYotix2YXYp9mGINin2YXbjNix2KfZhiIsImlzc3VlZF90byI6ItmF2K_bjNix24zYqiDaqdin2LHYrtin2YbZhyIsImRldmVsb3BlciI6ItmF2LPYudmI2K8g2LTYudio2KfZhtuMIiwiY3JlYXRlZF9hdCI6IjIwMjYtMDktMjYiLCJleHBpcnkiOiJQRVJNQU5FTlQiLCJtYXhfdXNlcnMiOjEwMCwidHlwZSI6IkVOVEVSUFJJU0VfVU5MSU1JVEVEIiwibW9kdWxlcyI6WyJhbGwiXX0.OnqJULa1P_Mw7qmzTJL9MhyLzSz4EvpWoAwU5oJLkBqOXCoI2ioJvckCCQW2TYvkivO6bf3KnVMO36paW8ZGIUUqNP9AXEBxZR_9r05yCpUEVzTezZp1e_fEGAu826ny7vul30yd3Fd1WCVsQYRMMazOkRi_HbIuABI6LcBst0PYBQgWZeuboKMclaJf46Dpz3HObjtLI5WmKwQhmNw-KsB5DmYjTrrA1u1VeSH-S6h43Qs2sspETDcbhp3WazM8pdK8qGYUQyeR2fk69olNAqB2qSpFX-1Vh4JTmM10EI2TsEbkMGSzD6aNBdiLOJH1uqfIAdXMch3RFV3JUv0Sng';
 
@@ -70,13 +71,13 @@ export default function LicenseGate({ hardwareId, errorReason, onActivated }) {
       <div className="max-w-xl w-full bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl p-6 sm:p-8 relative z-10">
         {/* Header Icon */}
         <div className="flex flex-col items-center text-center mb-6">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-red-500/20 to-amber-500/20 border border-red-500/30 flex items-center justify-center text-red-400 mb-3 shadow-lg shadow-red-500/10">
-            <Lock className="w-8 h-8 animate-pulse" />
+          <div className="p-3 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm mb-4">
+            <AmiranBrandLogo variant="horizontal" theme="dark" size="lg" />
           </div>
-          <h1 className="text-2xl font-black text-white tracking-tight">
-            سامانه قفل است - نیازمند لایسنس معتبر
+          <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+            سامانه نیازمند فعال‌سازی لایسنس سخت‌افزاری
           </h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-xs text-slate-400 mt-1">
             صنایع چاپ و بسته‌بندی آرمان امیران
           </p>
         </div>

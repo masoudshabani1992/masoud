@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { api } from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import AmiranBrandLogo from './AmiranBrandLogo';
 
 export default function LicenseStatusModal({ isOpen, onClose, licenseInfo, hardwareId, onLicenseUpdated }) {
   const { role } = useAuth();
@@ -139,14 +140,8 @@ export default function LicenseStatusModal({ isOpen, onClose, licenseInfo, hardw
       <div className="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Modal Header */}
         <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/60">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-              <ShieldCheck className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="text-base font-bold text-white">مدیریت لایسنس و قفل سخت‌افزاری</h3>
-              <p className="text-xs text-slate-400">سامانه اتوماسیون صنایع چاپ و بسته‌بندی آرمان امیران</p>
-            </div>
+          <div className="flex items-center gap-3">
+            <AmiranBrandLogo variant="horizontal" theme="dark" size="sm" />
           </div>
           <button
             onClick={onClose}

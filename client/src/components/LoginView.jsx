@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { ROLES } from '../utils/helpers';
 import { api } from '../api/client';
+import AmiranBrandLogo from './AmiranBrandLogo';
 import {
   Boxes,
   Lock,
@@ -199,14 +200,8 @@ export default function LoginView() {
         {/* Right Column: Factory Branding & Fast Roles */}
         <div className="md:col-span-5 bg-gradient-to-b from-indigo-900 via-slate-900 to-indigo-950 text-white p-6 sm:p-8 flex flex-col justify-between border-l border-indigo-950/40">
           <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-400 to-amber-500 flex items-center justify-center text-slate-900 shadow-lg shadow-amber-500/20 font-black text-sm">
-                امیران
-              </div>
-              <div>
-                <h2 className="text-lg font-black text-white">اتوماسیون تولید (MIS)</h2>
-                <span className="text-xs text-amber-300 font-bold">شرکت آرمان امیران</span>
-              </div>
+            <div className="p-3 bg-white/10 rounded-2xl border border-white/15 backdrop-blur-sm">
+              <AmiranBrandLogo variant="horizontal" theme="dark" size="lg" />
             </div>
 
             <p className="text-xs text-slate-300 leading-relaxed pt-2 font-medium">

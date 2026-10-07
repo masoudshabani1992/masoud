@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { ROLES, APP_VERSION, APP_VERSION_TITLE, APP_VERSION_BADGE } from '../utils/helpers';
+import AmiranBrandLogo from './AmiranBrandLogo';
 import {
   Boxes,
   LayoutGrid,
@@ -131,32 +132,21 @@ export default function RightSidebar({
         <div className="p-4 border-b border-slate-100 flex flex-col gap-3">
           
           <div className="flex items-center justify-between">
-            {/* Brand Logo & Name */}
+            {/* Official Amiran Brand Logo */}
             <div
               onClick={() => { if (canHub) handleNavClick('hub'); }}
-              className="flex items-center gap-3 cursor-pointer group select-none"
+              className="flex items-center gap-2 cursor-pointer group select-none transition-transform duration-200 hover:scale-[1.02]"
             >
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-200 via-violet-200 to-indigo-200 flex items-center justify-center text-indigo-900 shadow-sm border border-indigo-200/60 group-hover:scale-105 transition-transform duration-200 icon-box-3d">
-                <Boxes className="w-6 h-6 text-indigo-800 animate-float" />
-              </div>
-              <div>
-                <h1 className="font-black text-slate-800 text-sm tracking-tight group-hover:text-indigo-600 transition-colors">
-                  شرکت آرمان امیران
-                </h1>
-                <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span className="text-[11px] font-bold text-slate-500">اتوماسیون تولید (MIS)</span>
-                  <span className="px-1.5 py-0.2 rounded-md text-[10px] font-black bg-purple-100 text-purple-800 border border-purple-300" title={APP_VERSION_TITLE}>
-                    {APP_VERSION_BADGE}
-                  </span>
-                </div>
-              </div>
+              <AmiranBrandLogo size="md" variant="horizontal" />
+              <span className="px-1.5 py-0.5 rounded-md text-[10px] font-black bg-purple-100 text-purple-800 border border-purple-300 shrink-0 self-center" title={APP_VERSION_TITLE}>
+                {APP_VERSION_BADGE}
+              </span>
             </div>
 
             {/* Mobile Close Button */}
             <button
               onClick={onCloseMobile}
-              className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl lg:hidden"
+              className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl lg:hidden cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>

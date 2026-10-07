@@ -69,27 +69,27 @@ export default function TypographySettingsView({ onBackToSettings }) {
     setFormState(typography);
   }, [typography]);
 
-  // Handle immediate live preview as user drags sliders or clicks presets
+  // Handle immediate live preview and instant save
   const handleScaleChange = (newScale) => {
     const updated = { ...formState, font_scale: Number(newScale) };
     setFormState(updated);
     previewTypography(updated);
   };
 
-  const handlePresetSelect = (preset) => {
+  const handlePresetSelect = async (preset) => {
     const updated = {
       ...formState,
       font_scale: preset.scale,
       base_font_size: preset.basePx
     };
     setFormState(updated);
-    previewTypography(updated);
+    await saveTypography(updated);
   };
 
-  const handleFontFamilyChange = (field, fontName) => {
+  const handleFontFamilyChange = async (field, fontName) => {
     const updated = { ...formState, [field]: fontName };
     setFormState(updated);
-    previewTypography(updated);
+    await saveTypography(updated);
   };
 
   const handleLineHeightChange = (lh) => {

@@ -5,6 +5,7 @@ import FilePreviewModal from './FilePreviewModal';
 import EditableElement from './EditableElement';
 import { useUiCustomizer } from '../context/CustomizerContext';
 import { matchProduct, showSuccessToast } from '../utils/helpers';
+import AmiranBrandLogo from './AmiranBrandLogo';
 import {
   Users,
   Send,
@@ -3500,9 +3501,11 @@ export default function MarketingLeadsView({ onNavigateToKanban }) {
             {/* Printable Area */}
             <div className="border-2 border-slate-800 p-6 rounded-2xl space-y-5 bg-white text-slate-900" dir="rtl">
               <div className="flex items-center justify-between border-b-2 border-slate-800 pb-4">
-                <div>
-                  <h2 className="text-xl font-black text-slate-900">شرکت صنایع بسته‌بندی آرمان امیران</h2>
-                  <p className="text-xs text-slate-600">استودیو طراحی امیران | برگه رسمی اعلام قیمت و پیش‌فاکتور استعلام</p>
+                <div className="flex items-center gap-3">
+                  <AmiranBrandLogo variant="horizontal" theme="light" size="lg" />
+                  <div className="border-r border-slate-300 pr-3 mr-2 hidden sm:block">
+                    <p className="text-xs text-slate-600 font-bold">برگه رسمی اعلام قیمت و پیش‌فاکتور استعلام</p>
+                  </div>
                 </div>
                 <div className="text-left font-mono text-xs space-y-0.5" dir="ltr">
                   <div><strong>INQUIRY:</strong> #{selectedLeadForPrint.lead_code}</div>

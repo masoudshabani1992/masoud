@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { api } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { matchProduct } from '../utils/helpers';
+import AmiranBrandLogo from './AmiranBrandLogo';
 import {
   Layers,
   FileSpreadsheet,
@@ -659,9 +660,11 @@ export default function ProductionOrderView({ onOpenNewProject }) {
 
             <div className="border-2 border-slate-800 p-6 rounded-2xl space-y-5 bg-white text-slate-900" dir="rtl">
               <div className="flex items-center justify-between border-b-2 border-slate-800 pb-4">
-                <div>
-                  <h2 className="text-xl font-black">شرکت صنایع بسته‌بندی آرمان امیران</h2>
-                  <p className="text-xs text-slate-600">برگه رسمی دستور تولید و کنترل فرآیند کارگاهی</p>
+                <div className="flex items-center gap-3">
+                  <AmiranBrandLogo variant="horizontal" theme="light" size="lg" />
+                  <div className="border-r border-slate-300 pr-3 mr-2 hidden sm:block">
+                    <p className="text-xs text-slate-600 font-bold">برگه رسمی دستور تولید و کنترل فرآیند کارگاهی</p>
+                  </div>
                 </div>
                 <div className="text-left font-mono text-xs space-y-0.5" dir="ltr">
                   <div><strong>ORDER:</strong> #{printOrder.order_code}</div>

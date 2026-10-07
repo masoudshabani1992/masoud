@@ -20,6 +20,7 @@ import {
   setAutoBiometricPromptEnabled
 } from '../utils/biometrics';
 import { ROLES } from '../utils/helpers';
+import AmiranBrandLogo from './AmiranBrandLogo';
 
 export default function BiometricLockScreen({ user, onUnlock, onLogout }) {
   const [status, setStatus] = useState('locked'); // 'locked' | 'scanning' | 'unlocked' | 'error'
@@ -126,15 +127,7 @@ export default function BiometricLockScreen({ user, onUnlock, onLogout }) {
       {/* Top Header: Factory Brand & Lock Badge */}
       <div className="relative z-10 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-            <Lock className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h1 className="text-base font-black tracking-tight text-white flex items-center gap-2">
-              سامانه اتوماسیون آرمان امیران
-            </h1>
-            <p className="text-xs text-indigo-300 font-medium">قفل امنیتی بیومتریک کارخانه</p>
-          </div>
+          <AmiranBrandLogo variant="horizontal" theme="dark" size="sm" />
         </div>
 
         <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs text-indigo-200">
