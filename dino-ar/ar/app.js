@@ -395,7 +395,8 @@ window.addEventListener('DOMContentLoaded', function () {
   // 🏠 نمایش دایناسورها با اندازهٔ واقعی در اتاق (مثل دموی شیرآلات/ARcade)
   // از Google Scene Viewer استفاده می‌کند: کف اتاق را پیدا می‌کند و مدل را
   // ۱:۱ روی زمین می‌گذارد؛ برای اندروید بدون نصب اضافی.
-  var ROOM_GLB = 'https://raw.githubusercontent.com/masoudshabani1992/masoud/arena/01a0bb37-masoud/dino-ar/models/dinos-combined.glb';
+  // آدرس مدل از همین دامنهٔ میزبان خوانده می‌شود (بدون وابستگی به گیت‌هاب)
+  var ROOM_GLB = location.origin + '/models/dinos-combined.glb';
   document.querySelector('#btnRoom').addEventListener('click', function () {
     var file = encodeURIComponent(ROOM_GLB);
     var https = 'https://arvr.google.com/scene-viewer/1.0?file=' + file +

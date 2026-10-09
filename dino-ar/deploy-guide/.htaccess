@@ -1,0 +1,16 @@
+# MIME types for AR assets
+AddType model/gltf-binary .glb
+AddType model/gltf+json .gltf
+AddType application/octet-stream .mind
+AddType image/webp .webp
+AddType audio/mpeg .mp3
+
+# config/json should always be fresh
+<FilesMatch "\.(json|mind)$">
+  Header set Cache-Control "no-cache"
+</FilesMatch>
+
+# allow large model files
+<IfModule mod_mime.c>
+  AddEncoding identity .glb
+</IfModule>
