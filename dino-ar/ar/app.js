@@ -1,516 +1,257 @@
-/* global AFRAME, THREE */
-/* استند دایناسوری — واقعیت افزوده:
-   با اسکن استند، سه دایناسور سه‌بعدیِ بزرگ از استند جدا می‌شوند،
-   در محیط واقعیِ اتاق قدم می‌زنند و با صدا غرش می‌کنند. */
+/* بازیکا — استند زندهٔ دایناسورها (بدون دوربین / بدون AR)
+   صحنهٔ سه‌بعدی: استند + سه دایناسور متحرک؛ ضربه = صدا + پاپ‌آپ */
 (function () {
 'use strict';
 
-var SOUNDS = {
-  big: '../sounds/roar-big.wav',
-  mid: '../sounds/roar-mid.wav',
-  pop: '../sounds/pop.wav'
-};
+var IDS = ['trex', 'triceratops', 'stegosaurus'];
+var FILES = { trex: 'Trex.glb', triceratops: 'Triceratops.glb', stegosaurus: 'Stegosaurus.glb' };
+var HOME = { trex: [0, 0, 0.9], triceratops: [-1.8, 0, 0.3], stegosaurus: [1.8, 0, 0.3] };
+var FACE = { trex: 0.0, triceratops: 0.7, stegosaurus: -0.7 };
+var SCALE = 0.16;
+var BOUNDS = { x: 2.4, zMin: -0.7, zMax: 1.8 };
 
-/* scale برحسب «پهنای استند = 1» — بزرگ و واقعی در اتاق */
-var SPECIES = [
-  { key: 'trex',  scale: 2.2, speed: 0.55, yaw: -90, roars: ['big', 'mid'], home: { x: 0.0,  y: 0.95 } },
-  { key: 'trice', scale: 1.5, speed: 0.42, yaw: 90,  roars: ['mid'],        home: { x: -1.1, y: 0.50 } },
-  { key: 'stego', scale: 1.6, speed: 0.38, yaw: 90,  roars: ['mid', 'big'], home: { x: 1.1,  y: 0.55 } }
-];
+var scene, camera, renderer, raycaster;
+var dinos = [];
+var loadedCount = 0;
+var THEME = null;
 
-var BOUNDS = { x: 1.6, y0: 0.25, y1: 1.7 };
+init();
 
-var muted = false;
-var worldActive = false;
-var globalScale = 1;
-var yawTrim = 0;
-var loadedModels = 0;
-var spawnedCount = 0;
-
-/* ---------- نوار تشخیص ---------- */
-var diagEl;
-var DIAG = { mind: '…', cam: '…', target: '—', models: '0/3', spawn: '0/3', parent: '…', pos: '', err: '' };
-function diag() {
-  if (!diagEl) return;
-  diagEl.textContent = 'mind:' + DIAG.mind + ' cam:' + DIAG.cam +
-    ' target:' + DIAG.target + ' models:' + DIAG.models + ' spawn:' + DIAG.spawn +
-    ' par:' + DIAG.parent + (DIAG.pos ? ' [' + DIAG.pos + ']' : '') +
-    (DIAG.err ? ' ⚠' + DIAG.err : '');
+function diag(msg) {
+  var el = document.getElementById('diag');
+  if (el) el.textContent = msg;
 }
 
-/* ---------- صدا ---------- */
-var audioPool = {};
-function playSound(name, vol) {
-  if (muted) return;
-  var a = audioPool[name];
-  if (!a) { a = audioPool[name] = new Audio(SOUNDS[name]); }
-  a.currentTime = 0;
-  a.volume = vol == null ? 1 : vol;
-  a.play().catch(function () {});
-}
+function init() {
+  var wrap = document.getElementById('stage');
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 120);
 
-/* ---------- سایهٔ نرم ---------- */
-var shadowTex = null;
-function shadowTexture() {
-  if (shadowTex) return shadowTex;
-  var c = document.createElement('canvas');
-  c.width = c.height = 128;
-  var g = c.getContext('2d');
-  var rg = g.createRadialGradient(64, 64, 6, 64, 64, 62);
-  rg.addColorStop(0, 'rgba(20,10,5,0.45)');
-  rg.addColorStop(0.7, 'rgba(20,10,5,0.20)');
-  rg.addColorStop(1, 'rgba(20,10,5,0)');
-  g.fillStyle = rg;
-  g.fillRect(0, 0, 128, 128);
-  shadowTex = new THREE.CanvasTexture(c);
-  return shadowTex;
-}
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  wrap.appendChild(renderer.domElement);
 
-function rand(a, b) { return a + Math.random() * (b - a); }
-function lerpAngle(a, b, t) {
-  var d = b - a;
-  while (d > Math.PI) d -= Math.PI * 2;
-  while (d < -Math.PI) d += Math.PI * 2;
-  return a + d * Math.min(1, t);
-}
-function easeOutBack(t) {
-  var c1 = 1.70158, c3 = c1 + 1;
-  return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
-}
+  // پس‌زمینهٔ جنگل
+  new THREE.TextureLoader().load('../content/dino/images/bg.webp', function (t) {
+    t.encoding = THREE.sRGBEncoding;
+    scene.background = t;
+  });
 
-/* ---------- دایناسور سه‌بعدی بزرگ ----------
-   زنجیره: outer(مکان روی زمینِ بیرون‌زده + heading)
-            → up(ایستادن) → yaw(جهت مدل) → مدل GLB        */
-AFRAME.registerComponent('dino', {
-  schema: { index: { default: 0 } },
+  scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+  var dl = new THREE.DirectionalLight(0xfff2d0, 1.0);
+  dl.position.set(2, 5, 3);
+  scene.add(dl);
 
-  init: function () {
-    var self = this;
-    this.sp = SPECIES[this.data.index];
-    this.x = this.sp.home.x;
-    this.y = this.sp.home.y;
-    this.heading = rand(0, Math.PI * 2);
-    this.desiredHeading = this.heading;
-    this.state = 'idle';
-    this.timer = rand(0.5, 2);
-    this.roarTimer = rand(3, 8);
-    this.spawnT = -1;
-    this.spawnScale = 0.0001;
-    this.currentAnim = null;
-    this.action = null;
+  // زمین خاکی
+  var ground = new THREE.Mesh(
+    new THREE.CircleGeometry(9, 48),
+    new THREE.MeshLambertMaterial({ color: 0x7a5a38 })
+  );
+  ground.rotation.x = -Math.PI / 2;
+  ground.position.y = -0.01;
+  scene.add(ground);
 
-    this.up = new THREE.Object3D();
-    this.up.rotation.x = -Math.PI / 2;
-    this.yawN = new THREE.Object3D();
-    this.up.add(this.yawN);
-    this.el.object3D.add(this.up);
-
-    this.shadow = new THREE.Mesh(
-      new THREE.PlaneGeometry(1, 1),
-      new THREE.MeshBasicMaterial({ map: shadowTexture(), transparent: true, depthWrite: false })
+  // تختهٔ استند (طرح چاپی) پشت دایناسورها
+  new THREE.TextureLoader().load('../content/dino/images/stand-art.webp', function (t) {
+    t.encoding = THREE.sRGBEncoding;
+    var ratio = (t.image && t.image.width) ? t.image.height / t.image.width : 1.4;
+    var w = 3.6;
+    var board = new THREE.Mesh(
+      new THREE.PlaneGeometry(w, w * ratio),
+      new THREE.MeshBasicMaterial({ map: t })
     );
-    this.shadow.position.z = 0.002;
-    this.shadow.material.opacity = 0;
-    this.el.object3D.add(this.shadow);
+    board.position.set(0, (w * ratio) / 2 - 0.15, -1.9);
+    scene.add(board);
+  });
 
-    this.el.object3D.position.set(this.x, this.y, 0);
-    this.applyYaw();
-    this.applyScale();
+  IDS.forEach(loadDino);
 
-    var loader = new THREE.GLTFLoader();
-    loader.load('../models/' + ['Trex.glb', 'Triceratops.glb', 'Stegosaurus.glb'][this.data.index], function (gltf) {
-      self.model = gltf.scene;
-      self.clips = {};
+  raycaster = new THREE.Raycaster();
+  bindPointer();
+
+  window.addEventListener('resize', function () {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+
+  // راهنمای اولیه چند ثانیه
+  setTimeout(function () {
+    var h = document.getElementById('hint');
+    if (h) h.style.opacity = '0';
+  }, 6000);
+
+  tick();
+}
+
+function loadDino(id) {
+  var loader = new THREE.GLTFLoader();
+  loader.load('../models/' + FILES[id], function (gltf) {
+    var root = gltf.scene;
+    root.scale.setScalar(SCALE);
+    root.position.fromArray(HOME[id]);
+    root.rotation.y = FACE[id];
+    scene.add(root);
+
+    var d = { id: id, root: root, dir: FACE[id], speed: 0.12 + Math.random() * 0.1, pause: 0 };
+    if (gltf.animations && gltf.animations.length) {
+      var walk = null;
       gltf.animations.forEach(function (c) {
-        var n = (c.name || '').toLowerCase();
-        ['walk', 'run', 'idle', 'attack', 'jump'].forEach(function (k) {
-          if (n.indexOf(k) !== -1 && !self.clips[k]) self.clips[k] = c;
-        });
+        if (!walk && /walk/i.test(c.name || '')) walk = c;
       });
-      self.mixer = new THREE.AnimationMixer(self.model);
-      self.mixer.addEventListener('finished', function () {
-        self.currentAnim = null;
-        if (self.state === 'roar') {
-          self.state = 'idle';
-          self.timer = rand(1, 3);
-          self.playAnim('idle');
-        }
-      });
-      self.yawN.add(self.model);
-      self.applyScale();
-      self.loaded = true;
-      self.id = ['trex', 'triceratops', 'stegosaurus'][self.data.index];
-      window.DINO_REG = window.DINO_REG || {};
-      window.DINO_REG[self.data.index] = self;
-      loadedModels++;
-      DIAG.models = loadedModels + '/3';
-      diag();
-      if (self.spawnT >= 0) self.playAnim('idle');
-    }, undefined, function () {
-      DIAG.err = 'model:' + self.data.index;
-      diag();
-    });
-
-    // اطمینان از اتصال به گراف صحنه
-    setTimeout(function () {
-      if (!self.el.object3D.parent) {
-        var t = document.querySelector('#world');
-        if (t && t.object3D) { t.object3D.add(self.el.object3D); DIAG.parent = 'manual'; }
-        else DIAG.parent = 'no!';
-      } else {
-        DIAG.parent = 'ok';
-      }
-      diag();
-    }, 800);
-  },
-
-  applyYaw: function () {
-    this.yawN.rotation.y = THREE.MathUtils.degToRad(this.sp.yaw + yawTrim);
-  },
-
-  applyScale: function () {
-    var s = Math.max(0.0001, this.sp.scale * globalScale * this.spawnScale);
-    this.yawN.scale.setScalar(s);
-    this.shadow.scale.set(this.sp.scale * 1.5 * globalScale * this.spawnScale, this.sp.scale * 1.0 * globalScale * this.spawnScale, 1);
-  },
-
-  spawn: function () {
-    if (this.spawnT >= 0) return;
-    this.spawnT = 0;
-    spawnedCount++;
-    DIAG.spawn = spawnedCount + '/3';
-    diag();
-    playSound('pop', 0.9);
-  },
-
-  playAnim: function (name, loop) {
-    if (loop == null) loop = true;
-    if (!this.mixer) return;
-    var clip = this.clips[name] || this.clips.idle;
-    if (!clip || this.currentAnim === name) return;
-    this.currentAnim = name;
-    if (this.action) this.action.fadeOut(0.3);
-    var a = this.mixer.clipAction(clip);
-    a.reset();
-    a.setLoop(loop ? THREE.LoopRepeat : THREE.LoopOnce, loop ? Infinity : 1);
-    a.clampWhenFinished = !loop;
-    a.fadeIn(0.3);
-    a.play();
-    this.action = a;
-  },
-
-  tick: function (time, dtMs) {
-    var dt = Math.min(0.05, dtMs / 1000);
-
-    // تله‌متری نخستین دایناسور
-    if (this.data.index === 0 && this.el.object3D.parent) {
-      this.telT = (this.telT || 0) + dt;
-      if (this.telT > 1) {
-        this.telT = 0;
-        try {
-          var v = new THREE.Vector3();
-          this.el.object3D.getWorldPosition(v);
-          var nd = v.clone().project(this.el.sceneEl.camera);
-          DIAG.pos = v.x.toFixed(1) + ',' + v.y.toFixed(1) + ',' + v.z.toFixed(1) +
-            '>' + nd.x.toFixed(1) + ',' + nd.y.toFixed(1) + ',' + nd.z.toFixed(1);
-          diag();
-        } catch (e) {}
-      }
+      var clip = walk || gltf.animations[0];
+      d.mixer = new THREE.AnimationMixer(root);
+      d.mixer.clipAction(clip).play();
     }
+    dinos.push(d);
+    loadedCount++;
+    diag('🦖 ' + loadedCount + '/3');
+    if (loadedCount === 3) setTimeout(function () { diag(''); }, 2500);
+  }, undefined, function () {
+    diag('⚠ خطا در بارگذاری مدل ' + id);
+  });
+}
 
-    // خودترمیمی اسپان
-    if (worldActive && this.spawnT < 0) this.spawn();
+// ── دوربین: چرخش با کشیدن انگشت ──
+var azimuth = 0, azimuthTarget = 0;
+var downPos = null, moved = 0;
 
-    if (this.spawnT >= 0 && this.spawnT < 1) {
-      this.spawnT = Math.min(1, this.spawnT + dt / 0.8);
-      this.spawnScale = Math.max(0.0001, easeOutBack(this.spawnT));
-      this.shadow.material.opacity = 0.9 * this.spawnT;
-      this.applyScale();
+function bindPointer() {
+  var el = renderer.domElement;
+  el.style.touchAction = 'none';
+  el.addEventListener('pointerdown', function (e) {
+    downPos = [e.clientX, e.clientY];
+    moved = 0;
+  });
+  el.addEventListener('pointermove', function (e) {
+    if (!downPos) return;
+    var dx = e.clientX - downPos[0];
+    var dy = e.clientY - downPos[1];
+    moved = Math.max(moved, Math.abs(dx) + Math.abs(dy));
+    azimuthTarget += dx * 0.004;
+    azimuthTarget = Math.max(-1.1, Math.min(1.1, azimuthTarget));
+    downPos = [e.clientX, e.clientY];
+  });
+  el.addEventListener('pointerup', function (e) {
+    var wasTap = downPos && moved < 10;
+    downPos = null;
+    if (wasTap) tap(e);
+  });
+}
+
+function tap(e) {
+  var rect = renderer.domElement.getBoundingClientRect();
+  var v = new THREE.Vector2(
+    ((e.clientX - rect.left) / rect.width) * 2 - 1,
+    -((e.clientY - rect.top) / rect.height) * 2 + 1
+  );
+  raycaster.setFromCamera(v, camera);
+  var best = null, bestDist = Infinity;
+  dinos.forEach(function (d) {
+    var hits = raycaster.intersectObject(d.root, true);
+    if (hits.length && hits[0].distance < bestDist) { bestDist = hits[0].distance; best = d; }
+  });
+  if (best) openPopup(best.id);
+}
+
+// ── حلقهٔ انیمیشن ──
+var clock = { t: 0 };
+var prev = performance.now();
+
+function tick() {
+  requestAnimationFrame(tick);
+  var now = performance.now();
+  var dt = Math.min(0.05, (now - prev) / 1000);
+  prev = now;
+
+  // راه‌رفتن آرام در محوطه
+  dinos.forEach(function (d) {
+    if (d.mixer) d.mixer.update(dt);
+    if (d.pause > 0) { d.pause -= dt; return; }
+    d.root.rotation.y = d.dir;
+    d.root.position.x += Math.sin(d.dir) * d.speed * dt;
+    d.root.position.z += Math.cos(d.dir) * d.speed * dt;
+    if (Math.abs(d.root.position.x) > BOUNDS.x ||
+        d.root.position.z > BOUNDS.zMax ||
+        d.root.position.z < BOUNDS.zMin) {
+      d.dir += Math.PI; // دور بزند
+      d.pause = 0.4;
+    } else if (Math.random() < 0.002) {
+      d.pause = 1 + Math.random() * 2; // گاهی بایستد
     }
+  });
 
-    if (!this.loaded || !worldActive) return;
-    if (this.mixer) this.mixer.update(dt);
+  // نرم شدن چرخش دوربین
+  azimuth += (azimuthTarget - azimuth) * 0.12;
+  var R = 5.6, H = 1.9;
+  camera.position.set(Math.sin(azimuth) * R, H, Math.cos(azimuth) * R);
+  camera.lookAt(0, 1.0, 0);
 
-    if (this.state === 'idle') {
-      this.timer -= dt;
-      this.roarTimer -= dt;
-      if (this.roarTimer <= 0) {
-        this.roarTimer = rand(5, 12);
-        if (this.clips.attack || this.clips.jump) {
-          this.state = 'roar';
-          this.desiredHeading = 0;
-          playSound(this.sp.roars[Math.floor(Math.random() * this.sp.roars.length)], 1);
-          this.playAnim(this.clips.attack ? 'attack' : 'jump', false);
-        }
-      } else if (this.timer <= 0) {
-        this.dest = { x: rand(-BOUNDS.x, BOUNDS.x), y: rand(BOUNDS.y0, BOUNDS.y1) };
-        this.state = 'walk';
-        this.playAnim(this.clips.run ? 'run' : 'walk');
-      }
-    } else if (this.state === 'walk') {
-      var dx = this.dest.x - this.x, dy = this.dest.y - this.y;
-      var d = Math.hypot(dx, dy);
-      if (d < 0.08) {
-        this.state = 'idle';
-        this.timer = rand(1, 3.5);
-        this.playAnim('idle');
-      } else {
-        var v2 = this.sp.speed;
-        this.x += (dx / d) * v2 * dt;
-        this.y += (dy / d) * v2 * dt;
-        this.desiredHeading = Math.atan2(-dx, dy);
-      }
-    } else if (this.state === 'roar') {
-      this.desiredHeading = 0;
-    }
+  renderer.render(scene, camera);
+}
 
-    this.heading = lerpAngle(this.heading, this.desiredHeading, 3 * dt);
-    this.el.object3D.rotation.z = this.heading;
-    this.el.object3D.position.set(this.x, this.y, 0);
+// ── محتوای موضوع (info.json) ──
+fetch('../content/dino/info.json')
+  .then(function (r) { return r.ok ? r.json() : null; })
+  .then(function (j) {
+    if (!j) return;
+    THEME = j;
+    if (j.aboutText) document.getElementById('infoText').textContent = j.aboutText;
+  })
+  .catch(function () {});
+
+function toast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toast.h);
+  toast.h = setTimeout(function () { t.classList.remove('show'); }, 2600);
+}
+
+// ▶ پخش صدای راوی
+var narAudio = null;
+var btnPlay = document.getElementById('btnPlay');
+btnPlay.addEventListener('click', function () {
+  if (narAudio) {
+    narAudio.pause(); narAudio = null;
+    btnPlay.innerHTML = '▶<span>صدای راوی</span>';
+    return;
   }
+  if (!THEME || !THEME.narration) { toast('🎙️ صدای راوی به‌زودی اضافه می‌شود'); return; }
+  narAudio = new Audio('../content/dino/' + THEME.narration);
+  narAudio.onended = function () { narAudio = null; btnPlay.innerHTML = '▶<span>صدای راوی</span>'; };
+  narAudio.onerror = function () { toast('فایل صدا پیدا نشد'); narAudio = null; };
+  narAudio.play().catch(function () { toast('پخش صدا ممکن نشد'); narAudio = null; });
+  btnPlay.innerHTML = '⏸<span>توقف</span>';
 });
 
-/* ---------- رویدادها و رابط ---------- */
-var statusEl;
+// ℹ متن اطلاعات
+document.getElementById('btnInfo').addEventListener('click', function () {
+  document.getElementById('infoPanel').classList.add('open');
+});
 
-function mapCamErr(e) {
-  var n = e && e.name;
-  if (n === 'NotAllowedError' || n === 'SecurityError') {
-    return '🚫 دسترسی دوربین مسدود است؛ در تنظیمات گوشی دسترسی دوربین را بدهید.';
-  }
-  if (n === 'NotFoundError' || n === 'OverconstrainedError') return '📷 دوربین پشت پیدا نشد.';
-  if (n === 'NotReadableError') return '⚠️ دوربین درگیر اپ دیگری است.';
-  return '⚠️ خطای دوربین: ' + (n || 'نامشخص');
-}
-
-function showFatal(msg) {
-  if (!statusEl) return;
-  statusEl.className = 'chip scan';
-  statusEl.textContent = msg + ' ';
-  var btn = document.createElement('button');
-  btn.textContent = '🔄 تلاش دوباره';
-  btn.className = 'retry';
-  btn.addEventListener('click', function () { location.reload(); });
-  statusEl.appendChild(btn);
-}
-
-function setStatus(mode) {
-  if (!statusEl) return;
-  if (mode === 'scan') {
-    statusEl.textContent = '📷 استند را جلوی دوربین بگیرید…';
-    statusEl.className = 'chip scan';
-  } else if (mode === 'found') {
-    statusEl.textContent = '🦖 دایناسورها در محیط شما آزاد شدند!';
-    statusEl.className = 'chip found';
-  } else if (mode === 'load') {
-    statusEl.textContent = '⏳ در حال آماده‌سازی…';
-    statusEl.className = 'chip scan';
+// ضربه روی هر دایناسور → پاپ‌آپ + صدا
+function openPopup(id) {
+  var d = null;
+  ((THEME && THEME.dinosaurs) || []).forEach(function (x) { if (x.id === id) d = x; });
+  if (!d) return;
+  document.getElementById('popupImg').src = '../content/dino/' + d.image;
+  document.getElementById('popupName').textContent = d.name || '';
+  var rows = '';
+  [['📖 معنای نام', d.meaning], ['🕰️ دورهٔ زیست', d.era], ['🗺️ موقعیت', d.region], ['🍽️ رژیم غذایی', d.diet], ['📏 جثه', d.size]].forEach(function (r) {
+    if (r[1]) rows += '<li><b>' + r[0] + ':</b> ' + r[1] + '</li>';
+  });
+  document.getElementById('popupRows').innerHTML = rows;
+  document.getElementById('popupFact').textContent = d.desc || '';
+  document.getElementById('popup').classList.add('open');
+  if (d.roar) {
+    try { var a = new Audio('../content/dino/' + d.roar); a.volume = 0.9; a.play().catch(function () {}); } catch (e) {}
   }
 }
-
-window.addEventListener('DOMContentLoaded', function () {
-  statusEl = document.querySelector('#status');
-  diagEl = document.querySelector('#diag');
-  var targetEl = document.querySelector('#target');
-  var sceneEl = document.querySelector('a-scene');
-
-  setStatus('load');
-  diag();
-
-  fetch('../assets/targets.mind').then(function (r) {
-    DIAG.mind = r.ok ? 'ok' : '404';
-    diag();
-  }).catch(function () { DIAG.mind = 'err'; diag(); });
-
-  sceneEl.addEventListener('loaded', function () { setStatus('scan'); });
-
-  window.addEventListener('error', function (ev) {
-    DIAG.err = (ev.message || 'script').slice(0, 40);
-    diag();
-  });
-
-  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }).then(function (st) {
-      DIAG.cam = 'ok';
-      diag();
-      st.getTracks().forEach(function (t) { t.stop(); });
-    }).catch(function (e) {
-      DIAG.cam = 'no';
-      diag();
-      showFatal(mapCamErr(e));
-    });
-  } else {
-    DIAG.cam = 'none';
-    diag();
-    showFatal('📷 مرورگر این دستگاه از دوربین AR پشتیبانی نمی‌کند؛ «Android System WebView» یا کروم را به‌روزرسانی کنید.');
-  }
-
-  targetEl.addEventListener('targetFound', function () {
-    worldActive = true;
-    DIAG.target = 'found';
-    diag();
-    setStatus('found');
-    document.querySelectorAll('.dino').forEach(function (el, i) {
-      setTimeout(function () {
-        if (el.components.dino) el.components.dino.spawn();
-      }, i * 700);
-    });
-  });
-  targetEl.addEventListener('targetLost', function () {
-    worldActive = false;
-    DIAG.target = 'lost';
-    diag();
-    setStatus('scan');
-  });
-
-  document.querySelector('#btnSound').addEventListener('click', function () {
-    muted = !muted;
-    this.textContent = muted ? '🔇' : '🔊';
-  });
-  document.querySelector('#btnSmaller').addEventListener('click', function () {
-    globalScale = Math.max(0.4, globalScale * 0.8);
-    applyAll();
-  });
-  document.querySelector('#btnBigger').addEventListener('click', function () {
-    globalScale = Math.min(2.5, globalScale * 1.25);
-    applyAll();
-  });
-  document.querySelector('#btnYaw').addEventListener('click', function () {
-    yawTrim = (yawTrim + 90) % 360;
-    applyAll();
-  });
-  function applyAll() {
-    document.querySelectorAll('.dino').forEach(function (el) {
-      var c = el.components.dino;
-      if (!c) return;
-      c.applyYaw();
-      c.applyScale();
-    });
-  }
-
-  document.querySelector('#btnHelp').addEventListener('click', function () {
-    document.querySelector('#help').classList.toggle('open');
-  });
-
-  // 🏠 نمایش دایناسورها با اندازهٔ واقعی در اتاق (مثل دموی شیرآلات/ARcade)
-  // از Google Scene Viewer استفاده می‌کند: کف اتاق را پیدا می‌کند و مدل را
-  // ۱:۱ روی زمین می‌گذارد؛ برای اندروید بدون نصب اضافی.
-  // آدرس مدل از همین دامنهٔ میزبان خوانده می‌شود (بدون وابستگی به گیت‌هاب)
-  var ROOM_GLB = location.origin + '/models/dinos-combined.glb';
-  document.querySelector('#btnRoom').addEventListener('click', function () {
-    var file = encodeURIComponent(ROOM_GLB);
-    var https = 'https://arvr.google.com/scene-viewer/1.0?file=' + file +
-      '&mode=ar_preferred&title=Dino%20Stand';
-    var intent = 'intent://arvr.google.com/scene-viewer/1.0?file=' + file +
-      '&mode=ar_preferred&title=Dino%20Stand' +
-      '#Intent;scheme=https;package=com.google.android.googlequicksearchbox;' +
-      'action=android.intent.action.VIEW;S.browser_fallback_url=' +
-      encodeURIComponent(https) + ';end';
-    window.location.href = intent;
-  });
-
-  // ── محتوای موضوع (ماه اول: دایناسورها) — از content/dino/info.json ──
-  var THEME = null;
-  fetch('../content/dino/info.json')
-    .then(function (r) { return r.ok ? r.json() : null; })
-    .then(function (j) {
-      if (!j) return;
-      THEME = j;
-      if (j.aboutText) document.querySelector('#infoText').textContent = j.aboutText;
-    })
-    .catch(function () {});
-
-  function toast(msg) {
-    var t = document.querySelector('#toast');
-    t.textContent = msg;
-    t.classList.add('show');
-    clearTimeout(toast.h);
-    toast.h = setTimeout(function () { t.classList.remove('show'); }, 2600);
-  }
-
-  // ▶ پخش صدای راوی
-  var narAudio = null;
-  var btnPlay = document.querySelector('#btnPlay');
-  btnPlay.addEventListener('click', function () {
-    if (narAudio) {
-      narAudio.pause(); narAudio = null;
-      btnPlay.innerHTML = '▶<span>صدای راوی</span>';
-      return;
-    }
-    if (!THEME || !THEME.narration) { toast('🎙️ صدای راوی به‌زودی اضافه می‌شود'); return; }
-    narAudio = new Audio('../content/dino/' + THEME.narration);
-    narAudio.onended = function () { narAudio = null; btnPlay.innerHTML = '▶<span>صدای راوی</span>'; };
-    narAudio.onerror = function () { toast('فایل صدا پیدا نشد — هنوز آپلود نشده؟'); narAudio = null; };
-    narAudio.play().catch(function () { toast('پخش صدا ممکن نشد'); narAudio = null; });
-    btnPlay.innerHTML = '⏸<span>توقف</span>';
-  });
-
-  // ℹ متن اطلاعات
-  document.querySelector('#btnInfo').addEventListener('click', function () {
-    document.querySelector('#infoPanel').classList.add('open');
-  });
-
-  // ضربه روی هر دایناسور → پاپ‌آپ اطلاعات
-  function openPopup(id) {
-    var d = null;
-    ((THEME && THEME.dinosaurs) || []).forEach(function (x) { if (x.id === id) d = x; });
-    if (!d) return;
-    document.querySelector('#popupImg').src = '../content/dino/' + d.image;
-    document.querySelector('#popupName').textContent = d.name || '';
-    var rows = '';
-    [['📖 معنای نام', d.meaning], ['🕰️ دورهٔ زیست', d.era], ['🗺️ موقعیت', d.region], ['🍽️ رژیم غذایی', d.diet], ['📏 جثه', d.size]].forEach(function (r) {
-      if (r[1]) rows += '<li><b>' + r[0] + ':</b> ' + r[1] + '</li>';
-    });
-    document.querySelector('#popupRows').innerHTML = rows;
-    document.querySelector('#popupFact').textContent = d.desc || (d.fact ? '💡 ' + d.fact : '');
-    document.querySelector('#popup').classList.add('open');
-    if (d.roar) {
-      try { var a = new Audio('../content/dino/' + d.roar); a.volume = 0.9; a.play().catch(function () {}); } catch (e) {}
-    }
-  }
-  document.querySelector('#popupClose').addEventListener('click', function () {
-    document.querySelector('#popup').classList.remove('open');
-  });
-
-  function attachTap() {
-  var downPos = null;
-  var canvasEl = sceneEl.renderer && sceneEl.renderer.domElement;
-  if (canvasEl) {
-    canvasEl.addEventListener('pointerdown', function (e) { downPos = [e.clientX, e.clientY]; });
-    canvasEl.addEventListener('pointerup', function (e) {
-      if (!downPos) return;
-      var dx = e.clientX - downPos[0], dy = e.clientY - downPos[1];
-      downPos = null;
-      if (dx * dx + dy * dy > 64) return; // کشیدن بود، نه ضربه
-      var rect = canvasEl.getBoundingClientRect();
-      var v = new THREE.Vector2(
-        ((e.clientX - rect.left) / rect.width) * 2 - 1,
-        -((e.clientY - rect.top) / rect.height) * 2 + 1
-      );
-      var ray = new THREE.Raycaster();
-      ray.setFromCamera(v, sceneEl.camera);
-      var best = null, bestDist = Infinity;
-      Object.keys(window.DINO_REG || {}).forEach(function (k) {
-        var c = window.DINO_REG[k];
-        if (!c.model) return;
-        var hits = ray.intersectObject(c.model, true);
-        if (hits.length && hits[0].distance < bestDist) { bestDist = hits[0].distance; best = c; }
-      });
-      if (best) openPopup(best.id);
-    });
-  }
-  }
-  var tapAttached = false;
-  function tryAttachTap() {
-    if (tapAttached) return;
-    if (sceneEl.renderer && sceneEl.renderer.domElement) { tapAttached = true; attachTap(); }
-  }
-  sceneEl.addEventListener('render-target-loaded', tryAttachTap);
-  sceneEl.addEventListener('loaded', tryAttachTap);
-  tryAttachTap();
-
-  var isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-  if (!isTouch) document.querySelector('#desktopHint').style.display = 'flex';
+document.getElementById('popupClose').addEventListener('click', function () {
+  document.getElementById('popup').classList.remove('open');
 });
 
 })();
