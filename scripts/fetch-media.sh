@@ -25,4 +25,15 @@ dl 1qRZEPMFTfbQegx981xfjJW-DD-Vin-zj dino-ar/content/dino/images/incoming/IMG_04
 dl 1vcF2jdcJtWzGiXBrIXeHra-MY6X9Ir_w dino-ar/content/dino/images/incoming/IMG_0978.webp
 dl 16CkDYBMUO0VJg06HHXd9fZVAJs3LC68e dino-ar/content/dino/images/incoming/IMG_0984.webp
 
+# لوگوی بازیکا
+curl -sL "https://drive.google.com/uc?export=download&id=1lmkmyaCiktWE0jZHkMIUZ8k0IpBLJxLZ" -o /tmp/logo
+if head -c 300 /tmp/logo | grep -qi "<html"; then
+  curl -sLb /tmp/cj -c /tmp/cj "https://drive.google.com/uc?export=download&confirm=t&id=1lmkmyaCiktWE0jZHkMIUZ8k0IpBLJxLZ" -o /tmp/logo
+fi
+case "$(file -b --mime-type /tmp/logo)" in
+  image/png) EXT=png;; image/webp) EXT=webp;; image/svg+xml) EXT=svg;; image/jpeg|image/jpg) EXT=jpg;; *) EXT=png;;
+esac
+cp /tmp/logo "dino-ar/assets/logo.$EXT"
+echo "logo saved as logo.$EXT"
+
 echo "== done"
