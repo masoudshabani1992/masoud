@@ -7,7 +7,7 @@
     {
       "id": "trex",
       "name": "تیرانوساروس رکس",
-      "image": "images/trex.jpg",
+      "image": "images/trex.png",
       "model": "models/Trex.glb",
       "roar": "audio/roar-trex.mp3",
       "era": "دورهٔ کرتاسه — حدود ۶۸ تا ۶۶ میلیون سال پیش",
@@ -19,7 +19,7 @@
     {
       "id": "triceratops",
       "name": "تریسراتوپس",
-      "image": "images/triceratops.jpg",
+      "image": "images/triceratops.png",
       "model": "models/Triceratops.glb",
       "roar": "audio/roar-triceratops.mp3",
       "era": "دورهٔ کرتاسه — حدود ۶۸ تا ۶۶ میلیون سال پیش",
@@ -31,7 +31,7 @@
     {
       "id": "stegosaurus",
       "name": "استگوزاروس",
-      "image": "images/stegosaurus.jpg",
+      "image": "images/stegosaurus.png",
       "model": "models/Stegosaurus.glb",
       "roar": "audio/roar-stegosaurus.mp3",
       "era": "دورهٔ ژوراسیک — حدود ۱۵۵ تا ۱۵۰ میلیون سال پیش",

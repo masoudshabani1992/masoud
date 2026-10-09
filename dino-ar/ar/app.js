@@ -139,6 +139,9 @@ AFRAME.registerComponent('dino', {
       self.yawN.add(self.model);
       self.applyScale();
       self.loaded = true;
+      self.id = ['trex', 'triceratops', 'stegosaurus'][self.data.index];
+      window.DINO_REG = window.DINO_REG || {};
+      window.DINO_REG[self.data.index] = self;
       loadedModels++;
       DIAG.models = loadedModels + '/3';
       diag();
@@ -404,6 +407,103 @@ window.addEventListener('DOMContentLoaded', function () {
       encodeURIComponent(https) + ';end';
     window.location.href = intent;
   });
+
+  // ── محتوای موضوع (ماه اول: دایناسورها) — از content/dino/info.json ──
+  var THEME = null;
+  fetch('../content/dino/info.json')
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (j) {
+      if (!j) return;
+      THEME = j;
+      if (j.aboutText) document.querySelector('#infoText').textContent = j.aboutText;
+    })
+    .catch(function () {});
+
+  function toast(msg) {
+    var t = document.querySelector('#toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toast.h);
+    toast.h = setTimeout(function () { t.classList.remove('show'); }, 2600);
+  }
+
+  // ▶ پخش صدای راوی
+  var narAudio = null;
+  var btnPlay = document.querySelector('#btnPlay');
+  btnPlay.addEventListener('click', function () {
+    if (narAudio) {
+      narAudio.pause(); narAudio = null;
+      btnPlay.innerHTML = '▶<span>صدای راوی</span>';
+      return;
+    }
+    if (!THEME || !THEME.narration) { toast('🎙️ صدای راوی به‌زودی اضافه می‌شود'); return; }
+    narAudio = new Audio('../content/dino/' + THEME.narration);
+    narAudio.onended = function () { narAudio = null; btnPlay.innerHTML = '▶<span>صدای راوی</span>'; };
+    narAudio.onerror = function () { toast('فایل صدا پیدا نشد — هنوز آپلود نشده؟'); narAudio = null; };
+    narAudio.play().catch(function () { toast('پخش صدا ممکن نشد'); narAudio = null; });
+    btnPlay.innerHTML = '⏸<span>توقف</span>';
+  });
+
+  // ℹ متن اطلاعات
+  document.querySelector('#btnInfo').addEventListener('click', function () {
+    document.querySelector('#infoPanel').classList.add('open');
+  });
+
+  // ضربه روی هر دایناسور → پاپ‌آپ اطلاعات
+  function openPopup(id) {
+    var d = null;
+    ((THEME && THEME.dinosaurs) || []).forEach(function (x) { if (x.id === id) d = x; });
+    if (!d) return;
+    document.querySelector('#popupImg').src = '../content/dino/' + d.image;
+    document.querySelector('#popupName').textContent = d.name || '';
+    var rows = '';
+    [['🕰️ دوره', d.era], ['📏 طول', d.length], ['⚖️ وزن', d.weight], ['🍽️ تغذیه', d.diet]].forEach(function (r) {
+      if (r[1]) rows += '<li><b>' + r[0] + ':</b> ' + r[1] + '</li>';
+    });
+    document.querySelector('#popupRows').innerHTML = rows;
+    document.querySelector('#popupFact').textContent = d.fact ? '💡 ' + d.fact : '';
+    document.querySelector('#popup').classList.add('open');
+  }
+  document.querySelector('#popupClose').addEventListener('click', function () {
+    document.querySelector('#popup').classList.remove('open');
+  });
+
+  function attachTap() {
+  var downPos = null;
+  var canvasEl = sceneEl.renderer && sceneEl.renderer.domElement;
+  if (canvasEl) {
+    canvasEl.addEventListener('pointerdown', function (e) { downPos = [e.clientX, e.clientY]; });
+    canvasEl.addEventListener('pointerup', function (e) {
+      if (!downPos) return;
+      var dx = e.clientX - downPos[0], dy = e.clientY - downPos[1];
+      downPos = null;
+      if (dx * dx + dy * dy > 64) return; // کشیدن بود، نه ضربه
+      var rect = canvasEl.getBoundingClientRect();
+      var v = new THREE.Vector2(
+        ((e.clientX - rect.left) / rect.width) * 2 - 1,
+        -((e.clientY - rect.top) / rect.height) * 2 + 1
+      );
+      var ray = new THREE.Raycaster();
+      ray.setFromCamera(v, sceneEl.camera);
+      var best = null, bestDist = Infinity;
+      Object.keys(window.DINO_REG || {}).forEach(function (k) {
+        var c = window.DINO_REG[k];
+        if (!c.model) return;
+        var hits = ray.intersectObject(c.model, true);
+        if (hits.length && hits[0].distance < bestDist) { bestDist = hits[0].distance; best = c; }
+      });
+      if (best) openPopup(best.id);
+    });
+  }
+  }
+  var tapAttached = false;
+  function tryAttachTap() {
+    if (tapAttached) return;
+    if (sceneEl.renderer && sceneEl.renderer.domElement) { tapAttached = true; attachTap(); }
+  }
+  sceneEl.addEventListener('render-target-loaded', tryAttachTap);
+  sceneEl.addEventListener('loaded', tryAttachTap);
+  tryAttachTap();
 
   var isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
   if (!isTouch) document.querySelector('#desktopHint').style.display = 'flex';

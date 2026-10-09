@@ -52,3 +52,55 @@ video {
   background: #ffd76a; color: #201a05; font-weight: 700; font-size: 14px;
 }
 .dim { opacity: .75; font-size: 12.5px; }
+
+/* ── نوار پایین: دکمه‌های بزرگ پخش صدا و اطلاعات ── */
+#bottombar {
+  position: absolute; left: 0; right: 0; bottom: calc(14px + env(safe-area-inset-bottom));
+  display: flex; justify-content: center; gap: 14px; pointer-events: none;
+}
+#bottombar .big-btn {
+  pointer-events: auto; border: 0; cursor: pointer;
+  display: flex; align-items: center; gap: 8px;
+  background: linear-gradient(180deg, #ffd76a, #f0b93a);
+  color: #241c04; font-weight: 800; font-size: 15px;
+  padding: 12px 22px; border-radius: 999px;
+  box-shadow: 0 6px 22px rgba(0,0,0,.45);
+  font-family: inherit;
+}
+#bottombar .big-btn:active { transform: scale(.94); }
+#bottombar .big-btn span { font-size: 13px; }
+
+/* ── شیت‌های پاپ‌آپ (اطلاعات دایناسور / متن اطلاعات) ── */
+.sheet {
+  position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
+  background: rgba(6,8,12,.6); pointer-events: auto; z-index: 40;
+}
+.sheet.open { display: flex; }
+.sheet .box {
+  position: relative; background: #171c26; color: #f2f4f8; border-radius: 18px;
+  padding: 18px 20px; margin: 16px; max-width: 400px; width: min(92vw, 400px);
+  max-height: 78vh; overflow-y: auto;
+  font-size: 14px; line-height: 1.9; box-shadow: 0 10px 40px rgba(0,0,0,.5);
+}
+.sheet .close {
+  position: absolute; top: 10px; left: 10px; border: 0; cursor: pointer;
+  background: rgba(255,255,255,.12); color: #fff; border-radius: 50%;
+  width: 30px; height: 30px; font-size: 13px;
+}
+.sheet h3 { margin: 4px 0 8px; font-size: 18px; color: #ffd76a; }
+#popupImg {
+  width: 100%; max-height: 220px; object-fit: contain;
+  background: #0c0f15; border-radius: 12px; display: block;
+}
+#popupRows { list-style: none; margin: 8px 0 0; padding: 0; }
+#popupRows li { padding: 4px 0; border-bottom: 1px dashed rgba(255,255,255,.12); }
+#popupFact { margin: 10px 0 0; background: rgba(255,215,106,.12); border-radius: 10px; padding: 8px 12px; }
+
+/* ── توست ── */
+#toast {
+  position: absolute; bottom: 86px; left: 50%; transform: translateX(-50%) translateY(8px);
+  background: rgba(20,24,32,.92); color: #ffe9ad; padding: 9px 18px; border-radius: 999px;
+  font-size: 13px; opacity: 0; pointer-events: none; transition: .25s; z-index: 50;
+  white-space: nowrap; max-width: 92vw; overflow: hidden; text-overflow: ellipsis;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }

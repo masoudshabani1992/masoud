@@ -54,6 +54,34 @@
       <button id="btnHelp" aria-label="راهنما">❓</button>
     </div>
 
+    <!-- نوار پایین: پخش صدای راوی + اطلاعات -->
+    <div id="bottombar">
+      <button id="btnPlay" class="big-btn">▶<span>صدای راوی</span></button>
+      <button id="btnInfo" class="big-btn">ℹ<span>اطلاعات</span></button>
+    </div>
+
+    <!-- پاپ‌آپ اطلاعات هر دایناسور با ضربه روی آن -->
+    <div id="popup" class="sheet">
+      <div class="box">
+        <button class="close" id="popupClose" aria-label="بستن">✖</button>
+        <img id="popupImg" alt="" />
+        <h3 id="popupName"></h3>
+        <ul id="popupRows"></ul>
+        <p id="popupFact" class="fact"></p>
+      </div>
+    </div>
+
+    <!-- پنل متن اطلاعات (دکمهٔ ℹ) -->
+    <div id="infoPanel" class="sheet">
+      <div class="box">
+        <button class="close" onclick="document.querySelector('#infoPanel').classList.remove('open')" aria-label="بستن">✖</button>
+        <h3>دربارهٔ این استند 🦖</h3>
+        <p id="infoText">متن اطلاعات به‌زودی بارگذاری می‌شود…</p>
+      </div>
+    </div>
+
+    <div id="toast"></div>
+
     <div id="help">
       <div class="box">
         <h3>راهنما 🦖</h3>
