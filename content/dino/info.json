@@ -1,0 +1,44 @@
+{
+  "theme": "دایناسورها",
+  "themeId": "dino",
+  "narration": "audio/narration.mp3",
+  "aboutText": "متن دکمهٔ «اطلاعات» را اینجا بنویسید؛ این متن با زدن دکمهٔ ℹ پایین صفحه به کاربر نمایش داده می‌شود. (جایگزین شود با متن خودتان)",
+  "dinosaurs": [
+    {
+      "id": "trex",
+      "name": "تیرانوساروس رکس",
+      "image": "images/trex.jpg",
+      "model": "models/Trex.glb",
+      "roar": "audio/roar-trex.mp3",
+      "era": "دورهٔ کرتاسه — حدود ۶۸ تا ۶۶ میلیون سال پیش",
+      "length": "حدود ۱۲ متر",
+      "weight": "حدود ۸ تن",
+      "diet": "گوشت‌خوار",
+      "fact": "متن «آیا می‌دانید؟» را اینجا بنویسید. (جایگزین شود با متن داکیومنت شما)"
+    },
+    {
+      "id": "triceratops",
+      "name": "تریسراتوپس",
+      "image": "images/triceratops.jpg",
+      "model": "models/Triceratops.glb",
+      "roar": "audio/roar-triceratops.mp3",
+      "era": "دورهٔ کرتاسه — حدود ۶۸ تا ۶۶ میلیون سال پیش",
+      "length": "حدود ۹ متر",
+      "weight": "حدود ۶ تن",
+      "diet": "گیاه‌خوار",
+      "fact": "متن «آیا می‌دانید؟» را اینجا بنویسید. (جایگزین شود با متن داکیومنت شما)"
+    },
+    {
+      "id": "stegosaurus",
+      "name": "استگوزاروس",
+      "image": "images/stegosaurus.jpg",
+      "model": "models/Stegosaurus.glb",
+      "roar": "audio/roar-stegosaurus.mp3",
+      "era": "دورهٔ ژوراسیک — حدود ۱۵۵ تا ۱۵۰ میلیون سال پیش",
+      "length": "حدود ۹ متر",
+      "weight": "حدود ۵ تن",
+      "diet": "گیاه‌خوار",
+      "fact": "متن «آیا می‌دانید؟» را اینجا بنویسید. (جایگزین شود با متن داکیومنت شما)"
+    }
+  ]
+}
