@@ -457,12 +457,15 @@ window.addEventListener('DOMContentLoaded', function () {
     document.querySelector('#popupImg').src = '../content/dino/' + d.image;
     document.querySelector('#popupName').textContent = d.name || '';
     var rows = '';
-    [['🕰️ دوره', d.era], ['📏 طول', d.length], ['⚖️ وزن', d.weight], ['🍽️ تغذیه', d.diet]].forEach(function (r) {
+    [['📖 معنای نام', d.meaning], ['🕰️ دورهٔ زیست', d.era], ['🗺️ موقعیت', d.region], ['🍽️ رژیم غذایی', d.diet], ['📏 جثه', d.size]].forEach(function (r) {
       if (r[1]) rows += '<li><b>' + r[0] + ':</b> ' + r[1] + '</li>';
     });
     document.querySelector('#popupRows').innerHTML = rows;
-    document.querySelector('#popupFact').textContent = d.fact ? '💡 ' + d.fact : '';
+    document.querySelector('#popupFact').textContent = d.desc || (d.fact ? '💡 ' + d.fact : '');
     document.querySelector('#popup').classList.add('open');
+    if (d.roar) {
+      try { var a = new Audio('../content/dino/' + d.roar); a.volume = 0.9; a.play().catch(function () {}); } catch (e) {}
+    }
   }
   document.querySelector('#popupClose').addEventListener('click', function () {
     document.querySelector('#popup').classList.remove('open');

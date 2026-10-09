@@ -104,3 +104,5 @@ video {
   white-space: nowrap; max-width: 92vw; overflow: hidden; text-overflow: ellipsis;
 }
 #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+#infoText { white-space: pre-line; }
