@@ -1,0 +1,26 @@
+name: fetch-media
+on:
+  push:
+    paths:
+      - 'scripts/fetch-media.sh'
+      - '.github/workflows/fetch-media.yml'
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: download from Drive
+        run: bash scripts/fetch-media.sh
+      - name: commit media
+        run: |
+          git config user.name 'Media Bot'
+          git config user.email 'media-bot@arena.local'
+          git add dino-ar/content/dino/audio dino-ar/content/dino/images/incoming
+          if git diff --cached --quiet; then
+            echo 'nothing new to commit'
+          else
+            git commit -m 'media: narrator story, dino roars and new artwork fetched from Drive'
+            git push
+          fi
