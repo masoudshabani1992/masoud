@@ -26,7 +26,9 @@ function diag(msg) {
 }
 
 function init() {
+  window.__BAZIKA_INIT = true;
   diag('بازیکا ' + BUILD);
+  setTimeout(function () { if (loadedCount === 0) diag('⚠ مدل‌ها بارگذاری نشدند — مسیر فایل‌ها/هاست را بررسی کنید'); }, 6000);
   var wrap = document.getElementById('stage');
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 120);
