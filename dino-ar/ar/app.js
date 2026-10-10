@@ -15,7 +15,7 @@ var dinos = [];
 var loadedCount = 0;
 var THEME = null;
 
-init();
+try { init(); } catch (e) { diag('⚠ خطا در راه‌اندازی نمایش سه‌بعدی: ' + (e && e.message)); }
 
 function diag(msg) {
   var el = document.getElementById('diag');
@@ -32,6 +32,10 @@ function init() {
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.outputEncoding = THREE.sRGBEncoding;
   wrap.appendChild(renderer.domElement);
+  if (!renderer.getContext()) {
+    diag('⚠ مرورگر شما گرافیک سه‌بعدی را پشتیبانی نمی‌کند');
+    return;
+  }
 
   // پس‌زمینهٔ جنگل
   new THREE.TextureLoader().load('../content/dino/images/bg.webp', function (t) {

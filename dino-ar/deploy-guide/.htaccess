@@ -14,3 +14,8 @@ AddType audio/mpeg .mp3
 <IfModule mod_mime.c>
   AddEncoding identity .glb
 </IfModule>
+
+# کش نشدن صفحه‌ها و اسکریپت‌ها (برای آپدیت خودکار)
+<FilesMatch "\.(html|js|css)$">
+  Header set Cache-Control "no-cache, must-revalidate"
+</FilesMatch>
