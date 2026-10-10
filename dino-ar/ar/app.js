@@ -14,6 +14,9 @@ var scene, camera, renderer, raycaster;
 var dinos = [];
 var loadedCount = 0;
 var THEME = null;
+var BUILD = '2026-10-10f';
+
+window.addEventListener('error', function (e) { diag('⚠ ' + (e.message || 'خطای ناشناخته')); });
 
 try { init(); } catch (e) { diag('⚠ خطا در راه‌اندازی نمایش سه‌بعدی: ' + (e && e.message)); }
 
@@ -23,6 +26,7 @@ function diag(msg) {
 }
 
 function init() {
+  diag('بازیکا ' + BUILD);
   var wrap = document.getElementById('stage');
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 120);
