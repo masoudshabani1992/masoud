@@ -5,21 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>بازیکا — استند زندهٔ دایناسورها</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦖</text></svg>" />
-  <link rel="stylesheet" href="ui.css?v=4" />
+  <link rel="stylesheet" href="ui.css?v=5" />
   <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap" rel="stylesheet" />
   <script src="../vendor/three.min.js"></script>
   <script src="../vendor/GLTFLoader.js"></script>
-  <script src="app.js?v=4"></script>
-  <script>
-    (function () {
-      var d = document.getElementById('diag');
-      window.addEventListener('load', function () {
-        setTimeout(function () {
-          if (d && !window.__BAZIKA_INIT) d.textContent = '⚠ app.js اجرا نشد — THREE:' + (typeof window.THREE);
-        }, 1500);
-      });
-    })();
-  </script>
+
 </head>
 <body>
   <div id="stage"></div>
@@ -57,5 +47,16 @@
 
     <div id="toast"></div>
   </div>
+  <script src="app.js?v=5"></script>
+  <script>
+    (function () {
+      var d = document.getElementById('diag');
+      window.addEventListener('load', function () {
+        setTimeout(function () {
+          if (d && !window.__BAZIKA_INIT) d.textContent = '⚠ app.js اجرا نشد — THREE:' + (typeof window.THREE);
+        }, 1500);
+      });
+    })();
+  </script>
 </body>
 </html>
