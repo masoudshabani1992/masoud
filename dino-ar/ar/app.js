@@ -40,6 +40,9 @@ bzFetch('index')
 
 function start(st) {
   STAND = st;
+  if (new URLSearchParams(location.search).get('via') === 'detect') {
+    setTimeout(function () { toast('📷 استند با دوربین تشخیص داده شد 🦖'); }, 700);
+  }
   if (st.title) {
     var t = document.getElementById('standTitle');
     if (t) t.textContent = st.title;

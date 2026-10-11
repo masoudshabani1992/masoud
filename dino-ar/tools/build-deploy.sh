@@ -12,7 +12,7 @@ cp index.php admin.php bz_guard.php "$D/"
 cp deploy-guide/update.php "$D/update.php"
 cp deploy-guide/.htaccess "$D/.htaccess"
 cp deploy-guide/README-DEPLOY.md "$D/"
-cp ar/index.php ar/data.php ar/ui.css "$D/ar/"
+cp ar/index.php ar/data.php ar/detect.php ar/ui.css "$D/ar/"
 cp vendor/qrcode.js "$D/vendor/"
 cp assets/logo.png assets/jungle.jpg "$D/assets/" 2>/dev/null || true
 cp -r assets/sprites "$D/assets/" 2>/dev/null || true
@@ -25,4 +25,7 @@ cp version.json "$D/version.json"
 # مبهم‌سازی جاوااسکریپت
 cd "$SRC/tools"
 npx --no-install terser "$SRC/ar/app.js" -c passes=2,pure_funcs=['console.log'] -m toplevel -o "$D/ar/app.js"
+# feat.js هم مبهم شود (خروجی UMD حفظ می‌شود)
+npx --no-install terser "$SRC/ar/feat.js" -c passes=2 -m toplevel -o "$D/ar/feat.js"
+node -e "require('$D/ar/feat.js'); console.log('feat.js obfuscated & loadable');"
 echo "app.js: $(wc -c < "$SRC/ar/app.js")B -> $(wc -c < "$D/ar/app.js")B (obfuscated)"

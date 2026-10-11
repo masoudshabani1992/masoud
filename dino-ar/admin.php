@@ -90,6 +90,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save'])) {
     @mkdir($media, 0777, true);
 
     $old = jread(STANDS . '/' . $id . '.json', []);
+    $refJson = (string)($_POST['ref_json'] ?? '');
+    $refData = $refJson !== '' ? json_decode($refJson, true) : null;
+
     $st = [
         'id' => $id,
         'title' => $title,
@@ -142,6 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save'])) {
         ];
     }
 
+    if (is_array($refData) && !empty($refData['levels'])) $st['ref'] = $refData;
     jwrite(STANDS . '/' . $id . '.json', $st);
     $idx = jread(STANDS . '/index.json', ['stands' => []]);
     $found = false;
@@ -216,7 +220,8 @@ if (isset($_GET['edit'])) {
             . '<label>سرعت حرکت (ثانیه)</label><input name="c_dur[' . $i . ']" value="' . h($c['dur'] ?? 3) . '">'
             . '</fieldset>';
     }
-    $body .= '<input type="hidden" name="charCount" value="' . count($chars) . '"><input type="hidden" name="save" value="1">' . csrf_field() . '<button class="btn">💾 ذخیرهٔ استند</button></form>';
+    $body .= '<input type="hidden" name="charCount" value="' . count($chars) . '"><input type="hidden" name="save" value="1"><input type="hidden" name="ref_json" id="ref_json">' . csrf_field()
+        . '<button class="btn" id="btnSave">💾 ذخیرهٔ استند</button> <span id="refStat" class="dim"></span></form>';
     die(page('ویرایش استند | بازیکا CMS', $body));
 }
 
@@ -268,5 +273,58 @@ fieldset{border:1px dashed #b7a06b;border-radius:14px;margin:14px 0;padding:12px
 .dim{opacity:.65;font-size:12px}
 .err{color:#b3261e}.ok{color:#1e7a46}
 a{color:#1e7a46}
-</style></head><body><div class="wrap"><h1>🦖 بازیکا CMS</h1>' . $body . '</div></body></html>';
+</style></head><body><div class="wrap"><h1>🦖 بازیکا CMS</h1>' . $body . '</div>
+<script src="ar/feat.js?v=1"></script>
+<script>
+(function () {
+  if (!window.BZFeat || !document.getElementById('ref_json')) return;
+  var form = document.querySelector('form[enctype]');
+  if (!form) return;
+  function loadImg(src) {
+    return new Promise(function (res, rej) {
+      var im = new Image();
+      im.onload = function () { res(im); };
+      im.onerror = rej;
+      im.src = src;
+    });
+  }
+  function canvasToGray(img, w) {
+    var h = Math.max(80, Math.round(w * img.naturalHeight / img.naturalWidth));
+    var c = document.createElement('canvas'); c.width = w; c.height = h;
+    var g = c.getContext('2d', { willReadFrequently: true });
+    g.drawImage(img, 0, 0, w, h);
+    var d = g.getImageData(0, 0, w, h);
+    return { gray: window.BZFeat.grayFromRGBA(d.data, w, h), w: w, h: h };
+  }
+  function bgSource() {
+    var f = form.querySelector('input[name="f_background"]');
+    if (f && f.files && f.files[0]) return URL.createObjectURL(f.files[0]);
+    var hid = form.querySelector('input[name="background"]');
+    if (hid && hid.value && /\.(webp|png|jpe?g)$/i.test(hid.value)) return hid.value;
+    return null;
+  }
+  form.addEventListener('submit', function (ev) {
+    var stat = document.getElementById('refStat');
+    var hid = document.getElementById('ref_json');
+    if (hid.value) return; // قبلاً ساخته شده
+    var src = bgSource();
+    if (!src) { if (stat) stat.textContent = '(بدون مرجع تشخیص ذخیره شد)'; return; }
+    ev.preventDefault();
+    if (stat) stat.textContent = '⏳ در حال ساخت مرجع تشخیص دوربین…';
+    loadImg(src).then(function (img) {
+      var levels = [340, 480, 640].map(function (w) {
+        var g = canvasToGray(img, w);
+        return window.BZFeat.extract(g.gray, g.w, g.h, 300);
+      });
+      hid.value = JSON.stringify(window.BZFeat.serialize(levels));
+      if (stat) stat.textContent = '✅ مرجع تشخیص ساخته شد';
+      setTimeout(function () { form.submit(); }, 60);
+    }).catch(function () {
+      if (stat) stat.textContent = '(مرجع تشخیص ساخته نشد — ذخیره بدون آن)';
+      form.submit();
+    });
+  });
+})();
+</script>
+</body></html>';
 }

@@ -59,6 +59,11 @@ $BZ_TOK = bz_token();
 </header>
 
 <main>
+  <a href="ar/detect.php" style="display:block;text-decoration:none;background:linear-gradient(135deg,#1e7a46,#0f5132);color:#fff;border-radius:18px;padding:18px 20px;margin-bottom:18px;text-align:center;box-shadow:0 6px 22px rgba(20,90,50,.35)">
+    <span style="font-size:34px">📷</span><br>
+    <b style="font-size:17px">دوربین را بگیر، استند خودش شناخته می‌شود!</b><br>
+    <span style="font-size:12px;opacity:.85">بدون بارکد — تشخیص هوشمند تصویر استند</span>
+  </a>
   <div id="stands" class="grid"><p style="text-align:center;width:100%">⏳ در حال بارگذاری استندها…</p></div>
 
   <div class="card" style="margin-top:16px">

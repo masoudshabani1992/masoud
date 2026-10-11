@@ -40,5 +40,16 @@ if ($x === 'stand') {
     bz_json_out($c ? json_decode($c, true) : ['error' => 'empty']);
 }
 
+/* مرجع‌های تشخیص دوربین (برای همهٔ استندها) */
+if ($x === 'refs') {
+    $out = [];
+    foreach (glob($base . '/*.json') as $f) {
+        if (basename($f) === 'index.json') continue;
+        $st = json_decode((string)@file_get_contents($f), true);
+        if ($st && !empty($st['ref'])) $out[] = ['id' => $st['id'], 'title' => $st['title'] ?? '', 'ref' => $st['ref']];
+    }
+    bz_json_out(['stands' => $out]);
+}
+
 http_response_code(400);
 bz_json_out(['error' => 'badrequest']);
