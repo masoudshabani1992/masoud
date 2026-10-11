@@ -79,7 +79,6 @@ function start(st) {
     img.style.width = (c.width != null ? c.width : 50) + '%';
     img.style.animationDuration = (c.dur || 3) + 's';
     img.style.animationDelay = (-Math.random() * 2).toFixed(2) + 's';
-    if (c.flip) img.style.setProperty('--sx', '-1');
     img.addEventListener('click', function () { openPopup(c); });
     frame.appendChild(img);
   });

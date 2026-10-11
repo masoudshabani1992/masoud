@@ -133,7 +133,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save'])) {
             'width' => (float)($_POST['c_width'][$i] ?: 50),
             'z' => (int)$_POST['c_z'][$i],
             'anim' => (string)$_POST['c_anim'][$i],
-            'flip' => !empty($_POST['c_flip'][$i]),
             'dur' => (float)($_POST['c_dur'][$i] ?: 3),
             'image' => $img,
             'roar' => $roar,
@@ -214,7 +213,6 @@ if (isset($_GET['edit'])) {
             . '<label>جثه</label><input name="c_size[' . $i . ']" value="' . h($c['size'] ?? '') . '">'
             . '<label>توضیح قصه‌ای</label><textarea name="c_desc[' . $i . ']" rows="3">' . h($c['desc'] ?? '') . '</textarea>'
             . '<label>جای لایه: چپ٪ / بالا٪ / پهنا٪ / ترتیب(z)</label><div class="row"><input name="c_left[' . $i . ']" value="' . h($c['left'] ?? 10) . '"><input name="c_top[' . $i . ']" value="' . h($c['top'] ?? 10) . '"><input name="c_width[' . $i . ']" value="' . h($c['width'] ?? 50) . '"><input name="c_z[' . $i . ']" value="' . h($c['z'] ?? 1) . '"></div>'
-            . '<label style="font-weight:normal"><input type="checkbox" name="c_flip[' . $i . ']" value="1" style="width:auto" ' . (!empty($c['flip']) ? 'checked' : '') . '> آینه‌شده مثل چاپ (فلیپ افقی)</label>'
             . '<label>نوع حرکت</label><select name="c_anim[' . $i . ']">'
             . '<option value="bob" ' . ((($c['anim'] ?? '') === 'bob') ? 'selected' : '') . '>بالا‌پایین (bob)</option>'
             . '<option value="sway" ' . ((($c['anim'] ?? '') === 'sway') ? 'selected' : '') . '>گهواره‌ای (sway)</option>'
