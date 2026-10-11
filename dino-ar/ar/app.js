@@ -8,6 +8,7 @@ var BUILD = '2026-10-11b';
 window.__BAZIKA_INIT = true;
 
 var STAND = null;
+var muted = localStorage.getItem('bazika-muted') === '1';
 
 function diag(msg) {
   var el = document.getElementById('diag');
@@ -86,7 +87,7 @@ function openPopup(d) {
   document.getElementById('popupRows').innerHTML = rows;
   document.getElementById('popupFact').textContent = d.desc || '';
   document.getElementById('popup').classList.add('open');
-  if (d.roar) {
+  if (!muted && d.roar) {
     try { var a = new Audio(d.roar); a.volume = 0.9; a.play().catch(function () {}); } catch (e) {}
   }
 }
@@ -103,6 +104,7 @@ btnPlay.addEventListener('click', function () {
     btnPlay.innerHTML = '▶<span>صدای راوی</span>';
     return;
   }
+  if (muted) { toast('🔇 صدا قطع است — اول دکمهٔ صدا را بزنید'); return; }
   if (!STAND || !STAND.narration) { toast('🎙️ صدای راوی برای این استند تعریف نشده'); return; }
   narAudio = new Audio(STAND.narration);
   narAudio.onended = function () { narAudio = null; btnPlay.innerHTML = '▶<span>صدای راوی</span>'; };
@@ -113,6 +115,20 @@ btnPlay.addEventListener('click', function () {
 
 document.getElementById('btnInfo').addEventListener('click', function () {
   document.getElementById('infoPanel').classList.add('open');
+});
+
+// 🔊 قطع/وصل همهٔ صداها (غرش‌ها + راوی)
+var btnMute = document.getElementById('btnMute');
+function muteUI() {
+  btnMute.innerHTML = (muted ? '🔇<span>بی‌صدا</span>' : '🔊<span>صدا</span>');
+}
+muteUI();
+btnMute.addEventListener('click', function () {
+  muted = !muted;
+  localStorage.setItem('bazika-muted', muted ? '1' : '0');
+  if (muted && narAudio) { narAudio.pause(); narAudio = null; btnPlay.innerHTML = '▶<span>صدای راوی</span>'; }
+  muteUI();
+  toast(muted ? '🔇 همهٔ صداها قطع شد' : '🔊 صدا وصل شد');
 });
 
 function toast(msg) {
