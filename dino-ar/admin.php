@@ -94,9 +94,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save'])) {
     for ($i = 0; $i < $n; $i++) {
         $nm = trim((string)$_POST['c_name'][$i]);
         if ($nm === '') continue;
-        $model = (string)$_POST['c_model'][$i];
-        $mu = save_upload('c_modelup_' . $i, ROOT . '/models');
-        if ($mu) $model = '../models/' . $mu;
         $img = (string)$_POST['c_image'][$i];
         $iu = save_upload('c_imageup_' . $i, $media);
         if ($iu) $img = '../data/stands/' . $id . '/media/' . $iu;
@@ -106,11 +103,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save'])) {
         $st['characters'][] = [
             'id' => preg_replace('/[^a-z0-9-]+/', '-', strtolower($nm)) ?: ('char-' . $i),
             'name' => $nm,
-            'model' => $model,
-            'scale' => (float)($_POST['c_scale'][$i] ?: 0.16),
-            'x' => (float)$_POST['c_x'][$i],
-            'z' => (float)($_POST['c_z'][$i] ?: 0.8),
-            'face' => (float)$_POST['c_face'][$i],
+            'left' => (float)$_POST['c_left'][$i],
+            'top' => (float)$_POST['c_top'][$i],
+            'width' => (float)($_POST['c_width'][$i] ?: 50),
+            'z' => (int)$_POST['c_z'][$i],
+            'anim' => (string)$_POST['c_anim'][$i],
+            'dur' => (float)($_POST['c_dur'][$i] ?: 3),
             'image' => $img,
             'roar' => $roar,
             'meaning' => (string)$_POST['c_meaning'][$i],
@@ -163,11 +161,7 @@ if (isset($_GET['edit'])) {
     foreach ($chars as $i => $c) {
         $body .= '<fieldset><legend>شخصیت ' . ($i + 1) . '</legend>'
             . '<label>نام</label><input name="c_name[' . $i . ']" value="' . h($c['name'] ?? '') . '">'
-            . '<label>مدل سه‌بعدی (GLB)</label><select name="c_model[' . $i . ']">'
-            . '<option value="">— بدون مدل —</option>';
-        foreach ($models as $m) $body .= '<option value="' . h($m) . '" ' . ((($c['model'] ?? '') === $m) ? 'selected' : '') . '>' . h(basename($m)) . '</option>';
-        $body .= '</select><p class="dim">یا آپلود GLB جدید:</p><input type="file" name="c_modelup_' . $i . '" accept=".glb">'
-            . '<label>عکس پاپ‌آپ</label>' . ($c['image'] ?? '' ? '<p class="dim">فعلی: ' . h($c['image']) . '</p>' : '')
+            . '<label>عکس برش شفاف شخصیت (PNG/WebP بدون پس‌زمینه)</label>' . ($c['image'] ?? '' ? '<p class="dim">فعلی: ' . h($c['image']) . '</p>' : '')
             . '<input type="hidden" name="c_image[' . $i . ']" value="' . h($c['image'] ?? '') . '"><input type="file" name="c_imageup_' . $i . '" accept="image/*">'
             . '<label>صدا (غرش)</label>' . ($c['roar'] ?? '' ? '<p class="dim">فعلی: ' . h($c['roar']) . '</p>' : '')
             . '<input type="hidden" name="c_roar[' . $i . ']" value="' . h($c['roar'] ?? '') . '"><input type="file" name="c_roarup_' . $i . '" accept="audio/*">'
@@ -177,8 +171,12 @@ if (isset($_GET['edit'])) {
             . '<label>تغذیه</label><input name="c_diet[' . $i . ']" value="' . h($c['diet'] ?? '') . '">'
             . '<label>جثه</label><input name="c_size[' . $i . ']" value="' . h($c['size'] ?? '') . '">'
             . '<label>توضیح قصه‌ای</label><textarea name="c_desc[' . $i . ']" rows="3">' . h($c['desc'] ?? '') . '</textarea>'
-            . '<label>اندازه (scale)</label><input name="c_scale[' . $i . ']" value="' . h($c['scale'] ?? 0.16) . '">'
-            . '<label>مکان X / Z / چرخش</label><div class="row"><input name="c_x[' . $i . ']" value="' . h($c['x'] ?? 0) . '"><input name="c_z[' . $i . ']" value="' . h($c['z'] ?? 0.8) . '"><input name="c_face[' . $i . ']" value="' . h($c['face'] ?? 0) . '"></div>'
+            . '<label>جای لایه: چپ٪ / بالا٪ / پهنا٪ / ترتیب(z)</label><div class="row"><input name="c_left[' . $i . ']" value="' . h($c['left'] ?? 10) . '"><input name="c_top[' . $i . ']" value="' . h($c['top'] ?? 10) . '"><input name="c_width[' . $i . ']" value="' . h($c['width'] ?? 50) . '"><input name="c_z[' . $i . ']" value="' . h($c['z'] ?? 1) . '"></div>'
+            . '<label>نوع حرکت</label><select name="c_anim[' . $i . ']">'
+            . '<option value="bob" ' . ((($c['anim'] ?? '') === 'bob') ? 'selected' : '') . '>بالا‌پایین (bob)</option>'
+            . '<option value="sway" ' . ((($c['anim'] ?? '') === 'sway') ? 'selected' : '') . '>گهواره‌ای (sway)</option>'
+            . '<option value="walk" ' . ((($c['anim'] ?? '') === 'walk') ? 'selected' : '') . '>قدم‌زدن (walk)</option></select>'
+            . '<label>سرعت حرکت (ثانیه)</label><input name="c_dur[' . $i . ']" value="' . h($c['dur'] ?? 3) . '">'
             . '</fieldset>';
     }
     $body .= '<input type="hidden" name="charCount" value="' . count($chars) . '"><input type="hidden" name="save" value="1"><button class="btn">💾 ذخیرهٔ استند</button></form>';
