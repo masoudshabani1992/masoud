@@ -1,3 +1,12 @@
+<?php
+/* بازیکا — ورودی استند زنده (محافظت‌شده) */
+require __DIR__ . '/../bz_guard.php';
+bz_session_secure();
+session_start();
+bz_headers();
+bz_guard();          // قفل دامنه
+$BZ_TOK = bz_token();
+?>
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -5,7 +14,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>بازیکا — استند زنده</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦖</text></svg>" />
-  <link rel="stylesheet" href="ui.css?v=7" />
+  <link rel="stylesheet" href="ui.css?v=8" />
   <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap" rel="stylesheet" />
 </head>
 <body class="portrait">
@@ -52,7 +61,8 @@
     <div id="toast"></div>
   </div>
 
-  <script src="app.js?v=7"></script>
+  <script>window.BZ_TOKEN = <?php echo json_encode($BZ_TOK); ?>;</script>
+  <script src="app.js?v=8"></script>
   <script>
     (function () {
       var d = document.getElementById('diag');

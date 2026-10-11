@@ -4,14 +4,21 @@
  * یک فایل PHP، بدون دیتابیس؛ داده‌ها در data/stands
  * ورود:  your-domain/admin.php
  */
+require __DIR__ . '/bz_guard.php';
+bz_session_secure();
 session_start();
 header('Content-Type: text/html; charset=utf-8');
+bz_headers();
+bz_guard();   // قفل دامنه — پنل فقط روی دامنهٔ لایسنس‌دار
 define('ROOT', __DIR__);
 define('DATA', ROOT . '/data');
 define('STANDS', DATA . '/stands');
 @mkdir(STANDS, 0777, true);
 
 function h($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
+function csrf_tok() { if (empty($_SESSION['csrf'])) $_SESSION['csrf'] = bin2hex(random_bytes(16)); return $_SESSION['csrf']; }
+function csrf_ok() { return isset($_POST['csrf']) && hash_equals(csrf_tok(), (string)$_POST['csrf']); }
+function csrf_field() { return '<input type="hidden" name="csrf" value="' . csrf_tok() . '">'; }
 function jread($f, $d = null) { $c = @file_get_contents($f); return $c ? json_decode($c, true) : $d; }
 function jwrite($f, $v) { file_put_contents($f, json_encode($v, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)); }
 
@@ -20,24 +27,37 @@ $ADMIN = DATA . '/admin.json';
 /* ── نصب اولیه: تعیین رمز مدیریت ── */
 if (!file_exists($ADMIN)) {
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['newpass'])) {
+        if (!csrf_ok()) { header('Location: admin.php'); exit; }
         jwrite($ADMIN, ['hash' => password_hash($_POST['newpass'], PASSWORD_DEFAULT)]);
         header('Location: admin.php'); exit;
     }
     die(page('نصب بازیکا CMS', '<h2>🔐 نصب اولیه</h2><p>برای بخش مدیریت رمز عبور تعیین کنید:</p>
-      <form method="post"><input type="password" name="newpass" required placeholder="رمز عبور مدیریت" style="width:100%;padding:10px;border-radius:10px;border:1px solid #ccc">
+      <form method="post"><input type="password" name="newpass" required placeholder="رمز عبور مدیریت" style="width:100%;padding:10px;border-radius:10px;border:1px solid #ccc">' . csrf_field() . '
       <button class="btn">ذخیره و ورود</button></form>'));
 }
 
 $cfg = jread($ADMIN, []);
 if (isset($_GET['logout'])) { session_destroy(); header('Location: admin.php'); exit; }
+/* آهسته‌سازی بروت‌فورس: حداکثر ۵ تلاش، بعد ۱۰ دقیقه قفل */
+$GUARD = DATA . '/login-guard.json';
+$g = jread($GUARD, ['n' => 0, 'until' => 0]);
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
-    if (password_verify((string)$_POST['pass'], $cfg['hash'])) $_SESSION['ok'] = 1;
-    else $loginErr = 'رمز نادرست است';
+    if (time() < ($g['until'] ?? 0)) {
+        $loginErr = 'تلاش بیش از حد مجاز — چند دقیقه بعد دوباره امتحان کنید';
+    } elseif (password_verify((string)$_POST['pass'], $cfg['hash'])) {
+        $_SESSION['ok'] = 1;
+        jwrite($GUARD, ['n' => 0, 'until' => 0]);
+    } else {
+        $g['n'] = (int)($g['n'] ?? 0) + 1;
+        if ($g['n'] >= 5) { $g['until'] = time() + 600; $g['n'] = 0; $loginErr = 'تلاش بیش از حد مجاز — ۱۰ دقیقه قفل شد'; }
+        else $loginErr = 'رمز نادرست است';
+        jwrite($GUARD, $g);
+    }
 }
 if (empty($_SESSION['ok'])) {
     die(page('ورود | بازیکا CMS', '<h2>🔐 ورود به مدیریت</h2>' .
       (isset($loginErr) ? '<p class="err">' . h($loginErr) . '</p>' : '') .
-      '<form method="post"><input type="password" name="pass" required placeholder="رمز عبور" style="width:100%;padding:10px;border-radius:10px;border:1px solid #ccc">
+      '<form method="post"><input type="password" name="pass" required placeholder="رمز عبور" style="width:100%;padding:10px;border-radius:10px;border:1px solid #ccc">' . csrf_field() . '
        <input type="hidden" name="login" value="1"><button class="btn">ورود</button></form>'));
 }
 
@@ -52,6 +72,7 @@ function save_upload($key, $dir) {
 
 /* ── حذف استند ── */
 if (isset($_GET['delete'])) {
+    if (!isset($_GET['tok']) || !hash_equals(csrf_tok(), (string)$_GET['tok'])) { header('Location: admin.php'); exit; }
     $id = preg_replace('/[^a-z0-9-]/', '-', (string)$_GET['delete']);
     $idx = jread(STANDS . '/index.json', ['stands' => []]);
     $idx['stands'] = array_values(array_filter($idx['stands'], function ($s) use ($id) { return $s['id'] !== $id; }));
@@ -62,6 +83,7 @@ if (isset($_GET['delete'])) {
 
 /* ── ذخیرهٔ استند ── */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save'])) {
+    if (!csrf_ok()) { header('Location: admin.php?edit=' . (string)($_POST['id'] ?? '') . '&err=csrf'); exit; }
     $title = trim((string)$_POST['title']);
     $id = preg_replace('/[^a-z0-9-]+/', '-', strtolower(trim((string)$_POST['id']))) ?: ('stand-' . time());
     $media = STANDS . '/' . $id . '/media';
@@ -129,6 +151,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save'])) {
     header('Location: admin.php?edit=' . $id . '&saved=1'); exit;
 }
 
+/* ── ذخیرهٔ لایسنس/قفل دامنه ── */
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_license'])) {
+    if (!csrf_ok()) { header('Location: admin.php'); exit; }
+    $lines = preg_split('/[\r\n,،]+/', (string)($_POST['lic_domains'] ?? ''));
+    $doms = [];
+    foreach ($lines as $l) {
+        $l = strtolower(trim($l));
+        $l = preg_replace('#^https?://#', '', $l);
+        $l = preg_replace('#/.*$#', '', $l);
+        if ($l !== '') $doms[] = $l;
+    }
+    jwrite(DATA . '/license.json', ['lock' => !empty($_POST['lic_lock']), 'domains' => array_values(array_unique($doms))]);
+    header('Location: admin.php?lic=1'); exit;
+}
+
 /* ── مدل‌های موجود ── */
 $models = [];
 foreach (glob(ROOT . '/models/*.glb') as $m) $models[] = '../models/' . basename($m);
@@ -179,7 +216,7 @@ if (isset($_GET['edit'])) {
             . '<label>سرعت حرکت (ثانیه)</label><input name="c_dur[' . $i . ']" value="' . h($c['dur'] ?? 3) . '">'
             . '</fieldset>';
     }
-    $body .= '<input type="hidden" name="charCount" value="' . count($chars) . '"><input type="hidden" name="save" value="1"><button class="btn">💾 ذخیرهٔ استند</button></form>';
+    $body .= '<input type="hidden" name="charCount" value="' . count($chars) . '"><input type="hidden" name="save" value="1">' . csrf_field() . '<button class="btn">💾 ذخیرهٔ استند</button></form>';
     die(page('ویرایش استند | بازیکا CMS', $body));
 }
 
@@ -189,8 +226,19 @@ foreach ($idx['stands'] as $s) {
     $body .= '<div class="card"><b>' . h($s['title']) . '</b> <span class="dim">' . h($s['month']) . '</span><br>'
         . '<a class="btn" href="admin.php?edit=' . h($s['id']) . '">✏️ ویرایش</a> '
         . '<a class="btn ghost" href="ar/?stand=' . h($s['id']) . '" target="_blank">👁 پیش‌نمایش</a> '
-        . '<a class="btn danger" href="admin.php?delete=' . h($s['id']) . '" onclick="return confirm(\'حذف شود؟\')"> حذف</a></div>';
+        . '<a class="btn danger" href="admin.php?delete=' . h($s['id']) . '&tok=' . csrf_tok() . '" onclick="return confirm(\'حذف شود؟\')"> حذف</a></div>';
 }
+// کارت امنیت و قفل دامنه
+$lic = bz_license();
+$licDomains = implode("\n", $lic['domains']);
+$body .= '<div class="card"><h3>🔒 امنیت و لایسنس (ضد کپی)</h3>'
+    . (isset($_GET['lic']) ? '<p class="ok">✅ تنظیمات لایسنس ذخیره شد</p>' : '')
+    . '<form method="post"><label>دامنه‌های مجاز (هر خط یک دامنه — مثال: example.com یا *.example.com)</label>'
+    . '<textarea name="lic_domains" rows="3" placeholder="example.com">' . h($licDomains) . '</textarea>'
+    . '<label style="font-weight:normal;margin-top:8px"><input type="checkbox" name="lic_lock" style="width:auto" ' . ($lic['lock'] ? 'checked' : '') . '> قفل دامنه فعال شود (سایت فقط روی دامنه‌های بالا اجرا می‌شود)</label><br>'
+    . csrf_field() . '<input type="hidden" name="save_license" value="1"><button class="btn">💾 ذخیرهٔ لایسنس</button></form>'
+    . '<p class="dim">' . ($lic['lock'] && $lic['domains'] ? '🟢 قفل فعال است — کپی این بسته روی دامنهٔ دیگر کار نخواهد کرد.' : '🟡 قفل غیرفعال است. برای جلوگیری از کپی‌برداری، دامنه‌های خود را ثبت و قفل را فعال کنید.') . ' تست روی localhost همیشه مجاز است.</p></div>';
+
 // کارت به‌روزرسانی داخل پنل
 $upKey = '';
 if (file_exists(ROOT . '/update-config.php')) {

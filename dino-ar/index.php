@@ -1,3 +1,12 @@
+<?php
+/* بازیکا — صفحهٔ اصلی (محافظت‌شده) */
+require __DIR__ . '/bz_guard.php';
+bz_session_secure();
+session_start();
+bz_headers();
+bz_guard();
+$BZ_TOK = bz_token();
+?>
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -63,13 +72,14 @@
 </main>
 
 <footer>
-  موتور سه‌بعدی: three.js • مدل‌های دایناسور: Quaternius (CC0)<br/>
+  © بازیکا — تصویر زندهٔ لایسنس‌دار • کپی‌برداری غیرمجاز ممنوع 🔒<br/>
   برای بهترین تجربه، صفحه را روی گوشی و با اینترنت باز کنید.
 </footer>
 
 <script src="vendor/qrcode.js"></script>
-<script>
-  fetch('data/stands/index.json')
+<script>window.BZ_TOKEN = <?php echo json_encode($BZ_TOK); ?>;</script>
+  <script>
+  fetch('ar/data.php?x=index&t=' + encodeURIComponent(window.BZ_TOKEN || ''), { credentials: 'same-origin' })
     .then(function (r) { return r.ok ? r.json() : { stands: [] }; })
     .then(function (idx) {
       var box = document.getElementById('stands');

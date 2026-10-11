@@ -1,10 +1,46 @@
+DirectoryIndex index.php index.html
+Options -Indexes
+
 AddType model/gltf-binary .glb
 AddType application/octet-stream .mind
 AddType image/webp .webp
 AddType audio/mpeg .mp3
-<FilesMatch "\.(json|mind)$">
-  Header set Cache-Control "no-cache"
-</FilesMatch>
-<FilesMatch "\.(html|js|css)$">
-  Header set Cache-Control "no-cache, must-revalidate"
-</FilesMatch>
+
+# ── بازیکا: محافظت در برابر کپی و افشا ──────────────────────────────
+# هیچ فایل داده/پیکربندی مستقیماً قابل دانلود نباشد (داده فقط از ar/data.php با نشست معتبر)
+<IfModule mod_authz_core.c>
+  <FilesMatch "\.(json|log|ini|md|lock|sh|sql)$">
+    Require all denied
+  </FilesMatch>
+  <FilesMatch "^(update-config\.php|bz_guard\.php)$">
+    Require all denied
+  </FilesMatch>
+</IfModule>
+<IfModule !mod_authz_core.c>
+  <FilesMatch "\.(json|log|ini|md|lock|sh|sql)$">
+    Order allow,deny
+    Deny from all
+  </FilesMatch>
+  <FilesMatch "^(update-config\.php|bz_guard\.php)$">
+    Order allow,deny
+    Deny from all
+  </FilesMatch>
+</IfModule>
+
+# پوشه‌های داخلی اصلاً از وب قابل دسترس نباشند
+RewriteEngine On
+RewriteRule ^tools/ - [F,L]
+RewriteRule ^deploy-guide/ - [F,L]
+RewriteRule ^user-art/ - [F,L]
+RewriteRule ^data/admin\.json$ - [F,L]
+RewriteRule ^data/license\.json$ - [F,L]
+RewriteRule ^data/login-guard\.json$ - [F,L]
+
+<IfModule mod_headers.c>
+  <FilesMatch "\.(html|js|css|php)$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+  <FilesMatch "\.(webp|png|jpg|mp3|glb)$">
+    Header set Cache-Control "public, max-age=86400"
+  </FilesMatch>
+</IfModule>

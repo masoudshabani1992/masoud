@@ -4,7 +4,7 @@
 (function () {
 'use strict';
 
-var BUILD = '2026-10-11b';
+var BUILD = '2026-10-11e';
 window.__BAZIKA_INIT = true;
 
 var STAND = null;
@@ -17,8 +17,13 @@ function diag(msg) {
 diag('بازیکا ' + BUILD);
 window.addEventListener('error', function (e) { diag('⚠ ' + (e.message || 'خطای ناشناخته')); });
 
-fetch('../data/stands/index.json')
-  .then(function (r) { return r.ok ? r.json() : null; })
+var BZT = window.BZ_TOKEN || '';
+function bzFetch(x, id) {
+  var u = 'data.php?x=' + x + '&t=' + encodeURIComponent(BZT);
+  if (id) u += '&id=' + encodeURIComponent(id);
+  return fetch(u, { credentials: 'same-origin' }).then(function (r) { return r.ok ? r.json() : null; });
+}
+bzFetch('index')
   .then(function (idx) {
     if (!idx || !idx.stands || !idx.stands.length) {
       diag('⚠ هنوز استندی تعریف نشده — از admin.php اضافه کنید');
@@ -28,7 +33,7 @@ fetch('../data/stands/index.json')
     var found = null;
     idx.stands.forEach(function (s) { if (s.id === id) found = s; });
     if (!found) found = idx.stands[0];
-    return fetch('../data/stands/' + found.id + '.json').then(function (r) { return r.json(); });
+    return bzFetch('stand', found.id);
   })
   .then(function (st) { if (st) start(st); })
   .catch(function (e) { diag('⚠ خطا در خواندن داده: ' + (e && e.message)); });
@@ -143,5 +148,30 @@ function toast(msg) {
   clearTimeout(toast.h);
   toast.h = setTimeout(function () { t.classList.remove('show'); }, 2600);
 }
+
+
+// ── بازدارنده‌های کپی 🛡 (محافظ نمایشی؛ قفل اصلی سمت سرور است) ──
+try {
+  document.addEventListener('contextmenu', function (e) {
+    var t = e.target;
+    if (t && (t.tagName === 'IMG' || (t.closest && t.closest('#frame')))) e.preventDefault();
+  });
+  document.addEventListener('keydown', function (e) {
+    var k = (e.key || '').toLowerCase();
+    if (e.ctrlKey && ['s', 'u', 'p'].indexOf(k) !== -1) e.preventDefault();
+    if (e.key === 'F12') e.preventDefault();
+    if (e.ctrlKey && e.shiftKey && ['i', 'j', 'c'].indexOf(k) !== -1) e.preventDefault();
+  });
+  var _w = window.innerWidth, _h = window.innerHeight;
+  setInterval(function () {
+    var dev = (window.outerWidth - window.innerWidth > 180) || (window.outerHeight - window.innerHeight > 220);
+    var d = document.getElementById('diag');
+    if (dev && d && !d.getAttribute('data-wm')) {
+      d.setAttribute('data-wm', '1');
+      d.textContent = '© بازیکا — نسخهٔ لایسنس‌دار';
+    }
+    _w = window.innerWidth; _h = window.innerHeight;
+  }, 1200);
+} catch (e) {}
 
 })();

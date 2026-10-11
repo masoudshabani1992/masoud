@@ -68,6 +68,11 @@ if (!$done) {
 }
 @unlink($tmp);
 
+/* حذف فایل‌های قدیمی نسخه‌های قبل (که جایگزین امن شده‌اند) */
+foreach (['index.html', 'ar/index.html', 'ar/viewer.html'] as $legacy) {
+    if (is_file(HERE . '/' . $legacy)) @unlink(HERE . '/' . $legacy);
+}
+
 $new = json_decode((string)@file_get_contents(HERE . '/version.json'), true);
 exit(html($done ? ('✅ به‌روزرسانی انجام شد (' . $msg . ')<br>نسخهٔ جدید: <b>' . h($new ? $new['build'] : '؟') . '</b>') : '❌ بازکردن زیپ ممکن نشد.'));
 
