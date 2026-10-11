@@ -6,7 +6,7 @@ SRC="$(pwd)"
 D="$(pwd)/../deploy"
 rm -rf "$D"
 mkdir -p "$D/ar" "$D/vendor" "$D/assets/sprites" "$D/data/stands" \
-         "$D/content/dino/images/crop" "$D/content/dino/audio"
+         "$D/content/dino/images/cut" "$D/content/dino/audio"
 
 cp index.php admin.php bz_guard.php "$D/"
 cp deploy-guide/update.php "$D/update.php"
@@ -17,8 +17,8 @@ cp vendor/qrcode.js "$D/vendor/"
 cp assets/logo.png assets/jungle.jpg "$D/assets/" 2>/dev/null || true
 cp -r assets/sprites "$D/assets/" 2>/dev/null || true
 cp data/stands/index.json data/stands/dino.json "$D/data/stands/"
-cp content/dino/images/crop/*.webp "$D/content/dino/images/crop/"
-cp content/dino/images/stand-original.webp content/dino/images/bg.webp "$D/content/dino/images/"
+cp content/dino/images/cut/*.webp "$D/content/dino/images/cut/"
+cp content/dino/images/bg.webp "$D/content/dino/images/"
 cp content/dino/audio/*.mp3 "$D/content/dino/audio/"
 cp version.json "$D/version.json"
 
