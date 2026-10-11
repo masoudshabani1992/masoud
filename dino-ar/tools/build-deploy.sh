@@ -12,7 +12,7 @@ cp index.php admin.php bz_guard.php "$D/"
 cp deploy-guide/update.php "$D/update.php"
 cp deploy-guide/.htaccess "$D/.htaccess"
 cp deploy-guide/README-DEPLOY.md "$D/"
-cp ar/index.php ar/data.php ar/detect.php ar/ui.css "$D/ar/"
+cp ar/index.php ar/data.php ar/detect.php ar/ui.css ar/admin-ref.js "$D/ar/"
 cp vendor/qrcode.js "$D/vendor/"
 cp assets/logo.png assets/jungle.jpg "$D/assets/" 2>/dev/null || true
 cp -r assets/sprites "$D/assets/" 2>/dev/null || true
