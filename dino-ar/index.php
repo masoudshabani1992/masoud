@@ -81,7 +81,6 @@ $BZ_TOK = bz_token();
   برای بهترین تجربه، صفحه را روی گوشی و با اینترنت باز کنید.
 </footer>
 
-<script src="vendor/qrcode.js"></script>
 <script>window.BZ_TOKEN = <?php echo json_encode($BZ_TOK); ?>;</script>
   <script>
   fetch('ar/data.php?x=index&t=' + encodeURIComponent(window.BZ_TOKEN || ''), { credentials: 'same-origin' })
@@ -97,28 +96,9 @@ $BZ_TOK = bz_token();
         card.innerHTML =
           '<span class="month">' + (s.month || '') + '</span>' +
           '<h3>' + s.title + '</h3>' +
-          '<div class="qr" data-url="' + url + '"></div>' +
-          '<div><a class="btn" href="ar/?stand=' + encodeURIComponent(s.id) + '">🦖 تماشای استند زنده</a></div>' +
-          '<div><a class="btn ghost" href="#" data-qrpng>دانلود QR برای چاپ</a></div>';
+          '<div><a class="btn" href="ar/detect.php">📷 اسکن استند با دوربین</a></div>' +
+          '<div><a class="btn ghost" href="ar/?stand=' + encodeURIComponent(s.id) + '">🦖 تماشای مستقیم</a></div>';
         box.appendChild(card);
-        var qr = qrcode(0, 'M');
-        qr.addData(url); qr.make();
-        var qrBox = card.querySelector('.qr');
-        qrBox.innerHTML = qr.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
-        var svg = qrBox.querySelector('svg');
-        var xml = new XMLSerializer().serializeToString(svg);
-        var img = new Image();
-        img.onload = function () {
-          var c = document.createElement('canvas');
-          c.width = c.height = 640;
-          var g = c.getContext('2d');
-          g.fillStyle = '#fff'; g.fillRect(0, 0, 640, 640);
-          g.drawImage(img, 20, 20, 600, 600);
-          var a = card.querySelector('[data-qrpng]');
-          a.href = c.toDataURL('image/png');
-          a.setAttribute('download', 'bazika-' + s.id + '-qr.png');
-        };
-        img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(xml))));
       });
     })
     .catch(function () {

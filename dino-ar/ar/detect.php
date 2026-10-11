@@ -49,6 +49,7 @@ $BZ_TOK = bz_token();
   <div id="bar">
     <div id="status">برای شروع، دکمهٔ فعال‌سازی دوربین را بزنید</div>
     <div id="hint">💡 استند را کامل داخل کادر جا بدهید، صاف و رو به دوربین نگه دارید و نور کافی بتابانید</div>
+    <div id="diagline" style="font-size:10px;opacity:.45;margin-top:6px;font-family:monospace" dir="ltr"></div>
   </div>
 </div>
 
@@ -150,6 +151,8 @@ function loop() {
       var hit = F.detectFrame(scene, models[i].model);
       if (hit && (!best || hit.score > best.hit.score)) best = { m: models[i], hit: hit };
     }
+    var dl = document.getElementById('diagline');
+    if (dl) dl.textContent = 'feat:' + scene.desc.length + ' match:' + (best ? best.hit.inliers : 0) + ' v4.5.2';
     if (best) {
       var lv = best.m.model.levels[best.hit.level];
       drawQuad(best.hit.H, lv.w, lv.h, false);
@@ -198,6 +201,8 @@ function found(m) {
 document.getElementById('btnStart').addEventListener('click', function () {
   loadRefs().then(startCamera);
 });
+/* شروع خودکار: کاربر فقط صفحه را باز کند */
+loadRefs().then(function () { if (models.length) startCamera(); });
 })();
 </script>
 </body>

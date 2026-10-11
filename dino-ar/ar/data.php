@@ -40,13 +40,26 @@ if ($x === 'stand') {
     bz_json_out($c ? json_decode($c, true) : ['error' => 'empty']);
 }
 
-/* مرجع‌های تشخیص دوربین (برای همهٔ استندها) */
+/* مرجع‌های تشخیص دوربین — اول data/، وگرنه فایل همراه بسته content/<id>/ref.json */
 if ($x === 'refs') {
     $out = [];
-    foreach (glob($base . '/*.json') as $f) {
-        if (basename($f) === 'index.json') continue;
-        $st = json_decode((string)@file_get_contents($f), true);
-        if ($st && !empty($st['ref'])) $out[] = ['id' => $st['id'], 'title' => $st['title'] ?? '', 'ref' => $st['ref']];
+    $idx = json_decode((string)@file_get_contents($base . '/index.json'), true);
+    $ids = [];
+    if ($idx && !empty($idx['stands'])) foreach ($idx['stands'] as $s) $ids[] = (string)$s['id'];
+    foreach (glob(__DIR__ . '/../content/*/ref.json') as $rf) {
+        $cid = basename(dirname($rf));
+        if (!in_array($cid, $ids, true)) $ids[] = $cid;
+    }
+    foreach ($ids as $id) {
+        $id = preg_replace('/[^a-z0-9-]/', '', $id);
+        if ($id === '') continue;
+        $st = json_decode((string)@file_get_contents($base . '/' . $id . '.json'), true) ?: [];
+        $ref = $st['ref'] ?? null;
+        if (!$ref) {
+            $cr = @file_get_contents(__DIR__ . '/../content/' . $id . '/ref.json');
+            $ref = $cr ? json_decode($cr, true) : null;
+        }
+        if ($ref) $out[] = ['id' => $id, 'title' => $st['title'] ?? '', 'ref' => $ref];
     }
     bz_json_out(['stands' => $out]);
 }
