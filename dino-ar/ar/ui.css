@@ -120,3 +120,27 @@ video {
   transition: opacity 1s; pointer-events: none;
 }
 #diag { top: auto; bottom: calc(78px + env(safe-area-inset-bottom)); }
+
+/* ── استند زندهٔ عمودی (قاب موبایل) ── */
+body.portrait { background: #0d1015; }
+#frameWrap {
+  position: fixed; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 10px;
+  padding: calc(10px + env(safe-area-inset-top)) 0 calc(86px + env(safe-area-inset-bottom));
+}
+#standTitle { color: #ffd76a; font-weight: 800; font-size: 16px; text-shadow: 0 2px 8px rgba(0,0,0,.6); }
+#frame {
+  position: relative; width: min(92vw, 420px); aspect-ratio: 9 / 14;
+  max-height: 100%; border-radius: 24px; overflow: hidden;
+  border: 3px solid rgba(255,215,106,.9); box-shadow: 0 16px 60px rgba(0,0,0,.65);
+  background: #000;
+}
+#frame #stage { position: absolute; inset: 0; }
+#frame #stage canvas { position: absolute; inset: 0; width: 100% !important; height: 100% !important; display: block; }
+#frame #hint {
+  position: absolute; top: 10px; right: 0; left: 0; margin: 0 auto;
+  width: max-content; max-width: 90%; padding: 7px 16px; border-radius: 999px;
+  background: rgba(10,13,18,.65); color: #ffd76a; font-size: 12.5px; font-weight: 700;
+  transition: opacity 1s; pointer-events: none;
+}
+#diag { top: auto; bottom: calc(80px + env(safe-area-inset-bottom)); }

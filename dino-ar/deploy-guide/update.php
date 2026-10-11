@@ -1,15 +1,10 @@
 <?php
 /**
  * به‌روزرسان خودکار «بازیکا» 🦖
- *
- * بار اول:  https://YOUR-DOMAIN/update.php
- *           → یک کلید مخفی می‌سازد و به شما نشان می‌دهد.
- * بعد از آن: https://YOUR-DOMAIN/update.php?key=کلید
- *           → جدیدترین بسته را دانلود و روی همین هاست جایگزین می‌کند.
- * بررسی بدون نصب: update.php?key=کلید&check=1
- *
- * تنظیمات (کلید و آدرس بسته) در فایل update-config.php ذخیره می‌شود و
- * هنگام به‌روزرسانی هرگز پاک نمی‌شود.
+ * بار اول:  update.php            → ساخت کلید مخفی
+ * بعد از آن: update.php?key=کلید   → نصب جدیدترین بسته (دادهٔ CMS دست‌نخورده)
+ * بررسی:     update.php?key=کلید&check=1
+ * cron:      php update.php CLIDKEY
  */
 error_reporting(0);
 header('Content-Type: text/html; charset=utf-8');
@@ -25,34 +20,25 @@ if (!file_exists($cfg)) {
 require $cfg;
 
 $key = isset($_GET['key']) ? (string)$_GET['key'] : '';
-if (!$key && isset($_SERVER['argv'][1])) { // حالت cron:  php update.php YOURKEY
-    $key = preg_replace('/^key=/', '', $_SERVER['argv'][1]);
-}
+if (!$key && isset($_SERVER['argv'][1])) $key = preg_replace('/^key=/', '', $_SERVER['argv'][1]);
 if (!isset($UPDATE_KEY) || !hash_equals($UPDATE_KEY, $key)) exit(html('⛔ کلید نامعتبر است.'));
 
-// بررسی سادهٔ نسخه
 $local = json_decode((string)@file_get_contents(HERE . '/version.json'), true);
 if (isset($_GET['check'])) {
     $remote = json_decode((string)@file_get_contents(str_replace('/dino-ar-web-ar.zip', '/version.json', $UPDATE_URL)), true);
-    exit(html(
-        'نسخهٔ شما: <b>' . h($local ? $local['build'] : '؟') . '</b><br>' .
-        'نسخهٔ منتشرشده: <b>' . h($remote ? $remote['build'] : '؟') . '</b><br>' .
-        (($remote && $local && $remote['build'] !== $local['build']) ? '🆕 آپدیت موجود است — همان لینک را بدون check بزنید.' : '✅ شما به‌روز هستید.')
-    ));
+    exit(html('نسخهٔ شما: <b>' . h($local ? $local['build'] : '؟') . '</b><br>نسخهٔ منتشرشده: <b>' . h($remote ? $remote['build'] : '؟') . '</b><br>' .
+        (($remote && $local && $remote['build'] !== $local['build']) ? '🆕 آپدیت موجود است — بدون check بزنید.' : '✅ به‌روز هستید.')));
 }
 
-// دانلود بسته
 $data = false;
 if (function_exists('curl_init')) {
     $ch = curl_init($UPDATE_URL);
-    curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => 1, CURLOPT_FOLLOWLOCATION => 1, CURLOPT_TIMEOUT => 180, CURLOPT_SSL_VERIFYPEER => true]);
+    curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => 1, CURLOPT_FOLLOWLOCATION => 1, CURLOPT_TIMEOUT => 180]);
     $data = curl_exec($ch);
-    $err = curl_error($ch);
     curl_close($ch);
-    if (!$data) $data = false;
 }
 if (!$data && ini_get('allow_url_fopen')) $data = @file_get_contents($UPDATE_URL);
-if (!$data || strlen($data) < 10000) exit(html('❌ دانلود بسته از مخزن ممکن نشد. (اگر هاست دانلود خارجی را بسته، با cron یا دستی زیپ را جایگزین کنید.)'));
+if (!$data || strlen($data) < 10000) exit(html('❌ دانلود بسته ممکن نشد.'));
 
 $tmp = tempnam(sys_get_temp_dir(), 'bazika');
 file_put_contents($tmp, $data);
@@ -61,26 +47,29 @@ $done = false; $msg = '';
 if (class_exists('ZipArchive')) {
     $zip = new ZipArchive();
     if ($zip->open($tmp) === true) {
-        // نسخهٔ قدیمی تنظیمات را نگه دار
         $cfgBackup = file_get_contents($cfg);
-        $done = $zip->extractTo(HERE);
+        $done = true;
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $name = $zip->getNameIndex($i);
+            if (strpos($name, 'data/') === 0) continue;   // دادهٔ CMS هرگز بازنویسی نشود
+            if (substr($name, -1) === '/') { @mkdir(HERE . '/' . $name, 0777, true); continue; }
+            $dest = HERE . '/' . $name;
+            @mkdir(dirname($dest), 0777, true);
+            if (file_put_contents($dest, $zip->getFromIndex($i)) === false) $done = false;
+        }
         $zip->close();
         file_put_contents($cfg, $cfgBackup);
-        $msg = 'با ZipArchive';
+        $msg = 'ZipArchive';
     }
 }
 if (!$done) {
     @exec('unzip -oq ' . escapeshellarg($tmp) . ' -d ' . escapeshellarg(HERE) . ' 2>&1', $o, $rc);
-    if ($rc === 0) { $done = true; $msg = 'با unzip'; }
+    if ($rc === 0) { $done = true; $msg = 'unzip'; }
 }
 @unlink($tmp);
 
 $new = json_decode((string)@file_get_contents(HERE . '/version.json'), true);
-exit(html(
-    $done
-    ? ('✅ به‌روزرسانی انجام شد (' . $msg . ')<br>نسخهٔ جدید: <b>' . h($new ? $new['build'] : '؟') . '</b>')
-    : '❌ هاست اجازهٔ بازکردن زیپ را نداد (ZipArchive/unzip موجود نیست). زیپ را دستی Extract کنید.'
-));
+exit(html($done ? ('✅ به‌روزرسانی انجام شد (' . $msg . ')<br>نسخهٔ جدید: <b>' . h($new ? $new['build'] : '؟') . '</b>') : '❌ بازکردن زیپ ممکن نشد.'));
 
 function h($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 function html($body) {
