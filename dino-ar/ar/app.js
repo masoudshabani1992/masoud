@@ -50,6 +50,11 @@ function start(st) {
     bg.className = 'layer bg';
     bg.src = st.background;
     bg.alt = '';
+    bg.onload = function () {
+      if (bg.naturalWidth && bg.naturalHeight) {
+        frame.style.aspectRatio = bg.naturalWidth + ' / ' + bg.naturalHeight;
+      }
+    };
     frame.appendChild(bg);
   }
 

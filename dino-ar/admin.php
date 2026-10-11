@@ -191,6 +191,15 @@ foreach ($idx['stands'] as $s) {
         . '<a class="btn ghost" href="ar/?stand=' . h($s['id']) . '" target="_blank">👁 پیش‌نمایش</a> '
         . '<a class="btn danger" href="admin.php?delete=' . h($s['id']) . '" onclick="return confirm(\'حذف شود؟\')"> حذف</a></div>';
 }
+// کارت به‌روزرسانی داخل پنل
+$upKey = '';
+if (file_exists(ROOT . '/update-config.php')) {
+    require ROOT . '/update-config.php';
+    $upKey = isset($UPDATE_KEY) ? $UPDATE_KEY : '';
+}
+$body .= '<div class="card"><h3>🔄 به‌روزرسانی نسخه</h3>' . ($upKey
+    ? '<a class="btn" href="update.php?key=' . h($upKey) . '" target="_blank">⬆ نصب آخرین نسخه</a> <a class="btn ghost" href="update.php?key=' . h($upKey) . '&check=1" target="_blank">بررسی نسخه</a><p class="dim">استندها و رسانه‌های شما (پوشهٔ data/) هنگام آپدیت دست‌نخورده می‌مانند.</p>'
+    : '<p class="dim">یک بار <code>update.php</code> را باز کنید تا کلید ساخته شود؛ بعد این دکمه‌ها فعال می‌شوند.</p>') . '</div>';
 echo page('بازیکا CMS', $body);
 
 /* ── قالب ── */
