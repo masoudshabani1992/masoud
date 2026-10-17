@@ -6,7 +6,8 @@ SRC="$(pwd)"
 D="$(pwd)/../deploy"
 rm -rf "$D"
 mkdir -p "$D/ar" "$D/vendor" "$D/assets/sprites" "$D/data/stands" \
-         "$D/content/dino/images/v2" "$D/content/dino/audio"
+         "$D/content/dino/images/v2" "$D/content/dino/audio" \
+         "$D/content/cave/images/v2" "$D/content/cave/audio"
 
 cp index.php admin.php bz_guard.php "$D/"
 cp deploy-guide/update.php "$D/update.php"
@@ -19,6 +20,8 @@ cp -r assets/sprites "$D/assets/" 2>/dev/null || true
 cp data/stands/index.json data/stands/dino.json "$D/data/stands/"
 cp content/dino/images/v2/*.webp "$D/content/dino/images/v2/"
 cp content/dino/audio/*.mp3 "$D/content/dino/audio/"
+cp content/cave/images/v2/*.webp "$D/content/cave/images/v2/"
+cp content/cave/audio/* "$D/content/cave/audio/" 2>/dev/null || true
 cp version.json "$D/version.json"
 
 # مبهم‌سازی جاوااسکریپت
