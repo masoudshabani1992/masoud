@@ -40,7 +40,7 @@ $BZ_TOK = bz_token();
     <canvas id="cam" width="480" height="640"></canvas>
     <div id="scrim">
       <div style="font-size:44px">📷</div>
-      <p id="scrimMsg" style="max-width:420px;line-height:2">دوربین را روی <b>عکس استند</b> بگیرید؛ بدون نیاز به بارکد، خودش آن را می‌شناسد.</p>
+      <p id="scrimMsg" style="max-width:420px;line-height:2">این صفحه <b>داخل سایت</b> استند را می‌شناسد: دکمه را بزن و دوربین را روی <b>عکس استند</b> بگیر تا قفل شود و استند زنده باز شود.<br><span style="opacity:.8;font-size:13px">(برای باز شدن سایت با ضربهٔ گوشی به استند، برچسب NFC ببندید — راهنمای بسته)</span></p>
       <button id="btnStart">فعال‌سازی دوربین</button>
       <a class="btn ghost" href="../index.php">بازگشت بدون دوربین</a>
     </div>
@@ -49,7 +49,7 @@ $BZ_TOK = bz_token();
   <div id="bar">
     <div id="status">برای شروع، دکمهٔ فعال‌سازی دوربین را بزنید</div>
     <div id="hint">💡 استند را کامل داخل کادر جا بدهید، صاف و رو به دوربین نگه دارید و نور کافی بتابانید</div>
-    <div id="diagline" style="font-size:10px;opacity:.45;margin-top:6px;font-family:monospace" dir="ltr"></div>
+    <div id="stats" style="font:11px monospace;opacity:.55;margin-top:4px" dir="ltr"></div>
   </div>
 </div>
 
@@ -73,6 +73,7 @@ var confirmHits = {};       // id -> {n, t}
 var FOUND = false;
 
 var statusEl = document.getElementById('status');
+var statsEl = document.getElementById('stats');
 var scrim = document.getElementById('scrim');
 var scrimMsg = document.getElementById('scrimMsg');
 var foundEl = document.getElementById('found');
@@ -146,13 +147,12 @@ function loop() {
     var gray = F.grayFromRGBA(img.data, w, h);
     var scene = F.extract(gray, w, h, 300);
 
-    var best = null;
+    var best = null, bestPairs = 0;
     for (var i = 0; i < models.length; i++) {
       var hit = F.detectFrame(scene, models[i].model);
       if (hit && (!best || hit.score > best.hit.score)) best = { m: models[i], hit: hit };
     }
-    var dl = document.getElementById('diagline');
-    if (dl) dl.textContent = 'feat:' + scene.desc.length + ' match:' + (best ? best.hit.inliers : 0) + ' v4.5.2';
+    if (statsEl) statsEl.textContent = 'feat:' + scene.pts.length + '  inl:' + (best ? best.hit.inliers : 0) + '  lvl:' + (best ? best.hit.level : '-') + '  ms:' + Math.round(performance.now() - t0);
     if (best) {
       var lv = best.m.model.levels[best.hit.level];
       drawQuad(best.hit.H, lv.w, lv.h, false);
@@ -201,8 +201,6 @@ function found(m) {
 document.getElementById('btnStart').addEventListener('click', function () {
   loadRefs().then(startCamera);
 });
-/* شروع خودکار: کاربر فقط صفحه را باز کند */
-loadRefs().then(function () { if (models.length) startCamera(); });
 })();
 </script>
 </body>

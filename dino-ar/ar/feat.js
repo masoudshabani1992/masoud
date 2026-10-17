@@ -143,7 +143,7 @@ function dist(a, b) {
 }
 
 function matchFeatures(sceneDesc, refDesc, maxD, ratio) {
-  maxD = maxD || 64; ratio = ratio || 0.86;
+  maxD = maxD || 55; ratio = ratio || 0.8;
   var pairs = [];
   for (var i = 0; i < sceneDesc.length; i++) {
     var b1 = 1e9, b2 = 1e9, bi = -1;
@@ -315,7 +315,7 @@ function detectFrame(sceneFeat, refModel) {
     }
   }
   if (!best) return null;
-  if (best.inliers < 20 || best.ratio < 0.10) return null;
+  if (best.inliers < 24 || best.ratio < 0.12) return null;
   return best;
 }
 

@@ -18,7 +18,6 @@ cp assets/logo.png assets/jungle.jpg "$D/assets/" 2>/dev/null || true
 cp -r assets/sprites "$D/assets/" 2>/dev/null || true
 cp data/stands/index.json data/stands/dino.json "$D/data/stands/"
 cp content/dino/images/v2/*.webp "$D/content/dino/images/v2/"
-cp content/dino/ref.json "$D/content/dino/ref.json"
 cp content/dino/audio/*.mp3 "$D/content/dino/audio/"
 cp version.json "$D/version.json"
 
