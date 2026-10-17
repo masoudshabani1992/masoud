@@ -7,6 +7,8 @@ mkdir -p "$DEST"
 FOLDER="119ZLlC_hOwna4N2B160D96DEb1I0rOpW"
 
 curl -sL "https://drive.google.com/embeddedfolderview?id=${FOLDER}" -o /tmp/folderview.html || true
+# تشخیص: اگر تجزیه ناموفق بود، بخشی از HTML داخل ریپو کامیت می‌شود
+head -c 3000 /tmp/folderview.html > "$DEST/fetch-debug.txt" 2>/dev/null || true
 python3 - "$DEST" <<'PY'
 import re, sys, os, subprocess, html
 dest = sys.argv[1]
@@ -17,6 +19,8 @@ if not pairs:
     pairs = re.findall(r'\?id=([A-Za-z0-9_-]{20,})[^>]*>\s*<span class="flip-entry-name">([^<]+)</span>', raw)
 if not pairs:
     pairs = re.findall(r'id="entry-([A-Za-z0-9_-]{20,})".*?flip-entry-name">([^<]+)<', raw, re.S)
+import io as _io
+_io.open(os.path.join(dest,'fetch-debug.txt'),'a',encoding='utf8').write('\npairs=%d\n' % len(pairs) + '\n'.join(n for _,n in pairs[:40]))
 seen = set()
 for fid, name in pairs:
     if fid in seen: continue
