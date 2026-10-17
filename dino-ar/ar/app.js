@@ -108,6 +108,17 @@ document.getElementById('popupClose').addEventListener('click', function () {
   document.getElementById('popup').classList.remove('open');
 });
 
+// 🔉 صدای محیط استند (لوپ ملایم) — با اولین لمس شروع و با دکمهٔ صدا قطع می‌شود
+var ambAudio = null;
+function startAmbience() {
+  if (!STAND || !STAND.ambience || muted || ambAudio) return;
+  ambAudio = new Audio(STAND.ambience);
+  ambAudio.loop = true;
+  ambAudio.volume = 0.32;
+  ambAudio.play().catch(function () { ambAudio = null; });
+}
+document.addEventListener('pointerdown', function () { startAmbience(); }, { once: true });
+
 // ▶ صدای راوی
 var narAudio = null;
 var btnPlay = document.getElementById('btnPlay');
@@ -140,6 +151,7 @@ btnMute.addEventListener('click', function () {
   muted = !muted;
   localStorage.setItem('bazika-muted', muted ? '1' : '0');
   if (muted && narAudio) { narAudio.pause(); narAudio = null; btnPlay.innerHTML = '▶<span>صدای راوی</span>'; }
+  if (ambAudio) { if (muted) ambAudio.pause(); else ambAudio.play().catch(function () {}); }
   muteUI();
   toast(muted ? '🔇 همهٔ صداها قطع شد' : '🔊 صدا وصل شد');
 });
