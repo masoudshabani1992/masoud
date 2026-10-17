@@ -14,11 +14,7 @@ import re, sys, os, subprocess, html
 dest = sys.argv[1]
 raw = open('/tmp/folderview.html', encoding='utf8', errors='ignore').read()
 # جفت‌های (شناسه فایل، نام فایل)
-pairs = re.findall(r'id="entry-([A-Za-z0-9_-]{20,})"[^>]*aria-label="([^"]+)"', raw)
-if not pairs:
-    pairs = re.findall(r'\?id=([A-Za-z0-9_-]{20,})[^>]*>\s*<span class="flip-entry-name">([^<]+)</span>', raw)
-if not pairs:
-    pairs = re.findall(r'id="entry-([A-Za-z0-9_-]{20,})".*?flip-entry-name">([^<]+)<', raw, re.S)
+pairs = re.findall(r'id="entry-([A-Za-z0-9_-]{20,})".*?flip-entry-title">([^<]+)</div>', raw, re.S)
 import io as _io
 _io.open(os.path.join(dest,'fetch-debug.txt'),'a',encoding='utf8').write('\npairs=%d\n' % len(pairs) + '\n'.join(n for _,n in pairs[:40]))
 seen = set()
