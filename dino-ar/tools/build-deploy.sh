@@ -17,7 +17,7 @@ cp ar/index.php ar/data.php ar/detect.php ar/ui.css ar/admin-ref.js "$D/ar/"
 cp vendor/qrcode.js "$D/vendor/"
 cp assets/logo.png assets/jungle.jpg "$D/assets/" 2>/dev/null || true
 cp -r assets/sprites "$D/assets/" 2>/dev/null || true
-cp data/stands/index.json data/stands/dino.json "$D/data/stands/"
+cp data/stands/index.json data/stands/dino.json data/stands/cave.json "$D/data/stands/"
 cp content/dino/images/v2/*.webp "$D/content/dino/images/v2/"
 cp content/dino/audio/*.mp3 "$D/content/dino/audio/"
 cp content/cave/images/v2/*.webp "$D/content/cave/images/v2/"
