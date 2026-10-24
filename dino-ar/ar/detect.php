@@ -29,6 +29,11 @@ $BZ_TOK = bz_token();
   #found { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; z-index: 6; pointer-events: none; }
   #found.on { display: flex; }
   #found .card { background: rgba(20, 92, 50, .95); border: 2px solid #7fe0a8; padding: 18px 26px; border-radius: 18px; font-size: 20px; font-weight: bold; animation: pop .35s ease; }
+  .sheetx { position: absolute; inset: 0; background: rgba(6,9,13,.7); display: none; align-items: flex-end; justify-content: center; z-index: 7; }
+  .sheetx.open { display: flex; }
+  .sheetx .boxx { background: #141a22; width: 100%; border-radius: 20px 20px 0 0; padding: 18px 18px calc(20px + env(safe-area-inset-bottom)); position: relative; max-height: 70%; overflow: auto; }
+  .closex { position: absolute; top: 10px; left: 12px; background: #223; border: 0; color: #fff; border-radius: 10px; padding: 6px 10px; cursor: pointer; }
+  #directList a { display: block; margin: 8px 0; padding: 14px 16px; background: #1e7a46; color: #fff; border-radius: 14px; text-decoration: none; font-size: 15px; }
   @keyframes pop { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
   #brandmini { position: absolute; top: 10px; right: 12px; height: 34px; opacity: .9; z-index: 4; }
 </style>
@@ -42,9 +47,18 @@ $BZ_TOK = bz_token();
       <div style="font-size:44px">📷</div>
       <p id="scrimMsg" style="max-width:420px;line-height:2">این صفحه <b>داخل سایت</b> استند را می‌شناسد: دکمه را بزن و دوربین را روی <b>عکس استند</b> بگیر تا قفل شود و استند زنده باز شود.<br><span style="opacity:.8;font-size:13px">(برای باز شدن سایت با ضربهٔ گوشی به استند، برچسب NFC ببندید — راهنمای بسته)</span></p>
       <button id="btnStart">فعال‌سازی دوربین</button>
+      <button class="ghost" id="btnDirect">🎬 تماشای مستقیم</button>
       <a class="btn ghost" href="../index.php">بازگشت بدون دوربین</a>
     </div>
     <div id="found"><div class="card">🦖 استند پیدا شد!</div></div>
+    <div id="direct" class="sheetx">
+      <div class="boxx">
+        <button class="closex" id="directClose" aria-label="بستن">✖</button>
+        <h3>🎬 تماشای مستقیم</h3>
+        <p style="opacity:.75;font-size:13px">بدون اسکن، همان‌ها را از فهرست باز کن:</p>
+        <div id="directList"></div>
+      </div>
+    </div>
   </div>
   <div id="bar">
     <div id="status">برای شروع، دکمهٔ فعال‌سازی دوربین را بزنید</div>
@@ -145,7 +159,7 @@ function loop() {
     camCtx.drawImage(video, 0, 0, w, h);
     var img = camCtx.getImageData(0, 0, w, h);
     var gray = F.grayFromRGBA(img.data, w, h);
-    var scene = F.extract(gray, w, h, 300);
+    var scene = F.extract(gray, w, h, 400);
 
     var best = null, bestPairs = 0;
     for (var i = 0; i < models.length; i++) {
@@ -168,6 +182,7 @@ function loop() {
 
 function registerHit(m) {
   var now = Date.now();
+  lastHitAt = now;
   var rec = confirmHits[m.id] || { n: 0, t: 0 };
   rec.n = (now - rec.t < 2600) ? rec.n + 1 : 1;
   rec.t = now;
@@ -201,6 +216,37 @@ function found(m) {
 document.getElementById('btnStart').addEventListener('click', function () {
   loadRefs().then(startCamera);
 });
+
+/* ── تماشای مستقیم: فهرست استندها بدون اسکن ── */
+var directEl = document.getElementById('direct');
+document.getElementById('btnDirect').addEventListener('click', function () {
+  directEl.classList.add('open');
+  var list = document.getElementById('directList');
+  if (list.childElementCount) return;
+  list.innerHTML = '<p style="opacity:.6">⏳ در حال خواندن فهرست…</p>';
+  fetch('data.php?x=index&t=' + encodeURIComponent(window.BZ_TOKEN || ''), { credentials: 'same-origin' })
+    .then(function (r) { return r.ok ? r.json() : { stands: [] }; })
+    .then(function (idx) {
+      list.innerHTML = '';
+      (idx.stands || []).forEach(function (st) {
+        var a = document.createElement('a');
+        a.href = 'index.php?stand=' + encodeURIComponent(st.id);
+        a.textContent = '🦖 ' + (st.title || st.id) + ' — ' + (st.month || '');
+        list.appendChild(a);
+      });
+      if (!list.childElementCount) list.innerHTML = '<p style="opacity:.6">استندی پیدا نشد.</p>';
+    })
+    .catch(function () { list.innerHTML = '<p style="opacity:.6">خطا در خواندن فهرست.</p>'; });
+});
+document.getElementById('directClose').addEventListener('click', function () { directEl.classList.remove('open'); });
+
+/* ── راهنمای نزدیکی: اگر ۱۰ ثانیه هیچ تطبیقی نبود ── */
+var lastHitAt = Date.now();
+setInterval(function () {
+  if (running && !FOUND && Date.now() - lastHitAt > 10000) {
+    document.getElementById('hint').textContent = '📏 کمی نزدیک‌تر شو تا استند بیشترِ کادر را پر کند؛ صاف و رو به دوربین نگه دار';
+  }
+}, 1500);
 })();
 </script>
 </body>

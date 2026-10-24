@@ -143,7 +143,7 @@ function dist(a, b) {
 }
 
 function matchFeatures(sceneDesc, refDesc, maxD, ratio) {
-  maxD = maxD || 55; ratio = ratio || 0.8;
+  maxD = maxD || 72; ratio = ratio || 0.86;
   var pairs = [];
   for (var i = 0; i < sceneDesc.length; i++) {
     var b1 = 1e9, b2 = 1e9, bi = -1;
@@ -293,7 +293,7 @@ function ransac(pairs, scenePts, refPts, iters, tol) {
     }
     if (cnt > bestN) { bestN = cnt; best = H; }
   }
-  if (!best || bestN < 14) return null;
+  if (!best || bestN < 12) return null;
   return { H: best, inliers: bestN, total: n };
 }
 
@@ -304,7 +304,7 @@ function detectFrame(sceneFeat, refModel) {
   for (var li = 0; li < levels.length; li++) {
     var lv = levels[li];
     var pairs = matchFeatures(sceneFeat.desc, lv.desc);
-    if (pairs.length < 14) continue;
+    if (pairs.length < 10) continue;
     var r = ransac(pairs, sceneFeat.pts, lv.pts);
     if (!r) continue;
     if (!quadSane(r.H, lv.w, lv.h, sceneFeat.w, sceneFeat.h)) continue;
@@ -315,7 +315,7 @@ function detectFrame(sceneFeat, refModel) {
     }
   }
   if (!best) return null;
-  if (best.inliers < 24 || best.ratio < 0.12) return null;
+  if (best.inliers < 16 || best.ratio < 0.08) return null;
   return best;
 }
 

@@ -34,7 +34,7 @@
     ev.preventDefault();
     if (stat) stat.textContent = '⏳ در حال ساخت مرجع تشخیص دوربین…';
     loadImg(src).then(function (img) {
-      var levels = [340, 480, 640].map(function (w) {
+      var levels = [160, 240, 340, 480, 640].map(function (w) {
         var g = canvasToGray(img, w);
         return window.BZFeat.extract(g.gray, g.w, g.h, 300);
       });

@@ -11,7 +11,7 @@ async function grayOf(src, w) {
 (async () => {
   const [src, jsonPath] = process.argv.slice(2);
   const levels = [];
-  for (const w of [340, 480, 640]) {
+  for (const w of [160, 240, 340, 480, 640]) {
     const im = await grayOf(src, w);
     levels.push(F.extract(im.g, im.w, im.h, 300));
   }
