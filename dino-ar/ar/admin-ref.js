@@ -36,7 +36,7 @@
     loadImg(src).then(function (img) {
       var levels = [160, 240, 340, 480, 640].map(function (w) {
         var g = canvasToGray(img, w);
-        return window.BZFeat.extract(g.gray, g.w, g.h, 300);
+        return window.BZFeat.extract(window.BZFeat.illumNorm(g.gray, g.w, g.h), g.w, g.h, 300);
       });
       hid.value = JSON.stringify(window.BZFeat.serialize(levels));
       if (stat) stat.textContent = '✅ مرجع تشخیص ساخته شد';

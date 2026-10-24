@@ -13,7 +13,7 @@ async function grayOf(src, w) {
   const levels = [];
   for (const w of [160, 240, 340, 480, 640]) {
     const im = await grayOf(src, w);
-    levels.push(F.extract(im.g, im.w, im.h, 300));
+    levels.push(F.extract(F.illumNorm(im.g, im.w, im.h), im.w, im.h, 300));
   }
   const ref = F.serialize(levels);
   const st = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));

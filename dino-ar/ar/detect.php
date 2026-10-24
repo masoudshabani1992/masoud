@@ -77,6 +77,10 @@ window.BZ_TOKEN = <?php echo json_encode($BZ_TOK); ?>;
 var F = window.BZFeat;
 var camCanvas = document.getElementById('cam');
 var camCtx = camCanvas.getContext('2d', { willReadFrequently: true });
+var rotC = document.createElement('canvas');
+var rotX = rotC.getContext('2d', { willReadFrequently: true });
+var ANG = [0, 20, -20, 40, -40];   // چرخش‌های درون‌صفحه‌ای که هر فریم یکی را می‌آزماید
+var angIdx = 0;
 var video = document.createElement('video');
 video.setAttribute('playsinline', '');
 video.muted = true;
@@ -156,9 +160,19 @@ function loop() {
   if (video.readyState >= 2 && video.videoWidth) {
     var w = 480, h = Math.round(480 * video.videoHeight / video.videoWidth);
     if (camCanvas.width !== w || camCanvas.height !== h) { camCanvas.width = w; camCanvas.height = h; }
-    camCtx.drawImage(video, 0, 0, w, h);
-    var img = camCtx.getImageData(0, 0, w, h);
-    var gray = F.grayFromRGBA(img.data, w, h);
+    var ang = ANG[angIdx % ANG.length]; angIdx++;
+    var img;
+    if (ang === 0) {
+      camCtx.drawImage(video, 0, 0, w, h);
+      img = camCtx.getImageData(0, 0, w, h);
+    } else {
+      rotC.width = w; rotC.height = h;
+      rotX.fillStyle = '#808080'; rotX.fillRect(0, 0, w, h);
+      rotX.save(); rotX.translate(w / 2, h / 2); rotX.rotate(ang * Math.PI / 180);
+      rotX.drawImage(video, -w / 2, -h / 2, w, h); rotX.restore();
+      img = rotX.getImageData(0, 0, w, h);
+    }
+    var gray = F.illumNorm(F.grayFromRGBA(img.data, w, h), w, h);
     var scene = F.extract(gray, w, h, 400);
 
     var best = null, bestPairs = 0;
@@ -166,10 +180,14 @@ function loop() {
       var hit = F.detectFrame(scene, models[i].model);
       if (hit && (!best || hit.score > best.hit.score)) best = { m: models[i], hit: hit };
     }
-    if (statsEl) statsEl.textContent = 'feat:' + scene.pts.length + '  inl:' + (best ? best.hit.inliers : 0) + '  lvl:' + (best ? best.hit.level : '-') + '  ms:' + Math.round(performance.now() - t0);
+    if (statsEl) statsEl.textContent = 'feat:' + scene.pts.length + '  inl:' + (best ? best.hit.inliers : 0) + '  lvl:' + (best ? best.hit.level : '-') + '  ang:' + ang + '  ms:' + Math.round(performance.now() - t0);
     if (best) {
-      var lv = best.m.model.levels[best.hit.level];
-      drawQuad(best.hit.H, lv.w, lv.h, false);
+      if (ang === 0) {
+        var lv = best.m.model.levels[best.hit.level];
+        drawQuad(best.hit.H, lv.w, lv.h, false);
+      } else {
+        camCtx.save(); camCtx.lineWidth = 6; camCtx.strokeStyle = 'rgba(255,214,90,.9)'; camCtx.strokeRect(4, 4, w - 8, h - 8); camCtx.restore();
+      }
       registerHit(best.m);
     } else {
       setStatus('🔎 دنبال استند می‌گردم…');

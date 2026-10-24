@@ -51,6 +51,49 @@ function grayFromRGBA(data, w, h) {
   return g;
 }
 
+/* حذف نور نام یکنواخت و بازتاب (رتینکس لوگاریتمی) — برای چاپ براق */
+function _boxH(src, w, h, r) {
+  var out = new Float32Array(w * h);
+  for (var y = 0; y < h; y++) {
+    var row = y * w, acc = 0;
+    for (var x = -r; x <= r; x++) acc += src[row + Math.min(w - 1, Math.max(0, x))];
+    for (x = 0; x < w; x++) {
+      out[row + x] = acc / (2 * r + 1);
+      var add = Math.min(w - 1, x + r + 1), sub = Math.max(0, x - r);
+      acc += src[row + add] - src[row + sub];
+    }
+  }
+  return out;
+}
+function _boxV(src, w, h, r) {
+  var out = new Float32Array(w * h);
+  for (var x = 0; x < w; x++) {
+    var acc = 0;
+    for (var y = -r; y <= r; y++) acc += src[Math.min(h - 1, Math.max(0, y)) * w + x];
+    for (y = 0; y < h; y++) {
+      out[y * w + x] = acc / (2 * r + 1);
+      var add = Math.min(h - 1, y + r + 1), sub = Math.max(0, y - r);
+      acc += src[add * w + x] - src[sub * w + x];
+    }
+  }
+  return out;
+}
+function illumNorm(g, w, h) {
+  var L = new Float32Array(w * h), i;
+  for (i = 0; i < g.length; i++) L[i] = Math.log(g[i] + 8);
+  var b = _boxH(L, w, h, 20); b = _boxV(b, w, h, 20);
+  b = _boxH(b, w, h, 20); b = _boxV(b, w, h, 20);
+  var out = new Float32Array(w * h), min = 1e9, max = -1e9;
+  for (i = 0; i < out.length; i++) {
+    out[i] = L[i] - b[i];
+    if (out[i] < min) min = out[i];
+    if (out[i] > max) max = out[i];
+  }
+  var range = (max - min) || 1;
+  for (i = 0; i < out.length; i++) out[i] = ((out[i] - min) / range) * 255;
+  return out;
+}
+
 function grayNormalize(g) {
   var min = 255, max = 0, i;
   for (i = 0; i < g.length; i++) { if (g[i] < min) min = g[i]; if (g[i] > max) max = g[i]; }
@@ -349,6 +392,7 @@ return {
   PATCH: PATCH,
   grayFromRGBA: grayFromRGBA,
   grayNormalize: grayNormalize,
+  illumNorm: illumNorm,
   extract: extract,
   matchFeatures: matchFeatures,
   homography4: homography4,
