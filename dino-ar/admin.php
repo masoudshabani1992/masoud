@@ -216,7 +216,10 @@ if (isset($_GET['edit'])) {
             . '<label>نوع حرکت</label><select name="c_anim[' . $i . ']">'
             . '<option value="bob" ' . ((($c['anim'] ?? '') === 'bob') ? 'selected' : '') . '>بالا‌پایین (bob)</option>'
             . '<option value="sway" ' . ((($c['anim'] ?? '') === 'sway') ? 'selected' : '') . '>گهواره‌ای (sway)</option>'
-            . '<option value="walk" ' . ((($c['anim'] ?? '') === 'walk') ? 'selected' : '') . '>قدم‌زدن (walk)</option></select>'
+            . '<option value="walk" ' . ((($c['anim'] ?? '') === 'walk') ? 'selected' : '') . '>قدم‌زدن (walk)</option>'
+            . '<option value="flicker" ' . ((($c['anim'] ?? '') === 'flicker') ? 'selected' : '') . '>سوسوی شعله (flicker)</option>'
+            . '<option value="paint" ' . ((($c['anim'] ?? '') === 'paint') ? 'selected' : '') . '>. مالش دست نقاش (paint)</option>'
+            . '<option value="breathe" ' . ((($c['anim'] ?? '') === 'breathe') ? 'selected' : '') . '>تنفس (breathe)</option></select>'
             . '<label>سرعت حرکت (ثانیه)</label><input name="c_dur[' . $i . ']" value="' . h($c['dur'] ?? 3) . '">'
             . '</fieldset>';
     }
