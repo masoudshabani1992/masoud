@@ -71,7 +71,8 @@ function start(st) {
   chars.sort(function (a, b) { return (a.z || 0) - (b.z || 0); });
   chars.forEach(function (c) {
     var img = document.createElement('img');
-    img.className = 'layer char anim-' + (c.anim || 'bob');
+    img.className = 'layer char' + (c.anim && c.anim !== 'none' ? ' anim-' + c.anim : '');
+    if (c.ox != null || c.oy != null) img.style.transformOrigin = (c.ox != null ? c.ox : 50) + '% ' + (c.oy != null ? c.oy : 100) + '%';
     img.src = c.image;
     img.alt = c.name || '';
     img.style.left = (c.left != null ? c.left : 10) + '%';

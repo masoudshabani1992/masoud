@@ -159,22 +159,23 @@ body.portrait { background: #0d1015; }
 
 /* 🔥 سوسوی واقعی شعله: مقیاس+روشنی لرزان با هالهٔ نور */
 @keyframes bz-flicker {
-  0%   { transform: scale(1, 1) translateY(0);      opacity: 1;   filter: drop-shadow(0 0 12px rgba(255,140,30,.35)) brightness(1); }
-  18%  { transform: scale(1.05, 0.94) translateY(0.4%); opacity: .96; filter: drop-shadow(0 0 18px rgba(255,150,40,.5)) brightness(1.14); }
-  37%  { transform: scale(0.96, 1.07) translateY(-0.5%); opacity: 1;  filter: drop-shadow(0 0 10px rgba(255,120,20,.3)) brightness(0.9); }
-  55%  { transform: scale(1.03, 1.02) translateY(0.2%); opacity: .98; filter: drop-shadow(0 0 20px rgba(255,160,50,.55)) brightness(1.1); }
-  74%  { transform: scale(0.98, 0.96) translateY(0.5%); opacity: .95; filter: drop-shadow(0 0 9px rgba(255,120,20,.28)) brightness(0.93); }
-  100% { transform: scale(1, 1) translateY(0);      opacity: 1;   filter: drop-shadow(0 0 12px rgba(255,140,30,.35)) brightness(1); }
+  0%   { transform: scale(1, 1) skewX(0deg) translateY(0);       opacity: 1;   filter: drop-shadow(0 0 10px rgba(255,140,30,.32)) brightness(1); }
+  15%  { transform: scale(1.02, 0.97) skewX(0.8deg) translateY(0.3%);  opacity: .97; filter: drop-shadow(0 0 16px rgba(255,150,40,.48)) brightness(1.16); }
+  32%  { transform: scale(0.985, 1.045) skewX(-0.7deg) translateY(-0.4%); opacity: 1;  filter: drop-shadow(0 0 8px rgba(255,120,20,.26)) brightness(0.88); }
+  51%  { transform: scale(1.03, 1.01) skewX(0.5deg) translateY(0.15%); opacity: .985; filter: drop-shadow(0 0 19px rgba(255,160,50,.52)) brightness(1.1); }
+  70%  { transform: scale(0.99, 0.975) skewX(-0.4deg) translateY(0.4%); opacity: .96; filter: drop-shadow(0 0 7px rgba(255,120,20,.24)) brightness(0.92); }
+  86%  { transform: scale(1.015, 1.03) skewX(0.6deg) translateY(-0.2%); opacity: .99; filter: drop-shadow(0 0 14px rgba(255,150,40,.42)) brightness(1.06); }
+  100% { transform: scale(1, 1) skewX(0deg) translateY(0);       opacity: 1;   filter: drop-shadow(0 0 10px rgba(255,140,30,.32)) brightness(1); }
 }
 #frame .anim-flicker { transform-origin: 50% 92%; animation: bz-flicker 0.7s linear infinite; }
 
 /*  دست نقاش: مالش رفت‌وبرگشتی روی دیوار (چرخش خیلی ریز حول شانه) */
 @keyframes bz-paint {
-  0%   { transform: rotate(-1.1deg) translate(0, 0); }
-  28%  { transform: rotate(0.9deg) translate(0.5%, -0.4%); }
-  52%  { transform: rotate(-0.5deg) translate(-0.4%, 0.3%); }
-  76%  { transform: rotate(1.3deg) translate(0.4%, -0.2%); }
-  100% { transform: rotate(-1.1deg) translate(0, 0); }
+  0%   { transform: rotate(-0.55deg) translate(0, 0); }
+  26%  { transform: rotate(0.45deg) translate(0.45%, -0.35%); }
+  50%  { transform: rotate(-0.3deg) translate(-0.35%, 0.25%); }
+  74%  { transform: rotate(0.65deg) translate(0.35%, -0.15%); }
+  100% { transform: rotate(-0.55deg) translate(0, 0); }
 }
 #frame .anim-paint { transform-origin: 62% 68%; animation: bz-paint 0.9s ease-in-out infinite; }
 
