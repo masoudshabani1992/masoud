@@ -1,0 +1,80 @@
+<!-- بلوک HTML آماده برای صفحه تماس با ما مانوش -->
+<section id="manoosh-locations" dir="rtl" lang="fa" aria-labelledby="manoosh-locations-title">
+  <style>
+    #manoosh-locations {
+      --manoosh-green: #159957;
+      --manoosh-ink: #18352a;
+      --manoosh-muted: #68766f;
+      direction: rtl;
+      max-width: 1120px;
+      margin: 36px auto;
+      padding: 0 16px;
+      color: var(--manoosh-ink);
+      font-family: inherit, sans-serif;
+      box-sizing: border-box;
+    }
+    #manoosh-locations *, #manoosh-locations *::before, #manoosh-locations *::after { box-sizing: border-box; }
+    #manoosh-locations .manoosh-locations-head { margin: 0 0 22px; text-align: center; }
+    #manoosh-locations h2 { margin: 0 0 8px; font-size: clamp(23px, 4vw, 32px); line-height: 1.5; }
+    #manoosh-locations .manoosh-subtitle { margin: 0; color: var(--manoosh-muted); font-size: 15px; line-height: 1.9; }
+    #manoosh-locations .manoosh-location-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+    #manoosh-locations .manoosh-location-card { overflow: hidden; border: 1px solid #e5eee8; border-radius: 18px; background: #fff; box-shadow: 0 6px 22px rgba(24, 53, 42, .07); }
+    #manoosh-locations .manoosh-card-content { padding: 18px 20px 14px; }
+    #manoosh-locations .manoosh-location-title { display: flex; align-items: center; gap: 9px; margin: 0 0 9px; font-size: 19px; line-height: 1.6; }
+    #manoosh-locations .manoosh-pin { display: inline-grid; flex: 0 0 34px; width: 34px; height: 34px; place-items: center; border-radius: 11px; background: #e9f7ef; color: var(--manoosh-green); font-size: 18px; }
+    #manoosh-locations address { margin: 0; color: #526159; font-size: 14px; font-style: normal; line-height: 2; }
+    #manoosh-locations .manoosh-map { display: block; width: 100%; height: 235px; border: 0; background: #f2f5f3; }
+    #manoosh-locations .manoosh-map-actions { display: flex; justify-content: flex-start; padding: 13px 18px 17px; }
+    #manoosh-locations .manoosh-map-link { display: inline-flex; align-items: center; gap: 7px; border-radius: 10px; background: var(--manoosh-green); padding: 10px 15px; color: #fff !important; font-size: 14px; font-weight: 700; text-decoration: none !important; transition: background .2s ease; }
+    #manoosh-locations .manoosh-map-link:hover { background: #107c46; }
+    @media (max-width: 720px) {
+      #manoosh-locations { margin: 25px auto; padding: 0 12px; }
+      #manoosh-locations .manoosh-location-grid { grid-template-columns: 1fr; gap: 14px; }
+      #manoosh-locations .manoosh-map { height: 220px; }
+      #manoosh-locations .manoosh-card-content { padding: 15px 16px 12px; }
+    }
+  </style>
+
+  <header class="manoosh-locations-head">
+    <h2 id="manoosh-locations-title">شعب مانوش و کارخانه</h2>
+    <p class="manoosh-subtitle">برای دیدن مسیر هر شعبه، روی نقشه یا دکمهٔ «مسیریابی» بزنید.</p>
+  </header>
+
+  <div class="manoosh-location-grid">
+    <article class="manoosh-location-card">
+      <div class="manoosh-card-content">
+        <h3 class="manoosh-location-title"><span class="manoosh-pin" aria-hidden="true">⌖</span>شعبهٔ یک تهران — نارمک</h3>
+        <address>دردشت، نارمک، دردشت جنوبی، پایین‌تر از گلبرگ، نرسیده به دقیقی، پلاک ۲۹۶</address>
+      </div>
+      <iframe class="manoosh-map" title="نقشه شعبه یک مانوش در نارمک تهران" src="https://maps.google.com/maps?q=%D8%AF%D8%B1%D8%AF%D8%B4%D8%AA%D8%8C%20%D9%86%D8%A7%D8%B1%D9%85%DA%A9%D8%8C%20%D8%AF%D8%B1%D8%AF%D8%B4%D8%AA%20%D8%AC%D9%86%D9%88%D8%A8%DB%8C%D8%8C%20%D9%BE%D9%84%D8%A7%DA%A9%20296%2C%20%D8%AA%D9%87%D8%B1%D8%A7%D9%86&output=embed&hl=fa" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+      <div class="manoosh-map-actions"><a class="manoosh-map-link" href="https://www.google.com/maps/search/?api=1&amp;query=%D8%AF%D8%B1%D8%AF%D8%B4%D8%AA%D8%8C%20%D9%86%D8%A7%D8%B1%D9%85%DA%A9%D8%8C%20%D8%AF%D8%B1%D8%AF%D8%B4%D8%AA%20%D8%AC%D9%86%D9%88%D8%A8%DB%8C%D8%8C%20%D9%BE%D9%84%D8%A7%DA%A9%20296%2C%20%D8%AA%D9%87%D8%B1%D8%A7%D9%86" target="_blank" rel="noopener noreferrer">↗ مسیریابی در گوگل‌مپ</a></div>
+    </article>
+
+    <article class="manoosh-location-card">
+      <div class="manoosh-card-content">
+        <h3 class="manoosh-location-title"><span class="manoosh-pin" aria-hidden="true">⌖</span>شعبهٔ دو تهران — مجیدیه</h3>
+        <address>مجیدیه، منصوری، ۱۶ متری دوم، بالاتر از پارک یا تره‌بار مجیدیه، بعد از کوچهٔ ابارشی، پلاک ۱۳۶</address>
+      </div>
+      <iframe class="manoosh-map" title="نقشه شعبه دو مانوش در مجیدیه تهران" src="https://maps.google.com/maps?q=%D9%85%D8%AC%DB%8C%D8%AF%DB%8C%D9%87%D8%8C%20%D9%85%D9%86%D8%B5%D9%88%D8%B1%DB%8C%D8%8C%2016%20%D9%85%D8%AA%D8%B1%DB%8C%20%D8%AF%D9%88%D9%85%D8%8C%20%D9%BE%D9%84%D8%A7%DA%A9%20136%2C%20%D8%AA%D9%87%D8%B1%D8%A7%D9%86&output=embed&hl=fa" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+      <div class="manoosh-map-actions"><a class="manoosh-map-link" href="https://www.google.com/maps/search/?api=1&amp;query=%D9%85%D8%AC%DB%8C%D8%AF%DB%8C%D9%87%D8%8C%20%D9%85%D9%86%D8%B5%D9%88%D8%B1%DB%8C%D8%8C%2016%20%D9%85%D8%AA%D8%B1%DB%8C%20%D8%AF%D9%88%D9%85%D8%8C%20%D9%BE%D9%84%D8%A7%DA%A9%20136%2C%20%D8%AA%D9%87%D8%B1%D8%A7%D9%86" target="_blank" rel="noopener noreferrer">↗ مسیریابی در گوگل‌مپ</a></div>
+    </article>
+
+    <article class="manoosh-location-card">
+      <div class="manoosh-card-content">
+        <h3 class="manoosh-location-title"><span class="manoosh-pin" aria-hidden="true">⌖</span>شعبهٔ سه تهران — صادقیه</h3>
+        <address>صادقیه، خسرو شمالی، روبه‌روی تره‌بار صادقیه، پلاک ۵۰</address>
+      </div>
+      <iframe class="manoosh-map" title="نقشه شعبه سه مانوش در صادقیه تهران" src="https://maps.google.com/maps?q=%D8%AE%D8%B3%D8%B1%D9%88%20%D8%B4%D9%85%D8%A7%D9%84%DB%8C%D8%8C%20%D8%B1%D9%88%D8%A8%D9%87%E2%80%8C%D8%B1%D9%88%DB%8C%20%D8%AA%D8%B1%D9%87%E2%80%8C%D8%A8%D8%A7%D8%B1%20%D8%B5%D8%A7%D8%AF%D9%82%DB%8C%D9%87%D8%8C%20%D9%BE%D9%84%D8%A7%DA%A9%2050%2C%20%D8%AA%D9%87%D8%B1%D8%A7%D9%86&output=embed&hl=fa" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+      <div class="manoosh-map-actions"><a class="manoosh-map-link" href="https://www.google.com/maps/search/?api=1&amp;query=%D8%AE%D8%B3%D8%B1%D9%88%20%D8%B4%D9%85%D8%A7%D9%84%DB%8C%D8%8C%20%D8%B1%D9%88%D8%A8%D9%87%E2%80%8C%D8%B1%D9%88%DB%8C%20%D8%AA%D8%B1%D9%87%E2%80%8C%D8%A8%D8%A7%D8%B1%20%D8%B5%D8%A7%D8%AF%D9%82%DB%8C%D9%87%D8%8C%20%D9%BE%D9%84%D8%A7%DA%A9%2050%2C%20%D8%AA%D9%87%D8%B1%D8%A7%D9%86" target="_blank" rel="noopener noreferrer">↗ مسیریابی در گوگل‌مپ</a></div>
+    </article>
+
+    <article class="manoosh-location-card">
+      <div class="manoosh-card-content">
+        <h3 class="manoosh-location-title"><span class="manoosh-pin" aria-hidden="true">⌖</span>کارخانه — ماهدشت کرج</h3>
+        <address>استان البرز، ماهدشت، شهرک صنعتی خوارزمی، خیابان هشتم جنوبی، پلاک ۲۳</address>
+      </div>
+      <iframe class="manoosh-map" title="نقشه کارخانه مانوش در شهرک صنعتی خوارزمی ماهدشت" src="https://maps.google.com/maps?q=%D8%B4%D9%87%D8%B1%DA%A9%20%D8%B5%D9%86%D8%B9%D8%AA%DB%8C%20%D8%AE%D9%88%D8%A7%D8%B1%D8%B2%D9%85%DB%8C%D8%8C%20%D8%AE%DB%8C%D8%A7%D8%A8%D8%A7%D9%86%20%D9%87%D8%B4%D8%AA%D9%85%20%D8%AC%D9%86%D9%88%D8%A8%DB%8C%D8%8C%20%D9%BE%D9%84%D8%A7%DA%A9%2023%D8%8C%20%D9%85%D8%A7%D9%87%D8%AF%D8%B4%D8%AA%D8%8C%20%D8%A7%D9%84%D8%A8%D8%B1%D8%B2&output=embed&hl=fa" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+      <div class="manoosh-map-actions"><a class="manoosh-map-link" href="https://www.google.com/maps/search/?api=1&amp;query=%D8%B4%D9%87%D8%B1%DA%A9%20%D8%B5%D9%86%D8%B9%D8%AA%DB%8C%20%D8%AE%D9%88%D8%A7%D8%B1%D8%B2%D9%85%DB%8C%D8%8C%20%D8%AE%DB%8C%D8%A7%D8%A8%D8%A7%D9%86%20%D9%87%D8%B4%D8%AA%D9%85%20%D8%AC%D9%86%D9%88%D8%A8%DB%8C%D8%8C%20%D9%BE%D9%84%D8%A7%DA%A9%2023%D8%8C%20%D9%85%D8%A7%D9%87%D8%AF%D8%B4%D8%AA%D8%8C%20%D8%A7%D9%84%D8%A8%D8%B1%D8%B2" target="_blank" rel="noopener noreferrer">↗ مسیریابی در گوگل‌مپ</a></div>
+    </article>
+  </div>
+</section>
