@@ -258,6 +258,18 @@ export default function App() {
         )}
       </main>
 
+      {/* Application Footer */}
+      <footer className="bg-white border-t border-slate-200 py-3.5 px-4 sm:px-6 mt-auto print:hidden">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-600">
+          <div className="font-semibold">
+            {bootstrap?.publicSettings?.store_name || 'نمایندگی صبا باتری - باتری کاوه'} — سامانه یکپارچه فروش، صندوق و اتصال به سپیدار
+          </div>
+          <div className="font-extrabold text-slate-800 bg-slate-100 border border-slate-200 px-3 py-1 rounded-full">
+            برنامه‌نویس: مسعود شعبانی
+          </div>
+        </div>
+      </footer>
+
       {/* Dual-Printer Preview Modal (Label 1500+ & 80mm Receipt) */}
       {printModalState && (
         <PrintPreviewModal

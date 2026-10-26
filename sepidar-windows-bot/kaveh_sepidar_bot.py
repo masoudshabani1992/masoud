@@ -318,9 +318,12 @@ class KavehBotApp:
         log_frame = ttk.LabelFrame(self.root, text="گزارش لحظه‌ای عملیات ربات روی نرم‌افزار سپیدار", padding=8)
         log_frame.pack(fill="both", expand=True, padx=12, pady=8)
 
-        self.log_box = scrolledtext.ScrolledText(log_frame, height=18, font=("Consolas", 10))
+        self.log_box = scrolledtext.ScrolledText(log_frame, height=16, font=("Consolas", 10))
         self.log_box.pack(fill="both", expand=True)
         self.append_log("ربات دستیار سپیدار آماده است. دکمه «شروع کار خودکار ربات» را بزنید.")
+
+        footer = ttk.Label(self.root, text="نمایندگی صبا باتری (باتری کاوه)  |  برنامه‌نویس: مسعود شعبانی", anchor="center")
+        footer.pack(fill="x", padx=12, pady=(0, 8))
 
     def append_log(self, msg):
         ts = time.strftime("%H:%M:%S")

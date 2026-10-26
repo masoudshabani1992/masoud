@@ -244,6 +244,10 @@ export default function LoginView({ onLoggedIn }) {
               })}
             </div>
           </div>
+
+          <div className="mt-6 pt-4 border-t border-slate-100 text-center text-xs font-extrabold text-slate-600">
+            برنامه‌نویس: مسعود شعبانی
+          </div>
         </div>
       </div>
     </div>
