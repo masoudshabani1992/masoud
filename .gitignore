@@ -1,0 +1,9 @@
+node_modules/
+dist/
+build/
+.vite/
+data/*.db*
+*.sqlite-shm
+*.sqlite-wal
+*.zip
+.env
