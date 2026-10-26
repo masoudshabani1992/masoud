@@ -963,6 +963,7 @@ app.post('/api/admin/bot/simulate-run', requireAuth, requireAdmin, (_req, res) =
 
 app.get('/api/admin/bot/download/:file', requireAuth, requireAdmin, (req, res) => {
   const allowedFiles = {
+    'KavehSepidarBot.cs': 'text/plain; charset=utf-8',
     'kaveh_sepidar_bot.py': 'text/x-python; charset=utf-8',
     'start-sepidar-bot.bat': 'text/plain; charset=utf-8',
     'requirements.txt': 'text/plain; charset=utf-8',

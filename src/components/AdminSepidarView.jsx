@@ -699,34 +699,35 @@ export default function AdminSepidarView({ bootstrap, onRefreshBootstrap }) {
                 دانلود نرم‌افزار ربات ویندوزی (آماده نصب روی سرور طبقه بالا)
               </h4>
               <p className="text-xs text-slate-600 leading-relaxed">
-                این ۳ فایل را در یک پوشه روی سرور ویندوز طبقه بالا (کنار سپیدار) قرار داده و روی{' '}
-                <code className="font-mono bg-slate-100 px-1 rounded">start-sepidar-bot.bat</code> دابل‌کلیک کنید. همچنین همین فایل‌ها در پوشه{' '}
-                <code className="font-mono bg-slate-100 px-1 rounded">sepidar-windows-bot/</code> پروژه قرار دارند:
+                بدون نیاز به نصب پایتون یا برنامه‌های جانبی! کافی است در پوشه{' '}
+                <code className="font-mono bg-slate-100 px-1 rounded">sepidar-windows-bot</code> روی فایل{' '}
+                <code className="font-mono bg-slate-100 px-1 rounded">start-sepidar-bot.bat</code> دابل‌کلیک کنید تا ویندوز به صورت خودکار فایل اجرایی بومی{' '}
+                <code className="font-mono bg-emerald-50 text-emerald-800 px-1 rounded">KavehSepidarBot.exe</code> را بسازد و مستقیم برنامه را اجرا کند:
               </p>
 
               <div className="space-y-2.5">
                 <a
-                  href={buildBotFileDownloadUrl('kaveh_sepidar_bot.py')}
+                  href={buildBotFileDownloadUrl('start-sepidar-bot.bat')}
+                  className="w-full p-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 flex items-center justify-between text-xs font-extrabold text-emerald-950 transition"
+                >
+                  <span>۱. سازنده و لانچر اجرایی ویندوز (start-sepidar-bot.bat)</span>
+                  <Download className="w-4 h-4 text-emerald-600 shrink-0" />
+                </a>
+
+                <a
+                  href={buildBotFileDownloadUrl('KavehSepidarBot.cs')}
                   className="w-full p-3 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200 flex items-center justify-between text-xs font-extrabold text-blue-950 transition"
                 >
-                  <span>۱. هسته ربات گرافیکی ویندوز (kaveh_sepidar_bot.py)</span>
+                  <span>۲. هسته برنامه بومی ویندوز دات‌نت (KavehSepidarBot.cs)</span>
                   <Download className="w-4 h-4 text-blue-600 shrink-0" />
                 </a>
 
                 <a
-                  href={buildBotFileDownloadUrl('start-sepidar-bot.bat')}
-                  className="w-full p-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 flex items-center justify-between text-xs font-extrabold text-slate-800 transition"
+                  href={buildBotFileDownloadUrl('kaveh_sepidar_bot.py')}
+                  className="w-full p-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 flex items-center justify-between text-xs font-extrabold text-slate-700 transition"
                 >
-                  <span>۲. لانچر اجرای یک‌کلیکی ویندوز (start-sepidar-bot.bat)</span>
-                  <Download className="w-4 h-4 text-slate-600 shrink-0" />
-                </a>
-
-                <a
-                  href={buildBotFileDownloadUrl('requirements.txt')}
-                  className="w-full p-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 flex items-center justify-between text-xs font-extrabold text-slate-800 transition"
-                >
-                  <span>۳. پیش‌نیازهای کنترل ویندوز (requirements.txt)</span>
-                  <Download className="w-4 h-4 text-slate-600 shrink-0" />
+                  <span>۳. نسخه پشتیبان اسکریپت پایتون (اختیاری)</span>
+                  <Download className="w-4 h-4 text-slate-500 shrink-0" />
                 </a>
               </div>
 

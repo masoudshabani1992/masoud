@@ -1,39 +1,48 @@
 @echo off
-chcp 65001 >nul
-title Battery Kaveh - Saba Battery Automation Server
+cd /d "%~dp0"
+title Kaveh Battery - Saba Battery Web Automation Server
+
 echo ================================================================
-echo   سامانه اتوماسیون فروش، صندوق و اتصال سپیدار - باتری کاوه
-echo   نمایندگی رسمی باتری صبا
+echo   Kaveh Battery - Web Automation Server (Port 3000)
+echo   Developer: Masoud Shabani
 echo ================================================================
 echo.
 
 where node >nul 2>nul
-if %errorlevel% neq 0 (
-    echo [خطا] Node.js نسخه 22 یا بالاتر روی این سرور ویندوز نصب نیست.
-    echo لطفا نسخه LTS را از nodejs.org دانلود و نصب نمایید.
-    pause
-    exit /b 1
-)
+if errorlevel 1 goto :no_node
 
-if not exist "node_modules" (
-    echo [1/2] در حال نصب کتابخانه‌های مورد نیاز...
-    call npm install
-)
+if exist "%~dp0node_modules" goto :check_bundle
+echo [Step 1] Installing packages via npm install ...
+call npm install
+if errorlevel 1 goto :npm_err
 
-if not exist "web-bundle" (
-    echo [2/2] در حال ساخت نسخه اجرایی رابط کاربری...
-    call npm run build
-)
+:check_bundle
+if exist "%~dp0web-bundle\index.html" goto :start_srv
+echo [Step 2] Building web interface ...
+call npm run build
 
+:start_srv
 echo.
-echo آدرس‌های شبکه این سرور برای اتصال کامپیوتر صندوقدار طبقه پایین:
-for /f "tokens=2 delims=:" %%a in ('ipconfig ^| findstr /c:"IPv4"') do (
-    echo   http://%%a:3000
-)
+echo LAN IP addresses for downstairs cashiers:
+for /f "tokens=2 delims=:" %%a in ('ipconfig ^| findstr /c:"IPv4"') do echo   http://%%a:3000
 echo.
-echo سرور در حال اجرا روی پورت 3000 است (پنجره را نبندید)...
+echo Opening http://localhost:3000 in browser...
+start "" "http://localhost:3000"
+echo Server is running on port 3000. Keep this window open.
 echo ================================================================
 set NODE_ENV=production
 set PORT=3000
-node server/index.js
+node "%~dp0server\index.js"
 pause
+exit /b 0
+
+:no_node
+echo [ERROR] Node.js 22 LTS is not installed on this Windows PC.
+echo Please download and install Node.js LTS from https://nodejs.org
+pause
+exit /b 1
+
+:npm_err
+echo [ERROR] npm install failed. Check internet connection for first-time setup.
+pause
+exit /b 1
