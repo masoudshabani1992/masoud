@@ -2,7 +2,7 @@
 /**
  * Plugin Name: مانوش ارگانیک — نصب PWA
  * Description: افزودن manifest، service worker و بنر نصب برنامه مانوش به سایت وردپرسی.
- * Version: 1.1.0
+ * Version: 1.2.0
  * Author: Manoosh Organic
  * Text Domain: manoosh-pwa
  */
@@ -100,6 +100,7 @@ final class Manoosh_PWA {
         $delay = max(0, min(60, absint($o['delay'])));
         $logo = esc_url(plugins_url('assets/logo-manoosh.webp', __FILE__));
         $qr = esc_url(plugins_url('assets/qr-manoosh.png', __FILE__));
+        $install_url = add_query_arg('manoosh-install', '1', home_url('/'));
         ?>
         <style>
         #manoosh-install-fab{position:fixed;z-index:999998;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));display:none;align-items:center;gap:8px;direction:rtl;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
@@ -129,6 +130,7 @@ final class Manoosh_PWA {
         #manoosh-install-guide .mpwa-qr{width:112px;height:112px;flex:none;background:#fff;border-radius:10px;padding:5px}
         #manoosh-install-guide .mpwa-qr-area strong{display:block;color:#155c39;margin-bottom:3px}
         #manoosh-install-guide .mpwa-qr-area a{color:#11804a;word-break:break-word}
+        #manoosh-install-guide .mpwa-install-now{display:inline-block;margin-top:9px;border:0;border-radius:10px;background:#159957;color:#fff;padding:9px 15px;font:inherit;font-weight:700;text-decoration:none;cursor:pointer}
         #manoosh-install-guide .mpwa-tags{color:#748078;font-size:12px}
         #manoosh-install-guide .mpwa-footer{flex:none;padding:12px 20px calc(12px + env(safe-area-inset-bottom));border-top:1px solid #edf1ee;background:#fff}
         #manoosh-install-guide .mpwa-done{width:100%;min-height:50px;border:0;border-radius:13px;background:#19a85b;color:#fff;font-size:16px;font-weight:700;cursor:pointer}
@@ -155,20 +157,20 @@ final class Manoosh_PWA {
                 <div class="mpwa-benefit"><strong>تنوع محصولات در یک جا</strong>از کره‌های مغزیجات و ارده گرفته تا عسل، شیره‌ها، روغن‌ها و سایر محصولات مانوش رو ببین و انتخاب کن.</div>
               </div>
               <h3>چطور مانوش رو نصب کنیم؟</h3>
-              <div class="mpwa-platform"><h4>اگر آیفون داری (Safari)</h4><ol>
+              <div class="mpwa-platform" id="manoosh-ios-steps"><h4>اگر آیفون داری (Safari)</h4><ol>
                 <li>با مرورگر Safari وارد سایت <a href="https://manooshorganic.com/" target="_blank" rel="noopener">manooshorganic.com</a> شو.</li>
                 <li>روی گزینه اشتراک‌گذاری (علامت مربع با فلش رو به بالا) بزن.</li>
                 <li>گزینه <b>Add to Home Screen</b> یا «افزودن به صفحه اصلی» رو انتخاب کن.</li>
                 <li>در صورت نمایش گزینه <b>Open as Web App</b>، می‌تونی اون رو فعال کنی.</li>
                 <li>روی <b>Add</b> یا «افزودن» بزن. تمام! حالا آیکون مانوش روی صفحه گوشیته.</li>
               </ol></div>
-              <div class="mpwa-platform"><h4>اگر گوشی اندرویدی داری (Google Chrome)</h4><ol>
+              <div class="mpwa-platform" id="manoosh-android-steps"><h4>اگر گوشی اندرویدی داری (Google Chrome)</h4><ol>
                 <li>با مرورگر Google Chrome وارد سایت <a href="https://manooshorganic.com/" target="_blank" rel="noopener">manooshorganic.com</a> شو.</li>
                 <li>روی منوی سه‌نقطه بالای مرورگر بزن.</li>
                 <li>اگر گزینه <b>Install app</b> یا <b>Add to Home screen</b> رو دیدی، انتخابش کن.</li>
                 <li>مراحل نمایش‌داده‌شده رو تأیید کن. تمام! از آیکون مانوش روی صفحه گوشی‌ات وارد فروشگاه شو.</li>
               </ol></div>
-              <div class="mpwa-qr-area"><img class="mpwa-qr" src="<?php echo $qr; ?>" alt="کیوآرکد ورود به فروشگاه مانوش"><div><strong>اسکن کن و وارد فروشگاه شو</strong><span>این کد با گوشی‌های اندروید و آیفون کار می‌کند.</span><br><a href="https://manooshorganic.com/" target="_blank" rel="noopener">https://manooshorganic.com/</a></div></div>
+              <div class="mpwa-qr-area"><img class="mpwa-qr" src="<?php echo $qr; ?>" alt="کیوآرکد نصب برنامه مانوش"><div><strong>اسکن کن و برنامه مانوش رو نصب کن</strong><span>این QR روی آیفون و اندروید، راهنمای نصب را باز می‌کند.</span><br><a href="<?php echo esc_url($install_url); ?>" target="_blank" rel="noopener">manooshorganic.com — نصب مانوش</a><br><button class="mpwa-install-now" type="button">نصب روی این گوشی</button></div></div>
               <p><b>یک بار نصب کن، راحت‌تر خرید کن!</b> از همراهی شما ممنونیم که مانوش رو برای انتخاب محصولات موردعلاقه‌تون همراه خودتون دارید.</p>
               <p class="mpwa-tags">#مانوش_ارگانیک &nbsp; #خرید_آنلاین &nbsp; #محصولات_طبیعی &nbsp; #کره_بادام_زمینی &nbsp; #مانوش</p>
             </div>
@@ -176,15 +178,19 @@ final class Manoosh_PWA {
           </div>
         </section>
         <script>
-        (function(){var fab=document.getElementById('manoosh-install-fab'),guide=document.getElementById('manoosh-install-guide'),primary=fab.querySelector('.mpwa-primary'),guideOpen=fab.querySelector('.mpwa-guide-open'),close=guide.querySelector('.mpwa-x'),done=guide.querySelector('.mpwa-done'),deferred=null,key='manoosh-pwa-dismissed';
+        (function(){var fab=document.getElementById('manoosh-install-fab'),guide=document.getElementById('manoosh-install-guide'),primary=fab.querySelector('.mpwa-primary'),guideOpen=fab.querySelector('.mpwa-guide-open'),close=guide.querySelector('.mpwa-x'),done=guide.querySelector('.mpwa-done'),installNow=guide.querySelector('.mpwa-install-now'),deferred=null,key='manoosh-pwa-dismissed';
         var standalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone;
+        var installRequest=new URLSearchParams(window.location.search).get('manoosh-install')==='1';
         if(standalone)return;
         function showGuide(){guide.style.display='block';document.documentElement.style.overflow='hidden'}
         function hideGuide(){guide.style.display='none';document.documentElement.style.overflow='';localStorage.setItem(key,'1')}
-        var timer=setTimeout(function(){fab.style.display='flex';if(/iphone|ipad|ipod/i.test(navigator.userAgent)||(/Macintosh/i.test(navigator.userAgent)&&navigator.maxTouchPoints>1)){if(!localStorage.getItem(key))showGuide()}},<?php echo (int)$delay; ?>*1000);
+        function installApp(){if(deferred){deferred.prompt();deferred.userChoice.then(function(){deferred=null;localStorage.setItem(key,'1')})}else if(/iphone|ipad|ipod/i.test(navigator.userAgent)){document.getElementById('manoosh-ios-steps').scrollIntoView({behavior:'smooth',block:'center'})}else{document.getElementById('manoosh-android-steps').scrollIntoView({behavior:'smooth',block:'center'})}}
+        if(installRequest){fab.style.display='flex';setTimeout(showGuide,350)}
+        else{setTimeout(function(){fab.style.display='flex';if(/iphone|ipad|ipod/i.test(navigator.userAgent)||(/Macintosh/i.test(navigator.userAgent)&&navigator.maxTouchPoints>1)){if(!localStorage.getItem(key))showGuide()}},<?php echo (int)$delay; ?>*1000)}
         window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferred=e;fab.style.display='flex'});
         window.addEventListener('appinstalled',function(){fab.style.display='none';localStorage.setItem(key,'1')});
         primary.addEventListener('click',function(){if(deferred){deferred.prompt();deferred.userChoice.then(function(){deferred=null;localStorage.setItem(key,'1')})}else{showGuide()}});
+        installNow.addEventListener('click',installApp);
         guideOpen.addEventListener('click',showGuide);close.addEventListener('click',hideGuide);done.addEventListener('click',hideGuide);
         guide.addEventListener('click',function(e){if(e.target===guide)hideGuide()});
         document.addEventListener('keydown',function(e){if(e.key==='Escape'&&guide.style.display==='block')hideGuide()});
