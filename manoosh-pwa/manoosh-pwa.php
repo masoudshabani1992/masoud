@@ -2,7 +2,7 @@
 /**
  * Plugin Name: مانوش ارگانیک — نصب PWA
  * Description: افزودن manifest، service worker و بنر نصب برنامه مانوش به سایت وردپرسی.
- * Version: 1.2.1
+ * Version: 1.3.0
  * Author: Manoosh Organic
  * Text Domain: manoosh-pwa
  */
@@ -14,7 +14,9 @@ final class Manoosh_PWA {
 
     public static function boot() {
         add_action('init', array(__CLASS__, 'serve_endpoints'));
+        add_action('wp_head', array(__CLASS__, 'performance_bootstrap'), 1);
         add_action('wp_head', array(__CLASS__, 'head_tags'), 2);
+        add_filter('wp_omit_loading_attr_threshold', array(__CLASS__, 'loading_threshold'));
         add_action('wp_footer', array(__CLASS__, 'render_prompt'));
         add_action('admin_menu', array(__CLASS__, 'admin_menu'));
         add_action('admin_init', array(__CLASS__, 'register_settings'));
@@ -80,6 +82,49 @@ final class Manoosh_PWA {
         echo "self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});\n";
         echo "self.addEventListener('fetch',e=>{const r=e.request;if(r.method!=='GET'||new URL(r.url).origin!==self.location.origin)return;if(r.mode==='navigate'){e.respondWith(fetch(r).catch(()=>caches.match(ROOT)))}});\n";
         exit;
+    }
+
+    /** Give the first viewport priority while leaving later media to native lazy loading. */
+    public static function loading_threshold($threshold) {
+        return is_front_page() ? max(12, (int) $threshold) : $threshold;
+    }
+
+    public static function performance_bootstrap() {
+        if (is_admin() || !is_front_page()) { return; }
+        ?>
+        <script>
+        (function(){
+          var promoted=false;
+          function tune(root){
+            if(!root)return;
+            var items=[];
+            if(root.matches&&root.matches('img,iframe'))items.push(root);
+            if(root.querySelectorAll)items=items.concat(Array.prototype.slice.call(root.querySelectorAll('img,iframe')));
+            items.forEach(function(el){
+              var r=el.getBoundingClientRect();
+              var inFirstView=r.top<window.innerHeight*1.35&&r.bottom>0;
+              var hero=el.matches('img')&&!!el.closest('.swiper,.swiper-container,.swiper-slide,.elementor-widget-image-carousel,.elementor-widget-slides,[class*="story"],[class*="stories"],[class*="slider"],[class*="banner"]');
+              var urgent=inFirstView||hero;
+              if(el.tagName==='IMG'){
+                el.decoding='async';
+                el.loading=urgent?'eager':'lazy';
+                if(urgent&&!promoted){el.setAttribute('fetchpriority','high');promoted=true;}
+              }else if(el.tagName==='IFRAME'){
+                el.loading=inFirstView?'eager':'lazy';
+              }
+            });
+          }
+          function start(){
+            tune(document.documentElement);
+            if(window.MutationObserver){
+              var observer=new MutationObserver(function(records){records.forEach(function(record){record.addedNodes.forEach(function(node){if(node.nodeType===1)tune(node)})})});
+              observer.observe(document.documentElement,{childList:true,subtree:true});
+            }
+          }
+          start();
+        })();
+        </script>
+        <?php
     }
 
     public static function head_tags() {
