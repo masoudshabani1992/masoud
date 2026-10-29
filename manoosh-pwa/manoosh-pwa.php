@@ -2,7 +2,7 @@
 /**
  * Plugin Name: مانوش ارگانیک — نصب PWA
  * Description: افزودن manifest، service worker و بنر نصب برنامه مانوش به سایت وردپرسی.
- * Version: 1.0.0
+ * Version: 1.1.0
  * Author: Manoosh Organic
  * Text Domain: manoosh-pwa
  */
@@ -99,58 +99,95 @@ final class Manoosh_PWA {
         $message = sanitize_text_field($o['message']);
         $delay = max(0, min(60, absint($o['delay'])));
         $logo = esc_url(plugins_url('assets/logo-manoosh.webp', __FILE__));
+        $qr = esc_url(plugins_url('assets/qr-manoosh.png', __FILE__));
         ?>
         <style>
-        #manoosh-pwa-prompt{position:fixed;z-index:999999;right:16px;left:16px;bottom:calc(18px + env(safe-area-inset-bottom));max-width:540px;margin:auto;display:none;align-items:center;gap:12px;padding:14px;background:#fff;color:#202124;border:1px solid #dcefe3;border-radius:18px;box-shadow:0 8px 32px #0003;direction:rtl;font:14px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
-        #manoosh-pwa-prompt .mpwa-icon{width:48px;height:48px;object-fit:contain;border-radius:12px;flex:none}#manoosh-pwa-prompt .mpwa-copy{flex:1}#manoosh-pwa-prompt .mpwa-title{font-weight:700}#manoosh-pwa-prompt .mpwa-message{font-size:12px;color:#5f6368}#manoosh-pwa-prompt button{font:inherit;cursor:pointer;border:0}#manoosh-pwa-prompt .mpwa-install{background:#0f9d58;color:white;border-radius:11px;padding:9px 15px;white-space:nowrap}#manoosh-pwa-prompt .mpwa-close{background:transparent;color:#777;font-size:22px;padding:0 2px}
-        #manoosh-ios-guide{position:fixed;inset:0;z-index:1000000;display:none;background:#0006;direction:rtl;color:#17171b;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
-        #manoosh-ios-guide .mpwa-sheet{position:absolute;inset:env(safe-area-inset-top) 0 0;background:#fff;border-radius:22px 22px 0 0;display:flex;flex-direction:column;overflow:auto;padding:clamp(30px,8vh,76px) 22px calc(20px + env(safe-area-inset-bottom));box-sizing:border-box}
-        #manoosh-ios-guide .mpwa-logo{width:74px;height:74px;object-fit:contain;border-radius:20px;margin:0 auto 16px}
-        #manoosh-ios-guide h2{font-size:21px;line-height:1.5;text-align:center;margin:0 auto 12px;max-width:340px;font-weight:700}
-        #manoosh-ios-guide .mpwa-lead{font-size:14px;color:#73737b;text-align:center;margin:0 auto 24px;max-width:340px;line-height:1.9}
-        #manoosh-ios-guide .mpwa-steps{border-top:1px solid #eee;padding-top:8px;max-width:440px;width:100%;margin:0 auto;display:grid;gap:8px}
-        #manoosh-ios-guide .mpwa-step{display:grid;grid-template-columns:36px 1fr 40px;align-items:center;gap:10px;min-height:78px}
-        #manoosh-ios-guide .mpwa-num{width:28px;height:28px;border-radius:50%;background:#e8f6ee;color:#0f9d58;font-weight:700;display:grid;place-items:center}
-        #manoosh-ios-guide .mpwa-step-text{font-size:14px;line-height:1.8;color:#666}
-        #manoosh-ios-guide .mpwa-step-text strong{color:#26262b;font-weight:700}
-        #manoosh-ios-guide .mpwa-symbol{width:38px;height:38px;color:#6757d9;display:grid;place-items:center}
-        #manoosh-ios-guide .mpwa-symbol svg{width:27px;height:27px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-        #manoosh-ios-guide .mpwa-demo{height:48px;border:1px solid #e5e5eb;border-radius:12px;background:#fafafd;display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:0 10px;margin:8px 0 0;color:#6053ce;font-size:12px;font-weight:600}
-        #manoosh-ios-guide .mpwa-demo .mpwa-mini-share{font-size:20px;font-weight:700}
-        #manoosh-ios-guide .mpwa-done{margin-top:auto;min-height:56px;border:0;border-radius:14px;background:#19a85b;color:#fff;font-size:17px;font-weight:700;cursor:pointer;box-shadow:0 4px 10px #19a85b33}
-        @media(max-height:700px){#manoosh-ios-guide .mpwa-sheet{padding-top:24px}#manoosh-ios-guide .mpwa-logo{width:54px;height:54px;margin-bottom:8px}#manoosh-ios-guide h2{font-size:18px}#manoosh-ios-guide .mpwa-lead{margin-bottom:12px}.mpwa-step{min-height:62px!important}}
+        #manoosh-install-fab{position:fixed;z-index:999998;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));display:none;align-items:center;gap:8px;direction:rtl;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+        #manoosh-install-fab button{border:0;cursor:pointer;font:inherit;box-shadow:0 6px 24px #063b2050}
+        #manoosh-install-fab .mpwa-primary{display:flex;align-items:center;gap:8px;border-radius:999px;background:#159957;color:#fff;padding:11px 17px;font-size:14px;font-weight:700}
+        #manoosh-install-fab .mpwa-guide-open{border:1px solid #d9eee1;border-radius:999px;background:#fff;color:#177c49;padding:10px 14px;font-size:13px;font-weight:700}
+        #manoosh-install-fab .mpwa-fab-logo{width:26px;height:26px;object-fit:cover;border-radius:50%;background:white}
+        #manoosh-install-guide{position:fixed;inset:0;z-index:999999;display:none;background:#0008;direction:rtl;color:#203329;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+        #manoosh-install-guide .mpwa-dialog{position:absolute;inset: max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom));max-width:680px;margin:auto;background:#fff;border-radius:22px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 18px 70px #0003}
+        #manoosh-install-guide .mpwa-dialog-head{flex:none;position:relative;display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid #edf1ee;background:#fff}
+        #manoosh-install-guide .mpwa-dialog-head img{width:48px;height:48px;object-fit:cover;border-radius:14px}
+        #manoosh-install-guide .mpwa-dialog-head h2{font-size:19px;line-height:1.5;margin:0;color:#163c2a}
+        #manoosh-install-guide .mpwa-dialog-head p{font-size:12px;color:#758078;margin:2px 0 0}
+        #manoosh-install-guide .mpwa-x{margin-right:auto;align-self:flex-start;border:0;border-radius:50%;width:38px;height:38px;background:#f1f4f2;color:#59655e;font-size:24px;cursor:pointer}
+        #manoosh-install-guide .mpwa-content{overflow:auto;padding:18px 22px 24px;line-height:1.95;font-size:14px}
+        #manoosh-install-guide .mpwa-content p{margin:0 0 14px}
+        #manoosh-install-guide .mpwa-content h3{font-size:16px;color:#166b41;margin:20px 0 8px}
+        #manoosh-install-guide .mpwa-benefits{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:10px 0 18px}
+        #manoosh-install-guide .mpwa-benefit{border:1px solid #e3f0e7;border-radius:13px;padding:11px 12px;background:#f8fcf9}
+        #manoosh-install-guide .mpwa-benefit strong{display:block;color:#167546;margin-bottom:3px}
+        #manoosh-install-guide .mpwa-content ol{padding-right:24px;margin:6px 0 16px}
+        #manoosh-install-guide .mpwa-content li{padding:2px 0 2px 4px}
+        #manoosh-install-guide .mpwa-platform{padding:12px 15px;border:1px solid #e7eee9;border-radius:15px;margin:11px 0;background:#fff}
+        #manoosh-install-guide .mpwa-platform h4{font-size:15px;color:#145e3a;margin:0 0 7px}
+        #manoosh-install-guide .mpwa-platform p{margin:0}
+        #manoosh-install-guide .mpwa-qr-area{display:flex;align-items:center;gap:16px;border-radius:16px;background:#f3faf5;padding:14px;margin:18px 0}
+        #manoosh-install-guide .mpwa-qr{width:112px;height:112px;flex:none;background:#fff;border-radius:10px;padding:5px}
+        #manoosh-install-guide .mpwa-qr-area strong{display:block;color:#155c39;margin-bottom:3px}
+        #manoosh-install-guide .mpwa-qr-area a{color:#11804a;word-break:break-word}
+        #manoosh-install-guide .mpwa-tags{color:#748078;font-size:12px}
+        #manoosh-install-guide .mpwa-footer{flex:none;padding:12px 20px calc(12px + env(safe-area-inset-bottom));border-top:1px solid #edf1ee;background:#fff}
+        #manoosh-install-guide .mpwa-done{width:100%;min-height:50px;border:0;border-radius:13px;background:#19a85b;color:#fff;font-size:16px;font-weight:700;cursor:pointer}
+        @media(max-width:560px){#manoosh-install-fab{right:10px;left:10px;justify-content:center}#manoosh-install-fab .mpwa-primary{padding:10px 13px;font-size:13px}#manoosh-install-fab .mpwa-guide-open{padding:9px 11px;font-size:12px}#manoosh-install-guide .mpwa-dialog{inset:env(safe-area-inset-top) 0 0;border-radius:22px 22px 0 0}#manoosh-install-guide .mpwa-content{padding:14px 16px 20px;font-size:13px}#manoosh-install-guide .mpwa-benefits{grid-template-columns:1fr}#manoosh-install-guide .mpwa-qr{width:92px;height:92px}}
         </style>
-        <aside id="manoosh-pwa-prompt" role="dialog" aria-label="نصب برنامه مانوش">
-          <img class="mpwa-icon" src="<?php echo esc_url(plugins_url('assets/icon-192.png', __FILE__)); ?>" alt="">
-          <div class="mpwa-copy"><div class="mpwa-title">نصب برنامه مانوش ارگانیک</div><div class="mpwa-message"><?php echo esc_html($message); ?></div></div>
-          <button class="mpwa-install" type="button">نصب</button>
-          <button class="mpwa-close" type="button" aria-label="بستن">×</button>
-        </aside>
-        <section id="manoosh-ios-guide" role="dialog" aria-modal="true" aria-label="راهنمای نصب مانوش روی آیفون">
-          <div class="mpwa-sheet">
-            <img class="mpwa-logo" src="<?php echo $logo; ?>" alt="لوگوی مانوش ارگانیک">
-            <h2>وب‌اپلیکیشن مانوش را به صفحه اصلی موبایل خود اضافه کنید</h2>
-            <p class="mpwa-lead">برای نصب برنامه مانوش روی آیفون، این سه مرحله را انجام دهید:</p>
-            <div class="mpwa-steps">
-              <div class="mpwa-step"><span class="mpwa-num">۱</span><div class="mpwa-step-text">در نوار پایین مرورگر روی دکمه <strong>Share</strong> بزنید.</div><span class="mpwa-symbol" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 15V3m0 0L7.5 7.5M12 3l4.5 4.5M5 12v8h14v-8"/></svg></span></div>
-              <div class="mpwa-step"><span class="mpwa-num">۲</span><div class="mpwa-step-text">در منوی بازشده، گزینه <strong>Add to Home Screen</strong> را انتخاب کنید.</div><span class="mpwa-symbol" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M12 8v8m-4-4h8"/></svg></span></div>
-              <div class="mpwa-step"><span class="mpwa-num">۳</span><div class="mpwa-step-text">در صفحه بعد، در گوشه بالا روی <strong>Add</strong> بزنید.</div><span class="mpwa-symbol" aria-hidden="true"><span style="font-size:13px;font-weight:700">Add</span></span></div>
+        <nav id="manoosh-install-fab" aria-label="نصب برنامه مانوش">
+          <button class="mpwa-primary" type="button"><img class="mpwa-fab-logo" src="<?php echo $logo; ?>" alt=""><span>نصب برنامه مانوش</span></button>
+          <button class="mpwa-guide-open" type="button">راهنمای نصب</button>
+        </nav>
+        <section id="manoosh-install-guide" role="dialog" aria-modal="true" aria-labelledby="manoosh-install-title">
+          <div class="mpwa-dialog">
+            <header class="mpwa-dialog-head">
+              <img src="<?php echo $logo; ?>" alt="لوگوی مانوش">
+              <div><h2 id="manoosh-install-title">مانوش رو به گوشی‌ات اضافه کن!</h2><p>راهنمای نصب فروشگاه مانوش ارگانیک</p></div>
+              <button class="mpwa-x" type="button" aria-label="بستن راهنما">×</button>
+            </header>
+            <div class="mpwa-content">
+              <p>دوست داری هر وقت هوس طعم‌های خوشمزه و طبیعی مانوش رو کردی، بدون دردسر و سریع وارد فروشگاه بشی؟ از این به بعد می‌تونی مانوش ارگانیک رو روی صفحه گوشی‌ات نصب کنی تا دسترسی به فروشگاه اینترنتی‌مون برات راحت‌تر بشه.</p>
+              <h3>با نصب مانوش چه مزیتی داری؟</h3>
+              <div class="mpwa-benefits">
+                <div class="mpwa-benefit"><strong>دسترسی سریع‌تر</strong>دیگه لازم نیست هر بار آدرس سایت رو جست‌وجو کنی؛ از روی صفحه گوشی وارد مانوش شو.</div>
+                <div class="mpwa-benefit"><strong>خرید راحت‌تر</strong>محصولات موردعلاقه‌ات رو پیدا کن، بررسی کن و سفارشت رو آنلاین ثبت کن.</div>
+                <div class="mpwa-benefit"><strong>همیشه در دسترس</strong>هر وقت به محصولات مانوش نیاز داشتی، راحت‌تر به فروشگاه اینترنتی ما سر بزن.</div>
+                <div class="mpwa-benefit"><strong>تنوع محصولات در یک جا</strong>از کره‌های مغزیجات و ارده گرفته تا عسل، شیره‌ها، روغن‌ها و سایر محصولات مانوش رو ببین و انتخاب کن.</div>
+              </div>
+              <h3>چطور مانوش رو نصب کنیم؟</h3>
+              <div class="mpwa-platform"><h4>اگر آیفون داری (Safari)</h4><ol>
+                <li>با مرورگر Safari وارد سایت <a href="https://manooshorganic.com/" target="_blank" rel="noopener">manooshorganic.com</a> شو.</li>
+                <li>روی گزینه اشتراک‌گذاری (علامت مربع با فلش رو به بالا) بزن.</li>
+                <li>گزینه <b>Add to Home Screen</b> یا «افزودن به صفحه اصلی» رو انتخاب کن.</li>
+                <li>در صورت نمایش گزینه <b>Open as Web App</b>، می‌تونی اون رو فعال کنی.</li>
+                <li>روی <b>Add</b> یا «افزودن» بزن. تمام! حالا آیکون مانوش روی صفحه گوشیته.</li>
+              </ol></div>
+              <div class="mpwa-platform"><h4>اگر گوشی اندرویدی داری (Google Chrome)</h4><ol>
+                <li>با مرورگر Google Chrome وارد سایت <a href="https://manooshorganic.com/" target="_blank" rel="noopener">manooshorganic.com</a> شو.</li>
+                <li>روی منوی سه‌نقطه بالای مرورگر بزن.</li>
+                <li>اگر گزینه <b>Install app</b> یا <b>Add to Home screen</b> رو دیدی، انتخابش کن.</li>
+                <li>مراحل نمایش‌داده‌شده رو تأیید کن. تمام! از آیکون مانوش روی صفحه گوشی‌ات وارد فروشگاه شو.</li>
+              </ol></div>
+              <div class="mpwa-qr-area"><img class="mpwa-qr" src="<?php echo $qr; ?>" alt="کیوآرکد ورود به فروشگاه مانوش"><div><strong>اسکن کن و وارد فروشگاه شو</strong><span>این کد با گوشی‌های اندروید و آیفون کار می‌کند.</span><br><a href="https://manooshorganic.com/" target="_blank" rel="noopener">https://manooshorganic.com/</a></div></div>
+              <p><b>یک بار نصب کن، راحت‌تر خرید کن!</b> از همراهی شما ممنونیم که مانوش رو برای انتخاب محصولات موردعلاقه‌تون همراه خودتون دارید.</p>
+              <p class="mpwa-tags">#مانوش_ارگانیک &nbsp; #خرید_آنلاین &nbsp; #محصولات_طبیعی &nbsp; #کره_بادام_زمینی &nbsp; #مانوش</p>
             </div>
-            <div class="mpwa-demo" aria-hidden="true"><span>نصب مانوش</span><span class="mpwa-mini-share">↥</span></div>
-            <button class="mpwa-done" type="button">متوجه شدم</button>
+            <footer class="mpwa-footer"><button class="mpwa-done" type="button">متوجه شدم</button></footer>
           </div>
         </section>
         <script>
-        (function(){var box=document.getElementById('manoosh-pwa-prompt'),guide=document.getElementById('manoosh-ios-guide'),install=box.querySelector('.mpwa-install'),close=box.querySelector('.mpwa-close'),done=guide.querySelector('.mpwa-done'),deferred=null,key='manoosh-pwa-dismissed';
-        var ios=/iphone|ipad|ipod/i.test(navigator.userAgent)||(/Macintosh/i.test(navigator.userAgent)&&navigator.maxTouchPoints>1);
+        (function(){var fab=document.getElementById('manoosh-install-fab'),guide=document.getElementById('manoosh-install-guide'),primary=fab.querySelector('.mpwa-primary'),guideOpen=fab.querySelector('.mpwa-guide-open'),close=guide.querySelector('.mpwa-x'),done=guide.querySelector('.mpwa-done'),deferred=null,key='manoosh-pwa-dismissed';
         var standalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone;
-        if(standalone||localStorage.getItem(key))return;
-        if(ios){guide.style.display='block';document.documentElement.style.overflow='hidden';done.addEventListener('click',function(){guide.style.display='none';document.documentElement.style.overflow='';localStorage.setItem(key,'1')});return;}
-        var timer=setTimeout(function(){box.style.display='flex'},<?php echo (int)$delay; ?>*1000);
-        window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferred=e;box.style.display='flex';install.textContent='نصب'});
-        window.addEventListener('appinstalled',function(){box.style.display='none';localStorage.setItem(key,'1')});
-        install.addEventListener('click',function(){if(deferred){deferred.prompt();deferred.userChoice.then(function(){deferred=null;box.style.display='none';localStorage.setItem(key,'1')})}else{alert('برای نصب، از منوی مرورگر گزینه «نصب برنامه» یا «افزودن به صفحه اصلی» را انتخاب کنید.')}});
-        close.addEventListener('click',function(){box.style.display='none';localStorage.setItem(key,'1');clearTimeout(timer)});
+        if(standalone)return;
+        function showGuide(){guide.style.display='block';document.documentElement.style.overflow='hidden'}
+        function hideGuide(){guide.style.display='none';document.documentElement.style.overflow='';localStorage.setItem(key,'1')}
+        var timer=setTimeout(function(){fab.style.display='flex';if(/iphone|ipad|ipod/i.test(navigator.userAgent)||(/Macintosh/i.test(navigator.userAgent)&&navigator.maxTouchPoints>1)){if(!localStorage.getItem(key))showGuide()}},<?php echo (int)$delay; ?>*1000);
+        window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferred=e;fab.style.display='flex'});
+        window.addEventListener('appinstalled',function(){fab.style.display='none';localStorage.setItem(key,'1')});
+        primary.addEventListener('click',function(){if(deferred){deferred.prompt();deferred.userChoice.then(function(){deferred=null;localStorage.setItem(key,'1')})}else{showGuide()}});
+        guideOpen.addEventListener('click',showGuide);close.addEventListener('click',hideGuide);done.addEventListener('click',hideGuide);
+        guide.addEventListener('click',function(e){if(e.target===guide)hideGuide()});
+        document.addEventListener('keydown',function(e){if(e.key==='Escape'&&guide.style.display==='block')hideGuide()});
         })();
         </script>
         <?php
