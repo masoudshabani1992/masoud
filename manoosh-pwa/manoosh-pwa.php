@@ -2,7 +2,7 @@
 /**
  * Plugin Name: مانوش ارگانیک — نصب PWA
  * Description: افزودن manifest، service worker و بنر نصب برنامه مانوش به سایت وردپرسی.
- * Version: 1.2.0
+ * Version: 1.2.1
  * Author: Manoosh Organic
  * Text Domain: manoosh-pwa
  */
@@ -185,8 +185,8 @@ final class Manoosh_PWA {
         function showGuide(){guide.style.display='block';document.documentElement.style.overflow='hidden'}
         function hideGuide(){guide.style.display='none';document.documentElement.style.overflow='';localStorage.setItem(key,'1')}
         function installApp(){if(deferred){deferred.prompt();deferred.userChoice.then(function(){deferred=null;localStorage.setItem(key,'1')})}else if(/iphone|ipad|ipod/i.test(navigator.userAgent)){document.getElementById('manoosh-ios-steps').scrollIntoView({behavior:'smooth',block:'center'})}else{document.getElementById('manoosh-android-steps').scrollIntoView({behavior:'smooth',block:'center'})}}
-        if(installRequest){fab.style.display='flex';setTimeout(showGuide,350)}
-        else{setTimeout(function(){fab.style.display='flex';if(/iphone|ipad|ipod/i.test(navigator.userAgent)||(/Macintosh/i.test(navigator.userAgent)&&navigator.maxTouchPoints>1)){if(!localStorage.getItem(key))showGuide()}},<?php echo (int)$delay; ?>*1000)}
+        if(installRequest){fab.style.display='flex'}
+        else{setTimeout(function(){fab.style.display='flex'},<?php echo (int)$delay; ?>*1000)}
         window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferred=e;fab.style.display='flex'});
         window.addEventListener('appinstalled',function(){fab.style.display='none';localStorage.setItem(key,'1')});
         primary.addEventListener('click',function(){if(deferred){deferred.prompt();deferred.userChoice.then(function(){deferred=null;localStorage.setItem(key,'1')})}else{showGuide()}});

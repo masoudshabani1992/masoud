@@ -4,7 +4,7 @@ Tags: pwa, install, web-app, persian
 Requires at least: 5.8
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.2.0
+Stable tag: 1.2.1
 License: GPLv2 or later
 
 سایت وردپرسی را به PWA قابل نصب تبدیل می‌کند، دکمه شناور نصب و راهنمای کامل فارسی همراه با QR ورود به فروشگاه نمایش می‌دهد.
@@ -18,7 +18,7 @@ License: GPLv2 or later
 
 == رفتار ==
 - افزودن Web App Manifest و ثبت Service Worker با scope سایت.
-- دکمه شناور نصب و راهنمای کامل فارسی همراه با QR مستقیم به مسیر شروع نصب برنامه (`?manoosh-install=1`).
+- دکمه شناور نصب و راهنمای کامل فارسی همراه با QR به مسیر نصب (`?manoosh-install=1`). با بازشدن سایت فقط دکمه شناور ظاهر می‌شود؛ راهنما فقط با لمس گزینه مربوط باز می‌شود.
 - نمایش پیشنهاد نصب در مرورگرهای موبایل.
 - در Android/Chrome، دکمه نصب prompt استاندارد مرورگر را اجرا می‌کند.
 - در iOS، راهنمای تصویری تمام‌صفحه با لوگوی اختصاصی مانوش، آیکون Share، گزینه Add to Home Screen و دکمه Add نمایش داده می‌شود.
