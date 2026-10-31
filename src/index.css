@@ -1,11 +1,51 @@
 @import "tailwindcss";
 
+:root {
+  --p-primary-50: #eff6ff;
+  --p-primary-100: #dbeafe;
+  --p-primary-500: #3b82f6;
+  --p-primary-600: #2563eb;
+  --p-primary-700: #1d4ed8;
+  --p-primary-color: #2563eb;
+  --p-primary-contrast-color: #ffffff;
+
+  --surface-ground: #f1f5f9;
+  --p-content-background: #ffffff;
+  --p-content-hover-background: #f1f5f9;
+  --p-content-border-color: #e2e8f0;
+  --p-text-color: #0f172a;
+  --p-text-muted-color: #64748b;
+
+  --p-green-500: #10b981;
+  --p-green-600: #059669;
+  --p-red-500: #ef4444;
+  --p-amber-500: #f59e0b;
+  --content-border-radius: 0.85rem;
+}
+
+html.app-dark {
+  --p-primary-color: #60a5fa;
+  --p-primary-contrast-color: #090d16;
+
+  --surface-ground: #090d16;
+  --p-content-background: #111827;
+  --p-content-hover-background: #1e293b;
+  --p-content-border-color: #1f2937;
+  --p-text-color: #f1f5f9;
+  --p-text-muted-color: #94a3b8;
+  --p-green-600: #34d399;
+}
+
 @layer base {
   html,
   body {
     font-family: 'Vazirmatn', Tahoma, Arial, sans-serif;
     direction: rtl;
     font-feature-settings: "ss01";
+    background-color: var(--surface-ground);
+    color: var(--p-text-color);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   input,
@@ -20,18 +60,304 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* ============================================================
+   HIDDIFY MANAGER v14.0.5 SAKAI + AURA BLUE SHELL
+   ============================================================ */
+.hiddify-topbar {
+  --topbar-bg: linear-gradient(100deg, #1d4ed8 0%, #2563eb 45%, #3b82f6 100%);
+  position: fixed;
+  top: 0;
+  inset-inline: 0;
+  height: 4rem;
+  z-index: 50;
+  padding: 0 1.5rem;
+  background: var(--topbar-bg);
+  color: rgba(255, 255, 255, 0.96);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.14) inset,
+    0 6px 18px -10px rgba(29, 78, 216, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+html.app-dark .hiddify-topbar {
+  --topbar-bg: linear-gradient(100deg, #1e3a8a 0%, #1d4ed8 50%, #2563eb 100%);
+}
+
+.hiddify-topbar-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 9999px;
+  color: rgba(255, 255, 255, 0.95);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.18s ease, transform 0.15s ease;
+}
+
+.hiddify-topbar-action:hover {
+  background-color: rgba(255, 255, 255, 0.16);
+}
+
+.hiddify-topbar-action--pill {
+  width: auto;
+  padding: 0 0.85rem;
+  gap: 0.45rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  background-color: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.hiddify-topbar-action--pill:hover {
+  background-color: rgba(255, 255, 255, 0.24);
+}
+
+/* Right Sidebar (Hiddify v14.0.5 Sakai Floating Panel) */
+.hiddify-sidebar {
+  position: fixed;
+  top: 5.25rem;
+  inset-inline-start: 1.5rem;
+  width: 17rem;
+  height: calc(100vh - 6.5rem);
+  z-index: 45;
+  overflow-y: auto;
+  user-select: none;
+  background-color: var(--p-content-background);
+  border: 1px solid var(--p-content-border-color);
+  border-radius: 1rem;
+  padding: 0.85rem 1rem;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 10px 26px -18px rgba(15, 23, 42, 0.28);
+  transition:
+    transform 0.32s cubic-bezier(0.05, 0.74, 0.2, 0.99),
+    opacity 0.25s ease;
+}
+
+.hiddify-main-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding-top: 5.25rem;
+  padding-inline: 1.5rem;
+  transition: margin-inline-start 0.32s cubic-bezier(0.05, 0.74, 0.2, 0.99);
+}
+
+@media (min-width: 1024px) {
+  .hiddify-shell--open .hiddify-main-container {
+    margin-inline-start: 18.5rem;
+  }
+
+  .hiddify-shell--collapsed .hiddify-sidebar {
+    transform: translateX(115%);
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+@media (max-width: 1023px) {
+  .hiddify-topbar {
+    padding: 0 1rem;
+  }
+
+  .hiddify-main-container {
+    margin-inline-start: 0;
+    padding-inline: 1rem;
+  }
+
+  .hiddify-sidebar {
+    top: 0;
+    inset-inline-start: 0;
+    height: 100vh;
+    width: 18rem;
+    border-radius: 1rem 0 0 1rem;
+    z-index: 60;
+    transform: translateX(105%);
+  }
+
+  .hiddify-shell--mobile-open .hiddify-sidebar {
+    transform: translateX(0);
+  }
+}
+
+/* Menu Items */
+.hiddify-menu-group-label {
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: var(--p-text-color);
+  opacity: 0.85;
+  padding: 0.65rem 0.65rem 0.35rem;
+  letter-spacing: 0.01em;
+}
+
+.hiddify-menu-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.62rem 0.8rem;
+  border-radius: 0.65rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--p-text-color);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: right;
+  transition: background-color 0.16s ease, color 0.16s ease;
+}
+
+.hiddify-menu-item:hover {
+  background-color: var(--p-content-hover-background);
+}
+
+.hiddify-menu-item--active {
+  font-weight: 800;
+  color: var(--p-primary-color);
+  background-color: color-mix(in srgb, var(--p-primary-color) 11%, transparent);
+}
+
+.hiddify-menu-badge {
+  margin-inline-start: auto;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 0.1rem 0.45rem;
+  border-radius: 9999px;
+  background-color: var(--p-primary-color);
+  color: var(--p-primary-contrast-color);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Hiddify v14.0.5 DashCard & StatTile */
+.hiddify-dash-card {
+  --dash-accent: var(--p-primary-color);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--p-content-border-color);
+  border-radius: 1rem;
+  background: var(--p-content-background);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 8px 24px -18px rgba(15, 23, 42, 0.3);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.hiddify-dash-card:hover {
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.05),
+    0 18px 36px -22px rgba(15, 23, 42, 0.38);
+}
+
+.hiddify-dash-card__accent {
+  height: 3px;
+  background: linear-gradient(
+    -90deg,
+    var(--dash-accent),
+    color-mix(in srgb, var(--dash-accent) 22%, transparent)
+  );
+}
+
+.hiddify-tile {
+  --tile-accent: var(--p-primary-color);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.05rem 1.2rem;
+  border: 1px solid var(--p-content-border-color);
+  border-radius: 1rem;
+  background:
+    radial-gradient(
+      120% 120% at 0% 0%,
+      color-mix(in srgb, var(--tile-accent) 13%, transparent) 0%,
+      transparent 58%
+    ),
+    var(--p-content-background);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 10px 26px -20px rgba(15, 23, 42, 0.35);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hiddify-tile:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.05),
+    0 20px 38px -24px rgba(15, 23, 42, 0.45);
+}
+
+/* Live Status Dot Pulse (Exact Hiddify v14.0.5) */
+.hiddify-live-dot {
+  width: 0.52rem;
+  height: 0.52rem;
+  border-radius: 9999px;
+  background: #22c55e;
+  box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6);
+  animation: hiddify-status-pulse 2s infinite;
+}
+
+@keyframes hiddify-status-pulse {
+  70% {
+    box-shadow: 0 0 0 0.42rem rgba(34, 197, 94, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+  }
+}
+
+/* Harmonize inner sub-views in Dark Mode (print excluded) */
+@media screen {
+  html.app-dark .hiddify-subview .bg-white {
+    background-color: #111827 !important;
+  }
+  html.app-dark .hiddify-subview .bg-slate-50,
+  html.app-dark .hiddify-subview .bg-slate-100 {
+    background-color: #0b1120 !important;
+  }
+  html.app-dark .hiddify-subview .border-slate-200,
+  html.app-dark .hiddify-subview .border-slate-100,
+  html.app-dark .hiddify-subview .border-slate-300 {
+    border-color: #1f2937 !important;
+  }
+  html.app-dark .hiddify-subview .text-slate-900,
+  html.app-dark .hiddify-subview .text-slate-800 {
+    color: #f1f5f9 !important;
+  }
+  html.app-dark .hiddify-subview .text-slate-700,
+  html.app-dark .hiddify-subview .text-slate-600,
+  html.app-dark .hiddify-subview .text-slate-500 {
+    color: #94a3b8 !important;
+  }
+  html.app-dark .hiddify-subview input:not([type="checkbox"]):not([type="radio"]),
+  html.app-dark .hiddify-subview select,
+  html.app-dark .hiddify-subview textarea {
+    background-color: #0f172a !important;
+    color: #f1f5f9 !important;
+    border-color: #334155 !important;
+  }
+}
+
 /* Subtle custom scrollbars */
 ::-webkit-scrollbar {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: rgba(148, 163, 184, 0.45);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: rgba(100, 116, 139, 0.7);
 }

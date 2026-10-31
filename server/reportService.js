@@ -28,6 +28,12 @@ const jalaliMonthFormatter = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
   month: 'long',
 });
 
+const jalaliDayMonthFormatter = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
+  timeZone: 'Asia/Tehran',
+  month: 'long',
+  day: 'numeric',
+});
+
 export function getTehranMeta(isoString) {
   const d = new Date(isoString);
   const parts = tehranDateFormatter.formatToParts(d);
@@ -410,3 +416,225 @@ export function buildComprehensiveReport(sales) {
     byPosBank: Object.values(posBankObj).sort((a, b) => b.netAmount - a.netAmount),
   };
 }
+
+function calcPctChange(current, baseline) {
+  if (!baseline || baseline <= 0) return null;
+  const pct = ((current - baseline) / baseline) * 100;
+  return Math.round(pct * 10) / 10;
+}
+
+export function buildHiddifyDashboardData({
+  allSales = [],
+  cashiers = [],
+  brands = [],
+  rangeDays = 30,
+  cashierId = 'all',
+}) {
+  const daysCount = [7, 30, 90, 180].includes(Number(rangeDays)) ? Number(rangeDays) : 30;
+  const filterCashier = cashierId && cashierId !== 'all' ? Number(cashierId) : null;
+
+  // Build day buckets for max(daysCount, 60) days so 30d vs prev30d trends are exact
+  const historySpan = Math.max(daysCount, 60);
+  const now = new Date();
+  const nowMeta = getTehranMeta(now.toISOString());
+  const todayAnchor = new Date(`${nowMeta.gregorianDate}T12:00:00Z`);
+
+  const dayMap = new Map();
+  const orderedDates = [];
+
+  for (let i = historySpan - 1; i >= 0; i--) {
+    const dt = new Date(todayAnchor.getTime() - i * 86400 * 1000);
+    const meta = getTehranMeta(dt.toISOString());
+    const gDate = meta.gregorianDate;
+    orderedDates.push(gDate);
+    dayMap.set(gDate, {
+      date: gDate,
+      label: jalaliDayMonthFormatter.format(dt),
+      jalaliKey: meta.jalaliKey,
+      netSales: 0,
+      grossSales: 0,
+      scrapDeduction: 0,
+      soldAmps: 0,
+      scrapAmps: 0,
+      invoiceCount: 0,
+      batteryCount: 0,
+      cashierSet: new Set(),
+      byCashier: {},
+      byBrand: {},
+    });
+  }
+
+  let sepidarSynced = 0;
+  let sepidarPending = 0;
+  let sepidarBotQueued = 0;
+  let sepidarRejected = 0;
+
+  const validSales = [];
+
+  for (const s of allSales) {
+    if (filterCashier !== null && Number(s.cashier_id) !== filterCashier) {
+      continue;
+    }
+
+    if (s.sepidar_status === 'rejected') {
+      sepidarRejected += 1;
+      continue;
+    }
+    if (s.sepidar_status === 'synced') sepidarSynced += 1;
+    else if (s.sepidar_status === 'bot_queued') sepidarBotQueued += 1;
+    else sepidarPending += 1;
+
+    validSales.push(s);
+
+    const meta = getTehranMeta(s.created_at);
+    const bucket = dayMap.get(meta.gregorianDate);
+    if (!bucket) continue;
+
+    bucket.netSales += s.final_sale_amount;
+    bucket.grossSales += s.gross_amount;
+    bucket.scrapDeduction += s.scrap_deduction_amount;
+    bucket.soldAmps += s.total_sold_amps;
+    bucket.scrapAmps += s.total_scrap_amps;
+    bucket.invoiceCount += 1;
+    bucket.batteryCount += s.quantity;
+    if (s.cashier_id) bucket.cashierSet.add(Number(s.cashier_id));
+
+    const cKey = String(s.cashier_id || 0);
+    if (!bucket.byCashier[cKey]) {
+      bucket.byCashier[cKey] = { netSales: 0, soldAmps: 0, invoiceCount: 0 };
+    }
+    bucket.byCashier[cKey].netSales += s.final_sale_amount;
+    bucket.byCashier[cKey].soldAmps += s.total_sold_amps;
+    bucket.byCashier[cKey].invoiceCount += 1;
+
+    const bKey = s.brand_name || 'سایر';
+    bucket.byBrand[bKey] = (bucket.byBrand[bKey] || 0) + s.final_sale_amount;
+  }
+
+  const allPoints = orderedDates.map((d) => {
+    const b = dayMap.get(d);
+    return {
+      date: b.date,
+      label: b.label,
+      jalaliKey: b.jalaliKey,
+      netSales: b.netSales,
+      grossSales: b.grossSales,
+      scrapDeduction: b.scrapDeduction,
+      soldAmps: b.soldAmps,
+      scrapAmps: b.scrapAmps,
+      invoiceCount: b.invoiceCount,
+      batteryCount: b.batteryCount,
+      activeCashiers: b.cashierSet.size,
+      byCashier: b.byCashier,
+      byBrand: b.byBrand,
+    };
+  });
+
+  const series = allPoints.slice(-daysCount);
+  const todayPt = allPoints[allPoints.length - 1] || { netSales: 0, soldAmps: 0, scrapAmps: 0, invoiceCount: 0, batteryCount: 0, activeCashiers: 0 };
+  const yesterdayPt = allPoints[allPoints.length - 2] || { netSales: 0, soldAmps: 0, scrapAmps: 0, invoiceCount: 0, batteryCount: 0, activeCashiers: 0 };
+
+  const last7 = allPoints.slice(-7);
+  const prev7 = allPoints.slice(-14, -7);
+  const last30 = allPoints.slice(-30);
+  const prev30 = allPoints.slice(-60, -30);
+
+  const sumBy = (arr, key) => arr.reduce((acc, item) => acc + (Number(item[key]) || 0), 0);
+
+  const weekSales = sumBy(last7, 'netSales');
+  const prevWeekSales = sumBy(prev7, 'netSales');
+  const monthSales = sumBy(last30, 'netSales');
+  const prevMonthSales = sumBy(prev30, 'netSales');
+  const totalSalesInRange = sumBy(series, 'netSales');
+
+  let peakPoint = series[0] || { netSales: 0, label: '—' };
+  for (const pt of series) {
+    if (pt.netSales >= peakPoint.netSales) peakPoint = pt;
+  }
+
+  const distinctCashiersIn = (pts) => {
+    const s = new Set();
+    for (const pt of pts) {
+      for (const cid of Object.keys(pt.byCashier)) {
+        if (pt.byCashier[cid].invoiceCount > 0) s.add(cid);
+      }
+    }
+    return s.size;
+  };
+
+  const totalValid = sepidarSynced + sepidarPending + sepidarBotQueued;
+  const syncedPct = totalValid > 0 ? Math.round((sepidarSynced / totalValid) * 100) : 100;
+
+  return {
+    rangeDays: daysCount,
+    cashierId: filterCashier === null ? 'all' : String(filterCashier),
+    nodes: cashiers.map((c) => ({
+      id: String(c.id),
+      name: c.full_name,
+      station: c.station_name || '',
+    })),
+    brands: brands.map((b) => ({ id: b.id, name: b.name, code: b.code })),
+    series,
+    salesMetrics: {
+      totals: {
+        today: todayPt.netSales,
+        yesterday: yesterdayPt.netSales,
+        week: weekSales,
+        month: monthSales,
+        inRange: totalSalesInRange,
+      },
+      previous: {
+        week: prevWeekSales,
+        month: prevMonthSales,
+      },
+      averages: {
+        dailyWeek: Math.round(weekSales / 7),
+        dailyMonth: Math.round(monthSales / 30),
+      },
+      trends: {
+        day: calcPctChange(todayPt.netSales, yesterdayPt.netSales),
+        week: calcPctChange(weekSales, prevWeekSales),
+        month: calcPctChange(monthSales, prevMonthSales),
+      },
+      peakDay: {
+        value: peakPoint.netSales,
+        label: peakPoint.label,
+      },
+    },
+    operations: {
+      cashiers: {
+        activeToday: todayPt.activeCashiers,
+        activeYesterday: yesterdayPt.activeCashiers,
+        activeWeek: distinctCashiersIn(last7),
+        activeMonth: distinctCashiersIn(last30),
+        totalActive: cashiers.filter((c) => c.is_active).length || cashiers.length || 1,
+      },
+      amps: {
+        todaySold: todayPt.soldAmps,
+        yesterdaySold: yesterdayPt.soldAmps,
+        weekSold: sumBy(last7, 'soldAmps'),
+        monthSold: sumBy(last30, 'soldAmps'),
+        inRangeSold: sumBy(series, 'soldAmps'),
+        inRangeScrap: sumBy(series, 'scrapAmps'),
+      },
+      invoices: {
+        today: todayPt.invoiceCount,
+        yesterday: yesterdayPt.invoiceCount,
+        week: sumBy(last7, 'invoiceCount'),
+        month: sumBy(last30, 'invoiceCount'),
+        inRange: sumBy(series, 'invoiceCount'),
+        todayBatteries: todayPt.batteryCount,
+      },
+      sepidar: {
+        synced: sepidarSynced,
+        pending: sepidarPending,
+        botQueued: sepidarBotQueued,
+        rejected: sepidarRejected,
+        totalValid,
+        syncedPct,
+      },
+    },
+    recentSales: validSales.slice(0, 8),
+  };
+}
+

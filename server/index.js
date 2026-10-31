@@ -1,5 +1,6 @@
 import express from 'express';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -20,7 +21,7 @@ import {
   getBotPendingJobs,
   completeBotJob,
 } from './sepidarService.js';
-import { filterSalesList, buildComprehensiveReport } from './reportService.js';
+import { filterSalesList, buildComprehensiveReport, buildHiddifyDashboardData } from './reportService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -976,6 +977,123 @@ app.get('/api/admin/bot/download/:file', requireAuth, requireAdmin, (req, res) =
   res.setHeader('Content-Type', allowedFiles[fileName]);
   res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
   res.sendFile(fullPath);
+});
+
+// ------------------------------------------------------------
+// HIDDIFY v14.0.5 EXECUTIVE DASHBOARD & LIVE NODE TELEMETRY
+// ------------------------------------------------------------
+const serverMetricSamples = [];
+
+function sampleServerTelemetry() {
+  const cpus = os.cpus() || [];
+  const coreCount = Math.max(1, cpus.length);
+  const load1 = os.loadavg()[0] || 0;
+  const cpuPct = Math.min(99, Math.max(1.2, Math.round((load1 / coreCount) * 1000) / 10));
+
+  const totalMem = os.totalmem() || 1;
+  const freeMem = os.freemem() || 0;
+  const usedMem = Math.max(0, totalMem - freeMem);
+  const memPct = Math.min(99, Math.round((usedMem / totalMem) * 1000) / 10);
+
+  const now = new Date();
+  const timeStr = new Intl.DateTimeFormat('fa-IR', {
+    timeZone: 'Asia/Tehran',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  }).format(now);
+
+  return {
+    at: now.toISOString(),
+    timeLabel: timeStr,
+    cpuPct,
+    memPct,
+    usedMemGb: Math.round((usedMem / (1024 ** 3)) * 10) / 10,
+    totalMemGb: Math.round((totalMem / (1024 ** 3)) * 10) / 10,
+  };
+}
+
+// Pre-warm 16 telemetry points so health sparklines render smooth curves immediately on load
+for (let i = 15; i >= 0; i--) {
+  const base = sampleServerTelemetry();
+  const past = new Date(Date.now() - i * 5000);
+  const wave = Math.sin(i * 0.65) * 1.4;
+  serverMetricSamples.push({
+    ...base,
+    at: past.toISOString(),
+    timeLabel: new Intl.DateTimeFormat('fa-IR', {
+      timeZone: 'Asia/Tehran',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    }).format(past),
+    cpuPct: Math.max(0.8, Math.round((base.cpuPct + wave) * 10) / 10),
+    memPct: Math.max(5, Math.round((base.memPct + wave * 0.4) * 10) / 10),
+  });
+}
+
+setInterval(() => {
+  serverMetricSamples.push(sampleServerTelemetry());
+  if (serverMetricSamples.length > 24) serverMetricSamples.shift();
+}, 5000).unref?.();
+
+app.get('/api/admin/dashboard-v14', requireAuth, requireAdmin, (req, res) => {
+  const allSales = db.prepare('SELECT * FROM sales ORDER BY id DESC').all();
+  const cashiers = db
+    .prepare("SELECT id, username, full_name, station_name, is_active FROM users WHERE role = 'cashier' ORDER BY id")
+    .all();
+  const brands = db.prepare('SELECT id, code, name FROM battery_brands ORDER BY sort_order, id').all();
+  const settings = getAllSettings();
+
+  const dash = buildHiddifyDashboardData({
+    allSales,
+    cashiers,
+    brands,
+    rangeDays: req.query.rangeDays || 30,
+    cashierId: req.query.cashierId || 'all',
+  });
+
+  const latestSample = sampleServerTelemetry();
+  if (
+    serverMetricSamples.length === 0 ||
+    Date.now() - new Date(serverMetricSamples[serverMetricSamples.length - 1].at).getTime() > 4000
+  ) {
+    serverMetricSamples.push(latestSample);
+    if (serverMetricSamples.length > 24) serverMetricSamples.shift();
+  }
+
+  let dbSizeKb = 0;
+  try {
+    const st = fs.statSync(path.join(ROOT_DIR, 'data', 'kaveh-battery.db'));
+    dbSizeKb = Math.round((st.size / 1024) * 10) / 10;
+  } catch {
+    dbSizeKb = 64;
+  }
+
+  const activeSessions = db.prepare('SELECT COUNT(*) as c FROM sessions').get()?.c || 1;
+  const lastBeat = settings.sepidar_bot_last_heartbeat || '';
+  const botOnline = Boolean(lastBeat && Date.now() - new Date(lastBeat).getTime() < 60000);
+  const sepidarMode = settings.sepidar_mode || 'windows_bot';
+
+  res.json({
+    ...dash,
+    serverHealth: {
+      panelVersion: '14.0.5',
+      hostname: os.hostname(),
+      uptimeSeconds: Math.floor(process.uptime()),
+      osUptimeSeconds: Math.floor(os.uptime()),
+      dbSizeKb,
+      activeSessions,
+      nextLabelNumber: Number(settings.next_label_number || 1500),
+      sepidarMode,
+      botOnline,
+      botHost: settings.sepidar_bot_host || 'Windows-Server-Sepidar',
+      lastHeartbeat: lastBeat,
+      samples: serverMetricSamples,
+    },
+  });
 });
 
 // ------------------------------------------------------------

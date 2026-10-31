@@ -342,7 +342,7 @@ function seedInitialData() {
   }
 }
 
-function seedSampleSales() {
+export function seedSampleSales() {
   const adminUser = db.prepare("SELECT * FROM users WHERE username = 'admin'").get();
   const cashier1 = db.prepare("SELECT * FROM users WHERE username = 'cashier1'").get();
   const cashier2 = db.prepare("SELECT * FROM users WHERE username = 'cashier2'").get();
@@ -364,78 +364,21 @@ function seedSampleSales() {
   const daysAgo = (d, hOffset = 2) => new Date(now.getTime() - (d * 24 + hOffset) * 3600 * 1000).toISOString();
 
   const samples = [
-    // Earlier in the month (18 days ago & 11 days ago)
-    {
-      cashier: cashier1,
-      cat: catCar,
-      brand: brandRayen,
-      amp: 60,
-      qty: 1,
-      scrapAmp: 60,
-      payMethod: 'pos',
-      pos: posSaderat,
-      customerName: 'رضا محمدی',
-      customerPhone: '09123456781',
-      status: 'synced',
-      createdAt: daysAgo(18, 4),
-    },
-    {
-      cashier: cashier2,
-      cat: catUps,
-      brand: brandOrbital,
-      amp: 90,
-      qty: 2,
-      scrapAmp: 90,
-      scrapQty: 2,
-      payMethod: 'transfer',
-      paymentRef: 'TR-994821',
-      customerName: 'شرکت داده‌پردازان البرز',
-      customerPhone: '09121112233',
-      status: 'synced',
-      createdAt: daysAgo(11, 3),
-    },
-    // Earlier this week (4 days ago & 2 days ago & yesterday)
-    {
-      cashier: cashier1,
-      cat: catCar,
-      brand: brandExon,
-      amp: 74,
-      qty: 1,
-      scrapAmp: 70,
-      payMethod: 'pos',
-      pos: posMellat,
-      customerName: 'حسین نادری',
-      customerPhone: '09354448899',
-      status: 'synced',
-      createdAt: daysAgo(4, 5),
-    },
-    {
-      cashier: cashier2,
-      cat: catMoto,
-      brand: brandRayen,
-      amp: 50,
-      qty: 1,
-      scrapAmp: 0,
-      payMethod: 'cash',
-      customerName: 'مهدی عباسی',
-      customerPhone: '09197776655',
-      status: 'synced',
-      createdAt: daysAgo(2, 2),
-    },
-    {
-      cashier: cashier1,
-      cat: catCar,
-      brand: brandOrbital,
-      amp: 66,
-      qty: 1,
-      scrapAmp: 66,
-      payMethod: 'pos',
-      pos: posParsian,
-      customerName: 'سعید شریفی',
-      customerPhone: '09128884422',
-      status: 'synced',
-      createdAt: daysAgo(1, 3),
-    },
+    // Multi-day realistic curve across last 18 days
+    { cashier: cashier1, cat: catCar, brand: brandRayen, amp: 60, qty: 1, scrapAmp: 60, payMethod: 'pos', pos: posSaderat, customerName: 'رضا محمدی', customerPhone: '09123456781', status: 'synced', createdAt: daysAgo(16, 4) },
+    { cashier: cashier2, cat: catUps, brand: brandOrbital, amp: 90, qty: 2, scrapAmp: 90, scrapQty: 2, payMethod: 'transfer', paymentRef: 'TR-994821', customerName: 'شرکت داده‌پردازان البرز', customerPhone: '09121112233', status: 'synced', createdAt: daysAgo(12, 3) },
+    { cashier: cashier1, cat: catCar, brand: brandExon, amp: 70, qty: 1, scrapAmp: 66, payMethod: 'pos', pos: posMellat, customerName: 'مجید حسینی', customerPhone: '09125550192', status: 'synced', createdAt: daysAgo(10, 5) },
+    { cashier: cashier2, cat: catCar, brand: brandRayen, amp: 66, qty: 2, scrapAmp: 60, scrapQty: 2, payMethod: 'pos', pos: posParsian, customerName: 'تعمیرگاه مرکزی غرب', customerPhone: '09128812200', status: 'synced', createdAt: daysAgo(9, 2) },
+    { cashier: cashier1, cat: catCar, brand: brandOrbital, amp: 74, qty: 1, scrapAmp: 74, payMethod: 'pos', pos: posSaderat, customerName: 'فرهاد امینی', customerPhone: '09351129876', status: 'synced', createdAt: daysAgo(8, 4) },
+    { cashier: cashier2, cat: catMoto, brand: brandRayen, amp: 50, qty: 2, scrapAmp: 50, scrapQty: 1, payMethod: 'cash', customerName: 'پیک موتوری تندباد', customerPhone: '09193345566', status: 'synced', createdAt: daysAgo(7, 3) },
+    { cashier: cashier1, cat: catUps, brand: brandOrbital, amp: 90, qty: 2, scrapAmp: 90, scrapQty: 2, payMethod: 'transfer', paymentRef: 'TR-774102', customerName: 'کلینیک تخصصی پارسیان', customerPhone: '09123004455', status: 'synced', createdAt: daysAgo(6, 5) },
+    { cashier: cashier2, cat: catCar, brand: brandExon, amp: 74, qty: 2, scrapAmp: 70, scrapQty: 2, payMethod: 'pos', pos: posMellat, customerName: 'کیوان مرادی', customerPhone: '09127774321', status: 'synced', createdAt: daysAgo(5, 2) },
+    { cashier: cashier1, cat: catCar, brand: brandExon, amp: 74, qty: 1, scrapAmp: 70, payMethod: 'pos', pos: posMellat, customerName: 'حسین نادری', customerPhone: '09354448899', status: 'synced', createdAt: daysAgo(4, 5) },
+    { cashier: cashier2, cat: catCar, brand: brandRayen, amp: 60, qty: 2, scrapAmp: 60, scrapQty: 2, payMethod: 'pos', pos: posSaderat, customerName: 'ناوگان تاکسیرانی منطقه ۵', customerPhone: '09126654320', status: 'synced', createdAt: daysAgo(3, 4) },
+    { cashier: cashier2, cat: catMoto, brand: brandRayen, amp: 50, qty: 1, scrapAmp: 0, payMethod: 'cash', customerName: 'مهدی عباسی', customerPhone: '09197776655', status: 'synced', createdAt: daysAgo(2, 2) },
+    { cashier: cashier1, cat: catCar, brand: brandOrbital, amp: 70, qty: 1, scrapAmp: 66, payMethod: 'pos', pos: posParsian, customerName: 'پیمان رستمی', customerPhone: '09129901122', status: 'synced', createdAt: daysAgo(2, 5) },
+    { cashier: cashier1, cat: catCar, brand: brandOrbital, amp: 66, qty: 1, scrapAmp: 66, payMethod: 'pos', pos: posParsian, customerName: 'سعید شریفی', customerPhone: '09128884422', status: 'synced', createdAt: daysAgo(1, 3) },
+    { cashier: cashier2, cat: catCar, brand: brandExon, amp: 74, qty: 1, scrapAmp: 74, payMethod: 'pos', pos: posSaderat, customerName: 'شهرام گودرزی', customerPhone: '09124456677', status: 'synced', createdAt: daysAgo(1, 6) },
     // Today across different hours!
     {
       // Exact user prompt example: راین 60 آمپر × 132,000 = 7,920,000 - داغی 60 × 50,000 = 4,920,000 تومان
@@ -450,7 +393,7 @@ function seedSampleSales() {
       customerName: 'امیرحسین کاظمی',
       customerPhone: '09125551234',
       status: 'synced',
-      createdAt: hoursAgo(4.5),
+      createdAt: hoursAgo(4.2),
     },
     {
       cashier: cashier2,
@@ -464,7 +407,7 @@ function seedSampleSales() {
       customerName: 'بهرام جلالی',
       customerPhone: '09123339876',
       status: 'pending',
-      createdAt: hoursAgo(2.8),
+      createdAt: hoursAgo(2.6),
     },
     {
       cashier: cashier1,
@@ -478,7 +421,7 @@ function seedSampleSales() {
       customerName: 'درمانگاه شبانه‌روزی مهر',
       customerPhone: '09124447700',
       status: 'pending',
-      createdAt: hoursAgo(1.5),
+      createdAt: hoursAgo(1.4),
     },
     {
       cashier: cashier2,
@@ -492,7 +435,7 @@ function seedSampleSales() {
       customerName: 'حمیدرضا طاهری',
       customerPhone: '09361239988',
       status: 'pending',
-      createdAt: hoursAgo(0.4),
+      createdAt: hoursAgo(0.3),
     },
   ];
 
