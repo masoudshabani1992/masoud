@@ -1,0 +1,20 @@
+node_modules/
+dist/
+build/
+.vite/
+.cache/
+coverage/
+playwright-report/
+test-results/
+artifacts/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+
+# Generated WordPress plugin build artifacts
+wordpress/build-info.json
+wordpress/arti-ceram-studio/assets/app.js
+wordpress/arti-ceram-studio/assets/app.css
+wordpress/arti-ceram-studio/assets/fonts/
+wordpress/arti-ceram-studio/assets/images/
