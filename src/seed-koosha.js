@@ -495,7 +495,77 @@ function upsertSlides() {
   run("INSERT INTO settings (key, value) VALUES ('seed_koosha_content','2') ON CONFLICT(key) DO UPDATE SET value='2'");
 }
 
+/** تنظیمات پایه: فقط اگر مقدار فعلی خالی یا همان پیش‌فرض قدیمی باشد بازنویسی می‌شود */
+function syncSettings() {
+  const defaults = {
+    logo_url: '/img/brand/koosha-logo-dark.png',
+    logo_dark_url: '/img/brand/koosha-logo-white.png',
+    favicon_url: '/img/brand/favicon.png',
+    phone: '021-49970000',
+    sales_phone: '021-49970000',
+    support_phone: '021-49970000',
+    address: 'کیلومتر ۴ جاده مخصوص کرج، شماره ۷۷ — دفتر تهران (فروش و خدمات پس از فروش)',
+    site_tagline: 'فروش و خدمات پس از فروش کیا در ایران',
+    footer_about: 'کوشا خودرو، عضو رسمی انجمن واردکنندگان خودرو و مرکز فروش و خدمات پس از فروش کیا در ایران؛ '
+      + 'با واردات بیش از ۲۵٬۰۰۰ دستگاه خودرو و توزیع قطعات یدکی اصلی در سراسر کشور.',
+  };
+  const legacy = {
+    phone: ['021-91009000', ''],
+    sales_phone: ['021-91009000', ''],
+    support_phone: ['021-91009000', ''],
+    address: ['تهران، خیابان ولیعصر، برج کوشا، طبقه ۱۲', ''],
+    site_tagline: ['نماینده رسمی فروش و خدمات پس از فروش کیا در ایران', ''],
+    logo_url: ['', ''],
+    favicon_url: ['', ''],
+  };
+  Object.keys(defaults).forEach((k) => {
+    const current = get('SELECT value FROM settings WHERE key = ?', [k]);
+    const old = (legacy[k] || []).concat(['']);
+    if (!current || old.includes(current.value)) {
+      run(`INSERT INTO settings (key, value) VALUES (?, ?)
+           ON CONFLICT(key) DO UPDATE SET value = excluded.value`, [k, defaults[k]]);
+    }
+  });
+}
+
+/** صفحه درباره ما با متن رسمی شرکت */
+function upsertAbout() {
+  const body = `<p>شرکت کوشا خودرو با فعالیت دو دهه در حوزه واردات خودرو، به‌عنوان عضو رسمی و فعال
+انجمن واردکنندگان خودرو کشور و با واردات بیش از ۲۵٬۰۰۰ دستگاه انواع خودروهای سواری و همچنین
+تأمین و توزیع قطعات یدکی اصلی در سراسر کشور، توانسته است سابقه قابل قبولی در بازار ایران از خود
+به جای گذارد و در حال حاضر با تمرکز بر واردات خودرو کیا و تأمین قطعات اصلی کیا، به‌عنوان
+<strong>مرکز فروش و خدمات پس از فروش کیا</strong> در ایران شناخته می‌شود.</p>
+<h2>کوشا خودرو در یک نگاه</h2>
+<ul>
+  <li>دو دهه فعالیت در واردات خودرو</li>
+  <li>عضو رسمی و فعال انجمن واردکنندگان خودرو کشور</li>
+  <li>واردات بیش از ۲۵٬۰۰۰ دستگاه خودروی سواری</li>
+  <li>تأمین و توزیع قطعات یدکی اصلی کیا در سراسر کشور</li>
+  <li>مرکز فروش و خدمات پس از فروش کیا در ایران</li>
+</ul>
+<h2>آدرس و تماس</h2>
+<p><strong>دفتر تهران (فروش و خدمات پس از فروش):</strong> کیلومتر ۴ جاده مخصوص کرج، شماره ۷۷<br>
+<strong>تلفن:</strong> <a href="tel:02149970000">۰۲۱-۴۹۹۷۰۰۰۰</a></p>
+<h2>تعهد ما</h2>
+<ul>
+  <li>عرضه محصولات با گارانتی رسمی</li>
+  <li>تأمین قطعات اصلی و خدمات پس از فروش در سراسر کشور</li>
+  <li>شفافیت در قیمت و شرایط فروش</li>
+  <li>پاسخگویی سریع به مشتریان</li>
+</ul>`;
+  const existing = get("SELECT id FROM posts WHERE slug = 'about' AND type = 'page'");
+  if (existing) {
+    run("UPDATE posts SET body = ?, updated_at = datetime('now') WHERE id = ?", [body, existing.id]);
+  } else {
+    run(`INSERT INTO posts (type, title, slug, excerpt, body, status, published_at, template)
+         VALUES ('page', ?, 'about', ?, ?, 'published', datetime('now'), 'default')`,
+      ['درباره کوشا خودرو', 'شرکت کوشا خودرو؛ فروش و خدمات پس از فروش کیا در ایران', body]);
+  }
+}
+
 function seedKoosha() {
+  syncSettings();
+  upsertAbout();
   PRODUCTS.forEach(upsertProduct);
   NEWS.forEach((n) => upsertPost(n, 'news'));
   CIRCULARS.forEach((c) => upsertPost(c, 'circular'));

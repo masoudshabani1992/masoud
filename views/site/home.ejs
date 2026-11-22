@@ -253,29 +253,47 @@
   <div class="container dark-about-grid">
     <div data-reveal>
       <div class="label" style="font-size:11.5px;letter-spacing:.2em;color:#74746f">ABOUT</div>
-      <h2>بیش از یک دهه تجربه در واردات خودرو</h2>
+      <h2>درباره کوشا خودرو</h2>
       <p>
-        کوشا خودرو از سال ۱۳۸۷ فعالیت خود را آغاز کرد و امروز به‌عنوان نماینده رسمی فروش و
-        خدمات پس از فروش محصولات کیا در ایران شناخته می‌شود. تأمین قطعات اصلی، شبکه گسترده
-        نمایندگی و خدمات پس از فروش، سه ستون اصلی تعهد ما به مشتریان است.
+        شرکت کوشا خودرو با فعالیت دو دهه در حوزه واردات خودرو، به‌عنوان عضو رسمی و فعال انجمن
+        واردکنندگان خودرو کشور و با واردات بیش از ۲۵٬۰۰۰ دستگاه انواع خودروهای سواری و همچنین
+        تأمین و توزیع قطعات یدکی اصلی در سراسر کشور، سابقه قابل قبولی در بازار ایران از خود
+        به جای گذاشته است. امروز با تمرکز بر واردات خودرو کیا و تأمین قطعات اصلی کیا،
+        به‌عنوان مرکز فروش و خدمات پس از فروش کیا در ایران شناخته می‌شویم.
       </p>
       <ul class="dark-list">
-        <li><span>✓</span> واردات رسمی محصولات کیا با گارانتی معتبر</li>
-        <li><span>✓</span> تأمین قطعات اصلی از کره جنوبی</li>
-        <li><span>✓</span> خدمات پس از فروش در بیش از ۳۰ نمایندگی</li>
-        <li><span>✓</span> رتبه نخست ارزیابی فروش ISQI در سال ۱۴۰۳</li>
+        <li><span>✓</span> دو دهه فعالیت در واردات خودرو</li>
+        <li><span>✓</span> عضو رسمی انجمن واردکنندگان خودرو کشور</li>
+        <li><span>✓</span> واردات بیش از ۲۵٬۰۰۰ دستگاه خودروی سواری</li>
+        <li><span>✓</span> تأمین و توزیع قطعات یدکی اصلی کیا در سراسر کشور</li>
       </ul>
+      <div class="flex" style="gap:10px;margin-top:26px;flex-wrap:wrap">
+        <a href="/p/about" class="btn btn-on-dark btn-sm">درباره ما بیشتر بدانید</a>
+        <a href="/contact" class="btn btn-outline-dark btn-sm">تماس با ما</a>
+      </div>
     </div>
 
     <div class="dark-contact-card" data-reveal>
-      <h3>مشاوره خرید خودرو</h3>
-      <p>برای دریافت کاتالوگ، شرایط فروش و مشاوره تخصصی با ما در تماس باشید.</p>
-      <div class="row"><b><%= U.toFa(s.sales_phone || s.phone) %></b><span>فروش و مشاوره</span></div>
-      <div class="row"><b><%= U.toFa(s.phone) %></b><span>پشتیبانی</span></div>
-      <div class="row" style="border-bottom:0"><b><%= s.address %></b></div>
+      <div class="flex" style="justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:18px">
+        <div>
+          <h3>فروش و خدمات پس از فروش کیا</h3>
+          <p style="margin:6px 0 0">دفتر تهران — کیلومتر ۴ جاده مخصوص کرج، شماره ۷۷</p>
+        </div>
+        <img src="/img/brand/koosha-logo-dark.png" alt="لوگوی کوشا خودرو" width="72" height="69" style="height:62px;width:auto;flex:0 0 auto">
+      </div>
+
+      <div class="row" style="border-top:1px solid #e6e6e6">
+        <b><%= U.toFa(s.sales_phone || s.phone) %></b><span>فروش و مشاوره</span>
+      </div>
+      <div class="row"><b><%= U.toFa(s.support_phone || s.phone) %></b><span>خدمات پس از فروش</span></div>
+      <div class="row" style="border-bottom:0;align-items:flex-start">
+        <b style="font-weight:600;font-size:13.5px;line-height:1.9"><%= s.address %></b>
+      </div>
+
       <div class="flex" style="gap:8px;margin-top:18px;flex-wrap:wrap">
         <a href="tel:<%= U.faToEnDigits(s.sales_phone || s.phone) %>" class="btn btn-black btn-sm">تماس تلفنی</a>
         <a href="<%= s.sale_url %>" target="_blank" rel="noopener" class="btn btn-line-dark btn-sm">سامانه فروش</a>
+        <a href="/contact" class="btn btn-line-dark btn-sm">آدرس و نقشه</a>
       </div>
     </div>
   </div>
