@@ -46,39 +46,52 @@
 <body class="<%= typeof bodyClass !== 'undefined' ? bodyClass : '' %>">
 <a href="#main" class="sr-only">پرش به محتوا</a>
 
-<div class="topbar">
-  <div class="container">
-    <div class="topbar-links">
-      <a href="tel:<%= U.faToEnDigits(s.phone) %>"><%= U.toFa(s.phone) %> ☎</a>
+<div class="hdr-bar">
+  <div class="wrap">
+    <div class="flex" style="gap:0">
+      <a href="tel:<%= U.faToEnDigits(s.phone) %>" dir="ltr"><%= U.toFa(s.phone) %></a>
       <span class="sep">|</span>
-      <span>شنبه تا چهارشنبه ۸ تا ۱۷</span>
+      <span>شنبه تا چهارشنبه، ۸ تا ۱۷</span>
     </div>
-    <div class="topbar-links">
+    <div class="flex" style="gap:0">
       <a href="<%= s.sale_url %>" target="_blank" rel="noopener">سامانه فروش اینترنتی</a>
       <span class="sep">|</span>
-      <a href="/contact">شبکه نمایندگی‌ها</a>
+      <a href="/circulars">بخشنامه‌های رسمی</a>
     </div>
   </div>
 </div>
 
-<header class="site-header">
-  <div class="container">
-    <a class="brand" href="/" aria-label="<%= s.site_name %> — صفحه اصلی">
+<header class="hdr" id="siteHeader">
+  <div class="wrap">
+    <a class="brandx" href="/" aria-label="<%= s.site_name %> — صفحه اصلی">
       <% if (s.logo_url) { %>
         <img src="<%= s.logo_url %>" alt="لوگوی <%= s.site_name %>" width="612" height="588">
       <% } else { %>
         <span class="brand-mark">ک</span>
       <% } %>
-      <span class="brand-text"><%= s.site_name %><small><%= s.site_tagline %></small></span>
+      <span class="bt"><b><%= s.site_name %></b><span><%= s.site_tagline %></span></span>
     </a>
-    <button class="burger" aria-label="منو" onclick="document.querySelector('.nav').classList.toggle('open')">
+
+    <button class="burgerx" type="button" aria-label="منو" aria-expanded="false"
+            onclick="var n=document.querySelector('.navx');n.classList.toggle('open');this.setAttribute('aria-expanded',n.classList.contains('open'))">
       <span></span><span></span><span></span>
     </button>
-    <nav class="nav" aria-label="منوی اصلی">
+
+    <nav class="navx" aria-label="منوی اصلی">
+      <%
+        // لینک فعال = طولانی‌ترین مسیر منطبق (تا /products و /prices همزمان فعال نشوند)
+        var activeUrl = '';
+        menu.forEach(function (m) {
+          if (m.url === '/' ? path === '/' : path.indexOf(m.url) === 0) {
+            if (m.url.length > activeUrl.length) activeUrl = m.url;
+          }
+        });
+      %>
       <% menu.forEach(function (m) { %>
-        <a href="<%= m.url %>" class="<%= (m.url === '/' ? path === '/' : path.startsWith(m.url)) ? 'active' : '' %>"><%= m.title %></a>
+        <a href="<%= m.url %>" class="<%= m.url === activeUrl ? 'active' : '' %>"><%= m.title %></a>
       <% }); %>
-      <a href="<%= s.sale_url %>" target="_blank" rel="noopener" class="header-cta">ثبت‌نام فروش</a>
+      <a href="/search" style="font-size:13px;color:var(--muted)">جست‌وجو</a>
+      <a href="/contact" class="btn btn-solid hdr-cta">استعلام قیمت</a>
     </nav>
   </div>
 </header>
@@ -87,55 +100,60 @@
   <%- body %>
 </main>
 
-<footer class="site-footer">
-  <div class="container">
-    <div class="footer-grid">
+<footer class="ftr">
+  <div class="wrap">
+    <div class="ftr-grid">
       <div>
-        <a class="brand" href="/" aria-label="<%= s.site_name %>">
+        <a class="brandx" href="/" aria-label="<%= s.site_name %>">
           <% if (s.logo_dark_url) { %>
             <img src="<%= s.logo_dark_url %>" alt="لوگوی <%= s.site_name %>" width="612" height="588" loading="lazy">
           <% } else { %>
             <span class="brand-mark">ک</span>
           <% } %>
-          <span class="brand-text"><%= s.site_name %><small><%= s.site_tagline %></small></span>
+          <span class="bt"><b><%= s.site_name %></b><span><%= s.site_tagline %></span></span>
         </a>
-        <p><%= s.footer_about %></p>
-        <div class="social">
-          <% if (s.social_instagram) { %><a href="<%= s.social_instagram %>" target="_blank" rel="noopener" aria-label="اینستاگرام">ig</a><% } %>
-          <% if (s.social_telegram) { %><a href="<%= s.social_telegram %>" target="_blank" rel="noopener" aria-label="تلگرام">tg</a><% } %>
-          <% if (s.social_linkedin) { %><a href="<%= s.social_linkedin %>" target="_blank" rel="noopener" aria-label="لینکدین">in</a><% } %>
-          <% if (s.social_aparat) { %><a href="<%= s.social_aparat %>" target="_blank" rel="noopener" aria-label="آپارات">ap</a><% } %>
+        <p class="ftr-about"><%= s.footer_about %></p>
+        <div class="socialx" style="margin-top:18px">
+          <% if (s.social_instagram) { %><a href="<%= s.social_instagram %>" target="_blank" rel="noopener" aria-label="اینستاگرام">IG</a><% } %>
+          <% if (s.social_telegram) { %><a href="<%= s.social_telegram %>" target="_blank" rel="noopener" aria-label="تلگرام">TG</a><% } %>
+          <% if (s.social_linkedin) { %><a href="<%= s.social_linkedin %>" target="_blank" rel="noopener" aria-label="لینکدین">IN</a><% } %>
+          <% if (s.social_aparat) { %><a href="<%= s.social_aparat %>" target="_blank" rel="noopener" aria-label="آپارات">AP</a><% } %>
         </div>
       </div>
+
       <div>
         <h4>دسترسی سریع</h4>
         <ul>
-          <% menu.forEach(function (m) { %><li><a href="<%= m.url %>"><%= m.title %></a></li><% }); %>
+          <% menu.slice(0, 6).forEach(function (m) { %><li><a href="<%= m.url %>"><%= m.title %></a></li><% }); %>
         </ul>
       </div>
+
       <div>
-        <h4>محصولات</h4>
+        <h4>محصولات کیا</h4>
         <ul>
-          <% (footerProducts || []).forEach(function (p) { %>
+          <% (footerProducts || []).slice(0, 6).forEach(function (p) { %>
             <li><a href="/products/<%= p.slug %>"><%= p.name %></a></li>
           <% }); %>
           <li><a href="/products">همه محصولات</a></li>
         </ul>
       </div>
+
       <div>
-        <h4>تماس با ما</h4>
+        <h4>دفتر مرکزی</h4>
         <ul>
-          <li>تلفن: <a href="tel:<%= U.faToEnDigits(s.phone) %>"><%= U.toFa(s.phone) %></a></li>
-          <% if (s.email) { %><li>ایمیل: <a href="mailto:<%= s.email %>"><%= s.email %></a></li><% } %>
           <li><%= s.address %></li>
-          <li><a href="<%= s.sale_url %>" target="_blank" rel="noopener">سامانه فروش اینترنتی</a></li>
+          <li>تلفن: <a href="tel:<%= U.faToEnDigits(s.phone) %>" dir="ltr"><%= U.toFa(s.phone) %></a></li>
+          <% if (s.email) { %><li>ایمیل: <a href="mailto:<%= s.email %>"><%= s.email %></a></li><% } %>
+          <li><a href="/contact">فرم تماس و نقشه</a></li>
         </ul>
       </div>
     </div>
-    <div class="footer-bottom container" style="padding-inline:0">
+
+    <div class="ftr-bottom">
       <span>© <%= year %> <%= s.site_name %> — تمامی حقوق محفوظ است.</span>
       <span>
-        <a href="/p/privacy">حریم خصوصی</a> · <a href="/p/terms">شرایط و قوانین</a> ·
+        <a href="/p/privacy">حریم خصوصی</a><span class="sep">·</span>
+        <a href="/p/terms">شرایط و قوانین</a><span class="sep">·</span>
         <a href="/sitemap.xml">نقشه سایت</a>
       </span>
     </div>
@@ -143,13 +161,34 @@
 </footer>
 
 <script>
-  // جست‌وجوی سریع
-  document.querySelectorAll('[data-quick-search]').forEach(function (f) {
-    f.addEventListener('submit', function (e) {
-      var q = f.querySelector('input').value.trim();
-      if (!q) { e.preventDefault(); }
+  (function () {
+    // چسبیدن هدر + سایه
+    var hdr = document.getElementById('siteHeader');
+    if (hdr) {
+      var onScroll = function () {
+        hdr.classList.toggle('is-stuck', window.scrollY > 8);
+      };
+      onScroll();
+      window.addEventListener('scroll', onScroll, { passive: true });
+    }
+    // جست‌وجوی سریع: ارسال خالی را متوقف کن
+    document.querySelectorAll('[data-quick-search]').forEach(function (f) {
+      f.addEventListener('submit', function (e) {
+        var q = f.querySelector('input').value.trim();
+        if (!q) e.preventDefault();
+      });
     });
-  });
+    // بستن منو با کلیک بیرون
+    document.addEventListener('click', function (e) {
+      var n = document.querySelector('.navx');
+      var b = document.querySelector('.burgerx');
+      if (!n || !n.classList.contains('open')) return;
+      if (!n.contains(e.target) && !b.contains(e.target)) {
+        n.classList.remove('open');
+        b.setAttribute('aria-expanded', 'false');
+      }
+    });
+  })();
 </script>
 <%- typeof extraScript !== 'undefined' ? extraScript : '' %>
 </body>

@@ -1,30 +1,29 @@
-<section class="article-hero">
-  <div class="container">
-    <nav class="breadcrumb" aria-label="مسیر صفحه">
-      <a href="/">خانه</a><span>/</span>
-      <a href="/dealers">نمایندگی‌ها</a><span>/</span>
-      <a href="/dealers?city=<%= encodeURIComponent(d.city) %>"><%= d.city %></a><span>/</span>
-      <span><%= U.truncate(d.name, 45) %></span>
+<section class="page-hero">
+  <div class="wrap">
+    <nav class="crumbs" aria-label="مسیر صفحه">
+      <a href="/">خانه</a><span class="sep">/</span>
+      <a href="/dealers">نمایندگی‌ها</a><span class="sep">/</span>
+      <a href="/dealers?city=<%= encodeURIComponent(d.city) %>"><%= d.city %></a><span class="sep">/</span>
+      <span class="current"><%= U.truncate(d.name, 45) %></span>
     </nav>
-    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap">
       <div>
         <span class="badge badge-type"><%= TYPE_LABELS_DEALER[d.type] || d.type %></span>
-        <h1 style="font-size:29px;margin:10px 0 6px"><%= d.name %></h1>
-        <p class="muted" style="margin:0"><%= d.city %><% if (d.province && d.province !== d.city) { %> — استان <%= d.province %><% } %></p>
+        <h1 style="margin-top:12px"><%= d.name %></h1>
+        <p class="lead"><%= d.city %><% if (d.province && d.province !== d.city) { %> — استان <%= d.province %><% } %></p>
       </div>
       <div class="actions">
-        <a class="btn btn-primary" href="tel:<%= U.faToEnDigits(d.phone) %>" dir="ltr">☎ <%= U.toFa(d.phone) %></a>
-        <% if (d.map_url) { %><a class="btn btn-ghost" href="<%= d.map_url %>" target="_blank" rel="noopener">مسیریابی روی نقشه</a><% } %>
+        <a class="btn btn-solid" href="tel:<%= U.faToEnDigits(d.phone) %>" dir="ltr"><%= U.toFa(d.phone) %></a>
+        <% if (d.map_url) { %><a class="btn btn-line" href="<%= d.map_url %>" target="_blank" rel="noopener">مسیریابی روی نقشه</a><% } %>
       </div>
     </div>
   </div>
 </section>
 
-<div class="container">
+<div class="wrap">
   <div class="article-layout">
     <article>
-      <!-- مشخصات تماس -->
-      <div class="side-card" style="margin-bottom:26px">
+      <div class="side-card" style="margin-bottom:30px">
         <h3>اطلاعات تماس و آدرس</h3>
         <div class="table-wrap" style="border:0">
           <table class="data">
@@ -40,28 +39,27 @@
           </table>
         </div>
         <% if (services.length) { %>
-          <div class="dealer-services" style="margin-top:14px">
+          <div class="dealer-services" style="margin-top:16px">
             <span class="small muted" style="margin-inline-end:6px">خدمات:</span>
             <% services.forEach(function (sv) { %><span class="chip chip-sm"><%= sv %></span><% }); %>
           </div>
         <% } %>
       </div>
 
-      <!-- لیست قیمت این نمایندگی -->
       <div class="section-head" style="margin-bottom:16px">
         <div>
-          <span class="kicker">لیست قیمت</span>
+          <span class="kicker">PRICE LIST</span>
           <h2 style="font-size:22px">قیمت محصولات برای این <%= d.type === 'agency' ? 'عاملیت' : 'نمایندگی' %></h2>
           <p><%= priceList ? priceList.title : 'لیست قیمت اختصاصی ثبت نشده است.' %></p>
         </div>
         <% if (priceList) { %>
-          <a class="more" href="/prices/<%= priceList.slug %>">مشاهده لیست کامل ←</a>
+          <a class="more" href="/prices/<%= priceList.slug %>">مشاهدهٔ لیست کامل ←</a>
         <% } %>
       </div>
 
       <% if (priceList && items.length) { %>
         <% if (priceList.effective_from || priceList.effective_to) { %>
-          <div class="alert alert-info" style="margin-bottom:16px">
+          <div class="alert alert-info">
             اعتبار لیست: <%= U.faDate(priceList.effective_from) %> تا <%= U.faDate(priceList.effective_to) %>
           </div>
         <% } %>
@@ -69,13 +67,8 @@
           <table class="data price-table">
             <thead>
               <tr>
-                <th>محصول</th>
-                <th>مدل / رنگ</th>
-                <th>قیمت پایه (تومان)</th>
-                <th>سهم عاملیت</th>
-                <th>قیمت شما</th>
-                <th>قیمت مصرف‌کننده</th>
-                <th>تحویل</th>
+                <th>محصول</th><th>مدل / رنگ</th><th>قیمت پایه</th><th>سهم عاملیت</th>
+                <th>قیمت شما</th><th>قیمت مصرف‌کننده</th><th>تحویل</th>
               </tr>
             </thead>
             <tbody>
@@ -87,8 +80,8 @@
                   </td>
                   <td class="small muted"><%= it.model_year || '—' %> · <%= it.color || '—' %></td>
                   <td class="num"><%= U.money(it.base_price) || '—' %></td>
-                  <td class="num" style="color:#147a3f"><%= U.money(it.dealer_discount) || '—' %></td>
-                  <td class="num" style="font-weight:800;color:var(--brand)"><%= U.money(it.final_price) || '—' %></td>
+                  <td class="num" style="color:var(--ok)"><%= U.money(it.dealer_discount) || '—' %></td>
+                  <td class="num" style="font-weight:800"><%= U.money(it.final_price) || '—' %></td>
                   <td class="num muted"><%= U.money(it.public_price) || '—' %></td>
                   <td class="small"><%= it.delivery || '—' %></td>
                 </tr>
@@ -97,27 +90,29 @@
           </table>
         </div>
         <% if (priceList.notes) { %>
-          <div class="alert alert-info" style="margin-top:14px"><span>ℹ️</span><span><%= priceList.notes %></span></div>
+          <div class="alert alert-info" style="margin-top:14px"><%= priceList.notes %></div>
         <% } %>
       <% } else { %>
-        <div class="empty-state" style="padding:40px 20px">
-          <div class="icon">🧾</div>
+        <div class="empty-state" style="padding:44px 20px">
+          <div class="icon">—</div>
           <p>برای این مرکز هنوز لیست قیمت منتشر نشده است. با بخش فروش تماس بگیرید.</p>
-          <a href="/prices" class="btn btn-ghost btn-sm">مشاهده لیست‌های قیمت</a>
+          <a href="/prices" class="btn btn-line btn-sm">مشاهدهٔ لیست‌های قیمت</a>
         </div>
       <% } %>
 
       <% if (coverImg) { %>
-        <div class="article-cover" style="margin-top:26px"><img src="<%= coverImg.url %>" alt="<%= coverImg.alt || d.name %>"></div>
+        <div style="margin-top:28px;border:1px solid var(--line);overflow:hidden">
+          <img src="<%= coverImg.url %>" alt="<%= coverImg.alt || d.name %>" style="width:100%;aspect-ratio:16/9;object-fit:cover">
+        </div>
       <% } %>
     </article>
 
-    <aside>
-      <div class="side-card" style="background:linear-gradient(150deg,var(--brand-dark),var(--brand));color:#fff;border:0">
-        <h3 style="color:#fff;border-bottom-color:rgba(255,255,255,.2)">ارتباط مستقیم</h3>
-        <p style="color:#d6e6f7;font-size:13.5px">برای استعلام موجودی و شرایط فروش، با این مرکز تماس بگیرید.</p>
-        <a href="tel:<%= U.faToEnDigits(d.phone) %>" class="btn btn-light" style="width:100%;margin-bottom:8px" dir="ltr">☎ <%= U.toFa(d.phone) %></a>
-        <% if (d.email) { %><a href="mailto:<%= d.email %>" class="btn btn-light btn-sm" style="width:100%">ارسال ایمیل</a><% } %>
+    <aside class="side">
+      <div class="side-card side-card-dark">
+        <h3>ارتباط مستقیم</h3>
+        <p>برای استعلام موجودی و شرایط فروش، با این مرکز تماس بگیرید.</p>
+        <a href="tel:<%= U.faToEnDigits(d.phone) %>" class="btn btn-on-dark btn-sm" style="width:100%;margin-bottom:8px" dir="ltr"><%= U.toFa(d.phone) %></a>
+        <% if (d.email) { %><a href="mailto:<%= d.email %>" class="btn btn-outline-dark btn-sm" style="width:100%">ارسال ایمیل</a><% } %>
       </div>
 
       <% if (siblings.length) { %>
@@ -141,7 +136,7 @@
             <li><a href="/dealers/<%= x.slug %>"><%= x.city %> — <%= U.truncate(x.name, 40) %></a></li>
           <% }); %>
         </ul>
-        <a href="/dealers" class="btn btn-ghost btn-sm" style="width:100%;margin-top:12px">همه نمایندگی‌ها</a>
+        <a href="/dealers" class="btn btn-line btn-sm" style="width:100%;margin-top:14px">همهٔ نمایندگی‌ها</a>
       </div>
     </aside>
   </div>
