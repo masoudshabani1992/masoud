@@ -50,6 +50,8 @@ function menu() {
     { title: 'محصولات', url: '/products' },
     { title: 'اخبار', url: '/news' },
     { title: 'بخشنامه‌ها', url: '/circulars' },
+    { title: 'لیست قیمت', url: '/prices' },
+    { title: 'نمایندگی‌ها', url: '/dealers' },
     { title: 'درباره ما', url: '/p/about' },
     { title: 'تماس با ما', url: '/contact' },
   ];

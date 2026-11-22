@@ -7,6 +7,7 @@
     <a href="/admin/news/new" class="btn btn-primary">+ خبر جدید</a>
     <a href="/admin/circulars/new" class="btn btn-ghost">+ بخشنامه</a>
     <a href="/admin/products/new" class="btn btn-ghost">+ محصول</a>
+    <a href="/admin/prices/new" class="btn btn-ghost">+ لیست قیمت</a>
   </div>
 </div>
 
@@ -31,7 +32,7 @@
 
 <div class="stat-grid" style="grid-template-columns:repeat(4,1fr)">
   <div class="stat"><div class="ico">📄</div><div><b><%= U.toFa(counts.pages) %></b><span>صفحه</span></div></div>
-  <div class="stat"><div class="ico">🖼</div><div><b><%= U.toFa(counts.media) %></b><span>فایل رسانه</span></div></div>
+  <div class="stat"><div class="ico">📍</div><div><b><%= U.toFa(counts.dealers) %></b><span>نمایندگی فعال · <%= U.toFa(counts.priceLists) %> لیست قیمت</span></div></div>
   <div class="stat"><div class="ico">👁</div><div><b><%= U.toFa(counts.views) %></b><span>کل بازدید</span></div></div>
   <div class="stat"><div class="ico">📈</div><div><b><%= U.toFa(seoIssues.length) %></b><span>مورد سئویی نیازمند بررسی</span></div></div>
 </div>

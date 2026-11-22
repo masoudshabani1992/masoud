@@ -1,0 +1,88 @@
+<section class="article-hero">
+  <div class="container">
+    <nav class="breadcrumb" aria-label="مسیر صفحه">
+      <a href="/">خانه</a><span>/</span><span>نمایندگی‌ها و عاملیت‌ها</span>
+    </nav>
+    <h1 style="font-size:32px;margin:0 0 8px">شبکه نمایندگی‌ها و عاملیت‌ها</h1>
+    <p class="muted" style="margin:0">
+      <%= U.toFa(allCount) %> نمایندگی فروش و عاملیت خدمات پس از فروش در <%= U.toFa(cities.length) %> شهر
+      — با آدرس، تلفن و لیست قیمت اختصاصی هر مرکز
+    </p>
+  </div>
+</section>
+
+<div class="container">
+  <div style="padding:34px 0 72px">
+    <!-- فیلتر شهر -->
+    <div class="filters">
+      <a class="chip <%= !city ? 'active' : '' %>" href="/dealers<%= type ? '?type=' + type : '' %>">همه شهرها</a>
+      <% cities.forEach(function (c) { %>
+        <a class="chip <%= city === c.city ? 'active' : '' %>" href="/dealers?city=<%= encodeURIComponent(c.city) %><%= type ? '&type=' + type : '' %>">
+          <%= c.city %> <span style="opacity:.65;font-size:11px">(<%= U.toFa(c.c) %>)</span>
+        </a>
+      <% }); %>
+    </div>
+
+    <div class="filters" style="margin-top:-12px">
+      <a class="chip <%= !type ? 'active' : '' %>" href="/dealers<%= city ? '?city=' + encodeURIComponent(city) : '' %>">همه انواع</a>
+      <a class="chip <%= type === 'dealer' ? 'active' : '' %>" href="/dealers?type=dealer<%= city ? '&city=' + encodeURIComponent(city) : '' %>">فقط نمایندگی فروش</a>
+      <a class="chip <%= type === 'agency' ? 'active' : '' %>" href="/dealers?type=agency<%= city ? '&city=' + encodeURIComponent(city) : '' %>">فقط عاملیت خدمات</a>
+      <form class="search-box" method="get" action="/dealers">
+        <% if (city) { %><input type="hidden" name="city" value="<%= city %>"><% } %>
+        <input type="search" name="q" value="<%= q %>" placeholder="جست‌وجوی نام یا آدرس...">
+      </form>
+    </div>
+
+    <% if (!rows.length) { %>
+      <div class="empty-state">
+        <div class="icon">📍</div>
+        <h2>نمایندگی‌ای یافت نشد</h2>
+        <p>فیلترها را تغییر دهید یا شهر دیگری را انتخاب کنید.</p>
+        <a href="/dealers" class="btn btn-ghost">مشاهده همه</a>
+      </div>
+    <% } else { %>
+      <% Object.keys(grouped).forEach(function (cityName) { %>
+        <div style="margin-bottom:36px">
+          <div class="section-head" style="margin-bottom:18px">
+            <h2 style="font-size:20px;padding-top:10px">نمایندگی‌ها و عاملیت‌ها در <%= cityName %></h2>
+            <a class="more" href="/prices">لیست قیمت شهرها ←</a>
+          </div>
+          <div class="grid grid-2">
+            <% grouped[cityName].forEach(function (d) { %>
+              <div class="dealer-card">
+                <div class="dealer-head">
+                  <div>
+                    <span class="badge badge-type"><%= TYPE_LABELS_DEALER[d.type] || d.type %></span>
+                    <h3><a href="/dealers/<%= d.slug %>"><%= d.name %></a></h3>
+                    <% if (d.code) { %><span class="dealer-code">کد: <%= U.toFa(d.code) %></span><% } %>
+                  </div>
+                </div>
+                <ul class="dealer-rows">
+                  <li><span>📍</span><span><%= d.address || '—' %></span></li>
+                  <li><span>☎</span><span dir="ltr"><a href="tel:<%= U.faToEnDigits(d.phone) %>"><%= U.toFa(d.phone) %></a></span></li>
+                  <% if (d.hours) { %><li><span>🕒</span><span><%= d.hours %></span></li><% } %>
+                  <% if (d.manager) { %><li><span>👤</span><span>مدیر: <%= d.manager %></span></li><% } %>
+                </ul>
+                <div class="dealer-services">
+                  <% d.servicesList.forEach(function (sv) { %><span class="chip chip-sm"><%= sv %></span><% }); %>
+                </div>
+                <div class="dealer-foot">
+                  <a href="/dealers/<%= d.slug %>" class="btn btn-ghost btn-sm">جزئیات و لیست قیمت</a>
+                  <% if (d.map_url) { %><a href="<%= d.map_url %>" target="_blank" rel="noopener" class="btn btn-ghost btn-sm">مسیریابی</a><% } %>
+                </div>
+              </div>
+            <% }); %>
+          </div>
+        </div>
+      <% }); %>
+    <% } %>
+
+    <div class="cta-band" style="margin-top:20px">
+      <div>
+        <h2>درخواست نمایندگی در شهر شما</h2>
+        <p>اگر شهر شما در این فهرست نیست، فرم درخواست عاملیت را تکمیل کنید تا کارشناسان ما با شما تماس بگیرند.</p>
+      </div>
+      <a href="/contact" class="btn btn-light">درخواست عاملیت</a>
+    </div>
+  </div>
+</div>

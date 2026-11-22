@@ -40,7 +40,23 @@
 - `sitemap.xml` و `robots.txt` خودکار + فید `feed.xml`
 - داده ساختاریافته (JSON-LD): `Organization`، `WebSite`، `BreadcrumbList`، `NewsArticle`، `Product`
 
-### ۶) سایر
+### ۶) نمایندگی‌ها و عاملیت‌ها (`/admin/dealers`)
+- ثبت هر مرکز با نام، کد عاملیت، نوع (نمایندگی فروش / عاملیت خدمات / هر دو)، شهر و استان
+- آدرس، تلفن، همراه، ایمیل، مدیر، ساعات کاری و **خدمات قابل ارائه**
+- مختصات جغرافیایی + لینک مسیریابی (داده ساختاریافته `AutoDealer`)
+- گروه‌بندی خودکار بر اساس شهر، فیلتر شهر/نوع و جست‌وجو در سایت (`/dealers`)
+- اتصال هر مرکز به **لیست قیمت اختصاصی** خودش → نمایش جدول قیمت در صفحه نمایندگی
+
+### ۷) لیست قیمت عاملیت‌ها و نمایندگی‌ها (`/admin/prices`)
+- سه دامنه اعمال: **سراسری** (همه شهرها)، **شهری** (نمایندگی‌های یک شهر)، **اختصاصی** (یک مرکز)
+- برای هر قلم: محصول، سال مدل، رنگ، قیمت پایه، سهم عاملیت، **قیمت نهایی (قیمت همکاری)**، قیمت مصرف‌کننده، موجودی و زمان تحویل
+- محاسبه خودکار قیمت نهایی از «پایه منهای سهم عاملیت»
+- ثبت خودکار **سابقه تغییر قیمت** در هر ویرایش
+- دکمه **«کپی برای شهر»** با درصد افزایش/کاهش برای ساخت سریع لیست شهرهای دیگر
+- فایل PDF ابلاغیه قیمت، تاریخ اعتبار، پیش‌نویس/انتشار
+- صفحات عمومی: `/prices` (لیست‌های سراسری + کارت هر شهر) و `/prices/<slug>` با **نسخه چاپی A4 افقی** (`window.print`)
+
+### ۸) سایر
 - کتابخانه رسانه با کشیدن‌ورهاکردن، متن جایگزین (alt)، آپلود چندتایی
 - دسته‌بندی‌ها، کاربران (مدیر کل / ویرایشگر) با رمز هش‌شده
 - پشتیبان‌گیری از دیتابیس، گزارش فعالیت‌ها، داشبورد آماری
@@ -102,12 +118,15 @@ src/
   render.js             رندر سایت با layout
   render-admin.js       رندر پنل با layout
   upload.js             آپلود رسانه + ابعاد تصویر + پشتیبان‌گیری
-  routes/public.js      سایت عمومی: خانه، اخبار، بخشنامه، محصولات، صفحات، جست‌وجو، sitemap, feed
-  routes/admin.js       پنل مدیریت
+  seed-dealers.js       داده نمونه ۱۲ نمایندگی + لیست‌های قیمت (سراسری/تهران/مشهد)
+  routes/public.js      سایت عمومی: خانه، اخبار، بخشنامه، محصولات، نمایندگی‌ها، لیست قیمت، صفحات، جست‌وجو، sitemap, feed
+  routes/admin.js       پنل مدیریت (شامل نمایندگی‌ها و لیست قیمت)
   routes/api.js         API پنل (رسانه، جست‌وجو، سلامت)
 views/
-  site/                 layout + home + list + circulars + products + product + post + page + search + contact + 404
-  admin/                layout + login + dashboard + post-list/form + product-list/form + seo + media + settings + users + inquiries + categories
+  site/                 layout + home + list + circulars + products + product + post + page + search + contact
+                        + dealers + dealer + prices + price-list + 404
+  admin/                layout + login + dashboard + post-list/form + product-list/form + seo + media + settings
+                        + users + inquiries + categories + dealer-list/form + price-list-list/form
 public/
   css/site.css          استایل سایت (RTL)
   css/admin.css         استایل پنل (RTL)

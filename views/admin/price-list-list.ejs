@@ -1,0 +1,99 @@
+<div class="page-head">
+  <div>
+    <h1>لیست‌های قیمت</h1>
+    <div class="sub">قیمت عاملیت‌ها و نمایندگی‌ها — سراسری، شهری یا اختصاصی</div>
+  </div>
+  <div class="actions">
+    <a href="/admin/dealers" class="btn btn-ghost">نمایندگی‌ها</a>
+    <a href="/prices" target="_blank" class="btn btn-ghost">مشاهده در سایت ↗</a>
+    <a href="/admin/prices/new" class="btn btn-primary">+ لیست قیمت جدید</a>
+  </div>
+</div>
+
+<% if (!lists.length) { %>
+  <div class="card"><div class="empty">
+    <div class="big">🧾</div><p>هنوز لیست قیمتی ساخته نشده است.</p>
+    <a href="/admin/prices/new" class="btn btn-primary">ساخت لیست قیمت</a>
+  </div></div>
+<% } else { %>
+  <div class="table-wrap">
+    <table class="data">
+      <thead>
+        <tr><th>عنوان لیست</th><th>دامنه اعمال</th><th>مخاطب</th><th>اقلام</th><th>ارزان‌ترین</th><th>اعتبار</th><th>وضعیت</th><th style="width:290px">عملیات</th></tr>
+      </thead>
+      <tbody>
+        <% lists.forEach(function (l) { %>
+          <tr>
+            <td class="title-cell">
+              <a href="/admin/prices/<%= l.id %>/edit"><%= l.title %></a>
+              <span class="slug">/<%= l.slug %></span>
+            </td>
+            <td class="small">
+              <span class="badge badge-type"><%= SCOPE_LABELS[l.scope] %></span>
+              <% if (l.city) { %><%= l.city %><% } %>
+              <% if (l.dealer_name) { %><br><span class="muted"><%= U.truncate(l.dealer_name, 30) %></span><% } %>
+            </td>
+            <td class="small"><%= l.customer_type === 'public' ? 'مشتری نهایی' : l.customer_type === 'agency' ? 'عاملیت' : 'نمایندگی' %></td>
+            <td class="small muted"><%= U.toFa(l.items_count) %></td>
+            <td class="small num nowrap"><%= l.min_price ? U.money(l.min_price) : '—' %></td>
+            <td class="small muted nowrap">
+              <%= l.effective_from ? U.faDateShort(l.effective_from) : '—' %>
+              <% if (l.effective_to) { %><br><%= U.faDateShort(l.effective_to) %><% } %>
+            </td>
+            <td><span class="badge badge-<%= l.status === 'published' ? 'published' : 'draft' %>"><%= l.status === 'published' ? 'منتشر شده' : 'پیش‌نویس' %></span></td>
+            <td>
+              <div class="row-actions">
+                <a class="btn btn-ghost btn-xs" href="/admin/prices/<%= l.id %>/edit">ویرایش</a>
+                <a class="btn btn-ghost btn-xs" href="/prices/<%= l.slug %>" target="_blank">نمایش</a>
+                <form method="post" action="/admin/prices/<%= l.id %>/status" style="display:inline">
+                  <input type="hidden" name="_csrf" value="<%= csrf %>">
+                  <input type="hidden" name="status" value="<%= l.status === 'published' ? 'draft' : 'published' %>">
+                  <button class="btn btn-ghost btn-xs" type="submit"><%= l.status === 'published' ? 'لغو انتشار' : 'انتشار' %></button>
+                </form>
+                <button class="btn btn-ghost btn-xs" type="button" onclick="openCopy(<%= l.id %>)">کپی برای شهر</button>
+                <form method="post" action="/admin/prices/<%= l.id %>/delete" style="display:inline" data-confirm="این لیست و همه اقلام آن حذف شود؟">
+                  <input type="hidden" name="_csrf" value="<%= csrf %>">
+                  <button class="btn btn-danger btn-xs" type="submit">حذف</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+<% } %>
+
+<div class="panel" style="margin-top:22px">
+  <div class="panel-head"><span>راهنما</span></div>
+  <div class="panel-body small" style="line-height:2">
+    <div><b>سراسری:</b> یک لیست برای همه شهرها؛ همان مبلغ پایه برای همه نمایندگی‌ها.</div>
+    <div><b>شهری:</b> مخصوص نمایندگی‌های یک شهر (مثلاً با احتساب هزینه حمل).</div>
+    <div><b>اختصاصی:</b> برای یک مرکز خاص با سهم عاملیت متفاوت.</div>
+    <div>با دکمه <b>«کپی برای شهر»</b> می‌توانید لیست را با درصد افزایش/کاهش به شهر دیگر منتقل کنید.</div>
+    <div>در صفحه ویرایش، هر قلم را می‌توانید ویرایش کنید؛ تغییر قیمت نهایی به‌صورت خودکار در «سابقه تغییر قیمت» ثبت می‌شود.</div>
+  </div>
+</div>
+
+<!-- مودال کپی -->
+<div id="copyModal" style="display:none;position:fixed;inset:0;background:rgba(9,24,40,.55);z-index:200;padding:24px;overflow:auto">
+  <form method="post" id="copyForm" action="" style="max-width:420px;margin:60px auto;background:#fff;border-radius:14px;padding:22px">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <h3 style="margin:0 0 14px">کپی لیست برای شهر دیگر</h3>
+    <div class="field"><label>نام شهر <span class="req">*</span></label><input type="text" name="city" required placeholder="شیراز"></div>
+    <div class="field"><label>درصد تغییر قیمت</label><input type="number" name="percent" value="1.5" step="0.1">
+      <div class="hint">مثلاً ۱.۵ یعنی ۱.۵٪ افزایش قیمت پایه؛ ۰ یعنی بدون تغییر؛ مقدار منفی مجاز است.</div>
+    </div>
+    <div class="flex" style="margin-top:6px">
+      <button class="btn btn-primary grow" type="submit">ساخت لیست شهر</button>
+      <button class="btn btn-ghost" type="button" onclick="document.getElementById('copyModal').style.display='none'">انصراف</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  function openCopy(id) {
+    document.getElementById('copyForm').action = '/admin/prices/' + id + '/copy';
+    document.getElementById('copyModal').style.display = 'block';
+  }
+</script>

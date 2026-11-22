@@ -1,0 +1,77 @@
+<div class="page-head">
+  <div>
+    <h1>نمایندگی‌ها و عاملیت‌ها</h1>
+    <div class="sub">
+      <%= U.toFa(rows.length) %> مرکز در <%= U.toFa(cities.length) %> شهر ·
+      هر مرکز می‌تواند لیست قیمت اختصاصی داشته باشد
+    </div>
+  </div>
+  <div class="actions">
+    <a href="/admin/prices" class="btn btn-ghost">لیست‌های قیمت</a>
+    <a href="/admin/dealers/new" class="btn btn-primary">+ نمایندگی جدید</a>
+  </div>
+</div>
+
+<form class="toolbar" method="get" action="/admin/dealers">
+  <input type="search" name="q" value="<%= q %>" placeholder="جست‌وجوی نام، آدرس یا تلفن...">
+  <select name="city">
+    <option value="">همه شهرها</option>
+    <% cities.forEach(function (c) { %>
+      <option value="<%= c.city %>" <%= city === c.city ? 'selected' : '' %>><%= c.city %> (<%= U.toFa(c.c) %>)</option>
+    <% }); %>
+  </select>
+  <button class="btn btn-ghost btn-sm" type="submit">فیلتر</button>
+  <span class="grow"></span>
+  <a href="/dealers" target="_blank" class="small">مشاهده در سایت ↗</a>
+</form>
+
+<% if (!rows.length) { %>
+  <div class="card"><div class="empty">
+    <div class="big">📍</div><p>هنوز نمایندگی‌ای ثبت نشده است.</p>
+    <a href="/admin/dealers/new" class="btn btn-primary">افزودن نمایندگی</a>
+  </div></div>
+<% } else { %>
+  <div class="table-wrap">
+    <table class="data">
+      <thead>
+        <tr>
+          <th>نام مرکز</th><th>نوع</th><th>شهر</th><th>تلفن</th><th>لیست قیمت</th><th>وضعیت</th><th style="width:230px">عملیات</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% rows.forEach(function (d) { %>
+          <tr>
+            <td class="title-cell">
+              <a href="/admin/dealers/<%= d.id %>/edit"><%= d.name %></a>
+              <span class="slug"><%= d.code ? 'کد ' + U.toFa(d.code) + ' · ' : '' %><%= d.address || '' %></span>
+            </td>
+            <td class="small"><%= DEALER_TYPES[d.type] %></td>
+            <td class="small"><%= d.city %></td>
+            <td class="small nowrap" dir="ltr"><%= U.toFa(d.phone) %></td>
+            <td class="small">
+              <% if (d.price_list_title) { %>
+                <a href="/admin/prices/<%= d.price_list_id %>/edit"><%= U.truncate(d.price_list_title, 34) %></a>
+                <span class="slug"><%= U.toFa(d.price_items) %> قلم</span>
+              <% } else { %><span class="muted">تعیین نشده</span><% } %>
+            </td>
+            <td><span class="badge badge-<%= d.active ? 'published' : 'draft' %>"><%= d.active ? 'فعال' : 'غیرفعال' %></span></td>
+            <td>
+              <div class="row-actions">
+                <a class="btn btn-ghost btn-xs" href="/admin/dealers/<%= d.id %>/edit">ویرایش</a>
+                <a class="btn btn-ghost btn-xs" href="/dealers/<%= d.slug %>" target="_blank">نمایش</a>
+                <form method="post" action="/admin/dealers/<%= d.id %>/toggle" style="display:inline">
+                  <input type="hidden" name="_csrf" value="<%= csrf %>">
+                  <button class="btn btn-ghost btn-xs" type="submit"><%= d.active ? 'غیرفعال' : 'فعال' %></button>
+                </form>
+                <form method="post" action="/admin/dealers/<%= d.id %>/delete" style="display:inline" data-confirm="این نمایندگی حذف شود؟">
+                  <input type="hidden" name="_csrf" value="<%= csrf %>">
+                  <button class="btn btn-danger btn-xs" type="submit">حذف</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+<% } %>

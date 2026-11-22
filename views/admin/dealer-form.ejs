@@ -1,0 +1,184 @@
+<form method="post" action="/admin/dealers/save" id="dealerForm">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <input type="hidden" name="id" value="<%= d.id || '' %>">
+  <input type="hidden" name="cover_id" id="cover_id" value="<%= d.cover_id || '' %>">
+
+  <div class="page-head">
+    <div>
+      <h1><%= d.id ? 'ویرایش نمایندگی' : 'افزودن نمایندگی' %></h1>
+      <div class="sub"><% if (d.id) { %>شناسه <%= U.toFa(d.id) %> · <a href="/dealers/<%= d.slug %>" target="_blank">مشاهده در سایت ↗</a><% } else { %>اطلاعات مرکز را کامل کنید<% } %></div>
+    </div>
+    <div class="actions">
+      <a href="/admin/dealers" class="btn btn-ghost">بازگشت</a>
+      <button class="btn btn-primary" type="submit">ذخیره</button>
+    </div>
+  </div>
+
+  <div class="split">
+    <div>
+      <div class="panel">
+        <div class="panel-head"><span>اطلاعات مرکز</span></div>
+        <div class="panel-body">
+          <div class="form-row">
+            <div class="field"><label>نام مرکز <span class="req">*</span></label>
+              <input type="text" name="name" id="f-name" value="<%= d.name || '' %>" required placeholder="نمایندگی کوشا خودرو — تهران"></div>
+            <div class="field"><label>نوع مرکز</label>
+              <select name="type">
+                <% Object.keys(DEALER_TYPES).forEach(function (k) { %>
+                  <option value="<%= k %>" <%= d.type === k ? 'selected' : '' %>><%= DEALER_TYPES[k] %></option>
+                <% }); %>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>کد عاملیت</label><input type="text" name="code" value="<%= d.code || '' %>" dir="ltr" placeholder="THR-001"></div>
+            <div class="field"><label>نشانی صفحه (slug)</label><input type="text" name="slug" value="<%= d.slug || '' %>" class="mono" placeholder="خالی = خودکار"></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>شهر <span class="req">*</span></label>
+              <input type="text" name="city" value="<%= d.city || '' %>" required list="citiesList" placeholder="تهران">
+              <datalist id="citiesList">
+                <% (citiesList || []).forEach(function (c) { %><option value="<%= c.city %>"><% }); %>
+              </datalist>
+            </div>
+            <div class="field"><label>استان</label><input type="text" name="province" value="<%= d.province || '' %>" placeholder="تهران"></div>
+          </div>
+          <div class="field"><label>آدرس کامل</label><textarea name="address" style="min-height:70px"><%= d.address || '' %></textarea></div>
+          <div class="form-row">
+            <div class="field"><label>تلفن</label><input type="text" name="phone" value="<%= d.phone || '' %>" dir="ltr" placeholder="021-91009100"></div>
+            <div class="field"><label>همراه</label><input type="text" name="mobile" value="<%= d.mobile || '' %>" dir="ltr"></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>ایمیل</label><input type="email" name="email" value="<%= d.email || '' %>" dir="ltr"></div>
+            <div class="field"><label>مدیر / مسئول</label><input type="text" name="manager" value="<%= d.manager || '' %>"></div>
+          </div>
+          <div class="field"><label>ساعات کاری</label><input type="text" name="hours" value="<%= d.hours || '' %>" placeholder="شنبه تا چهارشنبه ۸:۳۰ تا ۱۷:۳۰"></div>
+
+          <div class="field">
+            <label>خدمات قابل ارائه</label>
+            <div style="display:flex;gap:16px;flex-wrap:wrap">
+              <% SERVICES.forEach(function (sv) { %>
+                <label class="check">
+                  <input type="checkbox" name="services" value="<%= sv %>"
+                    <%= (JSON.parse(d.services || '[]') || []).includes(sv) ? 'checked' : '' %>>
+                  <%= sv %>
+                </label>
+              <% }); %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><span>موقعیت و نقشه</span></div>
+        <div class="panel-body">
+          <div class="form-row">
+            <div class="field"><label>عرض جغرافیایی (lat)</label><input type="text" name="lat" value="<%= d.lat || '' %>" dir="ltr" placeholder="35.7448"></div>
+            <div class="field"><label>طول جغرافیایی (lng)</label><input type="text" name="lng" value="<%= d.lng || '' %>" dir="ltr" placeholder="51.4107"></div>
+          </div>
+          <div class="field"><label>لینک نقشه / مسیریابی</label>
+            <input type="text" name="map_url" value="<%= d.map_url || '' %>" dir="ltr" placeholder="https://maps.google.com/?q=35.7448,51.4107">
+            <div class="hint">در صفحه نمایندگی به‌صورت دکمه «مسیریابی» نمایش داده می‌شود.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><span>سئو</span></div>
+        <div class="panel-body">
+          <div class="field"><label>عنوان سئو</label><input type="text" name="seo_title" value="<%= d.seo_title || '' %>" maxlength="120" placeholder="خالی = نام مرکز + شهر"></div>
+          <div class="field"><label>توضیحات متا</label><textarea name="seo_description" maxlength="300" style="min-height:70px"><%= d.seo_description || '' %></textarea></div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="panel">
+        <div class="panel-head"><span>انتشار</span></div>
+        <div class="panel-body">
+          <label class="check"><input type="checkbox" name="active" value="1" <%= d.active ? 'checked' : '' %>> نمایش در سایت</label>
+          <div class="field" style="margin-top:14px"><label>ترتیب نمایش</label><input type="number" name="sort" value="<%= d.sort || 0 %>"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><span>لیست قیمت این مرکز</span></div>
+        <div class="panel-body">
+          <div class="field">
+            <select name="price_list_id">
+              <option value="">— تعیین نشده —</option>
+              <% priceLists.forEach(function (pl) { %>
+                <option value="<%= pl.id %>" <%= Number(d.price_list_id) === pl.id ? 'selected' : '' %>>
+                  <%= U.truncate(pl.title, 44) %><%= pl.city ? ' (' + pl.city + ')' : '' %>
+                </option>
+              <% }); %>
+            </select>
+            <div class="hint">در صفحه این نمایندگی، جدول قیمت همین لیست نمایش داده می‌شود.</div>
+          </div>
+          <a href="/admin/prices/new" class="btn btn-ghost btn-sm" style="width:100%">+ ساخت لیست قیمت جدید</a>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><span>تصویر مرکز</span></div>
+        <div class="panel-body">
+          <div id="cover-preview" style="border-radius:10px;overflow:hidden;background:#f1f5fa;border:1px solid var(--line);aspect-ratio:16/9;display:grid;place-items:center;margin-bottom:10px">
+            <% if (coverUrl) { %><img src="<%= coverUrl %>" style="width:100%;height:100%;object-fit:cover">
+            <% } else { %><span class="small muted">تصویری انتخاب نشده</span><% } %>
+          </div>
+          <div class="flex">
+            <button type="button" class="btn btn-ghost btn-sm grow" onclick="openPicker()">انتخاب تصویر</button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('cover_id').value='';document.getElementById('cover-preview').innerHTML='<span class=&quot;small muted&quot;>تصویری انتخاب نشده</span>'">حذف</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+
+<div id="picker" style="display:none;position:fixed;inset:0;background:rgba(9,24,40,.55);z-index:200;padding:24px;overflow:auto">
+  <div style="max-width:900px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden">
+    <div style="padding:13px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center">
+      <b>انتخاب تصویر</b>
+      <div class="flex">
+        <input type="file" id="quickUpload" accept="image/*" style="display:none" onchange="quickUpload(this)">
+        <button class="btn btn-primary btn-sm" onclick="document.getElementById('quickUpload').click()">آپلود جدید</button>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('picker').style.display='none'">بستن</button>
+      </div>
+    </div>
+    <div style="padding:18px" id="pickerBody">در حال بارگذاری…</div>
+  </div>
+</div>
+
+<script>
+  var CSRF = '<%= csrf %>';
+  var MEDIA = [];
+  function openPicker() {
+    document.getElementById('picker').style.display = 'block';
+    if (MEDIA.length) return render();
+    fetch('/api/media?kind=image', { headers: { 'x-csrf-token': CSRF } })
+      .then(function (r) { return r.json(); })
+      .then(function (d) { MEDIA = d.items || []; render(); });
+  }
+  function render() {
+    document.getElementById('pickerBody').innerHTML = MEDIA.length
+      ? '<div class="media-grid">' + MEDIA.map(function (m) {
+          return '<div class="media-item" onclick="pick(' + m.id + ',\'' + m.url + '\')"><div class="thumb"><img src="' + m.url + '"></div></div>';
+        }).join('') + '</div>'
+      : '<div class="empty">کتابخانه خالی است.</div>';
+  }
+  function pick(id, url) {
+    document.getElementById('cover_id').value = id;
+    document.getElementById('cover-preview').innerHTML = '<img src="' + url + '" style="width:100%;height:100%;object-fit:cover">';
+    document.getElementById('picker').style.display = 'none';
+  }
+  function quickUpload(input) {
+    if (!input.files.length) return;
+    var fd = new FormData();
+    fd.append('files', input.files[0]);
+    fetch('/admin/media/upload-json', { method: 'POST', body: fd, headers: { 'x-csrf-token': CSRF } })
+      .then(function (r) { return r.json(); })
+      .then(function (d) { if (d.items) { MEDIA = d.items.concat(MEDIA); render(); } });
+  }
+  document.getElementById('f-name').addEventListener('input', function () {});
+</script>

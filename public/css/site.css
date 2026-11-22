@@ -337,6 +337,61 @@ table.data td .row-actions { display: flex; gap: 6px; }
 .empty-state h2 { font-size: 26px; }
 .empty-state p { color: var(--muted); }
 
+
+/* ---------- نمایندگی‌ها ---------- */
+.dealer-card {
+  background: #fff; border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 20px 22px; display: flex; flex-direction: column; gap: 12px;
+  transition: box-shadow .22s, border-color .22s, transform .22s;
+}
+.dealer-card:hover { border-color: #c7dcf2; box-shadow: var(--shadow); transform: translateY(-2px); }
+.dealer-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+.dealer-head h3 { font-size: 16.5px; margin: 8px 0 4px; }
+.dealer-head h3 a { color: var(--ink); }
+.dealer-head h3 a:hover { color: var(--brand); }
+.dealer-code { font-size: 11.5px; color: var(--muted); }
+.mini-price-row a, a.mini-price-row { color: inherit; }
+.dealer-rows { list-style: none; padding: 0; margin: 0; display: grid; gap: 7px; font-size: 13.5px; color: #3b5064; }
+.dealer-rows li { display: flex; gap: 9px; align-items: flex-start; line-height: 1.8; }
+.dealer-rows li > span:first-child { flex: 0 0 16px; opacity: .8; }
+.dealer-rows a { color: #2c3e52; font-weight: 600; }
+.dealer-rows a:hover { color: var(--brand); }
+.dealer-services { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip-sm { padding: 3px 11px; font-size: 11.5px; border-radius: 7px; background: #eef5fd; color: var(--brand); border-color: #d8e7f8; }
+.dealer-foot { margin-top: auto; display: flex; gap: 8px; flex-wrap: wrap; padding-top: 6px; border-top: 1px dashed var(--line); }
+
+/* ---------- جدول قیمت ---------- */
+.price-table th, .price-table td { font-size: 13.5px; }
+.price-table .num { direction: ltr; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 600; }
+.price-table tbody tr:nth-child(even) { background: #fbfdff; }
+.mini-price-list { display: grid; gap: 5px; margin: 4px 0 0; }
+.mini-price-row {
+  display: flex; justify-content: space-between; gap: 10px; font-size: 12.5px;
+  padding-bottom: 4px; border-bottom: 1px dashed var(--line);
+}
+.mini-price-row b { color: var(--brand); font-variant-numeric: tabular-nums; direction: ltr; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+@media (max-width: 720px) {
+  .price-table { min-width: 760px; }
+}
+
+/* ---------- چاپ لیست قیمت ---------- */
+@media print {
+  .topbar, .site-header, .site-footer, .breadcrumb, .side-card, .cta-band,
+  .article-hero .article-info, .share, .btn { display: none !important; }
+  body { background: #fff; font-size: 11pt; }
+  .article-hero { padding: 0 0 8px; border: 0; }
+  .article-hero h1 { font-size: 18pt; margin: 0 0 4px; }
+  .article-layout { display: block; padding: 0; }
+  .container { max-width: none; padding: 0; }
+  .table-wrap { border: 1px solid #999; }
+  .price-table th, .price-table td { font-size: 9.5pt; padding: 6px 8px; border-color: #bbb; }
+  .price-table thead { display: table-header-group; }
+  .price-table tr { page-break-inside: avoid; }
+  @page { size: A4 landscape; margin: 12mm; }
+}
+
 /* ---------- واکنش‌گرا ---------- */
 @media (max-width: 1024px) {
   .hero-grid { grid-template-columns: 1fr; gap: 34px; }

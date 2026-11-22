@@ -437,6 +437,233 @@ router.get('/circular/:slug', (req, res, next) => {
   return renderArticle(req, res, p);
 });
 
+/* ================= نمایندگی‌ها و عاملیت‌ها ================= */
+const SERVICE_LABELS = { 'فروش': 'فروش', 'خدمات پس از فروش': 'خدمات پس از فروش', 'قطعات یدکی': 'قطعات یدکی' };
+const TYPE_LABELS_DEALER = { dealer: 'نمایندگی فروش', agency: 'عاملیت خدمات', both: 'نمایندگی و عاملیت' };
+
+function dealerCities() {
+  return all(
+    `SELECT city, COUNT(*) c FROM dealers WHERE active = 1 GROUP BY city ORDER BY c DESC, city`
+  );
+}
+
+function parseServices(d) {
+  try { return JSON.parse(d.services || '[]'); } catch (_) { return []; }
+}
+
+router.get('/dealers', (req, res) => {
+  const city = String(req.query.city || '').trim();
+  const type = ['dealer', 'agency', 'both'].includes(req.query.type) ? req.query.type : '';
+  const q = String(req.query.q || '').trim();
+
+  const where = ['active = 1'];
+  const params = {};
+  if (city) { where.push('city = :city'); params.city = city; }
+  if (type) { where.push('type = :type'); params.type = type; }
+  if (q) { where.push('(name LIKE :q OR address LIKE :q OR phone LIKE :q)'); params.q = `%${q}%`; }
+
+  const rows = all(
+    `SELECT * FROM dealers WHERE ${where.join(' AND ')} ORDER BY sort, id`, params
+  ).map((d) => ({ ...d, servicesList: parseServices(d) }));
+
+  // تفکیک شهرها برای نمایش گروهی
+  const grouped = {};
+  rows.forEach((d) => { (grouped[d.city] = grouped[d.city] || []).push(d); });
+  const cities = dealerCities();
+  const allCount = get('SELECT COUNT(*) c FROM dealers WHERE active = 1').c;
+
+  const seo = seoLib.build({
+    title: city ? `نمایندگی‌ها و عاملیت‌های کوشا خودرو در ${city}` : 'شبکه نمایندگی‌ها و عاملیت‌های کوشا خودرو',
+    description: city
+      ? `آدرس، تلفن، ساعات کاری و لیست قیمت نمایندگی‌ها و عاملیت‌های کوشا خودرو در ${city}.`
+      : 'فهرست نمایندگی‌های فروش و عاملیت‌های خدمات پس از فروش کوشا خودرو در شهرهای مختلف، به همراه آدرس، تلفن و لیست قیمت.',
+    path: '/dealers' + (city ? '?city=' + encodeURIComponent(city) : ''),
+    jsonLd: [
+      seoLib.organizationJsonLd(),
+      seoLib.breadcrumbJsonLd([
+        { title: 'خانه', path: '/' },
+        { title: 'نمایندگی‌ها', path: '/dealers' },
+      ]),
+      {
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        itemListElement: rows.slice(0, 30).map((d, i) => ({
+          '@type': 'ListItem',
+          position: i + 1,
+          item: {
+            '@type': 'AutoDealer',
+            name: d.name,
+            telephone: d.phone,
+            address: { '@type': 'PostalAddress', streetAddress: d.address, addressLocality: d.city, addressCountry: 'IR' },
+            url: seoLib.absUrl(`/dealers/${d.slug}`),
+          },
+        })),
+      },
+    ],
+  });
+
+  renderPage(res, 'site/dealers', {
+    page: { title: 'نمایندگی‌ها' }, seo, rows, grouped, cities, city, type, q, allCount,
+    TYPE_LABELS_DEALER, footerProducts: footerData(),
+  });
+});
+
+router.get('/dealers/:slug', (req, res) => {
+  const d = get('SELECT * FROM dealers WHERE slug = ? AND active = 1', [req.params.slug]);
+  if (!d) return res.status(404).render('site/404', { seo: seoLib.build({ title: 'نمایندگی یافت نشد', noindex: true }) });
+
+  const services = parseServices(d);
+  const priceList = d.price_list_id ? get('SELECT * FROM price_lists WHERE id = ?', [d.price_list_id]) : null;
+  const items = priceList
+    ? all('SELECT * FROM price_items WHERE price_list_id = ? ORDER BY sort, id', [priceList.id])
+    : [];
+  const siblings = all(
+    'SELECT name, slug, city, type FROM dealers WHERE city = ? AND id <> ? AND active = 1 ORDER BY sort LIMIT 6',
+    [d.city, d.id]
+  );
+  const nearby = all(
+    'SELECT name, slug, city, type FROM dealers WHERE city <> ? AND active = 1 ORDER BY sort LIMIT 6',
+    [d.city]
+  );
+  const coverImg = media(d.cover_id);
+
+  const seo = seoLib.build({
+    title: d.seo_title || d.name,
+    description: d.seo_description || `آدرس، تلفن، ساعات کاری و لیست قیمت ${d.name} در ${d.city}.`,
+    path: `/dealers/${d.slug}`,
+    image: coverImg ? coverImg.url : null,
+    jsonLd: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'AutoDealer',
+        name: d.name,
+        telephone: d.phone,
+        email: d.email || undefined,
+        url: seoLib.absUrl(`/dealers/${d.slug}`),
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: d.address,
+          addressLocality: d.city,
+          addressRegion: d.province,
+          addressCountry: 'IR',
+        },
+        geo: d.lat && d.lng ? { '@type': 'GeoCoordinates', latitude: d.lat, longitude: d.lng } : undefined,
+        openingHours: d.hours || undefined,
+        areaServed: d.city,
+      },
+      seoLib.breadcrumbJsonLd([
+        { title: 'خانه', path: '/' },
+        { title: 'نمایندگی‌ها', path: '/dealers' },
+        { title: d.name, path: `/dealers/${d.slug}` },
+      ]),
+    ],
+  });
+
+  renderPage(res, 'site/dealer', {
+    page: { title: d.name }, seo, d, services, priceList, items, siblings, nearby, coverImg,
+    TYPE_LABELS_DEALER, footerProducts: footerData(),
+  });
+});
+
+/* ================= لیست قیمت ================= */
+function priceItemRows(listId) {
+  return all(
+    `SELECT pi.*, pr.slug AS product_slug, pr.name AS product_name, pr.model AS product_model,
+            (SELECT url FROM media m WHERE m.id = pr.cover_id) AS cover_url
+       FROM price_items pi LEFT JOIN products pr ON pr.id = pi.product_id
+      WHERE pi.price_list_id = ? ORDER BY pi.sort, pi.id`,
+    [listId]
+  );
+}
+
+router.get('/prices', (req, res) => {
+  const lists = all(
+    `SELECT pl.*, d.name AS dealer_name, d.slug AS dealer_slug,
+            (SELECT COUNT(*) FROM price_items pi WHERE pi.price_list_id = pl.id) AS items_count
+       FROM price_lists pl LEFT JOIN dealers d ON d.id = pl.dealer_id
+      WHERE pl.status = 'published'
+      ORDER BY CASE pl.scope WHEN 'general' THEN 0 WHEN 'city' THEN 1 ELSE 2 END, pl.city, pl.id`
+  ).map((l) => ({ ...l, items: priceItemRows(l.id).slice(0, 4), count: l.items_count }));
+
+  const general = all("SELECT * FROM price_lists WHERE scope='general' AND status='published' LIMIT 1")[0];
+  const generalItems = general ? priceItemRows(general.id) : [];
+  const cities = all(
+    `SELECT city, COUNT(*) c FROM dealers WHERE active=1 GROUP BY city ORDER BY c DESC, city`
+  );
+
+  const seo = seoLib.build({
+    title: 'لیست قیمت محصولات کیا برای عاملیت‌ها و نمایندگی‌ها',
+    description:
+      'لیست قیمت رسمی کوشا خودرو برای عاملیت‌ها و نمایندگی‌ها در شهرهای مختلف: قیمت پایه، سهم عاملیت، قیمت پیشنهادی مصرف‌کننده و زمان تحویل.',
+    path: '/prices',
+    jsonLd: [
+      seoLib.organizationJsonLd(),
+      seoLib.breadcrumbJsonLd([{ title: 'خانه', path: '/' }, { title: 'لیست قیمت', path: '/prices' }]),
+    ],
+  });
+
+  renderPage(res, 'site/prices', {
+    page: { title: 'لیست قیمت' }, seo, lists, general, generalItems, cities,
+    footerProducts: footerData(),
+  });
+});
+
+router.get('/prices/:slug', (req, res) => {
+  const pl = get(
+    `SELECT pl.*, d.name AS dealer_name, d.slug AS dealer_slug, d.city AS dealer_city
+       FROM price_lists pl LEFT JOIN dealers d ON d.id = pl.dealer_id WHERE pl.slug = ?`,
+    [req.params.slug]
+  );
+  if (!pl || pl.status !== 'published') {
+    return res.status(404).render('site/404', { seo: seoLib.build({ title: 'لیست قیمت یافت نشد', noindex: true }) });
+  }
+  const items = priceItemRows(pl.id);
+  const attachment = pl.attachment_id ? media(pl.attachment_id) : null;
+  const otherLists = all(
+    "SELECT title, slug, scope, city FROM price_lists WHERE status='published' AND id <> ? ORDER BY id LIMIT 6",
+    [pl.id]
+  );
+  const history = all(
+    'SELECT * FROM price_history WHERE price_list_id = ? ORDER BY id DESC LIMIT 8', [pl.id]
+  );
+
+  const scopeLabel = pl.scope === 'general' ? 'سراسر کشور' : pl.scope === 'city' ? `شهر ${pl.city}` : pl.dealer_name || 'اختصاصی';
+  const seo = seoLib.build({
+    title: pl.seo_title || pl.title,
+    description: pl.seo_description || `${pl.title} — ${scopeLabel}. قیمت پایه، سهم عاملیت، قیمت مصرف‌کننده و موجودی.`,
+    path: `/prices/${pl.slug}`,
+    jsonLd: [
+      seoLib.organizationJsonLd(),
+      seoLib.breadcrumbJsonLd([
+        { title: 'خانه', path: '/' },
+        { title: 'لیست قیمت', path: '/prices' },
+        { title: pl.title, path: `/prices/${pl.slug}` },
+      ]),
+      {
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        name: pl.title,
+        itemListElement: items.slice(0, 20).map((it, i) => ({
+          '@type': 'ListItem',
+          position: i + 1,
+          item: {
+            '@type': 'Product',
+            name: it.product_name || it.label,
+            offers: it.public_price
+              ? { '@type': 'Offer', price: it.public_price, priceCurrency: 'IRR' }
+              : undefined,
+          },
+        })),
+      },
+    ],
+  });
+
+  renderPage(res, 'site/price-list', {
+    page: { title: pl.title }, seo, pl, items, attachment, otherLists, history: history.slice(0, 4),
+    scopeLabel, footerProducts: footerData(),
+  });
+});
+
 /* ---------- صفحات ثابت ---------- */
 router.get('/p/:slug', (req, res) => {
   const p = get(
@@ -472,6 +699,8 @@ router.get('/sitemap.xml', (req, res) => {
   push('/news', null, 'daily', '0.9');
   push('/circulars', null, 'weekly', '0.9');
   push('/products', null, 'weekly', '0.9');
+  push('/dealers', null, 'monthly', '0.8');
+  push('/prices', null, 'weekly', '0.8');
   push('/contact', null, 'monthly', '0.5');
 
   all(`SELECT p.slug, p.type, p.updated_at FROM posts p WHERE ${published("AND p.type IN ('news','circular')")}`).forEach((r) => {
@@ -479,6 +708,12 @@ router.get('/sitemap.xml', (req, res) => {
   });
   all('SELECT slug, updated_at FROM products').forEach((r) =>
     push(`/products/${r.slug}`, (r.updated_at || '').slice(0, 10) || null, 'weekly', '0.8')
+  );
+  all('SELECT slug, updated_at FROM dealers WHERE active = 1').forEach((r) =>
+    push(`/dealers/${r.slug}`, (r.updated_at || '').slice(0, 10) || null, 'monthly', '0.6')
+  );
+  all("SELECT slug, updated_at FROM price_lists WHERE status = 'published'").forEach((r) =>
+    push(`/prices/${r.slug}`, (r.updated_at || '').slice(0, 10) || null, 'weekly', '0.7')
   );
   all(`SELECT slug, updated_at FROM posts p WHERE p.type='page' AND ${published()}`).forEach((r) =>
     push(`/p/${r.slug}`, (r.updated_at || '').slice(0, 10) || null, 'monthly', '0.4')

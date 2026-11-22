@@ -1,0 +1,115 @@
+<section class="article-hero">
+  <div class="container">
+    <nav class="breadcrumb" aria-label="مسیر صفحه"><a href="/">خانه</a><span>/</span><span>لیست قیمت</span></nav>
+    <h1 style="font-size:32px;margin:0 0 8px">لیست قیمت عاملیت‌ها و نمایندگی‌ها</h1>
+    <p class="muted" style="margin:0">
+      قیمت پایه، سهم عاملیت، قیمت پیشنهادی مصرف‌کننده و زمان تحویل — به تفکیک شهر و مرکز فروش
+    </p>
+  </div>
+</section>
+
+<div class="container">
+  <div style="padding:34px 0 72px">
+    <% if (general && generalItems.length) { %>
+      <div class="section-head">
+        <div>
+          <span class="kicker">لیست سراسری</span>
+          <h2>لیست قیمت عمومی (همه شهرها)</h2>
+          <p>
+            <% if (general.effective_from) { %>اعتبار از <%= U.faDate(general.effective_from) %><% } %>
+            <% if (general.effective_to) { %> تا <%= U.faDate(general.effective_to) %><% } %>
+          </p>
+        </div>
+        <a class="more" href="/prices/<%= general.slug %>">مشاهده و چاپ لیست ←</a>
+      </div>
+
+      <div class="table-wrap" style="margin-bottom:16px">
+        <table class="data price-table">
+          <thead>
+            <tr>
+              <th>محصول</th><th>مدل / رنگ</th><th>قیمت پایه</th><th>سهم عاملیت</th>
+              <th>قیمت عاملیت</th><th>قیمت مصرف‌کننده</th><th>موجودی</th><th>تحویل</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% generalItems.forEach(function (it) { %>
+              <tr>
+                <td class="title-cell">
+                  <% if (it.product_slug) { %><a href="/products/<%= it.product_slug %>"><%= it.product_name %></a>
+                  <% } else { %><%= it.label %><% } %>
+                </td>
+                <td class="small muted"><%= it.model_year || '—' %> · <%= it.color || '—' %></td>
+                <td class="num"><%= U.money(it.base_price) || '—' %></td>
+                <td class="num" style="color:#147a3f"><%= U.money(it.dealer_discount) || '—' %></td>
+                <td class="num" style="font-weight:800;color:var(--brand)"><%= U.money(it.final_price) || '—' %></td>
+                <td class="num muted"><%= U.money(it.public_price) || '—' %></td>
+                <td class="small"><%= it.stock ? U.toFa(it.stock) + ' دستگاه' : '—' %></td>
+                <td class="small"><%= it.delivery || '—' %></td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+      <% if (general.notes) { %>
+        <div class="alert alert-info" style="margin-bottom:34px"><span>ℹ️</span><span><%= general.notes %></span></div>
+      <% } %>
+    <% } %>
+
+    <!-- لیست‌های شهری و اختصاصی -->
+    <div class="section-head" style="margin-top:20px">
+      <div>
+        <span class="kicker">به تفکیک شهر</span>
+        <h2>لیست قیمت شهرها و مراکز</h2>
+        <p>قیمت هر شهر بر اساس هزینه حمل و شرایط تخصیص متفاوت است</p>
+      </div>
+    </div>
+
+    <div class="grid grid-3">
+      <% lists.filter(function (l) { return l.scope !== 'general'; }).forEach(function (l) { %>
+        <article class="card">
+          <div class="card-body">
+            <div class="card-meta">
+              <span class="tag"><%= l.scope === 'city' ? 'شهری' : 'اختصاصی' %></span>
+              <% if (l.city) { %><span>📍 <%= l.city %></span><% } %>
+              <% if (l.dealer_name) { %><span>· <%= U.truncate(l.dealer_name, 30) %></span><% } %>
+            </div>
+            <h3 style="font-size:16px"><a href="/prices/<%= l.slug %>"><%= l.title %></a></h3>
+            <div class="mini-price-list">
+              <% l.items.forEach(function (it) { %>
+                <div class="mini-price-row">
+                  <span><%= U.truncate(it.product_name || it.label, 22) %></span>
+                  <b><%= U.money(it.final_price) || '—' %></b>
+                </div>
+              <% }); %>
+              <% if (l.count > l.items.length) { %>
+                <div class="mini-price-row muted"><span>و <%= U.toFa(l.count - l.items.length) %> محصول دیگر</span><span></span></div>
+              <% } %>
+            </div>
+            <div class="foot" style="margin-top:14px">
+              <span class="small muted"><%= U.toFa(l.count) %> محصول</span>
+              <a href="/prices/<%= l.slug %>" class="btn btn-ghost btn-sm">لیست کامل</a>
+            </div>
+          </div>
+        </article>
+      <% }); %>
+    </div>
+
+    <div class="grid grid-2" style="margin-top:44px;align-items:start">
+      <div class="side-card" style="margin:0">
+        <h3>نمایندگی‌ها به تفکیک شهر</h3>
+        <div class="filters" style="margin:0">
+          <% cities.forEach(function (c) { %>
+            <a class="chip" href="/dealers?city=<%= encodeURIComponent(c.city) %>">
+              <%= c.city %> <span style="opacity:.6;font-size:11px">(<%= U.toFa(c.c) %>)</span>
+            </a>
+          <% }); %>
+        </div>
+      </div>
+      <div class="cta-band" style="flex-direction:column;align-items:flex-start;padding:30px">
+        <h2 style="font-size:20px">قیمت اختصاصی برای عاملیت شما</h2>
+        <p>برای دریافت لیست قیمت اختصاصی و شرایط تخصیص، با واحد فروش شبکه تماس بگیرید.</p>
+        <a href="/contact" class="btn btn-light" style="margin-top:12px">درخواست لیست اختصاصی</a>
+      </div>
+    </div>
+  </div>
+</div>

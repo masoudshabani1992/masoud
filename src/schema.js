@@ -151,6 +151,86 @@ function migrate() {
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
+  -- نمایندگی‌ها و عاملیت‌ها
+  CREATE TABLE IF NOT EXISTS dealers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    slug TEXT NOT NULL UNIQUE,
+    code TEXT,                                 -- کد عاملیت
+    type TEXT NOT NULL DEFAULT 'dealer',       -- dealer (نمایندگی فروش) | agency (عاملیت خدمات) | both
+    city TEXT NOT NULL,
+    province TEXT,
+    address TEXT,
+    phone TEXT,
+    mobile TEXT,
+    email TEXT,
+    hours TEXT,
+    lat REAL,
+    lng REAL,
+    map_url TEXT,
+    manager TEXT,
+    cover_id INTEGER,
+    services TEXT,                             -- ["فروش","خدمات پس از فروش","قطعات یدکی"]
+    price_list_id INTEGER,
+    active INTEGER NOT NULL DEFAULT 1,
+    sort INTEGER NOT NULL DEFAULT 0,
+    seo_title TEXT,
+    seo_description TEXT,
+    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  -- لیست‌های قیمت (ویژه عاملیت‌ها و نمایندگی‌ها)
+  CREATE TABLE IF NOT EXISTS price_lists (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    slug TEXT NOT NULL UNIQUE,
+    scope TEXT NOT NULL DEFAULT 'general',     -- general | city | dealer | agency
+    city TEXT,                                 -- اگر scope = city
+    dealer_id INTEGER,                         -- اگر مخصوص یک عاملیت
+    customer_type TEXT NOT NULL DEFAULT 'dealer', -- dealer | agency | public
+    effective_from TEXT,
+    effective_to TEXT,
+    notes TEXT,
+    status TEXT NOT NULL DEFAULT 'published',  -- draft | published
+    attachment_id INTEGER,                     -- PDF ابلاغیه قیمت
+    seo_title TEXT,
+    seo_description TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  -- اقلام قیمت
+  CREATE TABLE IF NOT EXISTS price_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    price_list_id INTEGER NOT NULL,
+    product_id INTEGER,
+    label TEXT,                                -- اگر محصول آزاد باشد
+    model_year TEXT,
+    color TEXT,
+    base_price INTEGER,                        -- قیمت پایه (تومان)
+    dealer_discount INTEGER DEFAULT 0,         -- تخفیف/سهم عاملیت (تومان)
+    final_price INTEGER,                       -- قیمت نهایی برای عاملیت
+    public_price INTEGER,                      -- قیمت مصرف‌کننده
+    stock INTEGER,                             -- موجودی قابل تخصیص
+    delivery TEXT,                             -- زمان تحویل
+    note TEXT,
+    sort INTEGER NOT NULL DEFAULT 0,
+    FOREIGN KEY (price_list_id) REFERENCES price_lists(id) ON DELETE CASCADE
+  );
+  CREATE TABLE IF NOT EXISTS price_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    price_list_id INTEGER NOT NULL,
+    product_id INTEGER,
+    label TEXT,
+    old_price INTEGER,
+    new_price INTEGER,
+    changed_by INTEGER,
+    changed_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_dealers_city ON dealers(city, active);
+  CREATE INDEX IF NOT EXISTS idx_price_items_list ON price_items(price_list_id);
   CREATE INDEX IF NOT EXISTS idx_posts_type_status ON posts(type, status, published_at);
   CREATE INDEX IF NOT EXISTS idx_posts_category ON posts(category_id);
   CREATE INDEX IF NOT EXISTS idx_products_category ON products(category_id);
@@ -348,6 +428,11 @@ function seedAll() {
     require('./seed-content').seedDemo();
   } catch (e) {
     console.error('[seed-content]', e.message);
+  }
+  try {
+    require('./seed-dealers').seedDealers();
+  } catch (e) {
+    console.error('[seed-dealers]', e.message);
   }
 }
 

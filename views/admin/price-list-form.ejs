@@ -1,0 +1,312 @@
+<form method="post" action="/admin/prices/save" id="priceForm">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <input type="hidden" name="id" value="<%= pl.id || '' %>">
+  <input type="hidden" name="attachment_id" id="attachment_id" value="<%= pl.attachment_id || '' %>">
+
+  <div class="page-head">
+    <div>
+      <h1><%= pl.id ? 'ویرایش لیست قیمت' : 'لیست قیمت جدید' %></h1>
+      <div class="sub">
+        <% if (pl.id) { %>
+          شناسه <%= U.toFa(pl.id) %> · <%= U.toFa(items.length) %> قلم ·
+          <a href="/prices/<%= pl.slug %>" target="_blank">مشاهده در سایت ↗</a>
+        <% } else { %>
+          ابتدا اطلاعات لیست را وارد کنید، سپس اقلام قیمت را اضافه کنید.
+        <% } %>
+      </div>
+    </div>
+    <div class="actions">
+      <a href="/admin/prices" class="btn btn-ghost">بازگشت</a>
+      <button class="btn btn-ghost" type="submit" name="_action" value="save">ذخیره</button>
+      <button class="btn btn-primary" type="submit" name="_action" value="publish"
+        onclick="document.getElementsByName('status')[0].value='published'">ذخیره و انتشار</button>
+    </div>
+  </div>
+
+  <% if (req.query.ok) { %>
+    <div class="alert alert-success"><span>✓</span><span>لیست قیمت ذخیره شد.</span></div>
+  <% } %>
+
+  <div class="split">
+    <div>
+      <div class="panel">
+        <div class="panel-head"><span>اطلاعات لیست</span></div>
+        <div class="panel-body">
+          <div class="field">
+            <label>عنوان لیست <span class="req">*</span></label>
+            <input type="text" name="title" value="<%= pl.title || '' %>" required
+              placeholder="لیست قیمت نمایندگی‌های تهران" style="font-size:15.5px;font-weight:700">
+          </div>
+          <div class="form-row">
+            <div class="field">
+              <label>دامنه اعمال</label>
+              <select name="scope" id="scopeSel" onchange="toggleScope()">
+                <% Object.keys(SCOPE_LABELS).forEach(function (k) { %>
+                  <option value="<%= k %>" <%= pl.scope === k ? 'selected' : '' %>><%= SCOPE_LABELS[k] %></option>
+                <% }); %>
+              </select>
+            </div>
+            <div class="field" id="cityField">
+              <label>شهر</label>
+              <input type="text" name="city" value="<%= pl.city || '' %>" placeholder="تهران">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field" id="dealerField">
+              <label>مرکز اختصاصی</label>
+              <select name="dealer_id">
+                <option value="">— انتخاب مرکز —</option>
+                <% dealers.forEach(function (d) { %>
+                  <option value="<%= d.id %>" <%= Number(pl.dealer_id) === d.id ? 'selected' : '' %>><%= d.name %> (<%= d.city %>)</option>
+                <% }); %>
+              </select>
+            </div>
+            <div class="field">
+              <label>مخاطب قیمت</label>
+              <select name="customer_type">
+                <option value="dealer" <%= pl.customer_type === 'dealer' ? 'selected' : '' %>>نمایندگی / عاملیت (قیمت همکاری)</option>
+                <option value="agency" <%= pl.customer_type === 'agency' ? 'selected' : '' %>>عاملیت خدمات</option>
+                <option value="public" <%= pl.customer_type === 'public' ? 'selected' : '' %>>مشتری نهایی</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>اعتبار از</label><input type="date" name="effective_from" value="<%= pl.effective_from || '' %>"></div>
+            <div class="field"><label>اعتبار تا</label><input type="date" name="effective_to" value="<%= pl.effective_to || '' %>"></div>
+          </div>
+          <div class="field">
+            <label>توضیحات و شرایط</label>
+            <textarea name="notes" style="min-height:80px" placeholder="مثلاً: قیمت‌ها شامل هزینه حمل تا انبار عاملیت است."><%= pl.notes || '' %></textarea>
+          </div>
+          <div class="form-row">
+            <div class="field">
+              <label>وضعیت</label>
+              <select name="status">
+                <option value="draft" <%= pl.status !== 'published' ? 'selected' : '' %>>پیش‌نویس (در سایت دیده نمی‌شود)</option>
+                <option value="published" <%= pl.status === 'published' ? 'selected' : '' %>>منتشر شده</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>فایل PDF ابلاغیه</label>
+              <div class="flex">
+                <span class="small muted grow" id="attach-label">
+                  <%= attachment ? (attachment.original_name || attachment.filename) : 'فایلی انتخاب نشده' %>
+                </span>
+                <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('pdfInput').click()">انتخاب</button>
+              </div>
+              <input type="file" id="pdfInput" accept="application/pdf" style="display:none" onchange="uploadPdf(this)">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- اقلام قیمت -->
+      <div class="panel">
+        <div class="panel-head">
+          <span>اقلام قیمت</span>
+          <div class="flex">
+            <button type="button" class="btn btn-ghost btn-xs" onclick="addRowFromProducts()">+ افزودن همه محصولات</button>
+            <button type="button" class="btn btn-ghost btn-xs" onclick="addRow()">+ ردیف خالی</button>
+          </div>
+        </div>
+        <div class="panel-body" style="overflow-x:auto">
+          <table class="data" id="itemsTable" style="min-width:960px">
+            <thead>
+              <tr>
+                <th style="width:210px">محصول</th>
+                <th style="width:72px">سال</th>
+                <th style="width:110px">رنگ</th>
+                <th style="width:130px">قیمت پایه</th>
+                <th style="width:110px">سهم عاملیت</th>
+                <th style="width:140px">قیمت نهایی</th>
+                <th style="width:140px">قیمت مصرف‌کننده</th>
+                <th style="width:80px">موجودی</th>
+                <th style="width:110px">تحویل</th>
+                <th style="width:44px"></th>
+              </tr>
+            </thead>
+            <tbody id="itemsBody">
+              <% items.forEach(function (it) { %>
+                <tr class="item-row">
+                  <td>
+                    <input type="hidden" name="item_id" value="<%= it.id %>">
+                    <input type="hidden" name="item_product_id" value="<%= it.product_id || '' %>" class="prod-id">
+                    <input type="hidden" name="item_label" value="<%= it.label || '' %>" class="prod-label">
+                    <select class="prod-select" onchange="onProductChange(this)" style="width:100%">
+                      <option value="">— دستی —</option>
+                      <% products.forEach(function (p) { %>
+                        <option value="<%= p.id %>" <%= Number(it.product_id) === p.id ? 'selected' : '' %>><%= p.name %></option>
+                      <% }); %>
+                    </select>
+                    <input type="text" class="label-input" value="<%= it.label || '' %>" placeholder="نام محصول" oninput="this.closest('tr').querySelector('.prod-label').value=this.value"
+                      style="width:100%;margin-top:4px;font-size:11.5px;padding:5px 7px;border:1px solid var(--line);border-radius:6px">
+                  </td>
+                  <td><input type="text" name="item_year" value="<%= it.model_year || '' %>" style="width:100%"></td>
+                  <td><input type="text" name="item_color" value="<%= it.color || '' %>" style="width:100%"></td>
+                  <td><input type="text" name="item_base_price" value="<%= it.base_price || '' %>" class="num-input calc" style="width:100%"></td>
+                  <td><input type="text" name="item_discount" value="<%= it.dealer_discount || '' %>" class="num-input calc" style="width:100%"></td>
+                  <td><input type="text" name="item_final_price" value="<%= it.final_price || '' %>" class="num-input final-cell" style="width:100%"></td>
+                  <td><input type="text" name="item_public_price" value="<%= it.public_price || '' %>" class="num-input" style="width:100%"></td>
+                  <td><input type="text" name="item_stock" value="<%= it.stock || '' %>" style="width:100%"></td>
+                  <td><input type="text" name="item_delivery" value="<%= it.delivery || '' %>" style="width:100%"></td>
+                  <td>
+                    <input type="hidden" name="item_note" value="<%= it.note || '' %>">
+                    <button type="button" class="btn btn-danger btn-xs" onclick="this.closest('tr').remove()">−</button>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+          <div class="hint" style="margin-top:10px">
+            قیمت‌ها به تومان و بدون جداکننده وارد شوند (مثال: 8762200000). اگر «قیمت نهایی» خالی بماند،
+            به‌صورت خودکار از «قیمت پایه منهای سهم عاملیت» محاسبه می‌شود.
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><span>سئو</span></div>
+        <div class="panel-body">
+          <div class="field"><label>عنوان سئو</label><input type="text" name="seo_title" value="<%= pl.seo_title || '' %>" maxlength="120"></div>
+          <div class="field"><label>توضیحات متا</label><textarea name="seo_description" maxlength="300" style="min-height:70px"><%= pl.seo_description || '' %></textarea></div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="panel">
+        <div class="panel-head"><span>خلاصه</span></div>
+        <div class="panel-body small" style="line-height:2">
+          <div>تعداد اقلام: <b id="rowCount"><%= U.toFa(items.length) %></b></div>
+          <div>میانگین قیمت عاملیت: <b id="avgPrice">—</b></div>
+          <div class="muted" style="margin-top:8px">پس از ذخیره، تغییر قیمت نهایی در سابقه ثبت می‌شود.</div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><span>راهنما</span></div>
+        <div class="panel-body small" style="line-height:2">
+          <div><b>سهم عاملیت</b> = تخفیف/سهم نمایندگی از قیمت پایه</div>
+          <div><b>قیمت نهایی</b> = مبلغی که نمایندگی پرداخت می‌کند</div>
+          <div><b>قیمت مصرف‌کننده</b> = قیمت پیشنهادی فروش به مشتری</div>
+          <div><b>موجودی</b> = تعداد قابل تخصیص در این لیست</div>
+        </div>
+      </div>
+      <% if (pl.id) { %>
+        <div class="panel">
+          <div class="panel-body">
+            <a href="/prices/<%= pl.slug %>" target="_blank" class="btn btn-ghost" style="width:100%">مشاهده لیست در سایت ↗</a>
+          </div>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</form>
+
+<script>
+  var CSRF = '<%= csrf %>';
+  var PRODUCTS = <%- JSON.stringify(products.map(function (p) { return { id: p.id, name: p.name, price: p.price }; })) %>;
+
+  function toggleScope() {
+    var v = document.getElementById('scopeSel').value;
+    document.getElementById('cityField').style.opacity = v === 'city' ? '1' : '.5';
+    document.getElementById('dealerField').style.opacity = v === 'dealer' ? '1' : '.5';
+  }
+  toggleScope();
+
+  function num(v) {
+    var s = String(v == null ? '' : v).replace(/[۰-۹]/g, function (d) { return '۰۱۲۳۴۵۶۷۸۹'.indexOf(d); })
+      .replace(/[^\d-]/g, '');
+    return s === '' ? null : Number(s);
+  }
+  function recalc(row) {
+    var base = num(row.querySelector('[name=item_base_price]').value);
+    var disc = num(row.querySelector('[name=item_discount]').value) || 0;
+    var fin = row.querySelector('[name=item_final_price]');
+    if (base != null && (!fin.dataset.touched)) {
+      fin.value = base - disc;
+    }
+    updateSummary();
+  }
+  function updateSummary() {
+    var rows = document.querySelectorAll('#itemsBody tr');
+    var sum = 0, n = 0;
+    rows.forEach(function (r) {
+      var v = num(r.querySelector('[name=item_final_price]').value);
+      if (v) { sum += v; n++; }
+    });
+    document.getElementById('rowCount').textContent = String(rows.length).replace(/\d/g, function (d) { return '۰۱۲۳۴۵۶۷۸۹'[+d]; });
+    document.getElementById('avgPrice').textContent = n
+      ? Math.round(sum / n).toLocaleString('en-US').replace(/\d/g, function (d) { return '۰۱۲۳۴۵۶۷۸۹'[+d]; }) + ' تومان'
+      : '—';
+  }
+  document.getElementById('itemsBody').addEventListener('input', function (e) {
+    if (e.target.classList.contains('calc')) recalc(e.target.closest('tr'));
+    if (e.target.name === 'item_final_price') e.target.dataset.touched = '1';
+  });
+
+  function rowHtml(p) {
+    return '<tr class="item-row">' +
+      '<td>' +
+        '<input type="hidden" name="item_id" value="">' +
+        '<input type="hidden" name="item_product_id" value="' + (p ? p.id : '') + '" class="prod-id">' +
+        '<input type="hidden" name="item_label" value="' + (p ? p.name : '') + '" class="prod-label">' +
+        '<select class="prod-select" onchange="onProductChange(this)" style="width:100%">' +
+          '<option value="">— دستی —</option>' +
+          PRODUCTS.map(function (x) { return '<option value="' + x.id + '"' + (p && p.id === x.id ? ' selected' : '') + '>' + x.name + '</option>'; }).join('') +
+        '</select>' +
+        '<input type="text" class="label-input" value="' + (p ? p.name : '') + '" placeholder="نام محصول" oninput="this.closest(\'tr\').querySelector(\'.prod-label\').value=this.value" style="width:100%;margin-top:4px;font-size:11.5px;padding:5px 7px;border:1px solid var(--line);border-radius:6px">' +
+      '</td>' +
+      '<td><input type="text" name="item_year" value="۲۰۲۵" style="width:100%"></td>' +
+      '<td><input type="text" name="item_color" value="" style="width:100%"></td>' +
+      '<td><input type="text" name="item_base_price" value="' + (p && p.price ? p.price : '') + '" class="num-input calc" style="width:100%"></td>' +
+      '<td><input type="text" name="item_discount" value="0" class="num-input calc" style="width:100%"></td>' +
+      '<td><input type="text" name="item_final_price" value="' + (p && p.price ? p.price : '') + '" class="num-input final-cell" style="width:100%"></td>' +
+      '<td><input type="text" name="item_public_price" value="' + (p && p.price ? p.price : '') + '" class="num-input" style="width:100%"></td>' +
+      '<td><input type="text" name="item_stock" value="" style="width:100%"></td>' +
+      '<td><input type="text" name="item_delivery" value="۲۰ روز کاری" style="width:100%"></td>' +
+      '<td><input type="hidden" name="item_note" value="">' +
+        '<button type="button" class="btn btn-danger btn-xs" onclick="this.closest(\'tr\').remove()">−</button></td>' +
+      '</tr>';
+  }
+  function addRow(p) {
+    document.getElementById('itemsBody').insertAdjacentHTML('beforeend', rowHtml(p || null));
+    updateSummary();
+  }
+  function addRowFromProducts() {
+    var existing = {};
+    document.querySelectorAll('.prod-id').forEach(function (h) { existing[h.value] = true; });
+    PRODUCTS.forEach(function (p) { if (!existing[String(p.id)]) addRow(p); });
+  }
+  function onProductChange(sel) {
+    var row = sel.closest('tr');
+    var p = PRODUCTS.filter(function (x) { return String(x.id) === sel.value; })[0];
+    row.querySelector('.prod-id').value = p ? p.id : '';
+    if (p) {
+      row.querySelector('.prod-label').value = p.name;
+      row.querySelector('.label-input').value = p.name;
+      if (p.price) {
+        row.querySelector('[name=item_base_price]').value = p.price;
+        row.querySelector('[name=item_public_price]').value = p.price;
+        var fin = row.querySelector('[name=item_final_price]');
+        delete fin.dataset.touched;
+        recalc(row);
+      }
+    }
+    updateSummary();
+  }
+
+  function uploadPdf(input) {
+    if (!input.files.length) return;
+    var fd = new FormData();
+    fd.append('file', input.files[0]);
+    fetch('/admin/media/file', { method: 'POST', body: fd, headers: { 'x-csrf-token': CSRF } })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (d.item) {
+          document.getElementById('attachment_id').value = d.item.id;
+          document.getElementById('attach-label').textContent = d.item.original_name || d.item.filename;
+        } else { alert('آپلود ناموفق بود'); }
+      });
+  }
+  updateSummary();
+</script>

@@ -114,6 +114,8 @@ router.get('/', (req, res) => {
     products: get('SELECT COUNT(*) c FROM products').c,
     inquiries: get("SELECT COUNT(*) c FROM inquiries WHERE status='new'").c,
     media: get('SELECT COUNT(*) c FROM media').c,
+    dealers: get('SELECT COUNT(*) c FROM dealers WHERE active = 1').c,
+    priceLists: get("SELECT COUNT(*) c FROM price_lists WHERE status='published'").c,
     views: get("SELECT COALESCE(SUM(views),0) v FROM posts").v + get('SELECT COALESCE(SUM(views),0) v FROM products').v,
   };
   const recentPosts = all(
@@ -441,6 +443,305 @@ router.post('/products/:id/delete', (req, res) => {
   run('DELETE FROM products WHERE id = ?', [Number(req.params.id)]);
   logActivity(req, 'delete', 'product', Number(req.params.id));
   res.redirect('/admin/products?ok=1');
+});
+
+/* ================= نمایندگی‌ها / عاملیت‌ها ================= */
+const DEALER_TYPES = { dealer: 'نمایندگی فروش', agency: 'عاملیت خدمات', both: 'نمایندگی و عاملیت' };
+const SERVICES = ['فروش', 'خدمات پس از فروش', 'قطعات یدکی'];
+
+router.get('/dealers', (req, res) => {
+  const q = String(req.query.q || '').trim();
+  const city = String(req.query.city || '').trim();
+  const where = ['1=1'];
+  const params = {};
+  if (q) { where.push('(d.name LIKE :q OR d.address LIKE :q OR d.phone LIKE :q)'); params.q = `%${q}%`; }
+  if (city) { where.push('d.city = :city'); params.city = city; }
+  const rows = all(
+    `SELECT d.*, pl.title AS price_list_title,
+            (SELECT COUNT(*) FROM price_items pi WHERE pi.price_list_id = d.price_list_id) AS price_items
+       FROM dealers d LEFT JOIN price_lists pl ON pl.id = d.price_list_id
+      WHERE ${where.join(' AND ')} ORDER BY d.city, d.sort, d.id`, params
+  );
+  const cities = all('SELECT city, COUNT(*) c FROM dealers GROUP BY city ORDER BY c DESC, city');
+  const priceLists = all("SELECT id, title, scope, city FROM price_lists WHERE status='published' ORDER BY id");
+  render(res, 'admin/dealer-list', {
+    active: 'dealers', title: 'نمایندگی‌ها و عاملیت‌ها',
+    rows, cities, q, city, priceLists, DEALER_TYPES,
+  });
+});
+
+router.get('/dealers/new', (req, res) => {
+  render(res, 'admin/dealer-form', {
+    active: 'dealers', title: 'افزودن نمایندگی',
+    d: { type: 'dealer', active: 1, sort: 0, services: '[]' },
+    priceLists: all("SELECT id, title, scope, city FROM price_lists ORDER BY id"),
+    DEALER_TYPES, SERVICES, coverUrl: null, citiesList: all('SELECT DISTINCT city FROM dealers ORDER BY city'),
+  });
+});
+
+router.get('/dealers/:id/edit', (req, res) => {
+  const d = get('SELECT * FROM dealers WHERE id = ?', [Number(req.params.id)]);
+  if (!d) return res.status(404).send('نمایندگی یافت نشد');
+  const cov = mediaById(d.cover_id);
+  render(res, 'admin/dealer-form', {
+    active: 'dealers', title: 'ویرایش نمایندگی', d,
+    priceLists: all("SELECT id, title, scope, city FROM price_lists ORDER BY id"),
+    DEALER_TYPES, SERVICES, coverUrl: cov ? cov.url : null,
+    citiesList: all('SELECT DISTINCT city FROM dealers ORDER BY city'),
+  });
+});
+
+router.post('/dealers/save', (req, res, next) => {
+  try {
+    const b = req.body;
+    const id = Number(b.id) || null;
+    const name = String(b.name || '').trim();
+    if (!name) throw new Error('نام نمایندگی الزامی است');
+    const slug = U.uniqueSlug('dealers', U.slugify(b.slug || name), id);
+    const services = [].concat(b.services || []).map(String);
+    const d = {
+      name, slug,
+      code: String(b.code || '').trim(),
+      type: Object.keys(DEALER_TYPES).includes(b.type) ? b.type : 'dealer',
+      city: String(b.city || '').trim(),
+      province: String(b.province || '').trim(),
+      address: String(b.address || '').trim(),
+      phone: String(b.phone || '').trim(),
+      mobile: String(b.mobile || '').trim(),
+      email: String(b.email || '').trim(),
+      hours: String(b.hours || '').trim(),
+      lat: b.lat ? Number(b.lat) : null,
+      lng: b.lng ? Number(b.lng) : null,
+      map_url: String(b.map_url || '').trim(),
+      manager: String(b.manager || '').trim(),
+      cover_id: Number(b.cover_id) || null,
+      services: JSON.stringify(services),
+      price_list_id: Number(b.price_list_id) || null,
+      active: b.active ? 1 : 0,
+      sort: Number(b.sort) || 0,
+      seo_title: String(b.seo_title || '').trim(),
+      seo_description: String(b.seo_description || '').trim(),
+    };
+    if (!d.city) throw new Error('شهر الزامی است');
+    if (id) {
+      const sets = Object.keys(d).map((k) => `${k} = :${k}`).join(', ');
+      run(`UPDATE dealers SET ${sets}, updated_at = datetime('now') WHERE id = :id`, { ...d, id });
+    } else {
+      const cols = Object.keys(d);
+      run(`INSERT INTO dealers (${cols.join(',')}) VALUES (${cols.map((c) => ':' + c).join(',')})`, d);
+    }
+    logActivity(req, id ? 'update' : 'create', 'dealer', id || slug, { name });
+    res.redirect('/admin/dealers?ok=1');
+  } catch (e) { next(e); }
+});
+
+router.post('/dealers/:id/delete', (req, res) => {
+  run('DELETE FROM dealers WHERE id = ?', [Number(req.params.id)]);
+  logActivity(req, 'delete', 'dealer', Number(req.params.id));
+  res.redirect('/admin/dealers?ok=1');
+});
+
+router.post('/dealers/:id/toggle', (req, res) => {
+  run('UPDATE dealers SET active = 1 - active WHERE id = ?', [Number(req.params.id)]);
+  res.redirect('/admin/dealers?ok=1');
+});
+
+/* ================= لیست قیمت ================= */
+const SCOPE_LABELS = { general: 'سراسری', city: 'شهری', dealer: 'اختصاصی یک مرکز' };
+
+router.get('/prices', (req, res) => {
+  const lists = all(
+    `SELECT pl.*, d.name AS dealer_name,
+            (SELECT COUNT(*) FROM price_items pi WHERE pi.price_list_id = pl.id) AS items_count,
+            (SELECT MIN(final_price) FROM price_items pi WHERE pi.price_list_id = pl.id) AS min_price
+       FROM price_lists pl LEFT JOIN dealers d ON d.id = pl.dealer_id
+      ORDER BY CASE pl.scope WHEN 'general' THEN 0 WHEN 'city' THEN 1 ELSE 2 END, pl.city, pl.id`
+  );
+  render(res, 'admin/price-list-list', {
+    active: 'prices', title: 'لیست‌های قیمت', lists, SCOPE_LABELS,
+  });
+});
+
+function priceListFormData() {
+  return {
+    products: all('SELECT id, name, slug, price FROM products ORDER BY sort, id'),
+    dealers: all('SELECT id, name, city FROM dealers ORDER BY city, sort'),
+  };
+}
+
+router.get('/prices/new', (req, res) => {
+  const data = priceListFormData();
+  render(res, 'admin/price-list-form', {
+    active: 'prices', title: 'لیست قیمت جدید',
+    pl: { scope: 'general', customer_type: 'dealer', status: 'draft' },
+    items: [], ...data, SCOPE_LABELS, attachment: null,
+  });
+});
+
+router.get('/prices/:id/edit', (req, res) => {
+  const pl = get('SELECT * FROM price_lists WHERE id = ?', [Number(req.params.id)]);
+  if (!pl) return res.status(404).send('لیست قیمت یافت نشد');
+  const items = all('SELECT * FROM price_items WHERE price_list_id = ? ORDER BY sort, id', [pl.id]);
+  render(res, 'admin/price-list-form', {
+    active: 'prices', title: 'ویرایش لیست قیمت', pl, items,
+    ...priceListFormData(), SCOPE_LABELS,
+    attachment: pl.attachment_id ? mediaById(pl.attachment_id) : null,
+  });
+});
+
+router.post('/prices/save', (req, res, next) => {
+  try {
+    const b = req.body;
+    const id = Number(b.id) || null;
+    const title = String(b.title || '').trim();
+    if (!title) throw new Error('عنوان لیست الزامی است');
+    const slug = U.uniqueSlug('price_lists', U.slugify(b.slug || title), id);
+    const pl = {
+      title, slug,
+      scope: Object.keys(SCOPE_LABELS).includes(b.scope) ? b.scope : 'general',
+      city: String(b.city || '').trim() || null,
+      dealer_id: Number(b.dealer_id) || null,
+      customer_type: ['dealer', 'agency', 'public'].includes(b.customer_type) ? b.customer_type : 'dealer',
+      effective_from: b.effective_from || null,
+      effective_to: b.effective_to || null,
+      notes: String(b.notes || '').trim(),
+      status: b.status === 'published' ? 'published' : 'draft',
+      attachment_id: Number(b.attachment_id) || null,
+      seo_title: String(b.seo_title || '').trim(),
+      seo_description: String(b.seo_description || '').trim(),
+    };
+    let listId = id;
+    if (id) {
+      const sets = Object.keys(pl).map((k) => `${k} = :${k}`).join(', ');
+      run(`UPDATE price_lists SET ${sets}, updated_at = datetime('now') WHERE id = :id`, { ...pl, id });
+    } else {
+      const cols = Object.keys(pl);
+      const r = run(`INSERT INTO price_lists (${cols.join(',')}) VALUES (${cols.map((c) => ':' + c).join(',')})`, pl);
+      listId = Number(r.lastInsertRowid);
+    }
+
+    // اقلام قیمت — بازنویسی کامل با مقایسه برای ثبت سابقه تغییر قیمت
+    const old = all('SELECT * FROM price_items WHERE price_list_id = ?', [listId]);
+    const ids = [].concat(b.item_id || []);
+    const productIds = [].concat(b.item_product_id || []);
+    const labels = [].concat(b.item_label || []);
+    const years = [].concat(b.item_year || []);
+    const colors = [].concat(b.item_color || []);
+    const basePrices = [].concat(b.item_base_price || []);
+    const discounts = [].concat(b.item_discount || []);
+    const finals = [].concat(b.item_final_price || []);
+    const publics = [].concat(b.item_public_price || []);
+    const stocks = [].concat(b.item_stock || []);
+    const deliveries = [].concat(b.item_delivery || []);
+    const notes = [].concat(b.item_note || []);
+
+    const toNum = (v) => {
+      const clean = U.faToEnDigits(String(v == null ? '' : v)).replace(/[^\d-]/g, '');
+      return clean === '' ? null : Number(clean);
+    };
+
+    const keptIds = [];
+    for (let i = 0; i < labels.length; i++) {
+      const label = String(labels[i] || '').trim();
+      const pid = Number(productIds[i]) || null;
+      if (!label && !pid) continue;
+      const row = {
+        price_list_id: listId,
+        product_id: pid,
+        label,
+        model_year: String(years[i] || '').trim(),
+        color: String(colors[i] || '').trim(),
+        base_price: toNum(basePrices[i]),
+        dealer_discount: toNum(discounts[i]) || 0,
+        final_price: toNum(finals[i]),
+        public_price: toNum(publics[i]),
+        stock: toNum(stocks[i]),
+        delivery: String(deliveries[i] || '').trim(),
+        note: String(notes[i] || '').trim(),
+        sort: i,
+      };
+      // اگر قیمت نهایی خالی بود، محاسبه کن
+      if (row.final_price == null && row.base_price != null) {
+        row.final_price = row.base_price - (row.dealer_discount || 0);
+      }
+      const existingId = Number(ids[i]) || null;
+      if (existingId) {
+        run(
+          `UPDATE price_items SET product_id=:product_id, label=:label, model_year=:model_year, color=:color,
+             base_price=:base_price, dealer_discount=:dealer_discount, final_price=:final_price,
+             public_price=:public_price, stock=:stock, delivery=:delivery, note=:note, sort=:sort
+           WHERE id=:id`, { ...row, id: existingId }
+        );
+        keptIds.push(existingId);
+        const before = old.find((o) => o.id === existingId);
+        if (before && before.final_price != null && row.final_price != null && before.final_price !== row.final_price) {
+          run(
+            `INSERT INTO price_history (price_list_id, product_id, label, old_price, new_price, changed_by)
+             VALUES (?,?,?,?,?,?)`,
+            [listId, row.product_id, row.label, before.final_price, row.final_price, req.admin.id]
+          );
+        }
+      } else {
+        const r = run(
+          `INSERT INTO price_items (price_list_id, product_id, label, model_year, color, base_price,
+             dealer_discount, final_price, public_price, stock, delivery, note, sort)
+           VALUES (:price_list_id, :product_id, :label, :model_year, :color, :base_price,
+             :dealer_discount, :final_price, :public_price, :stock, :delivery, :note, :sort)`, row
+        );
+        keptIds.push(Number(r.lastInsertRowid));
+      }
+    }
+    const toDelete = old.filter((o) => !keptIds.includes(o.id));
+    toDelete.forEach((o) => run('DELETE FROM price_items WHERE id = ?', [o.id]));
+
+    logActivity(req, id ? 'update' : 'create', 'price_list', listId, { title });
+    res.redirect(`/admin/prices/${listId}/edit?ok=1`);
+  } catch (e) { next(e); }
+});
+
+router.post('/prices/:id/delete', (req, res) => {
+  const id = Number(req.params.id);
+  run('DELETE FROM price_items WHERE price_list_id = ?', [id]);
+  run('DELETE FROM price_lists WHERE id = ?', [id]);
+  logActivity(req, 'delete', 'price_list', id);
+  res.redirect('/admin/prices?ok=1');
+});
+
+router.post('/prices/:id/status', (req, res) => {
+  run("UPDATE price_lists SET status = ?, updated_at = datetime('now') WHERE id = ?",
+    [req.body.status === 'published' ? 'published' : 'draft', Number(req.params.id)]);
+  res.redirect('/admin/prices?ok=1');
+});
+
+/** کپی لیست قیمت برای شهر دیگر (با تغییر درصد) */
+router.post('/prices/:id/copy', (req, res) => {
+  const src = get('SELECT * FROM price_lists WHERE id = ?', [Number(req.params.id)]);
+  if (!src) return res.redirect('/admin/prices?err=' + encodeURIComponent('لیست مبدا یافت نشد'));
+  const city = String(req.body.city || '').trim();
+  const pct = Number(U.faToEnDigits(String(req.body.percent || '0'))) || 0;
+  if (!city) return res.redirect('/admin/prices?err=' + encodeURIComponent('نام شهر الزامی است'));
+  const title = `لیست قیمت نمایندگی‌های ${city}`;
+  const slug = U.uniqueSlug('price_lists', U.slugify(`price-list-${city}`));
+  const r = run(
+    `INSERT INTO price_lists (title, slug, scope, city, customer_type, effective_from, effective_to, notes, status, seo_title, seo_description)
+     VALUES (?,?,'city',?,?,?,?,?, 'draft', ?, ?)`,
+    [title, slug, city, src.customer_type, src.effective_from, src.effective_to,
+      String(req.body.notes || src.notes || ''), title, `لیست قیمت محصولات کیا برای نمایندگی‌های ${city}.`]
+  );
+  const newId = Number(r.lastInsertRowid);
+  all('SELECT * FROM price_items WHERE price_list_id = ?', [src.id]).forEach((it) => {
+    const factor = 1 + pct / 100;
+    const base = it.base_price != null ? Math.round(it.base_price * factor) : null;
+    const pub = it.public_price != null ? Math.round(it.public_price * factor) : null;
+    const fin = base != null ? base - (it.dealer_discount || 0) : it.final_price;
+    run(
+      `INSERT INTO price_items (price_list_id, product_id, label, model_year, color, base_price, dealer_discount, final_price, public_price, stock, delivery, note, sort)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      [newId, it.product_id, it.label, it.model_year, it.color, base, it.dealer_discount, fin, pub, it.stock, it.delivery, it.note, it.sort]
+    );
+  });
+  logActivity(req, 'copy', 'price_list', newId, { from: src.id, city, percent: pct });
+  res.redirect(`/admin/prices/${newId}/edit?ok=1`);
 });
 
 /* ================= دسته‌بندی‌ها ================= */
