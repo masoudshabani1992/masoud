@@ -151,6 +151,25 @@ function migrate() {
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
+  -- اسلایدهای صفحه اصلی
+  CREATE TABLE IF NOT EXISTS slides (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    kicker TEXT,
+    title TEXT NOT NULL,
+    subtitle TEXT,
+    image_id INTEGER,
+    overlay INTEGER NOT NULL DEFAULT 55,        -- شدت لایه تیره روی تصویر (۰ تا ۹۰)
+    align TEXT NOT NULL DEFAULT 'right',        -- right | center
+    btn1_label TEXT,
+    btn1_url TEXT,
+    btn2_label TEXT,
+    btn2_url TEXT,
+    active INTEGER NOT NULL DEFAULT 1,
+    sort INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
   -- نمایندگی‌ها و عاملیت‌ها
   CREATE TABLE IF NOT EXISTS dealers (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -433,6 +452,11 @@ function seedAll() {
     require('./seed-dealers').seedDealers();
   } catch (e) {
     console.error('[seed-dealers]', e.message);
+  }
+  try {
+    require('./seed-slides').seedSlides();
+  } catch (e) {
+    console.error('[seed-slides]', e.message);
   }
 }
 

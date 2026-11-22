@@ -1,35 +1,79 @@
-<section class="hero">
-  <div class="container">
-    <div class="hero-grid">
-      <div>
-        <span class="kicker" style="color:#ffd1d9">نماینده رسمی کیا در ایران</span>
-        <h1>کیا را با خیال راحت از کوشا خودرو بخرید</h1>
-        <p>
-          از سال ۱۳۸۷ در کنار شما هستیم؛ واردات رسمی محصولات کیا، تأمین قطعات اصلی و شبکه گسترده
-          خدمات پس از فروش در سراسر کشور.
-        </p>
-        <div class="hero-actions">
-          <a href="/products" class="btn btn-primary">مشاهده محصولات</a>
-          <a href="/circulars" class="btn btn-light">بخشنامه‌ها و اطلاعیه‌ها</a>
-        </div>
-        <div class="hero-badges">
-          <div><b><%= U.toFa('25,000') %>+</b> خودروی واردشده</div>
-          <div><b><%= U.toFa('30') %>+</b> نمایندگی فعال</div>
-          <div><b><%= U.toFa('15') %></b> سال تجربه</div>
+<% if (slides && slides.length) { %>
+<section class="slider" id="heroSlider"
+         data-autoplay="<%= s.slider_autoplay === '1' ? '1' : '0' %>"
+         data-interval="<%= Number(s.slider_interval) || 6 %>"
+         style="--dot-duration: <%= Number(s.slider_interval) || 6 %>s"
+         aria-roledescription="carousel" aria-label="اسلایدهای معرفی کوشا خودرو">
+  <div class="slider-track">
+    <% slides.forEach(function (sl, i) { %>
+      <div class="slide<%= i === 0 ? ' is-active' : '' %><%= sl.align === 'center' ? ' slide-center' : '' %>"
+           role="group" aria-roledescription="slide" aria-label="<%= U.toFa(i + 1) %> از <%= U.toFa(slides.length) %>"
+           <%= i === 0 ? '' : 'aria-hidden="true"' %>>
+        <% if (sl.image_url) { %>
+          <img class="slide-bg" src="<%= sl.image_url %>" alt="<%= sl.image_alt || '' %>"
+               <%= i === 0 ? 'fetchpriority="high"' : 'loading="lazy"' %>>
+        <% } else { %>
+          <span class="slide-bg slide-bg-plain"></span>
+        <% } %>
+        <span class="slide-scrim" style="opacity:<%= (Number(sl.overlay) || 55) / 100 %>"></span>
+        <div class="container">
+          <div class="slide-content">
+            <% if (sl.kicker) { %><span class="slide-kicker"><%= sl.kicker %></span><% } %>
+            <%- i === 0 ? '<h1 class="slide-title">' : '<h2 class="slide-title">' %><%= sl.title %><%- i === 0 ? '</h1>' : '</h2>' %>
+            <% if (sl.subtitle) { %><p class="slide-sub"><%= sl.subtitle %></p><% } %>
+            <div class="slide-actions">
+              <% if (sl.btn1_label) { %>
+                <a class="btn btn-primary" href="<%= sl.btn1_url || '#' %>"><%= sl.btn1_label %></a>
+              <% } %>
+              <% if (sl.btn2_label) { %>
+                <a class="btn btn-light" href="<%= sl.btn2_url || '#' %>"><%= sl.btn2_label %></a>
+              <% } %>
+            </div>
+          </div>
         </div>
       </div>
-      <aside class="hero-card">
-        <h3>دسترسی سریع</h3>
-        <div class="quick-links">
-          <a href="<%= s.sale_url %>" target="_blank" rel="noopener">ثبت‌نام سامانه فروش <span>←</span></a>
-          <a href="/circulars">آخرین بخشنامه‌های فروش <span>←</span></a>
-          <a href="/news">اخبار کوشا خودرو <span>←</span></a>
-          <a href="/contact">شبکه نمایندگی‌ها و پشتیبانی <span>←</span></a>
-        </div>
-      </aside>
+    <% }); %>
+  </div>
+
+  <div class="slider-ui">
+    <div class="container slider-ui-inner">
+      <div class="slider-dots" role="tablist" aria-label="انتخاب اسلاید">
+        <% slides.forEach(function (sl, i) { %>
+          <button type="button" class="slider-dot<%= i === 0 ? ' is-active' : '' %>" role="tab"
+                  aria-selected="<%= i === 0 ? 'true' : 'false' %>"
+                  aria-label="اسلاید <%= U.toFa(i + 1) %>" data-goto="<%= i %>">
+            <span></span>
+          </button>
+        <% }); %>
+      </div>
+      <div class="slider-controls">
+        <button type="button" class="slider-arrow" data-prev aria-label="اسلاید قبلی">‹</button>
+        <span class="slider-count"><b>۱</b> / <%= U.toFa(slides.length) %></span>
+        <button type="button" class="slider-arrow" data-next aria-label="اسلاید بعدی">›</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="slider-hero-badges container">
+    <div><b><%= U.toFa('25,000') %>+</b> خودروی واردشده</div>
+    <div><b><%= U.toFa('30') %>+</b> نمایندگی فعال</div>
+    <div><b><%= U.toFa('15') %></b> سال تجربه</div>
+    <div><b>ISQI</b> رتبه نخست فروش ۱۴۰۳</div>
+  </div>
+</section>
+<% } else { %>
+<section class="hero">
+  <div class="container">
+    <span class="kicker" style="color:#ffd1d9">نماینده رسمی کیا در ایران</span>
+    <h1>کیا را با خیال راحت از کوشا خودرو بخرید</h1>
+    <p>از سال ۱۳۸۷ در کنار شما هستیم؛ واردات رسمی محصولات کیا و شبکه گسترده خدمات پس از فروش.</p>
+    <div class="hero-actions">
+      <a href="/products" class="btn btn-primary">مشاهده محصولات</a>
+      <a href="/circulars" class="btn btn-light">بخشنامه‌ها</a>
     </div>
   </div>
 </section>
+<% } %>
 
 <section class="stats">
   <div class="container" style="padding:0">

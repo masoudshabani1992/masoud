@@ -1,0 +1,163 @@
+<form method="post" action="/admin/slides/save" id="slideForm">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <input type="hidden" name="id" value="<%= sl.id || '' %>">
+  <input type="hidden" name="image_id" id="image_id" value="<%= sl.image_id || '' %>">
+
+  <div class="page-head">
+    <div>
+      <h1><%= sl.id ? 'ویرایش اسلاید' : 'اسلاید جدید' %></h1>
+      <div class="sub"><% if (sl.id) { %>شناسه <%= U.toFa(sl.id) %><% } else { %>متن و تصویر اسلاید را وارد کنید<% } %></div>
+    </div>
+    <div class="actions">
+      <a href="/admin/slides" class="btn btn-ghost">بازگشت</a>
+      <button class="btn btn-primary" type="submit">ذخیره اسلاید</button>
+    </div>
+  </div>
+
+  <div class="split">
+    <div>
+      <div class="panel">
+        <div class="panel-head"><span>متن اسلاید</span></div>
+        <div class="panel-body">
+          <div class="field">
+            <label>برچسب بالای عنوان (kicker)</label>
+            <input type="text" name="kicker" value="<%= sl.kicker || '' %>" maxlength="60" placeholder="نماینده رسمی کیا در ایران">
+          </div>
+          <div class="field">
+            <label>عنوان اصلی <span class="req">*</span></label>
+            <input type="text" name="title" value="<%= sl.title || '' %>" required maxlength="120"
+                   style="font-size:16px;font-weight:700" placeholder="کیا را با خیال راحت از کوشا خودرو بخرید">
+            <div class="hint">کوتاه و تأثیرگذار بنویسید؛ حدود ۶۰ کاراکتر بهترین نمایش را دارد.</div>
+          </div>
+          <div class="field">
+            <label>توضیح کوتاه</label>
+            <textarea name="subtitle" maxlength="260" style="min-height:76px"
+              placeholder="یک یا دو جمله درباره مزیت اصلی"><%= sl.subtitle || '' %></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><span>دکمه‌ها</span></div>
+        <div class="panel-body">
+          <div class="form-row">
+            <div class="field"><label>دکمه اول — متن</label><input type="text" name="btn1_label" value="<%= sl.btn1_label || '' %>" maxlength="40" placeholder="مشاهده محصولات"></div>
+            <div class="field"><label>دکمه اول — لینک</label><input type="text" name="btn1_url" value="<%= sl.btn1_url || '' %>" dir="ltr" class="mono" placeholder="/products"></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>دکمه دوم — متن</label><input type="text" name="btn2_label" value="<%= sl.btn2_label || '' %>" maxlength="40" placeholder="تماس با ما"></div>
+            <div class="field"><label>دکمه دوم — لینک</label><input type="text" name="btn2_url" value="<%= sl.btn2_url || '' %>" dir="ltr" class="mono" placeholder="/contact"></div>
+          </div>
+          <div class="hint">برای لینک خارجی آدرس کامل با https بنویسید. خالی گذاشتن متن دکمه، آن را حذف می‌کند.</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="panel">
+        <div class="panel-head"><span>تصویر اسلاید</span></div>
+        <div class="panel-body">
+          <div id="img-preview" style="position:relative;border-radius:10px;overflow:hidden;background:linear-gradient(135deg,#14508f,#07305e);aspect-ratio:16/9;display:grid;place-items:center;margin-bottom:10px">
+            <% if (imageUrl) { %><img src="<%= imageUrl %>" alt="" style="width:100%;height:100%;object-fit:cover">
+            <% } else { %><span class="small" style="color:#cfe2f7">بدون تصویر — پس‌زمینه رنگی</span><% } %>
+          </div>
+          <div class="flex">
+            <button type="button" class="btn btn-ghost btn-sm grow" onclick="openPicker()">انتخاب تصویر</button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="clearImage()">حذف</button>
+          </div>
+          <div class="hint" style="margin-top:8px">اندازه پیشنهادی ۱۹۲۰×۱۰۸۰ پیکسل</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><span>نمایش</span></div>
+        <div class="panel-body">
+          <div class="field">
+            <label>چیدمان متن</label>
+            <select name="align">
+              <% Object.keys(alignment).forEach(function (k) { %>
+                <option value="<%= k %>" <%= sl.align === k ? 'selected' : '' %>><%= alignment[k] %></option>
+              <% }); %>
+            </select>
+          </div>
+          <div class="field">
+            <label>تیرگی لایه روی تصویر (<span id="ovVal"><%= U.toFa(sl.overlay || 55) %></span>٪)</label>
+            <input type="range" name="overlay" min="0" max="90" step="5" value="<%= sl.overlay || 55 %>"
+                   oninput="document.getElementById('ovVal').textContent=String(this.value).replace(/\d/g,function(d){return '۰۱۲۳۴۵۶۷۸۹'[+d]})"
+                   style="width:100%;accent-color:var(--brand)">
+            <div class="hint">۰ = بدون تیرگی، ۹۰ = تاریک‌ترین حالت</div>
+          </div>
+          <div class="field"><label>ترتیب نمایش</label><input type="number" name="sort" value="<%= sl.sort || 0 %>"></div>
+          <label class="check"><input type="checkbox" name="active" value="1" <%= sl.active ? 'checked' : '' %>> نمایش در سایت</label>
+        </div>
+      </div>
+
+      <% if (sl.id) { %>
+        <div class="panel">
+          <div class="panel-body">
+            <button type="button" class="btn btn-danger btn-sm" style="width:100%"
+              onclick="if(confirm('این اسلاید حذف شود؟')){document.getElementById('delForm').submit()}">حذف اسلاید</button>
+          </div>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</form>
+
+<% if (sl.id) { %>
+<form id="delForm" method="post" action="/admin/slides/<%= sl.id %>/delete" style="display:none">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+</form>
+<% } %>
+
+<div id="picker" style="display:none;position:fixed;inset:0;background:rgba(9,24,40,.55);z-index:200;padding:24px;overflow:auto">
+  <div style="max-width:920px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden">
+    <div style="padding:13px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center">
+      <b>انتخاب تصویر از کتابخانه</b>
+      <div class="flex">
+        <input type="file" id="quickUpload" accept="image/*" style="display:none" onchange="quickUpload(this)">
+        <button class="btn btn-primary btn-sm" onclick="document.getElementById('quickUpload').click()">آپلود جدید</button>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('picker').style.display='none'">بستن</button>
+      </div>
+    </div>
+    <div style="padding:18px" id="pickerBody">در حال بارگذاری…</div>
+  </div>
+</div>
+
+<script>
+  var CSRF = '<%= csrf %>';
+  var MEDIA = [];
+  function openPicker() {
+    document.getElementById('picker').style.display = 'block';
+    if (MEDIA.length) return render();
+    fetch('/api/media?kind=image', { headers: { 'x-csrf-token': CSRF } })
+      .then(function (r) { return r.json(); })
+      .then(function (d) { MEDIA = d.items || []; render(); });
+  }
+  function render() {
+    document.getElementById('pickerBody').innerHTML = MEDIA.length
+      ? '<div class="media-grid">' + MEDIA.map(function (m) {
+          return '<div class="media-item" style="cursor:pointer" onclick="pick(' + m.id + ',\'' + m.url + '\')">'
+            + '<div class="thumb"><img src="' + m.url + '" loading="lazy"></div>'
+            + '<div class="info">' + (m.filename || '') + '</div></div>';
+        }).join('') + '</div>'
+      : '<div class="empty">کتابخانه خالی است. تصویری آپلود کنید.</div>';
+  }
+  function pick(id, url) {
+    document.getElementById('image_id').value = id;
+    document.getElementById('img-preview').innerHTML = '<img src="' + url + '" style="width:100%;height:100%;object-fit:cover">';
+    document.getElementById('picker').style.display = 'none';
+  }
+  function clearImage() {
+    document.getElementById('image_id').value = '';
+    document.getElementById('img-preview').innerHTML = '<span class="small" style="color:#cfe2f7">بدون تصویر — پس‌زمینه رنگی</span>';
+  }
+  function quickUpload(input) {
+    if (!input.files.length) return;
+    var fd = new FormData();
+    fd.append('files', input.files[0]);
+    fetch('/admin/media/upload-json', { method: 'POST', body: fd, headers: { 'x-csrf-token': CSRF } })
+      .then(function (r) { return r.json(); })
+      .then(function (d) { if (d.items) { MEDIA = d.items.concat(MEDIA); render(); } });
+  }
+</script>

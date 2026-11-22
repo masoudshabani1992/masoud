@@ -66,7 +66,9 @@ app.use((err, req, res, next) => {
   if (err.code === 'LIMIT_FILE_SIZE') {
     return res.status(400).send('حجم فایل بیش از حد مجاز است.');
   }
-  res.status(500).send(
+  // خطای اعتبارسنجی فرم‌ها کد وضعیت خودش را دارد (مثلاً ۴۰۰) تا ۵۰۰ واقعی مبهم نماند
+  const status = Number(err.status) || 500;
+  res.status(status).send(
     `<div dir="rtl" style="font-family:sans-serif;padding:40px">
       <h2>خطایی رخ داد</h2><p>${require('./src/util').escapeHtml(err.message)}</p>
       <a href="/admin">بازگشت به پنل</a>

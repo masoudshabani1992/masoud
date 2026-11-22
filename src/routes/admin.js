@@ -6,7 +6,7 @@ const bcrypt = require('bcryptjs');
 const sanitizeHtml = require('sanitize-html');
 const path = require('path');
 
-const { all, get, run } = require('../db');
+const { all, get, run, tx } = require('../db');
 const U = require('../util');
 const auth = require('../auth');
 const seoLib = require('../seo');
@@ -443,6 +443,97 @@ router.post('/products/:id/delete', (req, res) => {
   run('DELETE FROM products WHERE id = ?', [Number(req.params.id)]);
   logActivity(req, 'delete', 'product', Number(req.params.id));
   res.redirect('/admin/products?ok=1');
+});
+
+/* ================= اسلایدر صفحه اصلی ================= */
+router.get('/slides', (req, res) => {
+  const rows = all(
+    `SELECT sl.*, m.url AS image_url FROM slides sl LEFT JOIN media m ON m.id = sl.image_id
+      ORDER BY sl.sort, sl.id`
+  );
+  render(res, 'admin/slides', {
+    active: 'slides', title: 'اسلایدر صفحه اصلی', rows,
+    alignment: { right: 'راست‌چین', center: 'وسط‌چین' },
+  });
+});
+
+router.get('/slides/new', (req, res) => {
+  render(res, 'admin/slide-form', {
+    active: 'slides', title: 'اسلاید جدید',
+    sl: { overlay: 55, align: 'right', active: 1, sort: 0 }, imageUrl: null, order: 1,
+    alignment: { right: 'راست‌چین', center: 'وسط‌چین' },
+  });
+});
+
+router.get('/slides/:id/edit', (req, res) => {
+  const sl = get('SELECT * FROM slides WHERE id = ?', [Number(req.params.id)]);
+  if (!sl) return res.status(404).send('اسلاید یافت نشد');
+  const img = mediaById(sl.image_id);
+  render(res, 'admin/slide-form', {
+    active: 'slides', title: 'ویرایش اسلاید', sl,
+    imageUrl: img ? img.url : null,
+    order: get('SELECT COUNT(*) c FROM slides').c,
+    alignment: { right: 'راست‌چین', center: 'وسط‌چین' },
+  });
+});
+
+router.post('/slides/save', (req, res, next) => {
+  try {
+    const b = req.body;
+    const id = Number(b.id) || null;
+    const title = String(b.title || '').trim();
+    if (!title) { const e = new Error('عنوان اسلاید الزامی است'); e.status = 400; throw e; }
+    const d = {
+      kicker: String(b.kicker || '').trim(),
+      title,
+      subtitle: String(b.subtitle || '').trim(),
+      image_id: Number(b.image_id) || null,
+      overlay: Math.min(90, Math.max(0, Number(b.overlay) || 0)),
+      align: b.align === 'center' ? 'center' : 'right',
+      btn1_label: String(b.btn1_label || '').trim(),
+      btn1_url: String(b.btn1_url || '').trim(),
+      btn2_label: String(b.btn2_label || '').trim(),
+      btn2_url: String(b.btn2_url || '').trim(),
+      active: b.active ? 1 : 0,
+      sort: Number(b.sort) || 0,
+    };
+    if (id) {
+      const sets = Object.keys(d).map((k) => `${k} = :${k}`).join(', ');
+      run(`UPDATE slides SET ${sets}, updated_at = datetime('now') WHERE id = :id`, { ...d, id });
+    } else {
+      const cols = Object.keys(d);
+      run(`INSERT INTO slides (${cols.join(',')}) VALUES (${cols.map((c) => ':' + c).join(',')})`, d);
+    }
+    logActivity(req, id ? 'update' : 'create', 'slide', id || title, { title });
+    res.redirect('/admin/slides?ok=1');
+  } catch (e) { next(e); }
+});
+
+router.post('/slides/:id/delete', (req, res) => {
+  run('DELETE FROM slides WHERE id = ?', [Number(req.params.id)]);
+  logActivity(req, 'delete', 'slide', Number(req.params.id));
+  res.redirect('/admin/slides?ok=1');
+});
+
+router.post('/slides/:id/toggle', (req, res) => {
+  run('UPDATE slides SET active = 1 - active WHERE id = ?', [Number(req.params.id)]);
+  res.redirect('/admin/slides?ok=1');
+});
+
+router.post('/slides/:id/move', (req, res) => {
+  const id = Number(req.params.id);
+  const dir = req.body.dir === 'up' ? -1 : 1;
+  const rows = all('SELECT id FROM slides ORDER BY sort, id');
+  const idx = rows.findIndex((s) => s.id === id);
+  const swap = idx + dir;
+  if (idx >= 0 && swap >= 0 && swap < rows.length) {
+    // جای دو ردیف را عوض می‌کنیم و sort را بر اساس ترتیب جدید بازنویسی می‌کنیم
+    const order = rows.slice();
+    order[idx] = rows[swap];
+    order[swap] = rows[idx];
+    tx(() => order.forEach((s, i) => run('UPDATE slides SET sort = ? WHERE id = ?', [i, s.id])));
+  }
+  res.redirect('/admin/slides?ok=1');
 });
 
 /* ================= نمایندگی‌ها / عاملیت‌ها ================= */
@@ -915,6 +1006,9 @@ router.post('/settings', (req, res) => {
   ];
   const obj = {};
   allowed.forEach((k) => { obj[k] = req.body[k] || ''; });
+  // مقدار سلکت «0» هم باید صریحاً غیرفعال ذخیره شود (نه با truthiness)
+  obj.slider_autoplay = String(req.body.slider_autoplay) === '1' ? '1' : '0';
+  obj.slider_interval = String(Math.min(20, Math.max(3, Number(req.body.slider_interval) || 6)));
   settingsLib.setSettings(obj);
   logActivity(req, 'update', 'settings');
   res.redirect('/admin/settings?ok=1');
