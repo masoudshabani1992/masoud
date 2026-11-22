@@ -443,8 +443,8 @@ function upsertSlides() {
 /** تنظیمات پایه: فقط اگر مقدار فعلی خالی یا همان پیش‌فرض قدیمی باشد بازنویسی می‌شود */
 function syncSettings() {
   const defaults = {
-    logo_url: '/img/brand/koosha-logo-dark.png',
-    logo_dark_url: '/img/brand/koosha-logo-white.png',
+    logo_url: '',
+    logo_dark_url: '',
     favicon_url: '/img/brand/favicon.png',
     phone: '021-49970000',
     sales_phone: '021-49970000',

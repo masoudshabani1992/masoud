@@ -1,25 +1,9 @@
 <%
   var heroProduct = (featuredProducts || [])[0] || null;
+  // مسیر تصویر شاخص: از اسلاید اول اگر تصویر داشت، وگرنه تصویر خودروی شاخص
   var heroImage = null, heroAlt = 'کوشا خودرو';
   if (slides && slides.length && slides[0].image_url) { heroImage = slides[0].image_url; heroAlt = slides[0].image_alt || slides[0].title; }
   else if (heroProduct && heroProduct.coverUrl) { heroImage = heroProduct.coverUrl; heroAlt = heroProduct.name; }
-
-  // سه کارت معرفی خودروها (مطابق صفحه اصلی کوشا خودرو)
-  var showCards = [
-    { key: 'kia-cerato-2024', model: 'Cerato', year: '2024', label: 'جزئیات سراتو', img: '/img/cars/card-cerato-2024.jpg' },
-    { key: 'kia-k5-turbo', model: 'K5', year: 'Turbo', label: 'جزئیات K5', img: '/img/cars/card-k5-turbo.jpg' },
-    { key: 'kia-sportage-2026', model: 'Sportage', year: '2026', label: 'جزئیات اسپورتیج', img: '/img/cars/card-sportage-2025.jpg' }
-  ];
-  var byslug = {};
-  (featuredProducts || []).forEach(function (p) { byslug[p.slug] = p; });
-
-  // لینک‌های سریع مطابق صفحه اصلی سایت رسمی
-  var quick = [
-    { title: 'پیدا کردن تعمیرگاه', url: '/dealers', icon: '⌕' },
-    { title: 'عاملیت‌ها', url: '/dealers', icon: '⚙' },
-    { title: 'پنل مشتری', url: '/admin/login', icon: '☺' },
-    { title: 'خدمات پس از فروش', url: '/contact', icon: '☰' }
-  ];
 %>
 
 <!-- ================= هیرو (اسلایدهای ادمین + انیمیشن GSAP) ================= -->
@@ -43,14 +27,14 @@
         <div class="container hero-slide-inner">
           <div class="hero-copy">
             <span class="hero-eyebrow" data-anim="kicker">
-              <i></i> <%= sl && sl.kicker ? sl.kicker : 'نماینده رسمی کیا در ایران' %>
+              <i></i> <%= sl && sl.kicker ? sl.kicker : 'نماینده رسمی کیا در ایران — از ۱۳۸۷' %>
             </span>
             <%- i === 0 ? '<h1 class="hero-title">' : '<h2 class="hero-title">' %>
               <span class="hero-line"><span data-anim="line"> <%= sl && sl.title ? sl.title : 'کیا را از کوشا خودرو بخواهید' %> </span></span>
             <%- i === 0 ? '</h1>' : '</h2>' %>
             <p class="hero-sub" data-anim="sub">
               <%= sl && sl.subtitle ? sl.subtitle :
-                  'واردات رسمی محصولات کیا، تأمین قطعات اصلی و شبکه خدمات پس از فروش در سراسر کشور.' %>
+                  'واردات رسمی محصولات کیا با گارانتی معتبر، تأمین قطعات اصلی از کره جنوبی و شبکه خدمات پس از فروش در بیش از ۳۰ نمایندگی.' %>
             </p>
             <div class="hero-actions-dark" data-anim="actions">
               <% if (sl && sl.btn1_label) { %>
@@ -93,7 +77,7 @@
         <span class="dot-live"></span>
         <span>
           <b><%= heroProduct.name %></b>
-          <span><% if (heroProduct.price) { %><%= U.money(heroProduct.price) %> تومان<% } else { %>موجود در شبکه عاملیت‌ها<% } %></span>
+          <span><% if (heroProduct.price) { %><%= U.money(heroProduct.price) %> تومان<% } else { %>موجود در شبکه نمایندگی<% } %></span>
         </span>
         <span class="hero-featured-arrow">←</span>
       </a>
@@ -101,119 +85,81 @@
   </div>
 </section>
 
-<!-- ================= معرفی شرکت ================= -->
-<section class="hm-about-intro">
-  <div class="container hm-about-inner" data-reveal>
-    <div class="hm-about-shield">
-      <img src="/img/brand/koosha-logo-white.png" alt="کوشا خودرو" width="120" height="115" loading="lazy">
-      <span>KOOSHA KHODRO</span>
-    </div>
-    <div>
-      <div class="label">KOOSHA KHODRO</div>
-      <h2>شرکت کوشا خودرو</h2>
-      <p class="hm-about-sub">فروش و خدمات پس از فروش کیا در ایران</p>
-      <p>
-        شرکت کوشا خودرو با فعالیت دو دهه در حوزه واردات خودرو، به‌عنوان عضو رسمی و فعال انجمن
-        واردکنندگان خودرو کشور و با واردات بیش از ۲۵٬۰۰۰ دستگاه انواع خودروهای سواری و همچنین
-        تأمین و توزیع قطعات یدکی اصلی در سراسر کشور، سابقه قابل قبولی در بازار ایران از خود
-        به جای گذاشته است. امروز با تمرکز بر واردات خودرو کیا و تأمین قطعات اصلی کیا،
-        به‌عنوان مرکز فروش و خدمات پس از فروش کیا در ایران شناخته می‌شویم.
-      </p>
-      <a class="btn btn-on-dark btn-sm" href="/p/about">درباره کوشا خودرو بیشتر بدانید</a>
+<!-- ================= آمار ================= -->
+<section class="dark-stats" aria-label="آمار کوشا خودرو">
+  <div class="container" style="padding:0">
+    <div class="dark-stats-grid" data-stats>
+      <div><b data-count="<%= U.toFa('18') %>" data-num="18">۰</b><span>سال حضور در بازار خودرو</span></div>
+      <div><b data-count="<%= U.toFa(productsCount) %>" data-num="<%= productsCount %>">۰</b><span>مدل خودروی کیا</span></div>
+      <div><b data-count="<%= U.toFa('30') %>+" data-num="30" data-suffix="+">۰</b><span>نمایندگی فروش و خدمات</span></div>
+      <div><b>ISQI</b><span>رتبه نخست ارزیابی فروش ۱۴۰۳</span></div>
     </div>
   </div>
 </section>
 
-<!-- ================= سه خودروی شاخص ================= -->
-<section class="hm-showcase" aria-labelledby="showTitle">
+<!-- ================= محصولات ================= -->
+<section class="dark-products" aria-labelledby="prodTitle">
   <div class="container">
-    <div class="hm-showcase-head" data-reveal>
+    <div class="carousel-head" data-reveal>
       <div>
         <div class="label">PRODUCTS</div>
-        <h2 id="showTitle">خودروهای ارائه‌شده</h2>
+        <h2 id="prodTitle">خودروهای ارائه‌شده</h2>
         <p>مشخصات فنی، کاتالوگ و شرایط فروش محصولات وارداتی کیا</p>
       </div>
-      <a href="/products" class="btn btn-outline-dark btn-sm">همه محصولات</a>
+      <div class="flex" style="align-items:center;gap:14px">
+        <a href="/products" class="btn btn-outline-dark btn-sm">همه محصولات</a>
+        <div class="carousel-nav">
+          <button type="button" data-carousel-prev="prod" aria-label="خودروهای قبلی">›</button>
+          <button type="button" data-carousel-next="prod" aria-label="خودروهای بعدی">‹</button>
+        </div>
+      </div>
     </div>
 
-    <div class="hm-showcase-grid">
-      <% showCards.forEach(function (c) { %>
-        <article class="hm-car" data-reveal>
-          <a href="/products/<%= c.key %>" class="hm-car-media">
-            <img src="<%= c.img %>" alt="کیا <%= c.model %> <%= c.year %>" loading="lazy">
-          </a>
-          <div class="hm-car-body">
-            <b><%= c.model %></b>
-            <span><%= c.year %></span>
-            <a class="hm-car-btn" href="/products/<%= c.key %>"><%= c.label %></a>
-          </div>
-        </article>
-      <% }); %>
-    </div>
-  </div>
-</section>
-
-<!-- ================= خدمات + بنر شبانه ================= -->
-<section class="hm-services">
-  <div class="container hm-services-grid" data-reveal>
-    <div class="hm-service-tiles">
-      <% quick.forEach(function (q) { %>
-        <a class="hm-tile" href="<%= q.url %>">
-          <span class="hm-tile-icon"><%= q.icon %></span>
-          <span><%= q.title %></span>
-        </a>
-      <% }); %>
-    </div>
-    <a class="hm-night" href="/dealers">
-      <img src="/img/cars/home-night.jpg" alt="کوشا خودرو همراه سفرهای شما" loading="lazy">
-      <span class="hm-night-copy">
-        <b>کوشا خودرو همراه سفرهای شما</b>
-        <span>عاملیت‌های کوشا خودرو</span>
-        <span class="hm-night-btn">عاملیت‌های کیا</span>
-      </span>
-    </a>
-  </div>
-</section>
-
-<!-- ================= ردیف خدمات دیجیتال و اکسسوری ================= -->
-<section class="hm-strip">
-  <div class="container">
-    <div class="hm-strip-grid" data-reveal>
-      <div class="hm-strip-card">
-        <img src="/img/cars/svc-charger.jpg" alt="شارژ خودروهای برقی" loading="lazy">
-        <span>شارژ خودروهای برقی</span>
-      </div>
-      <div class="hm-strip-card">
-        <img src="/img/cars/svc-card.jpg" alt="کارت هوشمند کوشا" loading="lazy">
-        <span>کارت هوشمند کوشا</span>
-      </div>
-      <div class="hm-strip-card">
-        <img src="/img/cars/svc-app.jpg" alt="اپلیکیشن موبایل کوشا" loading="lazy">
-        <span>اپلیکیشن موبایل کوشا</span>
-      </div>
-      <div class="hm-strip-card">
-        <img src="/img/cars/home-showroom.jpg" alt="نمایشگاه کوشا خودرو" loading="lazy">
-        <span>نمایشگاه کوشا خودرو</span>
+    <div class="carousel" data-carousel="prod">
+      <div class="carousel-viewport">
+        <div class="carousel-track">
+          <% featuredProducts.forEach(function (p) { %>
+            <article class="prod-card" data-carousel-item>
+              <a href="/products/<%= p.slug %>" class="pc-media">
+                <% if (p.coverUrl) { %>
+                  <img src="<%= p.coverUrl %>" alt="<%= p.name %>" loading="lazy">
+                <% } else { %>
+                  <div style="height:100%;display:grid;place-items:center;color:#5a5a56">کیا</div>
+                <% } %>
+                <span class="pc-price"><% if (p.price) { %><%= U.money(p.price) %><% } else { %>استعلام قیمت<% } %></span>
+              </a>
+              <div class="pc-body">
+                <span class="pc-model"><%= p.model || 'KIA' %></span>
+                <h3><a href="/products/<%= p.slug %>"><%= p.name %></a></h3>
+                <p><%= U.truncate(p.short_desc, 86) %></p>
+                <div class="pc-links">
+                  <a class="pc-link is-solid" href="/products/<%= p.slug %>">جزئیات و کاتالوگ</a>
+                  <a class="pc-link" href="/products/<%= p.slug %>#inquiry">استعلام قیمت</a>
+                </div>
+              </div>
+            </article>
+          <% }); %>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ================= اخبار و بخشنامه‌ها ================= -->
-<% if ((latestNews && latestNews.length) || (latestCirculars && latestCirculars.length)) { %>
-<section class="carousel-block" style="padding-top:64px" aria-labelledby="newsTitle">
+<!-- ================= کاروسل اخبار ================= -->
+<% if (latestNews && latestNews.length) { %>
+<section class="carousel-block" aria-labelledby="newsTitle">
   <div class="container">
     <div class="carousel-head" data-reveal>
       <div>
         <div class="label">NEWS</div>
-        <h2 id="newsTitle">آخرین اخبار و بخشنامه‌ها</h2>
-        <p>اطلاعیه‌های رسمی فروش، قیمت و خدمات پس از فروش کوشا خودرو</p>
+        <h2 id="newsTitle">آخرین اخبار</h2>
+        <p>خبرهای کوشا خودرو و بازار خودروهای وارداتی</p>
       </div>
       <div class="flex" style="align-items:center;gap:14px">
         <a href="/news" class="btn btn-outline-dark btn-sm">آرشیو اخبار</a>
         <div class="carousel-nav">
-          <button type="button" data-carousel-prev="news" aria-label="موارد قبلی">›</button>
-          <button type="button" data-carousel-next="news" aria-label="موارد بعدی">‹</button>
+          <button type="button" data-carousel-prev="news" aria-label="اخبار قبلی">›</button>
+          <button type="button" data-carousel-next="news" aria-label="اخبار بعدی">‹</button>
         </div>
       </div>
     </div>
@@ -221,10 +167,14 @@
     <div class="carousel" data-carousel="news">
       <div class="carousel-viewport">
         <div class="carousel-track">
-          <% (latestNews || []).slice(0, 4).forEach(function (n, i) { %>
+          <% latestNews.forEach(function (n) { %>
             <article class="news-card-dark" data-carousel-item>
               <a href="/news/<%= n.slug %>" class="news-card-media">
-                <img src="<%= n.coverUrl || ('/img/cars/news-' + ((i % 4) + 1) + '.jpg') %>" alt="<%= n.title %>" loading="lazy">
+                <% if (n.coverUrl) { %>
+                  <img src="<%= n.coverUrl %>" alt="<%= n.title %>" loading="lazy">
+                <% } else { %>
+                  <div style="height:100%;display:grid;place-items:center;color:#4f4f4b;font-size:26px">کوشا</div>
+                <% } %>
               </a>
               <div class="news-card-body">
                 <div class="news-card-meta">
@@ -233,24 +183,48 @@
                 </div>
                 <h3><a href="/news/<%= n.slug %>"><%= n.title %></a></h3>
                 <p><%= U.truncate(n.excerpt || n.body, 104) %></p>
-                <a class="news-card-more" href="/news/<%= n.slug %>">ادامه مطلب</a>
+                <a class="news-card-more" href="/news/<%= n.slug %>">ادامه خبر</a>
               </div>
             </article>
           <% }); %>
-          <% (latestCirculars || []).slice(0, 2).forEach(function (c, i) { %>
-            <a class="news-card-dark" href="/circular/<%= c.slug %>" data-carousel-item>
-              <span class="news-card-media">
-                <img src="/img/cars/news-<%= (i % 4) + 1 %>.jpg" alt="<%= c.title %>" loading="lazy">
-              </span>
-              <span class="news-card-body">
-                <span class="news-card-meta">
-                  <span class="chip-cat"><%= c.cat_name || 'بخشنامه' %></span>
-                  <span><%= U.faDate(c.doc_date || c.published_at) %></span>
-                </span>
-                <h3><%= c.title %></h3>
-                <p><%= U.truncate(c.excerpt || c.body, 104) %></p>
-                <span class="news-card-more">ادامه مطلب</span>
-              </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<% } %>
+
+<!-- ================= کاروسل بخشنامه‌ها ================= -->
+<% if (latestCirculars && latestCirculars.length) { %>
+<section class="carousel-block" style="padding-top:56px" aria-labelledby="circTitle">
+  <div class="container">
+    <div class="carousel-head" data-reveal>
+      <div>
+        <div class="label">CIRCULARS</div>
+        <h2 id="circTitle">آخرین بخشنامه‌ها</h2>
+        <p>اطلاعیه‌های رسمی فروش و خدمات پس از فروش</p>
+      </div>
+      <div class="flex" style="align-items:center;gap:14px">
+        <a href="/circulars" class="btn btn-outline-dark btn-sm">آرشیو بخشنامه‌ها</a>
+        <div class="carousel-nav">
+          <button type="button" data-carousel-prev="circ" aria-label="بخشنامه‌های قبلی">›</button>
+          <button type="button" data-carousel-next="circ" aria-label="بخشنامه‌های بعدی">‹</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="carousel" data-carousel="circ">
+      <div class="carousel-viewport">
+        <div class="carousel-track">
+          <% latestCirculars.forEach(function (c) { %>
+            <a class="circ-card" href="/circular/<%= c.slug %>" data-carousel-item>
+              <div class="circ-top">
+                <% if (c.doc_number) { %><span class="circ-num">شماره <%= U.toFa(c.doc_number) %></span><% } else { %><span></span><% } %>
+                <span class="circ-date"><%= U.faDate(c.doc_date || c.published_at) %></span>
+              </div>
+              <h3><%= c.title %></h3>
+              <p><%= U.truncate(c.excerpt || c.body, 110) %></p>
+              <span class="circ-badge"><%= c.cat_name || 'بخشنامه رسمی' %></span>
             </a>
           <% }); %>
         </div>
@@ -260,78 +234,48 @@
 </section>
 <% } %>
 
-<!-- ================= بنر فروشگاه اکسسوری ================= -->
-<section class="hm-accessories">
-  <div class="container hm-acc-inner" data-reveal>
-    <div class="hm-acc-text">
-      <div class="hm-acc-word">KOOSHA <b>ACCESSORIES</b></div>
-      <p>فروشگاه اکسسوری کیا؛ لوازم جانبی اصلی و لوازم سفر با ضمانت اصالت کالا.</p>
-      <a class="btn btn-on-dark btn-sm" href="/products">فروشگاه اکسسوری کیا</a>
+<!-- ================= CTA ================= -->
+<section class="dark-cta">
+  <div class="container dark-cta-inner" data-reveal>
+    <div>
+      <h2>آماده خرید یا استعلام قیمت هستید؟</h2>
+      <p>کارشناسان ما درباره موجودی، رنگ‌ها، شرایط فروش و زمان تحویل محصولات کیا پاسخگو هستند.</p>
     </div>
-    <div class="hm-acc-media">
-      <img src="/img/cars/home-accessories.jpg" alt="اکسسوری کیا — کوشا خودرو" loading="lazy">
-    </div>
-  </div>
-</section>
-
-<!-- ================= نوار پایانی: پنل مشتری و شبکه‌های اجتماعی ================= -->
-<section class="hm-cta-bar">
-  <div class="container hm-cta-inner">
-    <a class="btn btn-black" href="/contact">مشتری کوشا هستم</a>
-    <div class="hm-social">
-      <% if (s.social_instagram) { %><a href="<%= s.social_instagram %>" target="_blank" rel="noopener" aria-label="اینستاگرام">اینستاگرام</a><% } %>
-      <% if (s.social_telegram) { %><a href="<%= s.social_telegram %>" target="_blank" rel="noopener" aria-label="تلگرام">تلگرام</a><% } %>
-      <% if (s.social_aparat) { %><a href="<%= s.social_aparat %>" target="_blank" rel="noopener" aria-label="آپارات">آپارات</a><% } %>
-      <a href="/dealers">عاملیت‌ها</a>
+    <div class="flex" style="gap:10px;flex-wrap:wrap">
+      <a href="/contact" class="btn btn-black">تماس با کارشناسان</a>
+      <a href="/prices" class="btn btn-line-dark">لیست قیمت نمایندگی‌ها</a>
     </div>
   </div>
 </section>
 
-<!-- ================= درباره و تماس ================= -->
+<!-- ================= درباره ================= -->
 <section class="dark-about">
   <div class="container dark-about-grid">
     <div data-reveal>
       <div class="label" style="font-size:11.5px;letter-spacing:.2em;color:#74746f">ABOUT</div>
-      <h2>درباره کوشا خودرو</h2>
+      <h2>بیش از یک دهه تجربه در واردات خودرو</h2>
       <p>
-        شرکت کوشا خودرو با فعالیت دو دهه در حوزه واردات خودرو، به‌عنوان عضو رسمی و فعال انجمن
-        واردکنندگان خودرو کشور و با واردات بیش از ۲۵٬۰۰۰ دستگاه انواع خودروهای سواری و همچنین
-        تأمین و توزیع قطعات یدکی اصلی در سراسر کشور، سابقه قابل قبولی در بازار ایران از خود
-        به جای گذاشته است.
+        کوشا خودرو از سال ۱۳۸۷ فعالیت خود را آغاز کرد و امروز به‌عنوان نماینده رسمی فروش و
+        خدمات پس از فروش محصولات کیا در ایران شناخته می‌شود. تأمین قطعات اصلی، شبکه گسترده
+        نمایندگی و خدمات پس از فروش، سه ستون اصلی تعهد ما به مشتریان است.
       </p>
       <ul class="dark-list">
-        <li><span>✓</span> دو دهه فعالیت در واردات خودرو</li>
-        <li><span>✓</span> عضو رسمی انجمن واردکنندگان خودرو کشور</li>
-        <li><span>✓</span> واردات بیش از ۲۵٬۰۰۰ دستگاه خودروی سواری</li>
-        <li><span>✓</span> تأمین و توزیع قطعات یدکی اصلی کیا در سراسر کشور</li>
+        <li><span>✓</span> واردات رسمی محصولات کیا با گارانتی معتبر</li>
+        <li><span>✓</span> تأمین قطعات اصلی از کره جنوبی</li>
+        <li><span>✓</span> خدمات پس از فروش در بیش از ۳۰ نمایندگی</li>
+        <li><span>✓</span> رتبه نخست ارزیابی فروش ISQI در سال ۱۴۰۳</li>
       </ul>
-      <div class="flex" style="gap:10px;margin-top:26px;flex-wrap:wrap">
-        <a href="/p/about" class="btn btn-on-dark btn-sm">درباره ما بیشتر بدانید</a>
-        <a href="/contact" class="btn btn-outline-dark btn-sm">تماس با ما</a>
-      </div>
     </div>
 
     <div class="dark-contact-card" data-reveal>
-      <div class="flex" style="justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:18px">
-        <div>
-          <h3>فروش و خدمات پس از فروش کیا</h3>
-          <p style="margin:6px 0 0">دفتر تهران — کیلومتر ۴ جاده مخصوص کرج، شماره ۷۷</p>
-        </div>
-        <img src="/img/brand/koosha-logo-dark.png" alt="لوگوی کوشا خودرو" width="72" height="69" style="height:62px;width:auto;flex:0 0 auto">
-      </div>
-
-      <div class="row" style="border-top:1px solid #e6e6e6">
-        <b><%= U.toFa(s.sales_phone || s.phone) %></b><span>فروش و مشاوره</span>
-      </div>
-      <div class="row"><b><%= U.toFa(s.support_phone || s.phone) %></b><span>خدمات پس از فروش</span></div>
-      <div class="row" style="border-bottom:0;align-items:flex-start">
-        <b style="font-weight:600;font-size:13.5px;line-height:1.9"><%= s.address %></b>
-      </div>
-
+      <h3>مشاوره خرید خودرو</h3>
+      <p>برای دریافت کاتالوگ، شرایط فروش و مشاوره تخصصی با ما در تماس باشید.</p>
+      <div class="row"><b><%= U.toFa(s.sales_phone || s.phone) %></b><span>فروش و مشاوره</span></div>
+      <div class="row"><b><%= U.toFa(s.phone) %></b><span>پشتیبانی</span></div>
+      <div class="row" style="border-bottom:0"><b><%= s.address %></b></div>
       <div class="flex" style="gap:8px;margin-top:18px;flex-wrap:wrap">
         <a href="tel:<%= U.faToEnDigits(s.sales_phone || s.phone) %>" class="btn btn-black btn-sm">تماس تلفنی</a>
         <a href="<%= s.sale_url %>" target="_blank" rel="noopener" class="btn btn-line-dark btn-sm">سامانه فروش</a>
-        <a href="/contact" class="btn btn-line-dark btn-sm">آدرس و نقشه</a>
       </div>
     </div>
   </div>
