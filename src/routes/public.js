@@ -101,7 +101,7 @@ router.get('/', (req, res) => {
 
   renderPage(res, 'site/home', {
     page: { title: 'خانه' },
-    bodyClass: 'is-dark has-hero',
+    bodyClass: 'home-dark',
     seo,
     featuredProducts,
     productsCount: get('SELECT COUNT(*) c FROM products').c,
@@ -296,7 +296,7 @@ router.get('/products/:slug', (req, res) => {
 
   renderPage(res, 'site/product', {
     page: { title: p.name }, seo, p, coverImg, gallery, specs, related,
-    brochure, brochureMeta, bodyClass: 'is-dark',
+    brochure, brochureMeta, bodyClass: 'product-dark',
     sent: req.query.sent === '1',
     footerProducts: footerData(),
   });

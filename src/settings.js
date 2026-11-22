@@ -46,12 +46,14 @@ const PATHS = {
 
 function menu() {
   return [
-    { title: 'محصولات کیا', url: '/products' },
-    { title: 'فروش و لیست قیمت', url: '/prices' },
-    { title: 'اخبار', url: '/news' },
-    { title: 'بخشنامه‌ها', url: '/circulars' },
+    { title: 'صفحه اصلی', url: '/' },
+    { title: 'فروش', url: '/prices' },
+    { title: 'خدمات پس از فروش', url: '/contact' },
+    { title: 'کاتالوگ محصولات کیا', url: '/products' },
+    { title: 'اخبار و بخشنامه', url: '/news' },
     { title: 'عاملیت‌ها', url: '/dealers' },
-    { title: 'درباره کوشا', url: '/p/about' },
+    { title: 'پیدا کردن تعمیرگاه', url: '/dealers' },
+    { title: 'درباره ما', url: '/p/about' },
   ];
 }
 

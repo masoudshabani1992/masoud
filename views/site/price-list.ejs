@@ -1,23 +1,23 @@
-<section class="page-hero">
-  <div class="wrap">
-    <nav class="crumbs" aria-label="مسیر صفحه">
-      <a href="/">خانه</a><span class="sep">/</span><a href="/prices">لیست قیمت</a><span class="sep">/</span>
-      <span class="current"><%= U.truncate(pl.title, 50) %></span>
+<section class="article-hero">
+  <div class="container">
+    <nav class="breadcrumb" aria-label="مسیر صفحه">
+      <a href="/">خانه</a><span>/</span><a href="/prices">لیست قیمت</a><span>/</span>
+      <span><%= U.truncate(pl.title, 50) %></span>
     </nav>
-    <h1><%= pl.title %></h1>
-    <div class="flex" style="gap:16px;margin-top:16px;font-size:12px;color:var(--muted-2)">
+    <h1 style="font-size:29px;margin:0 0 10px"><%= pl.title %></h1>
+    <div class="article-info" style="border:0;padding:0;margin:0">
       <span class="badge badge-type"><%= scopeLabel %></span>
-      <% if (pl.dealer_name) { %><span><a href="/dealers/<%= pl.dealer_slug %>" style="color:var(--ink)"><%= pl.dealer_name %></a></span><% } %>
+      <% if (pl.dealer_name) { %><span>🏢 <a href="/dealers/<%= pl.dealer_slug %>"><%= pl.dealer_name %></a></span><% } %>
       <% if (pl.effective_from || pl.effective_to) { %>
-        <span>اعتبار: <%= U.faDate(pl.effective_from) %> تا <%= U.faDate(pl.effective_to) %></span>
+        <span>🗓 اعتبار: <%= U.faDate(pl.effective_from) %> تا <%= U.faDate(pl.effective_to) %></span>
       <% } %>
-      <span><%= pl.customer_type === 'public' ? 'مشتری نهایی' : 'عاملیت / نمایندگی' %></span>
-      <span><%= U.toFa(items.length) %> محصول</span>
+      <span>👥 <%= pl.customer_type === 'public' ? 'مشتری نهایی' : 'عاملیت / نمایندگی' %></span>
+      <span>📦 <%= U.toFa(items.length) %> محصول</span>
     </div>
   </div>
 </section>
 
-<div class="wrap">
+<div class="container">
   <div class="article-layout">
     <article>
       <div class="table-wrap">
@@ -39,45 +39,95 @@
                 </td>
                 <td class="small muted"><%= it.model_year || '—' %><br><%= it.color || '—' %></td>
                 <td class="num"><%= U.money(it.base_price) || '—' %></td>
-                <td class="num" style="color:var(--ok)"><%= U.money(it.dealer_discount) || '—' %></td>
-                <td class="num" style="font-weight:800;font-size:14.5px"><%= U.money(it.final_price) || '—' %></td>
+                <td class="num" style="color:#147a3f"><%= U.money(it.dealer_discount) || '—' %></td>
+                <td class="num" style="font-weight:800;color:var(--brand);font-size:15px"><%= U.money(it.final_price) || '—' %></td>
                 <td class="num muted"><%= U.money(it.public_price) || '—' %></td>
                 <td class="small"><%= it.stock ? U.toFa(it.stock) : '—' %></td>
                 <td class="small"><%= it.delivery || '—' %></td>
               </tr>
             <% }); %>
             <% if (!items.length) { %>
-              <tr><td colspan="9" class="muted small" style="text-align:center;padding:26px">قلمی برای این لیست ثبت نشده است.</td></tr>
+              <tr><td colspan="9" class="muted small" style="text-align:center;padding:24px">قلمی برای این لیست ثبت نشده است.</td></tr>
             <% } %>
           </tbody>
         </table>
       </div>
 
+      <div class="small muted" style="margin-top:10px">
+        همه قیمت‌ها به <b>تومان</b> است. قیمت‌ها بدون احتساب عوارض شماره‌گذاری و بیمه اعلام شده‌اند.
+      </div>
+
       <% if (pl.notes) { %>
-        <div class="alert alert-info" style="margin-top:18px"><%= pl.notes %></div>
+        <div class="alert alert-info" style="margin-top:18px"><span>ℹ️</span><span><%= pl.notes %></span></div>
       <% } %>
 
-      <div class="flex" style="justify-content:space-between;margin-top:26px;gap:12px">
-        <button type="button" class="btn btn-solid btn-sm" onclick="window.print()">چاپ / ذخیرهٔ PDF</button>
-        <a href="/prices" class="btn btn-line btn-sm">بازگشت به لیست قیمت</a>
-      </div>
+      <% if (attachment) { %>
+        <div style="margin-top:18px;border:1px solid var(--line);border-radius:12px;padding:16px 20px;background:#f8fbff;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+          <span style="font-size:24px">📎</span>
+          <div style="flex:1">
+            <b style="display:block;font-size:14px">فایل ابلاغیه قیمت</b>
+            <small class="muted"><%= attachment.original_name || attachment.filename %></small>
+          </div>
+          <a class="btn btn-primary btn-sm" href="<%= attachment.url %>" download>دانلود PDF</a>
+        </div>
+      <% } %>
+
+      <% if (history && history.length) { %>
+        <div class="side-card" style="margin-top:22px">
+          <h3>سابقه تغییر قیمت</h3>
+          <div class="table-wrap" style="border:0">
+            <table class="data">
+              <thead><tr><th>محصول</th><th>قیمت قبلی</th><th>قیمت جدید</th><th>تاریخ</th></tr></thead>
+              <tbody>
+                <% history.forEach(function (h) { %>
+                  <tr>
+                    <td class="small"><%= h.label || '—' %></td>
+                    <td class="num muted small"><%= U.money(h.old_price) || '—' %></td>
+                    <td class="num small"><%= U.money(h.new_price) || '—' %></td>
+                    <td class="small muted nowrap"><%= U.faDate(h.changed_at) %></td>
+                  </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      <% } %>
     </article>
 
-    <aside class="side">
+    <aside>
       <div class="side-card">
-        <h3>اطلاعات لیست</h3>
-        <div class="kv"><span>نوع</span><b><%= scopeLabel %></b></div>
-        <div class="kv"><span>مخاطب</span><b><%= pl.customer_type === 'public' ? 'مشتری نهایی' : 'عاملیت / نمایندگی' %></b></div>
-        <% if (pl.city) { %><div class="kv"><span>شهر</span><b><%= pl.city %></b></div><% } %>
-        <div class="kv"><span>تعداد اقلام</span><b><%= U.toFa(items.length) %></b></div>
-        <% if (pl.effective_from) { %><div class="kv"><span>اعتبار از</span><b><%= U.faDate(pl.effective_from) %></b></div><% } %>
-        <% if (pl.effective_to) { %><div class="kv"><span>تا</span><b><%= U.faDate(pl.effective_to) %></b></div><% } %>
+        <h3>خلاصه لیست</h3>
+        <ul class="side-list">
+          <li><b>دامنه اعمال:</b> <%= scopeLabel %></li>
+          <% if (pl.city) { %><li><b>شهر:</b> <%= pl.city %></li><% } %>
+          <li><b>مخاطب:</b> <%= pl.customer_type === 'public' ? 'مشتری نهایی' : 'عاملیت / نمایندگی' %></li>
+          <li><b>تعداد اقلام:</b> <%= U.toFa(items.length) %></li>
+          <li><b>آخرین بروزرسانی:</b> <%= U.faDate(pl.updated_at) %></li>
+        </ul>
+        <div class="share" style="margin-top:14px">
+          <button type="button" onclick="window.print()">چاپ لیست</button>
+          <button type="button" onclick="navigator.clipboard&&navigator.clipboard.writeText(location.href).then(()=>this.textContent='کپی شد')">کپی لینک</button>
+        </div>
       </div>
 
-      <div class="side-card side-card-dark">
-        <h3>درخواست قیمت اختصاصی</h3>
-        <p>برای دریافت لیست قیمت مخصوص عاملیت خود با واحد فروش شبکه تماس بگیرید.</p>
-        <a href="/contact" class="btn btn-on-dark btn-sm" style="width:100%">درخواست تماس</a>
+      <% if (otherLists.length) { %>
+        <div class="side-card">
+          <h3>سایر لیست‌های قیمت</h3>
+          <ul class="side-list">
+            <% otherLists.forEach(function (l) { %>
+              <li>
+                <a href="/prices/<%= l.slug %>"><%= U.truncate(l.title, 52) %></a>
+                <span class="date"><%= l.scope === 'city' ? 'شهری — ' + l.city : l.scope === 'general' ? 'سراسری' : 'اختصاصی' %></span>
+              </li>
+            <% }); %>
+          </ul>
+        </div>
+      <% } %>
+
+      <div class="side-card" style="background:linear-gradient(150deg,var(--brand-dark),var(--brand));color:#fff;border:0">
+        <h3 style="color:#fff;border-bottom-color:rgba(255,255,255,.2)">استعلام و سفارش</h3>
+        <p style="color:#d6e6f7;font-size:13.5px">برای تخصیص خودرو و صدور پیش‌فاکتور با واحد فروش شبکه تماس بگیرید.</p>
+        <a href="tel:<%= U.faToEnDigits(s.sales_phone || s.phone) %>" class="btn btn-light" style="width:100%"><%= U.toFa(s.sales_phone || s.phone) %></a>
       </div>
     </aside>
   </div>
