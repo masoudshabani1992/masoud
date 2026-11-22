@@ -59,8 +59,8 @@ function seedDealers() {
   const base = [
     { slug: 'kia-sportage-2025', year: '۲۰۲۵', color: 'سفید صدفی', public: 8762200000, delivery: '۲۰ روز کاری', stock: 4 },
     { slug: 'kia-k5-turbo', year: '۲۰۲۵', color: 'خاکستری متالیک', public: 7760600000, delivery: '۳۰ روز کاری', stock: 3 },
-    { slug: 'kia-seltos', year: '۲۰۲۵', color: 'آبی نفتی', public: 6480000000, delivery: '۴۵ روز کاری', stock: 2 },
-    { slug: 'kia-sonet', year: '۲۰۲۵', color: 'نقره‌ای', public: 5120000000, delivery: '۶۰ روز کاری', stock: 5 },
+    { slug: 'kia-seltos-2023', year: '۲۰۲۳', color: 'آبی نفتی', public: 6480000000, delivery: '۴۵ روز کاری', stock: 2 },
+    { slug: 'kia-sonet-2023', year: '۲۰۲۳', color: 'نقره‌ای', public: 5120000000, delivery: '۶۰ روز کاری', stock: 5 },
   ];
 
   function items(listId, discountPct, factor) {

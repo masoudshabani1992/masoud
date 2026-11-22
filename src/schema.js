@@ -458,16 +458,16 @@ function seed() {
 function seedAll() {
   migrate();
   seed();
-  try {
-    require('./seed-dealers').seedDealers();
-  } catch (e) {
-    console.error('[seed-dealers]', e.message);
-  }
-  // محتوای واقعی کوشا خودرو اول ساخته می‌شود
+  // محتوای واقعی کوشا خودرو اول ساخته می‌شود تا نمایندگی‌ها و لیست قیمت به محصولات واقعی وصل شوند
   try {
     require('./seed-koosha').seedKoosha();
   } catch (e) {
     console.error('[seed-koosha]', e.message);
+  }
+  try {
+    require('./seed-dealers').seedDealers();
+  } catch (e) {
+    console.error('[seed-dealers]', e.message);
   }
   // نمونه نمایشی فقط اگر هیچ خبری وجود نداشت
   try {
