@@ -1,0 +1,101 @@
+<div class="page-head">
+  <div>
+    <h1><%= meta.listTitle %></h1>
+    <div class="sub"><%= U.toFa(counts.all) %> مورد · <%= U.toFa(counts.published) %> منتشرشده · <%= U.toFa(counts.draft) %> پیش‌نویس</div>
+  </div>
+  <div class="actions">
+    <a href="<%= meta.base %>/new" class="btn btn-primary">+ <%= meta.label %> جدید</a>
+  </div>
+</div>
+
+<div class="tabs">
+  <a href="<%= meta.base %>" class="<%= !status && !cat ? 'active' : '' %>">همه</a>
+  <a href="<%= meta.base %>?status=published" class="<%= status === 'published' ? 'active' : '' %>">منتشرشده</a>
+  <a href="<%= meta.base %>?status=draft" class="<%= status === 'draft' ? 'active' : '' %>">پیش‌نویس</a>
+  <a href="<%= meta.base %>?status=scheduled" class="<%= status === 'scheduled' ? 'active' : '' %>">زمان‌بندی شده</a>
+  <% if (cats.length) { %>
+    <% cats.forEach(function (c) { %>
+      <a href="<%= meta.base %>?cat=<%= c.id %>" class="<%= String(cat) === String(c.id) ? 'active' : '' %>"><%= c.name %></a>
+    <% }); %>
+  <% } %>
+</div>
+
+<form class="toolbar" method="get" action="<%= meta.base %>">
+  <% if (status) { %><input type="hidden" name="status" value="<%= status %>"><% } %>
+  <input type="search" name="q" value="<%= q %>" placeholder="جست‌وجو در عنوان...">
+  <button class="btn btn-ghost btn-sm" type="submit">جست‌وجو</button>
+  <% if (q) { %><a href="<%= meta.base %>" class="small">پاک کردن</a><% } %>
+  <span class="grow"></span>
+  <span class="small muted"><%= U.toFa(total) %> نتیجه</span>
+</form>
+
+<% if (!rows.length) { %>
+  <div class="card">
+    <div class="empty">
+      <div class="big">🗂️</div>
+      <p>هنوز <%= meta.label %>یی ثبت نشده است.</p>
+      <a href="<%= meta.base %>/new" class="btn btn-primary">افزودن <%= meta.label %></a>
+    </div>
+  </div>
+<% } else { %>
+  <div class="table-wrap">
+    <table class="data">
+      <thead>
+        <tr>
+          <th style="width:40px">#</th>
+          <th>عنوان</th>
+          <% if (type !== 'page') { %><th>دسته</th><% } %>
+          <% if (type === 'circular') { %><th>شماره / تاریخ</th><% } %>
+          <th>وضعیت</th>
+          <th>بازدید</th>
+          <th>آخرین تغییر</th>
+          <th style="width:210px">عملیات</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% rows.forEach(function (p) { %>
+          <tr>
+            <td class="muted small"><%= U.toFa(p.id) %></td>
+            <td class="title-cell">
+              <a href="<%= meta.base %>/<%= p.id %>/edit"><%= U.truncate(p.title, 75) %></a>
+              <span class="slug">/<%= p.slug %></span>
+              <% if (p.pinned) { %><span class="badge badge-new" style="margin-inline-start:6px">مهم</span><% } %>
+              <% if (!p.cover_id) { %><span class="badge badge-draft" title="بدون تصویر شاخص">بی‌تصویر</span><% } %>
+            </td>
+            <% if (type !== 'page') { %><td class="small muted"><%= p.cat_name || '—' %></td><% } %>
+            <% if (type === 'circular') { %>
+              <td class="small muted nowrap"><%= p.doc_number ? U.toFa(p.doc_number) : '—' %><br><%= U.faDateShort(p.doc_date) %></td>
+            <% } %>
+            <td><span class="badge badge-<%= p.status %>"><%= STATUS_LABELS[p.status] %></span></td>
+            <td class="small muted"><%= U.toFa(p.views || 0) %></td>
+            <td class="small muted nowrap"><%= U.faDateShort(p.updated_at) %></td>
+            <td>
+              <div class="row-actions">
+                <a class="btn btn-ghost btn-xs" href="<%= meta.base %>/<%= p.id %>/edit">ویرایش</a>
+                <a class="btn btn-ghost btn-xs" href="<%= postUrl(p) %>" target="_blank">نمایش</a>
+                <form method="post" action="<%= meta.base %>/<%= p.id %>/status" style="display:inline">
+                  <input type="hidden" name="_csrf" value="<%= csrf %>">
+                  <input type="hidden" name="status" value="<%= p.status === 'published' ? 'draft' : 'published' %>">
+                  <button class="btn btn-ghost btn-xs" type="submit"><%= p.status === 'published' ? 'لغو انتشار' : 'انتشار' %></button>
+                </form>
+                <form method="post" action="<%= meta.base %>/<%= p.id %>/delete" style="display:inline" data-confirm="این مورد حذف شود؟">
+                  <input type="hidden" name="_csrf" value="<%= csrf %>">
+                  <button class="btn btn-danger btn-xs" type="submit">حذف</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+
+  <% if (pages > 1) { %>
+    <nav class="pagination">
+      <% for (var i = 1; i <= pages; i++) { %>
+        <% if (i === page) { %><span class="current"><%= U.toFa(i) %></span>
+        <% } else { %><a href="<%= meta.base %>?page=<%= i %><%= status ? '&status=' + status : '' %><%= q ? '&q=' + encodeURIComponent(q) : '' %>"><%= U.toFa(i) %></a><% } %>
+      <% } %>
+    </nav>
+  <% } %>
+<% } %>

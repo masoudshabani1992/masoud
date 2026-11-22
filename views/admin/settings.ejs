@@ -1,0 +1,93 @@
+<div class="page-head">
+  <div>
+    <h1>تنظیمات سایت</h1>
+    <div class="sub">اطلاعات پایه، راه‌های ارتباطی و شبکه‌های اجتماعی</div>
+  </div>
+</div>
+
+<form method="post" action="/admin/settings">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <div class="split">
+    <div>
+      <div class="panel">
+        <div class="panel-head"><span>اطلاعات پایه</span></div>
+        <div class="panel-body">
+          <div class="form-row">
+            <div class="field"><label>نام سایت</label><input type="text" name="site_name" value="<%= s.site_name %>"></div>
+            <div class="field"><label>شعار / تگ‌لاین</label><input type="text" name="site_tagline" value="<%= s.site_tagline %>"></div>
+          </div>
+          <div class="field"><label>توضیحات سایت (متا پیش‌فرض)</label><textarea name="site_description" style="min-height:80px"><%= s.site_description %></textarea></div>
+          <div class="form-row">
+            <div class="field"><label>آدرس سایت (دامنه)</label><input type="text" name="site_url" value="<%= s.site_url %>" dir="ltr" class="mono"><div class="hint">مثال: https://www.kooshakhodro.com — برای canonical و sitemap</div></div>
+            <div class="field"><label>سامانه فروش</label><input type="text" name="sale_url" value="<%= s.sale_url %>" dir="ltr" class="mono"></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>لوگو</label><input type="text" name="logo_url" value="<%= s.logo_url %>" dir="ltr" placeholder="/uploads/logo.png"></div>
+            <div class="field"><label>فاوآیکون</label><input type="text" name="favicon_url" value="<%= s.favicon_url %>" dir="ltr" placeholder="/uploads/favicon.png"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><span>اطلاعات تماس</span></div>
+        <div class="panel-body">
+          <div class="form-row">
+            <div class="field"><label>تلفن مرکزی</label><input type="text" name="phone" value="<%= s.phone %>" dir="ltr"></div>
+            <div class="field"><label>تلفن فروش</label><input type="text" name="sales_phone" value="<%= s.sales_phone %>" dir="ltr"></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>خدمات پس از فروش</label><input type="text" name="support_phone" value="<%= s.support_phone %>" dir="ltr"></div>
+            <div class="field"><label>ایمیل</label><input type="email" name="email" value="<%= s.email %>" dir="ltr"></div>
+          </div>
+          <div class="field"><label>آدرس</label><textarea name="address" style="min-height:64px"><%= s.address %></textarea></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><span>شبکه‌های اجتماعی</span></div>
+        <div class="panel-body">
+          <div class="form-row">
+            <div class="field"><label>اینستاگرام</label><input type="url" name="social_instagram" value="<%= s.social_instagram %>" dir="ltr"></div>
+            <div class="field"><label>تلگرام</label><input type="url" name="social_telegram" value="<%= s.social_telegram %>" dir="ltr"></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>لینکدین</label><input type="url" name="social_linkedin" value="<%= s.social_linkedin %>" dir="ltr"></div>
+            <div class="field"><label>آپارات</label><input type="url" name="social_aparat" value="<%= s.social_aparat %>" dir="ltr"></div>
+          </div>
+          <div class="field"><label>درباره ما در فوتر</label><textarea name="footer_about" style="min-height:80px"><%= s.footer_about %></textarea></div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="panel">
+        <div class="panel-body">
+          <button class="btn btn-primary" type="submit" style="width:100%">ذخیره تنظیمات</button>
+        </div>
+      </div>
+
+      <% if (admin.role === 'admin') { %>
+        <div class="panel">
+          <div class="panel-head"><span>پشتیبان‌گیری</span></div>
+          <div class="panel-body">
+            <p class="small muted">یک نسخه از دیتابیس در پوشه <span class="mono">data/backups</span> ذخیره می‌شود.</p>
+            <form method="post" action="/admin/backup">
+              <input type="hidden" name="_csrf" value="<%= csrf %>">
+              <button class="btn btn-ghost" type="submit" style="width:100%">ساخت نسخه پشتیبان</button>
+            </form>
+          </div>
+        </div>
+      <% } %>
+
+      <div class="panel">
+        <div class="panel-head"><span>راهنما</span></div>
+        <div class="panel-body small" style="line-height:2">
+          <div><b>انتشار:</b> محتوا تا زمانی که «منتشر» نشود در سایت دیده نمی‌شود.</div>
+          <div><b>زمان‌بندی:</b> با وضعیت «زمان‌بندی شده» و تاریخ آینده، مطلب در آن تاریخ منتشر می‌شود.</div>
+          <div><b>تصاویر:</b> در بخش «رسانه» آپلود کنید و از ادیتور انتخاب کنید.</div>
+          <div><b>سئو:</b> در صفحه سئو می‌توانید قالب عنوان و ریدایرکت‌ها را مدیریت کنید.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>

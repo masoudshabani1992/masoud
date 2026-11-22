@@ -1,0 +1,141 @@
+<div class="page-head">
+  <div>
+    <h1>سئو و بهینه‌سازی</h1>
+    <div class="sub">تنظیمات متا، نقشه سایت، ریدایرکت‌ها و بررسی سلامت سئوی محتوا</div>
+  </div>
+  <div class="actions">
+    <a class="btn btn-ghost" href="/sitemap.xml" target="_blank">مشاهده sitemap.xml ↗</a>
+    <a class="btn btn-ghost" href="/robots.txt" target="_blank">robots.txt ↗</a>
+  </div>
+</div>
+
+<div class="stat-grid">
+  <div class="stat"><div class="ico">📄</div><div><b><%= U.toFa(publishedPosts.length) %></b><span>صفحه منتشرشده</span></div></div>
+  <div class="stat c"><div class="ico">!</div><div><b><%= U.toFa(missingMeta) %></b><span>بدون توضیحات متا</span></div></div>
+  <div class="stat b"><div class="ico">⚠</div><div><b><%= U.toFa(issues.length) %></b><span>مورد نیازمند بررسی</span></div></div>
+  <div class="stat a"><div class="ico">↪</div><div><b><%= U.toFa(redirects.length) %></b><span>ریدایرکت فعال</span></div></div>
+</div>
+
+<div class="split">
+  <div>
+    <div class="panel">
+      <div class="panel-head"><span>گزارش سلامت سئو</span><span class="small muted">۱۰۰ = کامل</span></div>
+      <div class="table-wrap" style="border:0">
+        <table class="data">
+          <thead><tr><th>محتوا</th><th>نوع</th><th>امتیاز</th><th>مشکلات</th><th>عملیات</th></tr></thead>
+          <tbody>
+            <% issues.slice(0, 40).forEach(function (i) { %>
+              <tr>
+                <td class="title-cell"><%= U.truncate(i.title, 60) %></td>
+                <td class="small">
+                  <span class="badge badge-type"><%= i.type === 'product' ? 'محصول' : i.type === 'site' ? 'سایت' : i.type === 'circular' ? 'بخشنامه' : i.type === 'page' ? 'صفحه' : 'خبر' %></span>
+                </td>
+                <td>
+                  <span class="badge badge-<%= i.score >= 70 ? 'published' : i.score >= 40 ? 'scheduled' : 'new' %>"><%= U.toFa(i.score) %></span>
+                </td>
+                <td class="small muted">
+                  <% (i.checks || []).slice(0, 2).forEach(function (c) { %><div>• <%= c.label %></div><% }); %>
+                </td>
+                <td class="nowrap">
+                  <% if (i.id && i.type === 'product') { %>
+                    <a class="btn btn-ghost btn-xs" href="/admin/products/<%= i.id %>/edit">ویرایش</a>
+                  <% } else if (i.id && i.type === 'news') { %>
+                    <a class="btn btn-ghost btn-xs" href="/admin/news/<%= i.id %>/edit">ویرایش</a>
+                  <% } else if (i.id && i.type === 'circular') { %>
+                    <a class="btn btn-ghost btn-xs" href="/admin/circulars/<%= i.id %>/edit">ویرایش</a>
+                  <% } else if (i.id && i.type === 'page') { %>
+                    <a class="btn btn-ghost btn-xs" href="/admin/pages/<%= i.id %>/edit">ویرایش</a>
+                  <% } else { %><span class="small muted">—</span><% } %>
+                </td>
+              </tr>
+            <% }); %>
+            <% if (!issues.length) { %>
+              <tr><td colspan="5" class="small" style="text-align:center;padding:22px;color:#12a150">✓ هیچ مشکل مهمی پیدا نشد.</td></tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><span>ریدایرکت‌ها</span><span class="small muted">برای انتقال آدرس‌های قدیمی وردپرس</span></div>
+      <div class="panel-body">
+        <% if (redirects.length) { %>
+          <div class="table-wrap" style="margin-bottom:16px">
+            <table class="data">
+              <thead><tr><th>از مسیر</th><th>به مسیر</th><th>کد</th><th>بازدید</th><th></th></tr></thead>
+              <tbody>
+                <% redirects.forEach(function (r) { %>
+                  <tr>
+                    <td class="mono small"><%= r.from_path %></td>
+                    <td class="mono small"><%= r.to_path %></td>
+                    <td class="small"><%= U.toFa(r.code) %></td>
+                    <td class="small muted"><%= U.toFa(r.hits || 0) %></td>
+                    <td>
+                      <form method="post" action="/admin/seo/redirects/<%= r.id %>/delete" style="display:inline">
+                        <input type="hidden" name="_csrf" value="<%= csrf %>">
+                        <button class="btn btn-danger btn-xs" type="submit">حذف</button>
+                      </form>
+                    </td>
+                  </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+        <% } %>
+        <form method="post" action="/admin/seo/redirects/save" class="form-row">
+          <input type="hidden" name="_csrf" value="<%= csrf %>">
+          <div class="field"><label>از مسیر (مثلاً /old-news)</label><input type="text" name="from_path" dir="ltr" class="mono" placeholder="/2020/01/old-post" required></div>
+          <div class="field"><label>به مسیر</label><input type="text" name="to_path" dir="ltr" class="mono" placeholder="/post/new-slug" required></div>
+          <div class="field"><label>کد وضعیت</label>
+            <select name="code"><option value="301">۳۰۱ — انتقال دائمی</option><option value="302">۳۰۲ — موقت</option><option value="410">۴۱۰ — حذف شده</option></select>
+          </div>
+          <div class="field" style="display:flex;align-items:flex-end"><button class="btn btn-primary" type="submit" style="width:100%">افزودن ریدایرکت</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <form class="panel" method="post" action="/admin/seo/settings">
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <div class="panel-head"><span>تنظیمات سئو</span></div>
+      <div class="panel-body">
+        <div class="field">
+          <label>قالب عنوان</label>
+          <input type="text" name="seo_title_template" value="<%= s.seo_title_template %>" placeholder="{title} | کوشا خودرو">
+          <div class="hint">{title} با عنوان صفحه جایگزین می‌شود.</div>
+        </div>
+        <div class="field">
+          <label>حداکثر طول توضیحات متا</label>
+          <input type="number" name="seo_description_max" value="<%= s.seo_description_max %>" min="80" max="320">
+        </div>
+        <div class="field">
+          <label>وضعیت ایندکس کلی سایت</label>
+          <select name="robots_global">
+            <option value="index,follow" <%= s.robots_global === 'index,follow' ? 'selected' : '' %>>index, follow — سایت قابل ایندکس</option>
+            <option value="noindex,nofollow" <%= s.robots_global === 'noindex,nofollow' ? 'selected' : '' %>>noindex, nofollow — مسدود (مثلاً قبل از انتشار)</option>
+          </select>
+        </div>
+        <div class="field"><label>Google Analytics (Measurement ID)</label><input type="text" name="google_analytics_id" value="<%= s.google_analytics_id %>" dir="ltr" placeholder="G-XXXXXXX"></div>
+        <div class="field"><label>Google Search Console</label><input type="text" name="google_search_console" value="<%= s.google_search_console %>" dir="ltr" placeholder="کد تأیید مالکیت"></div>
+        <div class="field"><label>تصویر پیش‌فرض OG</label><input type="text" name="default_og_image" value="<%= s.default_og_image %>" dir="ltr" placeholder="/uploads/og-default.jpg"></div>
+        <button class="btn btn-primary" type="submit" style="width:100%">ذخیره تنظیمات سئو</button>
+      </div>
+    </form>
+
+    <div class="panel">
+      <div class="panel-head"><span>چک‌لیست سئو</span></div>
+      <div class="panel-body small" style="line-height:2">
+        <div>✓ عنوان یکتا و حداکثر ۶۰ کاراکتری برای همه صفحات</div>
+        <div>✓ توضیحات متا ۱۲۰ تا ۱۶۰ کاراکتری</div>
+        <div>✓ آدرس‌های خوانا و بدون کاراکتر اضافه</div>
+        <div>✓ داده ساختاریافته Organization / Product / Article</div>
+        <div>✓ نقشه سایت XML به‌صورت خودکار</div>
+        <div>✓ breadcrumb در همه صفحات</div>
+        <div>✓ فونت و CSS سبک، بدون وابستگی خارجی</div>
+        <div>✓ تصاویر با متن جایگزین (alt)</div>
+      </div>
+    </div>
+  </div>
+</div>

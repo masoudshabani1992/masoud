@@ -1,0 +1,63 @@
+<section class="article-hero">
+  <div class="container">
+    <nav class="breadcrumb" aria-label="مسیر صفحه">
+      <a href="/">خانه</a><span>/</span><a href="/circulars">بخشنامه‌ها</a>
+      <% if (activeCat) { %><span>/</span><span><%= activeCat.name %></span><% } %>
+    </nav>
+    <h1 style="font-size:32px;margin:0 0 8px">بخشنامه‌ها و اطلاعیه‌های رسمی</h1>
+    <p class="muted" style="margin:0">آرشیو دستورالعمل‌های فروش، خدمات پس از فروش و اطلاعیه‌های نمایندگی‌ها</p>
+  </div>
+</section>
+
+<div class="container">
+  <div style="padding:36px 0 72px">
+    <div class="filters">
+      <a class="chip <%= !activeCat ? 'active' : '' %>" href="/circulars">همه</a>
+      <% cats.forEach(function (c) { %>
+        <a class="chip <%= activeCat && activeCat.slug === c.slug ? 'active' : '' %>" href="/circulars?cat=<%= c.slug %>"><%= c.name %></a>
+      <% }); %>
+      <form class="search-box" method="get" action="/circulars" data-quick-search>
+        <% if (activeCat) { %><input type="hidden" name="cat" value="<%= activeCat.slug %>"><% } %>
+        <input type="search" name="q" value="<%= q %>" placeholder="جست‌وجو در بخشنامه‌ها...">
+      </form>
+    </div>
+
+    <% if (!items.length) { %>
+      <div class="empty-state">
+        <div class="icon">📋</div>
+        <h2>بخشنامه‌ای یافت نشد</h2>
+        <p>در این دسته هنوز بخشنامه‌ای منتشر نشده است.</p>
+      </div>
+    <% } else { %>
+      <div class="grid" style="gap:14px">
+        <% items.forEach(function (c) { %>
+          <a class="circular-item" href="/circular/<%= c.slug %>">
+            <span class="circular-date">
+              <b><%= U.faDateShort(c.doc_date || c.published_at).split('/')[2] || '—' %></b>
+              <span><%= U.faDate(c.doc_date || c.published_at).split(' ').slice(0, 2).join(' ') %></span>
+            </span>
+            <span style="flex:1">
+              <span style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:4px">
+                <% if (c.cat_name) { %><span class="badge badge-type"><%= c.cat_name %></span><% } %>
+                <% if (c.doc_number) { %><span class="circular-num">شماره <%= U.toFa(c.doc_number) %></span><% } %>
+                <% if (c.pinned) { %><span class="badge badge-new">مهم</span><% } %>
+              </span>
+              <h3><%= c.title %></h3>
+              <p><%= U.truncate(c.excerpt || c.body, 160) %></p>
+            </span>
+            <span style="align-self:center;color:var(--brand);font-weight:700;font-size:13px">مشاهده ←</span>
+          </a>
+        <% }); %>
+      </div>
+
+      <% if (pg.pages > 1) { %>
+        <nav class="pagination" aria-label="صفحه‌بندی">
+          <% for (var i = 1; i <= pg.pages; i++) { %>
+            <% if (i === pg.page) { %><span class="current"><%= U.toFa(i) %></span>
+            <% } else { %><a href="<%= pageUrl('/circulars', query, i) %>"><%= U.toFa(i) %></a><% } %>
+          <% } %>
+        </nav>
+      <% } %>
+    <% } %>
+  </div>
+</div>

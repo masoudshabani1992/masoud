@@ -1,0 +1,484 @@
+<form method="post" action="<%= meta.base %>/save" id="postForm">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <input type="hidden" name="id" value="<%= post.id || '' %>">
+  <input type="hidden" name="cover_id" id="cover_id" value="<%= post.cover_id || '' %>">
+  <input type="hidden" name="og_image_id" id="og_image_id" value="<%= post.og_image_id || '' %>">
+  <input type="hidden" name="attachment_id" id="attachment_id" value="<%= post.attachment_id || '' %>">
+
+  <div class="page-head">
+    <div>
+      <h1><%= post.id ? 'ویرایش' : 'افزودن' %> <%= meta.label %></h1>
+      <div class="sub">
+        <% if (post.id) { %>
+          شناسه <%= U.toFa(post.id) %> · آخرین تغییر <%= U.faDate(post.updated_at, true) %>
+          <% if (post.status === 'published') { %> · <a href="<%= postUrl(post) %>" target="_blank">مشاهده در سایت ↗</a><% } %>
+        <% } else { %>
+          محتوای جدید؛ می‌توانید آن را پیش‌نویس ذخیره کنید و بعداً منتشر کنید.
+        <% } %>
+      </div>
+    </div>
+    <div class="actions">
+      <a href="<%= meta.base %>" class="btn btn-ghost">بازگشت</a>
+      <button type="submit" name="_action" value="save" class="btn btn-ghost">ذخیره پیش‌نویس</button>
+      <button type="submit" name="_action" value="publish" class="btn btn-primary">ذخیره و انتشار</button>
+    </div>
+  </div>
+
+  <% if (req.query.published === '1') { %>
+    <div class="alert alert-success"><span>✓</span><span>محتوای شما منتشر شد و همین حالا روی سایت قابل مشاهده است.</span></div>
+  <% } %>
+
+  <div class="split">
+    <!-- ستون اصلی -->
+    <div>
+      <div class="panel">
+        <div class="panel-body">
+          <div class="field">
+            <label>عنوان <span class="req">*</span></label>
+            <input type="text" name="title" id="f-title" value="<%= post.title || '' %>" required maxlength="220"
+              placeholder="عنوان <%= meta.label %> را وارد کنید" style="font-size:16px;font-weight:700">
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <label>نشانی صفحه (slug)</label>
+              <input type="text" name="slug" id="f-slug" value="<%= post.slug || '' %>" dir="ltr" placeholder="auto-generated"
+                class="mono" oninput="updatePreview()">
+              <div class="hint">در آدرس صفحه استفاده می‌شود؛ خالی بگذارید تا از عنوان ساخته شود.</div>
+            </div>
+            <% if (type !== 'page') { %>
+              <div class="field">
+                <label>دسته‌بندی</label>
+                <select name="category_id">
+                  <option value="">— بدون دسته —</option>
+                  <% cats.forEach(function (c) { %>
+                    <option value="<%= c.id %>" <%= Number(post.category_id) === c.id ? 'selected' : '' %>><%= c.name %></option>
+                  <% }); %>
+                </select>
+              </div>
+            <% } else { %>
+              <div class="field">
+                <label>قالب صفحه</label>
+                <select name="template">
+                  <option value="default" <%= post.template !== 'full' ? 'selected' : '' %>>استاندارد</option>
+                  <option value="full" <%= post.template === 'full' ? 'selected' : '' %>>تمام‌عرض</option>
+                </select>
+              </div>
+            <% } %>
+          </div>
+
+          <% if (type === 'circular') { %>
+            <div class="form-row">
+              <div class="field">
+                <label>شماره بخشنامه</label>
+                <input type="text" name="doc_number" value="<%= post.doc_number || '' %>" placeholder="مثلاً ۱۴۰۴/۱۲۳">
+              </div>
+              <div class="field">
+                <label>تاریخ صدور</label>
+                <input type="date" name="doc_date" value="<%= post.doc_date || '' %>">
+              </div>
+            </div>
+          <% } %>
+
+          <div class="field">
+            <label>خلاصه / لید</label>
+            <textarea name="excerpt" rows="3" maxlength="400" placeholder="در کارت‌های خبری و توضیحات متا استفاده می‌شود (حداکثر ۴۰۰ کاراکتر)"
+              style="min-height:80px"><%= post.excerpt || '' %></textarea>
+          </div>
+
+          <div class="field">
+            <label>متن کامل</label>
+            <div class="editor-toolbar">
+              <button type="button" onclick="fmt('bold')" title="درشت"><b>B</b></button>
+              <button type="button" onclick="fmt('italic')" title="کج"><i>I</i></button>
+              <button type="button" onclick="fmt('underline')" title="زیرخط"><u>U</u></button>
+              <span style="width:1px;background:var(--line);margin:0 4px"></span>
+              <button type="button" onclick="fmt('formatBlock','h2')">تیتر ۲</button>
+              <button type="button" onclick="fmt('formatBlock','h3')">تیتر ۳</button>
+              <button type="button" onclick="fmt('formatBlock','p')">متن</button>
+              <span style="width:1px;background:var(--line);margin:0 4px"></span>
+              <button type="button" onclick="fmt('insertUnorderedList')">• لیست</button>
+              <button type="button" onclick="fmt('insertOrderedList')">۱. لیست</button>
+              <button type="button" onclick="insertLink()">🔗 لینک</button>
+              <button type="button" onclick="insertImage()">🖼 تصویر</button>
+              <button type="button" onclick="insertHTML('<blockquote>نقل قول</blockquote>')">❝ نقل قول</button>
+              <button type="button" onclick="insertHTML('<hr>')">― خط</button>
+              <button type="button" onclick="toggleHtml()" id="htmlBtn" style="margin-inline-start:auto">کد HTML</button>
+            </div>
+            <div id="editor" class="editor" contenteditable="true" style="border:1px solid var(--line);padding:16px;background:#fff;overflow:auto;max-height:640px"><%- post.body || '' %></div>
+            <textarea name="body" id="bodyHidden" style="display:none"><%= post.body || '' %></textarea>
+            <div class="hint">می‌توانید متن را از ورد بچسبانید؛ نگارش‌پذیری حفظ می‌شود. برای جاسازی ویدیو، از دکمه کد HTML استفاده کنید.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- سئو -->
+      <div class="panel">
+        <div class="panel-head">
+          <span>📈 تنظیمات سئو</span>
+          <span class="small muted">جست‌وجوگر گوگل</span>
+        </div>
+        <div class="panel-body">
+          <div class="seo-preview" style="margin-bottom:18px">
+            <div class="url" id="pv-url">https://kooshakhodro.com/…</div>
+            <div class="t" id="pv-title">عنوان سئو</div>
+            <div class="d" id="pv-desc">توضیحات متا</div>
+          </div>
+
+          <div class="field">
+            <label>عنوان سئو</label>
+            <input type="text" name="seo_title" id="f-seo-title" value="<%= post.seo_title || '' %>" maxlength="120"
+              placeholder="اگر خالی باشد از عنوان استفاده می‌شود" oninput="updatePreview()">
+            <div class="hint"><span id="title-count">۰</span> / ۶۰ کاراکتر — عنوان جذاب با کلمه کلیدی در ابتدا</div>
+          </div>
+
+          <div class="field">
+            <label>توضیحات متا</label>
+            <textarea name="seo_description" id="f-seo-desc" maxlength="300" oninput="updatePreview()"
+              style="min-height:76px" placeholder="توضیح ۱۲۰ تا ۱۶۰ کاراکتری درباره این صفحه"><%= post.seo_description || '' %></textarea>
+            <div class="hint"><span id="desc-count">۰</span> / ۱۶۰ کاراکتر</div>
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <label>کلمه کلیدی هدف</label>
+              <input type="text" name="seo_keywords" id="f-keywords" value="<%= post.seo_keywords || '' %>"
+                placeholder="مثلاً: کیا اسپورتیج ۲۰۲۵, قیمت اسپورتیج">
+            </div>
+            <div class="field">
+              <label>آدرس کانونیکال</label>
+              <input type="text" name="canonical" value="<%= post.canonical || '' %>" dir="ltr" placeholder="خالی = آدرس پیش‌فرض" class="mono">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <label>وضعیت ایندکس</label>
+              <select name="robots">
+                <option value="index,follow" <%= post.robots !== 'noindex,follow' ? 'selected' : '' %>>index, follow — ایندکس شود</option>
+                <option value="noindex,follow" <%= post.robots === 'noindex,follow' ? 'selected' : '' %>>noindex, follow — ایندکس نشود</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>تصویر شبکه‌های اجتماعی (OG)</label>
+              <div class="img-pick">
+                <span class="preview" id="og-preview">
+                  <% var og = mediaByIds[post.og_image_id]; %>
+                  <% if (og) { %><img src="<%= og.url %>" alt=""><% } else { %>اختیاری<% } %>
+                </span>
+                <div>
+                  <button type="button" class="btn btn-ghost btn-sm" onclick="pickImage('og')">انتخاب</button>
+                  <button type="button" class="btn btn-ghost btn-sm" onclick="clearPick('og')">حذف</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ستون کنار -->
+    <div>
+      <div class="panel">
+        <div class="panel-head"><span>انتشار</span></div>
+        <div class="panel-body">
+          <div class="field">
+            <label>وضعیت</label>
+            <select name="status" id="f-status" onchange="toggleSchedule()">
+              <option value="draft" <%= post.status === 'draft' ? 'selected' : '' %>>پیش‌نویس</option>
+              <option value="published" <%= post.status === 'published' ? 'selected' : '' %>>منتشر شده</option>
+              <option value="scheduled" <%= post.status === 'scheduled' ? 'selected' : '' %>>زمان‌بندی شده</option>
+            </select>
+          </div>
+          <div class="field" id="schedule-field">
+            <label>تاریخ انتشار</label>
+            <input type="datetime-local" name="published_at" value="<%= post.published_at ? String(post.published_at).replace(' ', 'T').slice(0,16) : '' %>">
+            <div class="hint">برای انتشار فوری خالی بگذارید.</div>
+          </div>
+          <div class="field">
+            <label class="check"><input type="checkbox" name="featured" value="1" <%= post.featured ? 'checked' : '' %>> محتوای ویژه (برجسته)</label>
+            <% if (type === 'circular') { %>
+              <label class="check" style="margin-top:10px"><input type="checkbox" name="pinned" value="1" <%= post.pinned ? 'checked' : '' %>> بخشنامه مهم (سنجاق بالا)</label>
+            <% } else { %>
+              <label class="check" style="margin-top:10px"><input type="checkbox" name="pinned" value="1" <%= post.pinned ? 'checked' : '' %>> سنجاق در بالای لیست</label>
+            <% } %>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><span>تصویر شاخص</span></div>
+        <div class="panel-body">
+          <div id="cover-preview" style="border-radius:10px;overflow:hidden;background:#f1f5fa;border:1px solid var(--line);aspect-ratio:16/9;display:grid;place-items:center;margin-bottom:10px">
+            <% var cv = mediaByIds[post.cover_id]; %>
+            <% if (cv) { %><img src="<%= cv.url %>" alt="" style="width:100%;height:100%;object-fit:cover"><% } else { %><span class="small muted">تصویری انتخاب نشده</span><% } %>
+          </div>
+          <div class="flex">
+            <button type="button" class="btn btn-ghost btn-sm grow" onclick="pickImage('cover')">انتخاب تصویر</button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="clearPick('cover')">حذف</button>
+          </div>
+          <div class="hint" style="margin-top:8px">اندازه پیشنهادی ۱۲۰۰×۷۵۰ پیکسل</div>
+        </div>
+      </div>
+
+      <% if (type === 'circular') { %>
+        <div class="panel">
+          <div class="panel-head"><span>فایل پیوست</span></div>
+          <div class="panel-body">
+            <div id="attach-preview" class="small" style="margin-bottom:10px">
+              <% var at = mediaByIds[post.attachment_id]; %>
+              <% if (at) { %>📎 <a href="<%= at.url %>" target="_blank"><%= at.original_name || at.filename %></a><% } else { %><span class="muted">فایلی انتخاب نشده (PDF)</span><% } %>
+            </div>
+            <div class="flex">
+              <button type="button" class="btn btn-ghost btn-sm grow" onclick="pickFile()">انتخاب فایل PDF</button>
+              <button type="button" class="btn btn-ghost btn-sm" onclick="clearPick('attachment')">حذف</button>
+            </div>
+          </div>
+        </div>
+      <% } %>
+
+      <div class="panel">
+        <div class="panel-head"><span>تحلیل سئو</span></div>
+        <div class="panel-body">
+          <% var cls = analysis.score >= 80 ? '' : analysis.score >= 50 ? 'b' : 'c'; %>
+          <div class="seo-meter">
+            <span class="score-badge" style="color:<%= analysis.score >= 80 ? '#12a150' : analysis.score >= 50 ? '#dda000' : '#d02b2b' %>"><%= U.toFa(analysis.score) %></span>
+            <span class="meter"><i style="width:<%= analysis.score %>%"></i></span>
+            <span class="small muted">امتیاز</span>
+          </div>
+          <ul class="checks" id="seo-checks">
+            <% analysis.checks.forEach(function (c) { %>
+              <li class="<%= c.level %>">
+                <span class="dot"><%= c.level === 'good' ? '✓' : c.level === 'warn' ? '!' : '×' %></span>
+                <span>
+                  <%= c.label %>
+                  <% if (c.value) { %><span class="val">(<%= c.value %>)</span><% } %>
+                  <% if (c.hint) { %><span class="hint"><%= c.hint %></span><% } %>
+                </span>
+              </li>
+            <% }); %>
+          </ul>
+          <button type="button" class="btn btn-ghost btn-sm" style="width:100%;margin-top:14px" onclick="runSeo()">بازبینی تحلیل</button>
+        </div>
+      </div>
+
+      <% if (post.id) { %>
+        <div class="panel">
+          <div class="panel-body">
+            <div class="small muted" style="margin-bottom:8px">
+              بازدید: <b><%= U.toFa(post.views || 0) %></b><br>
+              ایجاد: <%= U.faDate(post.created_at, true) %>
+            </div>
+            <button type="button" class="btn btn-danger btn-sm" style="width:100%"
+              onclick="if(confirm('این محتوا برای همیشه حذف شود؟')){document.getElementById('delForm').submit()}">حذف محتوا</button>
+          </div>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</form>
+
+<% if (post.id) { %>
+<form id="delForm" method="post" action="<%= meta.base %>/<%= post.id %>/delete" style="display:none">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+</form>
+<% } %>
+
+<!-- مودال انتخاب رسانه -->
+<div id="picker" style="display:none;position:fixed;inset:0;background:rgba(9,24,40,.55);z-index:200;padding:24px;overflow:auto">
+  <div style="max-width:920px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden">
+    <div class="card-head" style="padding:14px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center">
+      <b>انتخاب از کتابخانه رسانه</b>
+      <div class="flex">
+        <input type="file" id="quickUpload" accept="image/*" style="display:none" onchange="quickUpload(this)">
+        <button class="btn btn-primary btn-sm" onclick="document.getElementById('quickUpload').click()">آپلود فایل جدید</button>
+        <button class="btn btn-ghost btn-sm" onclick="closePicker()">بستن</button>
+      </div>
+    </div>
+    <div style="padding:18px" id="pickerBody">در حال بارگذاری…</div>
+  </div>
+</div>
+
+<script>
+  var siteHost = '<%= siteHost %>';
+  var CSRF = '<%= csrf %>';
+  var MEDIA_CACHE = [];
+  var pickMode = null;
+
+  /* ---------- ادیتور ---------- */
+  var editor = document.getElementById('editor');
+  var hidden = document.getElementById('bodyHidden');
+  var htmlMode = false;
+
+  function fmt(cmd, val) {
+    document.execCommand(cmd, false, val || null);
+    editor.focus();
+  }
+  function insertHTML(html) {
+    document.execCommand('insertHTML', false, html);
+    editor.focus();
+  }
+  function insertLink() {
+    var url = prompt('آدرس لینک:');
+    if (url) insertHTML('<a href="' + url + '">' + (document.getSelection().toString() || url) + '</a>');
+  }
+  function insertImage() {
+    pickMode = 'insert';
+    openPicker('image');
+  }
+  function toggleHtml() {
+    htmlMode = !htmlMode;
+    if (htmlMode) {
+      editor.textContent = editor.innerHTML;
+      document.getElementById('htmlBtn').textContent = 'نمایش بصری';
+    } else {
+      editor.innerHTML = editor.textContent;
+      document.getElementById('htmlBtn').textContent = 'کد HTML';
+    }
+  }
+  editor.addEventListener('paste', function (e) {
+    var html = (e.clipboardData || window.clipboardData).getData('text/html');
+    if (html) {
+      e.preventDefault();
+      document.execCommand('insertHTML', false, cleanPaste(html));
+    }
+  });
+  function cleanPaste(html) {
+    var d = document.createElement('div');
+    d.innerHTML = html;
+    d.querySelectorAll('script,style,meta,link,span[style]').forEach(function (el) {
+      if (el.tagName === 'SPAN') { el.replaceWith.apply(el, Array.from(el.childNodes)); }
+      else el.remove();
+    });
+    d.querySelectorAll('*').forEach(function (el) {
+      ['style', 'class', 'width', 'height', 'dir', 'lang'].forEach(function (a) { el.removeAttribute(a); });
+    });
+    return d.innerHTML;
+  }
+
+  /* ---------- پیش‌نمایش سئو ---------- */
+  function faNum(n) { return String(n).replace(/\d/g, function (d) { return '۰۱۲۳۴۵۶۷۸۹'[+d]; }); }
+  function updatePreview() {
+    var title = document.getElementById('f-seo-title').value || document.getElementById('f-title').value || '';
+    var desc = document.getElementById('f-seo-desc').value || '';
+    var slug = document.getElementById('f-slug').value || '';
+    document.getElementById('pv-title').textContent = title || 'عنوان سئو';
+    document.getElementById('pv-desc').textContent = desc || 'توضیحات متا در اینجا نمایش داده می‌شود.';
+    var url = 'https://<%= siteHost %>/' + slug;
+    document.getElementById('pv-url').textContent = url;
+    document.getElementById('title-count').textContent = faNum(title.length);
+    document.getElementById('desc-count').textContent = faNum(desc.length);
+  }
+  document.getElementById('f-title').addEventListener('input', function () {
+    if (!document.getElementById('f-slug').value) {
+      // پیشنهاد اسلاگ ساده (فارسی هم مجاز است)
+      document.getElementById('f-slug').value = this.value.trim().replace(/\s+/g, '-').replace(/["'’“”«»]/g, '').slice(0, 90);
+    }
+    updatePreview();
+  });
+  function toggleSchedule() {
+    var st = document.getElementById('f-status').value;
+    document.getElementById('schedule-field').style.display = st === 'draft' ? 'none' : 'block';
+  }
+  toggleSchedule();
+
+  /* ---------- انتخاب تصویر ---------- */
+  function openPicker(mode) {
+    document.getElementById('picker').style.display = 'block';
+    if (MEDIA_CACHE.length) renderPicker();
+    else loadMedia();
+  }
+  function closePicker() { document.getElementById('picker').style.display = 'none'; }
+  function loadMedia() {
+    fetch('/api/media?kind=image', { headers: { 'x-csrf-token': CSRF } })
+      .then(function (r) { return r.json(); })
+      .then(function (d) { MEDIA_CACHE = d.items || []; renderPicker(); });
+  }
+  function renderPicker() {
+    var body = document.getElementById('pickerBody');
+    if (!MEDIA_CACHE.length) { body.innerHTML = '<div class="empty">کتابخانه رسانه خالی است. فایل جدید آپلود کنید.</div>'; return; }
+    body.innerHTML = '<div class="media-grid">' + MEDIA_CACHE.map(function (m) {
+      return '<div class="media-item" onclick="chooseMedia(' + m.id + ')">' +
+        '<div class="thumb"><img src="' + m.url + '" alt="" loading="lazy"></div>' +
+        '<div class="info"><b>' + (m.original_name || m.filename) + '</b>' + (m.width ? m.width + '×' + m.height : '') + '</div></div>';
+    }).join('') + '</div>';
+  }
+  function pickImage(kind) { pickMode = kind; openPicker('image'); }
+  function pickFile() { pickMode = 'attachment'; openPicker('file'); }
+
+  function chooseMedia(id) {
+    var m = MEDIA_CACHE.filter(function (x) { return x.id === id; })[0];
+    if (!m) return;
+    if (pickMode === 'cover') {
+      document.getElementById('cover_id').value = m.id;
+      document.getElementById('cover-preview').innerHTML = '<img src="' + m.url + '" style="width:100%;height:100%;object-fit:cover">';
+    } else if (pickMode === 'og') {
+      document.getElementById('og_image_id').value = m.id;
+      document.getElementById('og-preview').innerHTML = '<img src="' + m.url + '">';
+    } else if (pickMode === 'attachment') {
+      document.getElementById('attachment_id').value = m.id;
+      document.getElementById('attach-preview').innerHTML = '📎 <a href="' + m.url + '" target="_blank">' + (m.original_name || m.filename) + '</a>';
+    } else if (pickMode === 'insert') {
+      insertHTML('<p><img src="' + m.url + '" alt=""></p>');
+    }
+    closePicker();
+  }
+  function clearPick(kind) {
+    if (kind === 'cover') {
+      document.getElementById('cover_id').value = '';
+      document.getElementById('cover-preview').innerHTML = '<span class="small muted">تصویری انتخاب نشده</span>';
+    } else if (kind === 'og') {
+      document.getElementById('og_image_id').value = '';
+      document.getElementById('og-preview').innerHTML = 'اختیاری';
+    } else if (kind === 'attachment') {
+      document.getElementById('attachment_id').value = '';
+      document.getElementById('attach-preview').innerHTML = '<span class="muted">فایلی انتخاب نشده (PDF)</span>';
+    }
+  }
+  function quickUpload(input) {
+    if (!input.files.length) return;
+    var fd = new FormData();
+    for (var i = 0; i < input.files.length; i++) fd.append('files', input.files[i]);
+    fetch('/admin/media/upload-json', { method: 'POST', body: fd, headers: { 'x-csrf-token': CSRF } })
+      .then(function (r) { return r.json(); })
+      .then(function (d) { if (d.items) { MEDIA_CACHE = d.items.concat(MEDIA_CACHE); renderPicker(); } });
+  }
+
+  /* ---------- تحلیل زنده سئو ---------- */
+  function runSeo() {
+    var payload = {
+      kind: '<%= type %>',
+      title: document.getElementById('f-title').value,
+      slug: document.getElementById('f-slug').value,
+      seo_title: document.getElementById('f-seo-title').value,
+      seo_description: document.getElementById('f-seo-desc').value,
+      seo_keywords: document.getElementById('f-keywords').value,
+      body: htmlMode ? editor.textContent : editor.innerHTML,
+      excerpt: document.getElementsByName('excerpt')[0].value,
+      cover_id: document.getElementById('cover_id').value,
+      status: document.getElementById('f-status').value
+    };
+    document.getElementById('seo-checks').innerHTML = '<li class="warn"><span class="dot">…</span><span>در حال بررسی</span></li>';
+    fetch('/admin/seo/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-csrf-token': CSRF },
+      body: JSON.stringify(payload)
+    }).then(function (r) { return r.json(); }).then(function (d) {
+      document.querySelector('#seo-checks').innerHTML = d.checks.map(function (c) {
+        return '<li class="' + c.level + '"><span class="dot">' + (c.level === 'good' ? '✓' : c.level === 'warn' ? '!' : '×') + '</span><span>' +
+          c.label + (c.value ? ' <span class="val">(' + c.value + ')</span>' : '') +
+          (c.hint ? '<span class="hint">' + c.hint + '</span>' : '') + '</span></li>';
+      }).join('');
+      var b = document.querySelector('.score-badge');
+      b.textContent = faNum(d.score);
+      b.style.color = d.score >= 80 ? '#12a150' : d.score >= 50 ? '#dda000' : '#d02b2b';
+      document.querySelector('.meter i').style.width = d.score + '%';
+    });
+  }
+
+  /* ---------- ارسال فرم ---------- */
+  document.getElementById('postForm').addEventListener('submit', function () {
+    hidden.value = htmlMode ? editor.textContent : editor.innerHTML;
+  });
+  updatePreview();
+</script>

@@ -1,0 +1,77 @@
+<div class="page-head">
+  <div>
+    <h1>کتابخانه رسانه</h1>
+    <div class="sub"><%= U.toFa(total) %> فایل · حداکثر ۸ مگابایت برای تصویر</div>
+  </div>
+  <div class="actions">
+    <a href="/admin/media?page=1" class="btn btn-ghost">بارگذاری مجدد</a>
+  </div>
+</div>
+
+<form method="post" action="/admin/media/upload" enctype="multipart/form-data" style="margin-bottom:22px">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <label class="dropzone" for="mediaFiles" id="dropzone" style="display:block">
+    <div style="font-size:30px;margin-bottom:6px">⬆️</div>
+    <b>فایل‌ها را اینجا رها کنید یا کلیک کنید</b>
+    <div class="small">JPG، PNG، WebP، GIF، SVG — انتخاب چند فایل مجاز است</div>
+    <input type="file" id="mediaFiles" name="files" multiple accept="image/*" style="display:none" onchange="this.form.submit()">
+  </label>
+</form>
+
+<% if (!items.length) { %>
+  <div class="card"><div class="empty"><div class="big">🖼</div><p>هنوز فایلی آپلود نشده است.</p></div></div>
+<% } else { %>
+  <div class="media-grid">
+    <% items.forEach(function (m) { %>
+      <div class="media-item">
+        <div class="thumb">
+          <% if (String(m.mime || '').startsWith('image/')) { %>
+            <img src="<%= m.url %>" alt="<%= m.alt || '' %>" loading="lazy">
+          <% } else { %>
+            <span style="font-size:26px">📎</span>
+          <% } %>
+        </div>
+        <div class="info">
+          <b title="<%= m.original_name %>"><%= m.original_name || m.filename %></b>
+          <span><%= m.width ? U.toFa(m.width) + '×' + U.toFa(m.height) + ' · ' : '' %><%= FA(m.size) %></span>
+          <div class="flex" style="margin-top:6px;gap:4px">
+            <button class="btn btn-ghost btn-xs" type="button" onclick="copyText('<%= m.url %>');this.textContent='کپی شد'">کپی آدرس</button>
+            <form method="post" action="/admin/media/<%= m.id %>/delete" style="display:inline" data-confirm="این فایل حذف شود؟">
+              <input type="hidden" name="_csrf" value="<%= csrf %>">
+              <button class="btn btn-danger btn-xs" type="submit">حذف</button>
+            </form>
+          </div>
+          <form method="post" action="/admin/media/<%= m.id %>/alt" style="margin-top:6px;display:flex;gap:4px">
+            <input type="hidden" name="_csrf" value="<%= csrf %>">
+            <input type="text" name="alt" value="<%= m.alt || '' %>" placeholder="متن جایگزین (alt)"
+              style="flex:1;padding:4px 7px;border:1px solid var(--line);border-radius:6px;font-family:var(--font);font-size:11px">
+            <button class="btn btn-ghost btn-xs" type="submit">ثبت</button>
+          </form>
+        </div>
+      </div>
+    <% }); %>
+  </div>
+
+  <% if (pages > 1) { %>
+    <nav class="pagination">
+      <% for (var i = 1; i <= pages; i++) { %>
+        <% if (i === page) { %><span class="current"><%= U.toFa(i) %></span>
+        <% } else { %><a href="/admin/media?page=<%= i %>"><%= U.toFa(i) %></a><% } %>
+      <% } %>
+    </nav>
+  <% } %>
+<% } %>
+
+<script>
+  var dz = document.getElementById('dropzone');
+  var input = document.getElementById('mediaFiles');
+  ['dragenter', 'dragover'].forEach(function (ev) {
+    dz.addEventListener(ev, function (e) { e.preventDefault(); dz.classList.add('drag'); });
+  });
+  ['dragleave', 'drop'].forEach(function (ev) {
+    dz.addEventListener(ev, function (e) { e.preventDefault(); dz.classList.remove('drag'); });
+  });
+  dz.addEventListener('drop', function (e) {
+    if (e.dataTransfer.files.length) { input.files = e.dataTransfer.files; input.form.submit(); }
+  });
+</script>

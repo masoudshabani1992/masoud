@@ -1,0 +1,37 @@
+<section class="article-hero">
+  <div class="container">
+    <nav class="breadcrumb" aria-label="مسیر صفحه">
+      <a href="/">خانه</a><span>/</span><span><%= p.title %></span>
+    </nav>
+    <h1 style="font-size:32px;margin:0"><%= p.title %></h1>
+  </div>
+</section>
+
+<div class="container">
+  <div class="article-layout">
+    <article>
+      <% if (coverImg) { %><div class="article-cover"><img src="<%= coverImg.url %>" alt="<%= p.title %>"></div><% } %>
+      <div class="content"><%- p.body || `<p>${p.excerpt || ''}</p>` %></div>
+      <% if (p.slug === 'contact') { %>
+        <div style="margin-top:26px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px">
+          <div class="side-card" style="margin:0"><h3>تلفن</h3><b><%= U.toFa(s.phone) %></b></div>
+          <div class="side-card" style="margin:0"><h3>ایمیل</h3><b style="font-size:13px"><%= s.email %></b></div>
+          <div class="side-card" style="margin:0"><h3>آدرس</h3><span style="font-size:13px"><%= s.address %></span></div>
+        </div>
+      <% } %>
+    </article>
+    <aside>
+      <div class="side-card">
+        <h3>دسترسی سریع</h3>
+        <ul class="side-list">
+          <% menu.forEach(function (m) { %><li><a href="<%= m.url %>"><%= m.title %></a></li><% }); %>
+        </ul>
+      </div>
+      <div class="side-card" style="background:linear-gradient(150deg,var(--brand-dark),var(--brand));color:#fff;border:0">
+        <h3 style="color:#fff;border-bottom-color:rgba(255,255,255,.2)">تماس با ما</h3>
+        <p style="color:#d6e6f7;font-size:13.5px">کارشناسان ما آماده پاسخگویی هستند.</p>
+        <a href="/contact" class="btn btn-light btn-sm" style="width:100%">درخواست تماس</a>
+      </div>
+    </aside>
+  </div>
+</div>

@@ -1,0 +1,71 @@
+<div class="page-head">
+  <div>
+    <h1>دسته‌بندی‌ها</h1>
+    <div class="sub">ساختار دسته‌بندی اخبار، بخشنامه‌ها و محصولات</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <a href="/admin/categories?type=news" class="<%= type === 'news' ? 'active' : '' %>">اخبار</a>
+  <a href="/admin/categories?type=circular" class="<%= type === 'circular' ? 'active' : '' %>">بخشنامه‌ها</a>
+  <a href="/admin/categories?type=product" class="<%= type === 'product' ? 'active' : '' %>">محصولات</a>
+</div>
+
+<div class="split" style="grid-template-columns:minmax(0,1fr) 340px">
+  <div class="table-wrap">
+    <table class="data">
+      <thead><tr><th>نام</th><th>اسلاگ</th><th>تعداد محتوا</th><th>ترتیب</th><th style="width:150px">عملیات</th></tr></thead>
+      <tbody>
+        <% rows.forEach(function (c) { %>
+          <tr>
+            <td class="title-cell"><%= c.name %></td>
+            <td class="small mono"><%= c.slug %></td>
+            <td class="small muted"><%= U.toFa(c.used) %></td>
+            <td class="small muted"><%= U.toFa(c.sort) %></td>
+            <td>
+              <div class="row-actions">
+                <button class="btn btn-ghost btn-xs" type="button"
+                  onclick="editCat(<%= c.id %>,'<%= c.name.replace(/'/g, "\\'") %>','<%= c.slug %>',<%= c.sort %>,'<%= (c.description || '').replace(/'/g, "\\'").replace(/\n/g, ' ') %>')">ویرایش</button>
+                <form method="post" action="/admin/categories/<%= c.id %>/delete" style="display:inline" data-confirm="دسته «<%= c.name %>» حذف شود؟ محتوای مرتبط بدون دسته می‌شود.">
+                  <input type="hidden" name="_csrf" value="<%= csrf %>">
+                  <button class="btn btn-danger btn-xs" type="submit">حذف</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        <% }); %>
+        <% if (!rows.length) { %><tr><td colspan="5" class="muted small" style="text-align:center;padding:26px">دسته‌ای ثبت نشده است.</td></tr><% } %>
+      </tbody>
+    </table>
+  </div>
+
+  <form class="card card-pad" method="post" action="/admin/categories/save" id="catForm" style="height:fit-content">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <input type="hidden" name="type" value="<%= type %>">
+    <input type="hidden" name="id" id="cat-id" value="">
+    <h3 id="cat-title">افزودن دسته جدید</h3>
+    <div class="field"><label>نام <span class="req">*</span></label><input type="text" name="name" id="cat-name" required></div>
+    <div class="field"><label>اسلاگ</label><input type="text" name="slug" id="cat-slug" dir="ltr" class="mono" placeholder="auto"></div>
+    <div class="field"><label>ترتیب</label><input type="number" name="sort" id="cat-sort" value="0"></div>
+    <div class="field"><label>توضیحات</label><textarea name="description" id="cat-desc" style="min-height:80px"></textarea></div>
+    <button class="btn btn-primary" type="submit" style="width:100%">ذخیره</button>
+    <button class="btn btn-ghost btn-sm" type="button" style="width:100%;margin-top:8px" onclick="resetCat()">فرم جدید</button>
+  </form>
+</div>
+
+<script>
+  function editCat(id, name, slug, sort, desc) {
+    document.getElementById('cat-id').value = id;
+    document.getElementById('cat-title').textContent = 'ویرایش دسته';
+    document.getElementById('cat-name').value = name;
+    document.getElementById('cat-slug').value = slug;
+    document.getElementById('cat-sort').value = sort;
+    document.getElementById('cat-desc').value = desc || '';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  function resetCat() {
+    document.getElementById('catForm').reset();
+    document.getElementById('cat-id').value = '';
+    document.getElementById('cat-title').textContent = 'افزودن دسته جدید';
+  }
+</script>

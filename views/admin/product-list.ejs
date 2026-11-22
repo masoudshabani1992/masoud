@@ -1,0 +1,66 @@
+<div class="page-head">
+  <div>
+    <h1>محصولات</h1>
+    <div class="sub"><%= U.toFa(rows.length) %> محصول در سایت</div>
+  </div>
+  <div class="actions">
+    <a href="/admin/categories?type=product" class="btn btn-ghost">دسته‌بندی محصولات</a>
+    <a href="/admin/products/new" class="btn btn-primary">+ محصول جدید</a>
+  </div>
+</div>
+
+<form class="toolbar" method="get" action="/admin/products">
+  <input type="search" name="q" value="<%= q %>" placeholder="جست‌وجوی نام محصول...">
+  <select name="cat">
+    <option value="">همه دسته‌ها</option>
+    <% cats.forEach(function (c) { %>
+      <option value="<%= c.id %>" <%= String(cat) === String(c.id) ? 'selected' : '' %>><%= c.name %></option>
+    <% }); %>
+  </select>
+  <button class="btn btn-ghost btn-sm" type="submit">فیلتر</button>
+</form>
+
+<% if (!rows.length) { %>
+  <div class="card"><div class="empty"><div class="big">🚗</div><p>محصولی ثبت نشده است.</p>
+    <a href="/admin/products/new" class="btn btn-primary">افزودن محصول</a></div></div>
+<% } else { %>
+  <div class="table-wrap">
+    <table class="data">
+      <thead>
+        <tr><th style="width:64px">تصویر</th><th>نام محصول</th><th>دسته</th><th>قیمت</th><th>وضعیت</th><th>ویژه</th><th>بازدید</th><th style="width:180px">عملیات</th></tr>
+      </thead>
+      <tbody>
+        <% rows.forEach(function (p) { %>
+          <tr>
+            <td>
+              <% if (p.cover_id) { %>
+                <img src="/uploads/<%= p.cover_file %>" alt="" style="width:52px;height:38px;border-radius:6px;object-fit:cover">
+              <% } else { %>
+                <span style="display:grid;place-items:center;width:52px;height:38px;border-radius:6px;background:#f1f5fa;font-size:15px">🚗</span>
+              <% } %>
+            </td>
+            <td class="title-cell">
+              <a href="/admin/products/<%= p.id %>/edit"><%= p.name %></a>
+              <span class="slug">/<%= p.slug %></span>
+            </td>
+            <td class="small muted"><%= p.cat_name || '—' %></td>
+            <td class="small nowrap"><%= p.price ? U.money(p.price) + ' تومان' : '<span class="muted">استعلام</span>' %></td>
+            <td><span class="badge badge-<%= p.status %>"><%= STATUS_LABELS[p.status] %></span></td>
+            <td class="small"><%= p.featured ? '★' : '—' %></td>
+            <td class="small muted"><%= U.toFa(p.views || 0) %></td>
+            <td>
+              <div class="row-actions">
+                <a class="btn btn-ghost btn-xs" href="/admin/products/<%= p.id %>/edit">ویرایش</a>
+                <a class="btn btn-ghost btn-xs" href="/products/<%= p.slug %>" target="_blank">نمایش</a>
+                <form method="post" action="/admin/products/<%= p.id %>/delete" style="display:inline" data-confirm="محصول «<%= p.name %>» حذف شود؟">
+                  <input type="hidden" name="_csrf" value="<%= csrf %>">
+                  <button class="btn btn-danger btn-xs" type="submit">حذف</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+<% } %>

@@ -1,0 +1,74 @@
+<div class="page-head">
+  <div>
+    <h1>کاربران پنل</h1>
+    <div class="sub">مدیریت دسترسی‌ها (مدیر کل / ویرایشگر)</div>
+  </div>
+</div>
+
+<div class="split" style="grid-template-columns:minmax(0,1fr) 340px">
+  <div class="table-wrap">
+    <table class="data">
+      <thead><tr><th>نام</th><th>ایمیل</th><th>نقش</th><th>وضعیت</th><th>آخرین ورود</th><th style="width:110px">عملیات</th></tr></thead>
+      <tbody>
+        <% users.forEach(function (u) { %>
+          <tr>
+            <td class="title-cell"><%= u.name %><% if (u.id === admin.id) { %> <span class="badge badge-type">شما</span><% } %></td>
+            <td class="small mono"><%= u.email %></td>
+            <td class="small"><%= u.role === 'admin' ? 'مدیر کل' : 'ویرایشگر' %></td>
+            <td><span class="badge badge-<%= u.active ? 'published' : 'draft' %>"><%= u.active ? 'فعال' : 'غیرفعال' %></span></td>
+            <td class="small muted nowrap"><%= u.last_login_at ? U.faDate(u.last_login_at, true) : '—' %></td>
+            <td>
+              <div class="row-actions">
+                <button class="btn btn-ghost btn-xs" type="button"
+                  onclick="editUser(<%= u.id %>,'<%= u.name.replace(/'/g,"\\'") %>','<%= u.email %>','<%= u.role %>')">ویرایش</button>
+                <% if (u.id !== admin.id) { %>
+                  <form method="post" action="/admin/users/<%= u.id %>/toggle" style="display:inline">
+                    <input type="hidden" name="_csrf" value="<%= csrf %>">
+                    <button class="btn btn-danger btn-xs" type="submit"><%= u.active ? 'غیرفعال' : 'فعال' %></button>
+                  </form>
+                <% } %>
+              </div>
+            </td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+
+  <form class="card card-pad" method="post" action="/admin/users/save" id="userForm">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <input type="hidden" name="id" id="u-id" value="">
+    <h3 id="u-title">افزودن کاربر</h3>
+    <div class="field"><label>نام</label><input type="text" name="name" id="u-name" required></div>
+    <div class="field"><label>ایمیل</label><input type="email" name="email" id="u-email" dir="ltr" required></div>
+    <div class="field"><label>نقش</label>
+      <select name="role" id="u-role">
+        <option value="editor">ویرایشگر — مدیریت محتوا</option>
+        <option value="admin">مدیر کل — دسترسی کامل</option>
+      </select>
+    </div>
+    <div class="field"><label>رمز عبور</label><input type="password" name="password" id="u-pass" autocomplete="new-password">
+      <div class="hint" id="u-pass-hint">برای کاربر جدید الزامی است.</div>
+    </div>
+    <button class="btn btn-primary" type="submit" style="width:100%">ذخیره</button>
+    <button class="btn btn-ghost btn-sm" type="button" style="width:100%;margin-top:8px" onclick="resetUser()">فرم جدید</button>
+  </form>
+</div>
+
+<script>
+  function editUser(id, name, email, role) {
+    document.getElementById('u-id').value = id;
+    document.getElementById('u-title').textContent = 'ویرایش کاربر';
+    document.getElementById('u-name').value = name;
+    document.getElementById('u-email').value = email;
+    document.getElementById('u-role').value = role;
+    document.getElementById('u-pass').value = '';
+    document.getElementById('u-pass-hint').textContent = 'خالی بگذارید تا رمز تغییر نکند.';
+  }
+  function resetUser() {
+    document.getElementById('userForm').reset();
+    document.getElementById('u-id').value = '';
+    document.getElementById('u-title').textContent = 'افزودن کاربر';
+    document.getElementById('u-pass-hint').textContent = 'برای کاربر جدید الزامی است.';
+  }
+</script>

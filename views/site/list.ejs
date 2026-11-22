@@ -1,0 +1,75 @@
+<section class="article-hero">
+  <div class="container">
+    <nav class="breadcrumb" aria-label="مسیر صفحه">
+      <a href="/">خانه</a><span>/</span>
+      <a href="<%= baseUrl %>"><%= kind === 'news' ? 'اخبار' : 'بخشنامه‌ها' %></a>
+      <% if (activeCat) { %><span>/</span><span><%= activeCat.name %></span><% } %>
+    </nav>
+    <h1 style="font-size:32px;margin:0 0 8px"><%= heading %></h1>
+    <p class="muted" style="margin:0"><%= subtitle %></p>
+  </div>
+</section>
+
+<div class="container">
+  <div style="padding:36px 0 72px">
+    <div class="filters">
+      <a class="chip <%= !activeCat ? 'active' : '' %>" href="<%= baseUrl %>">همه</a>
+      <% cats.forEach(function (c) { %>
+        <a class="chip <%= activeCat && activeCat.slug === c.slug ? 'active' : '' %>" href="<%= baseUrl %>?cat=<%= c.slug %>"><%= c.name %></a>
+      <% }); %>
+      <form class="search-box" method="get" action="<%= baseUrl %>" data-quick-search>
+        <% if (activeCat) { %><input type="hidden" name="cat" value="<%= activeCat.slug %>"><% } %>
+        <input type="search" name="q" value="<%= q %>" placeholder="جست‌وجو در <%= heading %>...">
+      </form>
+    </div>
+
+    <% if (q) { %>
+      <div class="alert alert-info"><%= U.toFa(pg.total) %> نتیجه برای «<%= q %>» · <a href="<%= baseUrl %>">پاک کردن جست‌وجو</a></div>
+    <% } %>
+
+    <% if (!items.length) { %>
+      <div class="empty-state">
+        <div class="icon">🗂️</div>
+        <h2>موردی یافت نشد</h2>
+        <p>در این دسته هنوز محتوایی منتشر نشده است.</p>
+        <a href="<%= baseUrl %>" class="btn btn-ghost">مشاهده همه</a>
+      </div>
+    <% } else { %>
+      <div class="grid grid-3">
+        <% items.forEach(function (n) { %>
+          <article class="card">
+            <a href="/news/<%= n.slug %>" class="card-thumb">
+              <% if (n.coverUrl) { %>
+                <img src="<%= n.coverUrl %>" alt="<%= n.title %>" loading="lazy">
+              <% } else { %>
+                <div class="placeholder"><%= kind === 'news' ? '📰' : '📋' %></div>
+              <% } %>
+            </a>
+            <div class="card-body">
+              <div class="card-meta">
+                <% if (n.cat_name) { %><span class="tag"><%= n.cat_name %></span><% } %>
+                <span><%= U.faDate(n.published_at) %></span>
+                <% if (n.views) { %><span>· <%= U.toFa(n.views) %> بازدید</span><% } %>
+              </div>
+              <h3><a href="/news/<%= n.slug %>"><%= n.title %></a></h3>
+              <p><%= U.truncate(n.excerpt || n.body, 120) %></p>
+              <div class="foot"><a href="/news/<%= n.slug %>" class="more">ادامه مطلب ←</a></div>
+            </div>
+          </article>
+        <% }); %>
+      </div>
+
+      <% if (pg.pages > 1) { %>
+        <nav class="pagination" aria-label="صفحه‌بندی">
+          <% for (var i = 1; i <= pg.pages; i++) { %>
+            <% if (i === pg.page) { %>
+              <span class="current"><%= U.toFa(i) %></span>
+            <% } else { %>
+              <a href="<%= pageUrl(baseUrl, query, i) %>"><%= U.toFa(i) %></a>
+            <% } %>
+          <% } %>
+        </nav>
+      <% } %>
+    <% } %>
+  </div>
+</div>

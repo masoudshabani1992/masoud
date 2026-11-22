@@ -1,0 +1,24 @@
+{
+  "name": "koosha-cms",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CMS اختصاصی کوشا خودرو — اخبار، بخشنامه‌ها، محصولات، صفحات و SEO",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "compression": "^1.8.2",
+    "cookie-parser": "^1.4.7",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "multer": "^2.5.0",
+    "sanitize-html": "^2.18.2",
+    "vazirmatn": "^33.0.3"
+  }
+}

@@ -1,0 +1,110 @@
+<section class="article-hero">
+  <div class="container">
+    <nav class="breadcrumb" aria-label="مسیر صفحه">
+      <a href="/">خانه</a><span>/</span>
+      <a href="<%= base %>"><%= p.type === 'circular' ? 'بخشنامه‌ها' : 'اخبار' %></a>
+      <span>/</span><span><%= U.truncate(p.title, 60) %></span>
+    </nav>
+    <h1 style="font-size:clamp(22px,3vw,34px);margin:0 0 14px;line-height:1.6"><%= p.title %></h1>
+    <div class="article-info" style="border:0;padding:0;margin:0">
+      <% if (p.cat_name) { %><span class="badge badge-type"><%= p.cat_name %></span><% } %>
+      <span>📅 <%= U.faDate(p.published_at) %></span>
+      <% if (p.type === 'circular' && p.doc_number) { %><span>🔖 شماره بخشنامه: <%= U.toFa(p.doc_number) %></span><% } %>
+      <% if (p.type === 'circular' && p.doc_date) { %><span>تاریخ صدور: <%= U.faDate(p.doc_date) %></span><% } %>
+      <span>⏱ <%= U.toFa(readingTime) %> دقیقه مطالعه</span>
+      <span>👁 <%= U.toFa((p.views || 0) + 1) %> بازدید</span>
+    </div>
+  </div>
+</section>
+
+<div class="container">
+  <div class="article-layout">
+    <article>
+      <% if (coverImg) { %>
+        <div class="article-cover"><img src="<%= coverImg.url %>" alt="<%= coverImg.alt || p.title %>"></div>
+      <% } %>
+
+      <% if (p.type === 'circular') { %>
+        <div class="alert alert-info" style="display:flex;gap:12px;align-items:flex-start">
+          <span style="font-size:20px">📋</span>
+          <div>
+            این مطلب یک بخشنامه رسمی است.
+            <% if (p.doc_number) { %>شماره: <b><%= U.toFa(p.doc_number) %></b><% } %>
+            <% if (p.doc_date) { %> — تاریخ صدور: <b><%= U.faDate(p.doc_date) %></b><% } %>
+          </div>
+        </div>
+      <% } %>
+
+      <div class="article-info">
+        <span>✍️ نویسنده: <%= p.author_id ? 'روابط عمومی کوشا خودرو' : 'کوشا خودرو' %></span>
+        <% if (p.updated_at) { %><span>آخرین بروزرسانی: <%= U.faDate(p.updated_at) %></span><% } %>
+      </div>
+
+      <div class="content">
+        <%- p.body || '<p>' + (p.excerpt || '') + '</p>' %>
+      </div>
+
+      <% if (attachment) { %>
+        <div style="margin-top:30px;border:1px solid var(--line);border-radius:12px;padding:18px 20px;background:#f8fbff;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+          <span style="font-size:26px">📎</span>
+          <div style="flex:1">
+            <b style="display:block;font-size:14px">فایل پیوست</b>
+            <small class="muted"><%= attachment.original_name || attachment.filename %></small>
+          </div>
+          <a class="btn btn-primary btn-sm" href="<%= attachment.url %>" download>دانلود فایل</a>
+        </div>
+      <% } %>
+
+      <div style="margin-top:34px;padding-top:22px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap">
+        <div class="share">
+          <span class="muted" style="font-size:13px;align-self:center">اشتراک‌گذاری:</span>
+          <a href="https://t.me/share/url?url=<%= encodeURIComponent(seo.canonical) %>&text=<%= encodeURIComponent(p.title) %>" target="_blank" rel="noopener">تلگرام</a>
+          <a href="https://wa.me/?text=<%= encodeURIComponent(p.title + ' ' + seo.canonical) %>" target="_blank" rel="noopener">واتساپ</a>
+          <a href="https://twitter.com/intent/tweet?url=<%= encodeURIComponent(seo.canonical) %>&text=<%= encodeURIComponent(p.title) %>" target="_blank" rel="noopener">X</a>
+          <a href="https://www.linkedin.com/sharing/share-offsite/?url=<%= encodeURIComponent(seo.canonical) %>" target="_blank" rel="noopener">لینکدین</a>
+          <button type="button" onclick="navigator.clipboard&&navigator.clipboard.writeText(location.href).then(()=>this.textContent='کپی شد!')">کپی لینک</button>
+        </div>
+        <a href="<%= base %>" class="btn btn-ghost btn-sm">← بازگشت به <%= p.type === 'circular' ? 'بخشنامه‌ها' : 'اخبار' %></a>
+      </div>
+    </article>
+
+    <aside>
+      <div class="side-card">
+        <h3>مطالب مرتبط</h3>
+        <ul class="side-list">
+          <% related.forEach(function (r) { %>
+            <li>
+              <a href="<%= postUrl(r) %>" style="display:flex;gap:12px;align-items:center">
+                <span style="flex:0 0 64px;height:50px;border-radius:8px;overflow:hidden;background:#eef4fb;display:grid;place-items:center;font-size:16px">
+                  <% if (r.coverUrl) { %><img src="<%= r.coverUrl %>" alt="" style="width:100%;height:100%;object-fit:cover">
+                  <% } else { %>📄<% } %>
+                </span>
+                <span>
+                  <b style="display:block;color:var(--ink);font-size:13.5px;line-height:1.7"><%= U.truncate(r.title, 60) %></b>
+                  <span class="date"><%= U.faDate(r.published_at) %></span>
+                </span>
+              </a>
+            </li>
+          <% }); %>
+          <% if (!related.length) { %><li class="muted">مطلب مرتبطی یافت نشد.</li><% } %>
+        </ul>
+      </div>
+
+      <div class="side-card">
+        <h3>محصولات کیا</h3>
+        <ul class="side-list">
+          <% (footerProducts || []).forEach(function (pr) { %>
+            <li><a href="/products/<%= pr.slug %>"><%= pr.name %></a></li>
+          <% }); %>
+        </ul>
+        <a href="/products" class="btn btn-ghost btn-sm" style="width:100%;margin-top:14px">همه محصولات</a>
+      </div>
+
+      <div class="side-card" style="background:linear-gradient(150deg,var(--brand-dark),var(--brand));color:#fff;border:0">
+        <h3 style="color:#fff;border-bottom-color:rgba(255,255,255,.2)">سامانه فروش</h3>
+        <p style="color:#d6e6f7;font-size:13.5px">ثبت‌نام و مشاهده شرایط فروش محصولات</p>
+        <a href="<%= s.sale_url %>" target="_blank" rel="noopener" class="btn btn-light btn-sm" style="width:100%">ورود به سامانه</a>
+      </div>
+    </aside>
+  </div>
+</div>

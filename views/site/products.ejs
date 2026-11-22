@@ -1,0 +1,67 @@
+<section class="article-hero">
+  <div class="container">
+    <nav class="breadcrumb" aria-label="مسیر صفحه">
+      <a href="/">خانه</a><span>/</span><a href="/products">محصولات</a>
+      <% if (activeCat) { %><span>/</span><span><%= activeCat.name %></span><% } %>
+    </nav>
+    <h1 style="font-size:32px;margin:0 0 8px">محصولات کیا</h1>
+    <p class="muted" style="margin:0">محصولات وارداتی کوشا خودرو با گارانتی رسمی و خدمات پس از فروش در سراسر کشور</p>
+  </div>
+</section>
+
+<div class="container">
+  <div style="padding:36px 0 72px">
+    <div class="filters">
+      <a class="chip <%= !activeCat ? 'active' : '' %>" href="/products">همه محصولات</a>
+      <% cats.forEach(function (c) { %>
+        <a class="chip <%= activeCat && activeCat.slug === c.slug ? 'active' : '' %>" href="/products?cat=<%= c.slug %>"><%= c.name %></a>
+      <% }); %>
+    </div>
+
+    <div class="grid grid-3">
+      <% items.forEach(function (p) { %>
+        <article class="card product-card">
+          <a href="/products/<%= p.slug %>" class="card-thumb">
+            <% if (p.coverUrl) { %><img src="<%= p.coverUrl %>" alt="<%= p.name %>" loading="lazy">
+            <% } else { %><div class="placeholder">🚗</div><% } %>
+          </a>
+          <div class="card-body">
+            <div class="card-meta">
+              <% if (p.cat_name) { %><span class="tag"><%= p.cat_name %></span><% } %>
+              <span class="badge badge-<%= p.status %>"><%= U.STATUS_LABELS[p.status] %></span>
+            </div>
+            <h3><a href="/products/<%= p.slug %>"><%= p.name %></a></h3>
+            <p><%= U.truncate(p.short_desc, 110) %></p>
+            <% if (p.specs && p.specs.length) { %>
+              <ul style="list-style:none;padding:0;margin:0 0 16px;display:grid;gap:6px;font-size:13px;color:var(--muted)">
+                <% p.specs.slice(0, 3).forEach(function (sp) { %>
+                  <li style="display:flex;justify-content:space-between;border-bottom:1px dashed var(--line);padding-bottom:5px">
+                    <span><%= sp.label %></span><b style="color:#2c3e52;font-weight:600"><%= sp.value %></b>
+                  </li>
+                <% }); %>
+              </ul>
+            <% } %>
+            <div class="foot">
+              <span class="price">
+                <% if (p.price) { %><%= U.money(p.price) %> <small>تومان</small><% } else { %>استعلام قیمت<% } %>
+              </span>
+              <a href="/products/<%= p.slug %>" class="btn btn-primary btn-sm">مشاهده و استعلام</a>
+            </div>
+          </div>
+        </article>
+      <% }); %>
+    </div>
+
+    <% if (!items.length) { %>
+      <div class="empty-state"><div class="icon">🚗</div><h2>محصولی ثبت نشده</h2></div>
+    <% } %>
+
+    <div class="cta-band" style="margin-top:44px">
+      <div>
+        <h2>مشاوره تخصصی خرید</h2>
+        <p>برای دریافت کاتالوگ، شرایط فروش و مشاوره با کارشناسان ما تماس بگیرید.</p>
+      </div>
+      <a href="/contact" class="btn btn-light">تماس با ما</a>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,134 @@
+<div class="page-head">
+  <div>
+    <h1>داشبورد</h1>
+    <div class="sub">خلاصه وضعیت محتوا و سایت کوشا خودرو</div>
+  </div>
+  <div class="actions">
+    <a href="/admin/news/new" class="btn btn-primary">+ خبر جدید</a>
+    <a href="/admin/circulars/new" class="btn btn-ghost">+ بخشنامه</a>
+    <a href="/admin/products/new" class="btn btn-ghost">+ محصول</a>
+  </div>
+</div>
+
+<div class="stat-grid">
+  <div class="stat">
+    <div class="ico">📰</div>
+    <div><b><%= U.toFa(counts.news) %></b><span>خبر منتشرشده<% if (counts.draftNews) { %> · <%= U.toFa(counts.draftNews) %> پیش‌نویس<% } %></span></div>
+  </div>
+  <div class="stat a">
+    <div class="ico">📋</div>
+    <div><b><%= U.toFa(counts.circulars) %></b><span>بخشنامه منتشرشده</span></div>
+  </div>
+  <div class="stat b">
+    <div class="ico">🚗</div>
+    <div><b><%= U.toFa(counts.products) %></b><span>محصول فعال</span></div>
+  </div>
+  <div class="stat c">
+    <div class="ico">✉</div>
+    <div><b><%= U.toFa(counts.inquiries) %></b><span>استعلام جدید</span></div>
+  </div>
+</div>
+
+<div class="stat-grid" style="grid-template-columns:repeat(4,1fr)">
+  <div class="stat"><div class="ico">📄</div><div><b><%= U.toFa(counts.pages) %></b><span>صفحه</span></div></div>
+  <div class="stat"><div class="ico">🖼</div><div><b><%= U.toFa(counts.media) %></b><span>فایل رسانه</span></div></div>
+  <div class="stat"><div class="ico">👁</div><div><b><%= U.toFa(counts.views) %></b><span>کل بازدید</span></div></div>
+  <div class="stat"><div class="ico">📈</div><div><b><%= U.toFa(seoIssues.length) %></b><span>مورد سئویی نیازمند بررسی</span></div></div>
+</div>
+
+<div class="split" style="grid-template-columns:minmax(0,1fr) 360px">
+  <div>
+    <div class="panel">
+      <div class="panel-head">
+        <span>آخرین محتوا</span>
+        <a href="/admin/news" class="small">همه ↗</a>
+      </div>
+      <div class="table-wrap" style="border:0">
+        <table class="data">
+          <thead><tr><th>عنوان</th><th>نوع</th><th>وضعیت</th><th>بازدید</th><th>تاریخ</th></tr></thead>
+          <tbody>
+            <% recentPosts.forEach(function (p) { %>
+              <tr>
+                <td class="title-cell">
+                  <a href="/admin/<%= p.type === 'news' ? 'news' : p.type === 'circular' ? 'circulars' : 'pages' %>/<%= p.id %>/edit"><%= U.truncate(p.title, 70) %></a>
+                </td>
+                <td><span class="badge badge-type"><%= TYPE_LABELS[p.type] %></span></td>
+                <td><span class="badge badge-<%= p.status %>"><%= U.STATUS_LABELS[p.status] %></span></td>
+                <td class="small muted"><%= U.toFa(p.views || 0) %></td>
+                <td class="small muted nowrap"><%= U.faDateShort(p.updated_at) %></td>
+              </tr>
+            <% }); %>
+            <% if (!recentPosts.length) { %>
+              <tr><td colspan="5" class="muted small" style="text-align:center;padding:26px">هنوز محتوایی ثبت نشده است.</td></tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><span>پربازدیدترین محتوا</span></div>
+      <div class="panel-body">
+        <ul style="list-style:none;padding:0;margin:0;display:grid;gap:10px">
+          <% topContent.forEach(function (t) { %>
+            <li style="display:flex;gap:10px;align-items:center;font-size:13px">
+              <span class="badge badge-type"><%= TYPE_LABELS[t.type] %></span>
+              <a href="<%= postUrl(t) %>" target="_blank" class="grow"><%= U.truncate(t.title, 65) %></a>
+              <span class="muted small nowrap"><%= U.toFa(t.views) %> بازدید</span>
+            </li>
+          <% }); %>
+          <% if (!topContent.length) { %><li class="muted small">داده‌ای موجود نیست.</li><% } %>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="panel">
+      <div class="panel-head"><span>استعلام‌های اخیر</span><a href="/admin/inquiries" class="small">همه ↗</a></div>
+      <div class="panel-body" style="display:grid;gap:12px">
+        <% recentInquiries.forEach(function (i) { %>
+          <div style="border-bottom:1px solid var(--line);padding-bottom:10px">
+            <div class="flex" style="justify-content:space-between">
+              <b style="font-size:13px"><%= i.name %></b>
+              <span class="badge badge-<%= i.status %>"><%= i.status === 'new' ? 'جدید' : 'بررسی شد' %></span>
+            </div>
+            <div class="small muted" style="direction:ltr;text-align:right"><%= i.phone %></div>
+            <div class="small muted"><%= i.product_name || 'تماس عمومی' %> · <%= U.faDateShort(i.created_at) %></div>
+          </div>
+        <% }); %>
+        <% if (!recentInquiries.length) { %><div class="muted small">استعلامی ثبت نشده است.</div><% } %>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><span>هشدارهای سئو</span><a href="/admin/seo" class="small">گزارش کامل ↗</a></div>
+      <div class="panel-body" style="display:grid;gap:10px">
+        <% seoIssues.forEach(function (i) { %>
+          <div style="font-size:12.5px;border-bottom:1px dashed var(--line);padding-bottom:8px">
+            <span class="badge badge-scheduled"><%= i.score ? U.toFa(i.score) : '!' %></span>
+            <%= U.truncate(i.title, 55) %>
+            <% if (i.checks && i.checks.length) { %>
+              <div class="muted" style="font-size:11.5px;margin-top:3px"><%= i.checks[0].label %></div>
+            <% } %>
+          </div>
+        <% }); %>
+        <% if (!seoIssues.length) { %><div class="muted small">✓ همه چیز مرتب است.</div><% } %>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><span>فعالیت‌های اخیر</span></div>
+      <div class="panel-body" style="display:grid;gap:8px;font-size:12px">
+        <% recentActivity.forEach(function (a) { %>
+          <div class="muted">
+            <b style="color:var(--ink)"><%= a.user_name || 'سیستم' %></b>
+            <%= a.action === 'login' ? 'وارد شد' : a.action === 'create' ? 'مورد جدید ایجاد کرد' : a.action === 'update' ? 'ویرایش کرد' : a.action === 'delete' ? 'حذف کرد' : a.action %>
+            <span style="display:block;font-size:11px"><%= U.faDate(a.created_at, true) %></span>
+          </div>
+        <% }); %>
+        <% if (!recentActivity.length) { %><div class="muted small">فعالیتی ثبت نشده است.</div><% } %>
+      </div>
+    </div>
+  </div>
+</div>

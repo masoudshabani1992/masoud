@@ -1,0 +1,53 @@
+<div class="page-head">
+  <div>
+    <h1>استعلام‌ها و پیام‌ها</h1>
+    <div class="sub"><%= U.toFa(newCount) %> درخواست جدید</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <a href="/admin/inquiries" class="<%= !status ? 'active' : '' %>">همه</a>
+  <a href="/admin/inquiries?status=new" class="<%= status === 'new' ? 'active' : '' %>">جدید</a>
+  <a href="/admin/inquiries?status=done" class="<%= status === 'done' ? 'active' : '' %>">بررسی‌شده</a>
+</div>
+
+<% if (!rows.length) { %>
+  <div class="card"><div class="empty"><div class="big">✉</div><p>درخواستی ثبت نشده است.</p></div></div>
+<% } else { %>
+  <div class="table-wrap">
+    <table class="data">
+      <thead>
+        <tr><th>نام</th><th>تماس</th><th>محصول</th><th>شهر</th><th>پیام</th><th>تاریخ</th><th>وضعیت</th><th style="width:150px">عملیات</th></tr>
+      </thead>
+      <tbody>
+        <% rows.forEach(function (i) { %>
+          <tr>
+            <td class="title-cell"><%= i.name %></td>
+            <td class="small">
+              <a href="tel:<%= i.phone %>" dir="ltr"><%= i.phone %></a>
+              <% if (i.email) { %><br><a href="mailto:<%= i.email %>" class="mono" style="font-size:11px"><%= i.email %></a><% } %>
+            </td>
+            <td class="small"><% if (i.product_slug) { %><a href="/products/<%= i.product_slug %>" target="_blank"><%= i.product_name %></a><% } else { %><span class="muted">تماس عمومی</span><% } %></td>
+            <td class="small muted"><%= i.city || '—' %></td>
+            <td class="small muted" style="max-width:240px"><%= U.truncate(i.message, 90) || '—' %></td>
+            <td class="small muted nowrap"><%= U.faDateShort(i.created_at) %></td>
+            <td><span class="badge badge-<%= i.status %>"><%= i.status === 'new' ? 'جدید' : 'بررسی شد' %></span></td>
+            <td>
+              <div class="row-actions">
+                <form method="post" action="/admin/inquiries/<%= i.id %>/status" style="display:inline">
+                  <input type="hidden" name="_csrf" value="<%= csrf %>">
+                  <input type="hidden" name="status" value="<%= i.status === 'new' ? 'done' : 'new' %>">
+                  <button class="btn btn-ghost btn-xs" type="submit"><%= i.status === 'new' ? 'بررسی شد' : 'بازگشت' %></button>
+                </form>
+                <form method="post" action="/admin/inquiries/<%= i.id %>/delete" style="display:inline" data-confirm="حذف شود؟">
+                  <input type="hidden" name="_csrf" value="<%= csrf %>">
+                  <button class="btn btn-danger btn-xs" type="submit">حذف</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+<% } %>

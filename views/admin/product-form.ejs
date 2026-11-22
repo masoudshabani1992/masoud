@@ -1,0 +1,329 @@
+<form method="post" action="/admin/products/save" id="productForm">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <input type="hidden" name="id" value="<%= p.id || '' %>">
+  <input type="hidden" name="cover_id" id="cover_id" value="<%= p.cover_id || '' %>">
+  <input type="hidden" name="og_image_id" id="og_image_id" value="<%= p.og_image_id || '' %>">
+
+  <div class="page-head">
+    <div>
+      <h1><%= p.id ? 'ویرایش محصول' : 'افزودن محصول' %></h1>
+      <div class="sub"><% if (p.id) { %>شناسه <%= U.toFa(p.id) %> · <a href="/products/<%= p.slug %>" target="_blank">مشاهده در سایت ↗</a><% } else { %>اطلاعات محصول را کامل کنید<% } %></div>
+    </div>
+    <div class="actions">
+      <a href="/admin/products" class="btn btn-ghost">بازگشت</a>
+      <button class="btn btn-primary" type="submit">ذخیره محصول</button>
+    </div>
+  </div>
+
+  <div class="split">
+    <div>
+      <div class="panel">
+        <div class="panel-body">
+          <div class="form-row">
+            <div class="field">
+              <label>نام محصول <span class="req">*</span></label>
+              <input type="text" name="name" id="f-name" value="<%= p.name || '' %>" required maxlength="160" placeholder="مثلاً کیا اسپورتیج ۲۰۲۵">
+            </div>
+            <div class="field">
+              <label>مدل (لاتین)</label>
+              <input type="text" name="model" value="<%= p.model || '' %>" dir="ltr" placeholder="Sportage">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field">
+              <label>نشانی صفحه (slug)</label>
+              <input type="text" name="slug" id="f-slug" value="<%= p.slug || '' %>" dir="ltr" class="mono">
+            </div>
+            <div class="field">
+              <label>دسته‌بندی</label>
+              <select name="category_id">
+                <option value="">— بدون دسته —</option>
+                <% cats.forEach(function (c) { %>
+                  <option value="<%= c.id %>" <%= Number(p.category_id) === c.id ? 'selected' : '' %>><%= c.name %></option>
+                <% }); %>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>توضیح کوتاه</label>
+            <textarea name="short_desc" maxlength="300" style="min-height:70px" placeholder="در کارت محصول و توضیحات متا استفاده می‌شود"><%= p.short_desc || '' %></textarea>
+          </div>
+
+          <div class="field">
+            <label>توضیحات کامل</label>
+            <div class="editor-toolbar">
+              <button type="button" onclick="fmt('bold')"><b>B</b></button>
+              <button type="button" onclick="fmt('italic')"><i>I</i></button>
+              <button type="button" onclick="fmt('formatBlock','h2')">تیتر ۲</button>
+              <button type="button" onclick="fmt('formatBlock','h3')">تیتر ۳</button>
+              <button type="button" onclick="fmt('insertUnorderedList')">• لیست</button>
+              <button type="button" onclick="fmt('insertOrderedList')">۱. لیست</button>
+              <button type="button" onclick="insertLink()">🔗 لینک</button>
+              <button type="button" onclick="insertHTML('<blockquote>نقل قول</blockquote>')">❝ نقل قول</button>
+            </div>
+            <div id="editor" class="editor" contenteditable="true" style="border:1px solid var(--line);padding:16px;background:#fff;overflow:auto;max-height:520px"><%- p.body || '' %></div>
+            <textarea name="body" id="bodyHidden" style="display:none"><%= p.body || '' %></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <span>مشخصات فنی</span>
+          <button type="button" class="btn btn-ghost btn-xs" onclick="addSpec()">+ افزودن ردیف</button>
+        </div>
+        <div class="panel-body">
+          <div id="specs" style="display:grid;gap:8px">
+            <% specs.forEach(function (sp) { %>
+              <div class="flex spec-row">
+                <input type="text" name="spec_label" value="<%= sp.label %>" placeholder="عنوان (مثلاً قدرت موتور)" style="flex:1;padding:9px 12px;border:1px solid var(--line);border-radius:8px;font-family:var(--font)">
+                <input type="text" name="spec_value" value="<%= sp.value %>" placeholder="مقدار (مثلاً ۱۹۸ اسب بخار)" style="flex:1;padding:9px 12px;border:1px solid var(--line);border-radius:8px;font-family:var(--font)">
+                <button type="button" class="btn btn-danger btn-xs" onclick="this.parentNode.remove()">−</button>
+              </div>
+            <% }); %>
+            <% if (!specs.length) { %>
+              <div class="flex spec-row">
+                <input type="text" name="spec_label" placeholder="عنوان (مثلاً قدرت موتور)" style="flex:1;padding:9px 12px;border:1px solid var(--line);border-radius:8px;font-family:var(--font)">
+                <input type="text" name="spec_value" placeholder="مقدار (مثلاً ۱۹۸ اسب بخار)" style="flex:1;padding:9px 12px;border:1px solid var(--line);border-radius:8px;font-family:var(--font)">
+                <button type="button" class="btn btn-danger btn-xs" onclick="this.parentNode.remove()">−</button>
+              </div>
+            <% } %>
+          </div>
+          <div class="hint" style="margin-top:10px">این مشخصات در جدول مشخصات فنی صفحه محصول و داده ساختاریافته گوگل استفاده می‌شود.</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><span>📈 سئو محصول</span></div>
+        <div class="panel-body">
+          <div class="seo-preview" style="margin-bottom:16px">
+            <div class="url" id="pv-url">https://kooshakhodro.com/products/…</div>
+            <div class="t" id="pv-title">عنوان سئو</div>
+            <div class="d" id="pv-desc">توضیحات متا</div>
+          </div>
+          <div class="field">
+            <label>عنوان سئو</label>
+            <input type="text" name="seo_title" id="f-seo-title" value="<%= p.seo_title || '' %>" maxlength="120" oninput="updatePreview()">
+          </div>
+          <div class="field">
+            <label>توضیحات متا</label>
+            <textarea name="seo_description" id="f-seo-desc" maxlength="300" style="min-height:74px" oninput="updatePreview()"><%= p.seo_description || '' %></textarea>
+          </div>
+          <div class="form-row">
+            <div class="field">
+              <label>کلمات کلیدی</label>
+              <input type="text" name="seo_keywords" value="<%= p.seo_keywords || '' %>" placeholder="کیا اسپورتیج, قیمت اسپورتیج ۲۰۲۵">
+            </div>
+            <div class="field">
+              <label>وضعیت ایندکس</label>
+              <select name="robots">
+                <option value="index,follow" <%= p.robots !== 'noindex,follow' ? 'selected' : '' %>>index, follow</option>
+                <option value="noindex,follow" <%= p.robots === 'noindex,follow' ? 'selected' : '' %>>noindex, follow</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label>کانونیکال</label>
+            <input type="text" name="canonical" value="<%= p.canonical || '' %>" dir="ltr" class="mono" placeholder="خالی = آدرس پیش‌فرض">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="panel">
+        <div class="panel-head"><span>وضعیت و قیمت</span></div>
+        <div class="panel-body">
+          <div class="field">
+            <label>وضعیت موجودی</label>
+            <select name="status">
+              <option value="available" <%= p.status === 'available' ? 'selected' : '' %>>موجود</option>
+              <option value="soon" <%= p.status === 'soon' ? 'selected' : '' %>>به‌زودی</option>
+              <option value="out" <%= p.status === 'out' ? 'selected' : '' %>>ناموجود</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>قیمت (تومان)</label>
+            <input type="text" name="price" value="<%= p.price || '' %>" dir="ltr" placeholder="8762200000">
+            <div class="hint">خالی بگذارید تا «استعلام قیمت» نمایش داده شود.</div>
+          </div>
+          <div class="field">
+            <label>توضیح قیمت</label>
+            <input type="text" name="price_note" value="<%= p.price_note || '' %>" placeholder="مثلاً: قیمت قطعی، تحویل ۲۰ روزه">
+          </div>
+          <div class="form-row">
+            <div class="field">
+              <label>ترتیب نمایش</label>
+              <input type="number" name="sort" value="<%= p.sort || 0 %>">
+            </div>
+            <div class="field" style="display:flex;align-items:flex-end">
+              <label class="check"><input type="checkbox" name="featured" value="1" <%= p.featured ? 'checked' : '' %>> محصول ویژه</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><span>مشخصات کلیدی</span></div>
+        <div class="panel-body">
+          <div class="field"><label>موتور</label><input type="text" name="engine" value="<%= p.engine || '' %>" placeholder="۱.۵ لیتر توربوشارژ"></div>
+          <div class="field"><label>گیربکس</label><input type="text" name="transmission" value="<%= p.transmission || '' %>" placeholder="اتوماتیک ۸ سرعته"></div>
+          <div class="field"><label>سوخت</label><input type="text" name="fuel" value="<%= p.fuel || '' %>" placeholder="بنزین"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><span>تصویر اصلی</span></div>
+        <div class="panel-body">
+          <div id="cover-preview" style="border-radius:10px;overflow:hidden;background:#f1f5fa;border:1px solid var(--line);aspect-ratio:16/9;display:grid;place-items:center;margin-bottom:10px">
+            <% if (coverUrl) { %>
+              <img src="<%= coverUrl %>" style="width:100%;height:100%;object-fit:cover">
+            <% } else { %>
+              <span class="small muted">تصویری انتخاب نشده</span>
+            <% } %>
+          </div>
+          <div class="flex">
+            <button type="button" class="btn btn-ghost btn-sm grow" onclick="openPicker('cover')">انتخاب تصویر</button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="clearPick('cover')">حذف</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><span>گالری تصاویر</span></div>
+        <div class="panel-body">
+          <div id="gallery-list" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px">
+            <% gallery.forEach(function (g) { %>
+              <div style="position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--line)">
+                <img src="<%= g.url %>" style="aspect-ratio:4/3;object-fit:cover;width:100%">
+                <input type="hidden" name="gallery_id" value="<%= g.id %>">
+                <button type="button" onclick="this.parentNode.remove()" style="position:absolute;top:3px;inset-inline-end:3px;border:0;background:rgba(0,0,0,.55);color:#fff;border-radius:5px;cursor:pointer;font-size:11px">×</button>
+              </div>
+            <% }); %>
+          </div>
+          <button type="button" class="btn btn-ghost btn-sm" style="width:100%" onclick="openPicker('gallery')">+ افزودن تصویر</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><span>تحلیل سئو</span></div>
+        <div class="panel-body">
+          <div class="seo-meter">
+            <span class="score-badge" style="color:<%= analysis.score >= 80 ? '#12a150' : analysis.score >= 50 ? '#dda000' : '#d02b2b' %>"><%= U.toFa(analysis.score) %></span>
+            <span class="meter"><i style="width:<%= analysis.score %>%"></i></span>
+          </div>
+          <ul class="checks">
+            <% analysis.checks.forEach(function (c) { %>
+              <li class="<%= c.level %>"><span class="dot"><%= c.level === 'good' ? '✓' : c.level === 'warn' ? '!' : '×' %></span>
+                <span><%= c.label %><% if (c.hint) { %><span class="hint"><%= c.hint %></span><% } %></span></li>
+            <% }); %>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+
+<div id="picker" style="display:none;position:fixed;inset:0;background:rgba(9,24,40,.55);z-index:200;padding:24px;overflow:auto">
+  <div style="max-width:920px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden">
+    <div style="padding:14px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center">
+      <b>انتخاب از کتابخانه رسانه</b>
+      <div class="flex">
+        <input type="file" id="quickUpload" accept="image/*" multiple style="display:none" onchange="quickUpload(this)">
+        <button class="btn btn-primary btn-sm" onclick="document.getElementById('quickUpload').click()">آپلود جدید</button>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('picker').style.display='none'">بستن</button>
+      </div>
+    </div>
+    <div style="padding:18px" id="pickerBody">در حال بارگذاری…</div>
+  </div>
+</div>
+
+<script>
+  var siteHost = '<%= siteHost %>';
+  var CSRF = '<%= csrf %>';
+  var MEDIA = [];
+  var mode = null;
+  var editor = document.getElementById('editor');
+  var hidden = document.getElementById('bodyHidden');
+
+  function fmt(cmd, val) { document.execCommand(cmd, false, val || null); editor.focus(); }
+  function insertHTML(h) { document.execCommand('insertHTML', false, h); editor.focus(); }
+  function insertLink() {
+    var u = prompt('آدرس لینک:');
+    if (u) insertHTML('<a href="' + u + '">' + (document.getSelection().toString() || u) + '</a>');
+  }
+  document.getElementById('productForm').addEventListener('submit', function () {
+    hidden.value = editor.innerHTML;
+  });
+
+  function addSpec() {
+    var row = document.createElement('div');
+    row.className = 'flex spec-row';
+    row.innerHTML = '<input type="text" name="spec_label" placeholder="عنوان" style="flex:1;padding:9px 12px;border:1px solid var(--line);border-radius:8px;font-family:var(--font)">' +
+      '<input type="text" name="spec_value" placeholder="مقدار" style="flex:1;padding:9px 12px;border:1px solid var(--line);border-radius:8px;font-family:var(--font)">' +
+      '<button type="button" class="btn btn-danger btn-xs" onclick="this.parentNode.remove()">−</button>';
+    document.getElementById('specs').appendChild(row);
+  }
+
+  function faNum(n) { return String(n).replace(/\d/g, function (d) { return '۰۱۲۳۴۵۶۷۸۹'[+d]; }); }
+  function updatePreview() {
+    var t = document.getElementById('f-seo-title').value || document.getElementById('f-name').value;
+    var d = document.getElementById('f-seo-desc').value;
+    var s = document.getElementById('f-slug').value;
+    document.getElementById('pv-title').textContent = t || 'عنوان سئو';
+    document.getElementById('pv-desc').textContent = d || 'توضیحات متا';
+    document.getElementById('pv-url').textContent = 'https://<%= siteHost %>/products/' + s;
+  }
+  document.getElementById('f-name').addEventListener('input', function () {
+    if (!document.getElementById('f-slug').value) {
+      document.getElementById('f-slug').value = this.value.trim().replace(/\s+/g, '-').slice(0, 90);
+    }
+    updatePreview();
+  });
+
+  function openPicker(m) {
+    mode = m;
+    document.getElementById('picker').style.display = 'block';
+    if (MEDIA.length) return renderPicker();
+    fetch('/api/media?kind=image', { headers: { 'x-csrf-token': CSRF } })
+      .then(function (r) { return r.json(); })
+      .then(function (d) { MEDIA = d.items || []; renderPicker(); });
+  }
+  function renderPicker() {
+    document.getElementById('pickerBody').innerHTML = MEDIA.length
+      ? '<div class="media-grid">' + MEDIA.map(function (m) {
+          return '<div class="media-item" onclick="choose(' + m.id + ')"><div class="thumb"><img src="' + m.url + '"></div><div class="info"><b>' + (m.original_name || m.filename) + '</b></div></div>';
+        }).join('') + '</div>'
+      : '<div class="empty">کتابخانه خالی است.</div>';
+  }
+  function choose(id) {
+    var m = MEDIA.filter(function (x) { return x.id === id; })[0];
+    if (!m) return;
+    if (mode === 'cover') {
+      document.getElementById('cover_id').value = m.id;
+      document.getElementById('cover-preview').innerHTML = '<img src="' + m.url + '" style="width:100%;height:100%;object-fit:cover">';
+    } else if (mode === 'gallery') {
+      var div = document.createElement('div');
+      div.style.cssText = 'position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--line)';
+      div.innerHTML = '<img src="' + m.url + '" style="aspect-ratio:4/3;object-fit:cover;width:100%">' +
+        '<input type="hidden" name="gallery_id" value="' + m.id + '">' +
+        '<button type="button" onclick="this.parentNode.remove()" style="position:absolute;top:3px;inset-inline-end:3px;border:0;background:rgba(0,0,0,.55);color:#fff;border-radius:5px;cursor:pointer;font-size:11px">×</button>';
+      document.getElementById('gallery-list').appendChild(div);
+    }
+    document.getElementById('picker').style.display = 'none';
+  }
+  function clearPick() {
+    document.getElementById('cover_id').value = '';
+    document.getElementById('cover-preview').innerHTML = '<span class="small muted">تصویری انتخاب نشده</span>';
+  }
+  function quickUpload(input) {
+    if (!input.files.length) return;
+    var fd = new FormData();
+    for (var i = 0; i < input.files.length; i++) fd.append('files', input.files[i]);
+    fetch('/admin/media/upload-json', { method: 'POST', body: fd, headers: { 'x-csrf-token': CSRF } })
+      .then(function (r) { return r.json(); })
+      .then(function (d) { if (d.items) { MEDIA = d.items.concat(MEDIA); renderPicker(); } });
+  }
+  updatePreview();
+</script>
