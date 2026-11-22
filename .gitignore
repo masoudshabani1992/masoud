@@ -15,3 +15,9 @@ data/*.png
 
 # کاتالوگ‌های تولیدشده (با scripts/build-catalogs.py بازسازی می‌شوند)
 public/catalogs/*.pdf
+
+# خروجی‌های ساخت بسته پیش‌نمایش ویندوز (با npm run export:preview بازسازی می‌شوند)
+.preview-build/
+dist-preview/
+build-win/
+deliver/

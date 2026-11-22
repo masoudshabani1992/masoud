@@ -32,7 +32,7 @@ const PRODUCTS = [
     name: 'کیا اسپورتیج نیوفیس ۲۰۲۶',
     slug: 'kia-sportage-2026',
     model: 'Sportage 1.5 T-GDI',
-    image: 'sportage-2026.jpg',
+    image: 'sportage-2026-hero.jpg',
     category: 'suv',
     featured: 1,
     sort: 1,
@@ -68,6 +68,7 @@ const PRODUCTS = [
       { label: 'تعلیق', value: 'مک‌فرسون جلو / مولتی‌لینک عقب' },
       { label: 'گارانتی', value: '۳ سال یا ۶۰٬۰۰۰ کیلومتر' },
     ],
+    gallery: ['sportage-2026-2.jpg', 'sportage-2026-4.jpg', 'sportage-2026-1.jpg', 'home-night.jpg'],
     brochure: {
       tagline: 'کراس‌اوور وارداتی کوشا خودرو — مدل ۲۰۲۶',
       highlights: ['پیشرانه ۱.۵ توربوشارژ ۱۹۸ اسب‌بخار', 'نمایشگر یکپارچه ۲۴.۶ اینچی', 'شش حالت رانندگی', 'دوربین ۳۶۰ درجه'],
@@ -77,10 +78,10 @@ const PRODUCTS = [
     name: 'کیا K5 توربو',
     slug: 'kia-k5-turbo',
     model: 'K5 1.5 T-GDI',
-    image: 'k5-2026.jpg',
+    image: 'k5-hero.jpg',
     category: 'sedan',
     featured: 1,
-    sort: 2,
+    sort: 3,
     price: 11355000000,
     price_note: 'قیمت نهایی مهر ۱۴۰۵ با احتساب هزینه‌های جانبی',
     engine: '۱.۵ لیتری توربوشارژ GDI — ۱۷۰ اسب بخار',
@@ -108,92 +109,10 @@ const PRODUCTS = [
       { label: 'کیسه هوا', value: '۶ عدد' },
       { label: 'تهویه', value: 'اتوماتیک دوگانه' },
     ],
+    gallery: ['k5-2024-2.jpg', 'k5-2024-3.jpg', 'k5-2024-1.jpg'],
     brochure: {
       tagline: 'سدان اسپرت کیا — عرضه کوشا خودرو',
       highlights: ['پیشرانه ۱.۵ توربوشارژ ۱۷۰ اسب‌بخار', 'گیربکس ۷ سرعته دوکلاچه', 'نمایشگر ۱۲.۳ اینچی', 'شش کیسه هوا'],
-    },
-  },
-  {
-    name: 'کیا پیکانتو ۲۰۲۶',
-    slug: 'kia-picanto-2026',
-    model: 'Picanto 1.2 MPI',
-    image: 'picanto-2026.jpg',
-    category: 'hatchback',
-    featured: 1,
-    sort: 3,
-    price: null,
-    price_note: 'قیمت اعلام نشده — برای استعلام تماس بگیرید',
-    engine: '۱.۲ لیتری تنفس طبیعی MPI — ۸۳ اسب بخار',
-    transmission: 'اتوماتیک ۴ سرعته',
-    fuel: 'بنزین',
-    short_desc:
-      'هاچ‌بک شهری سگمنت A با موتور ۱.۲ لیتری تنفس طبیعی، گیربکس ۴ سرعته اتوماتیک و مصرف ترکیبی ۵.۹ لیتر.',
-    body: `<p>کیا پیکانتو ۲۰۲۶ هاچ‌بک شهری کلاس A است که کوشا خودرو کاتالوگ رسمی آن را منتشر کرده است. تمرکز این خودرو بر ابعاد جمع‌وجور، تردد آسان در شهر و پارک در فضاهای محدود است.</p>
-<h3>ابعاد و فضای بار</h3>
-<p>طول ۳۵۹۵، عرض ۱۵۹۵ و ارتفاع ۱۴۸۵ میلی‌متر با فاصله محوری ۲۴۰۰ میلی‌متر و وزن خالص ۹۸۳ کیلوگرم. ظرفیت صندوق عقب ۲۵۵ لیتر است و صندلی‌های ردیف دوم خوابانده می‌شوند.</p>
-<h3>پیشرانه</h3>
-<p>موتور چهارسیلندر خطی ۱۶ سوپاپ با حجم ۱۲۴۸ سی‌سی و سوخت‌رسانی MPI، ۸۳ اسب‌بخار در ۶۰۰۰ دور و ۱۲۲ نیوتن‌متر گشتاور در ۴۰۰۰ دور تولید می‌کند. تنفس طبیعی بودن موتور، سازگاری آن با کیفیت سوخت داخلی و هزینه نگهداری پایین‌تر را به همراه دارد. گیربکس ۴ سرعته اتوماتیک، نیرو را به چرخ‌های جلو می‌رساند.</p>
-<h3>امکانات</h3>
-<p>چراغ‌های LED جلو با روشنایی روز، سانروف برقی، آینه‌های جانبی برقی تاشو و گرم‌کن‌دار، رینگ آلومینیومی ۱۵ اینچ با لاستیک ۱۸۵/۵۵ R15، نمایشگر لمسی ۸ اینچی با اپل کارپلی و اندروید اتو، تودوزی و غربیلک چرمی، ورود و استارت بدون کلید، دوربین دید عقب و فرمان برقی.</p>
-<h3>ایمنی</h3>
-<p>ABS، هشدار ترمز اضطراری (ESS)، سیستم ضد مانع شیشه‌بالابر، قفل صندلی کودک ISOFIX و کیسه‌های هوای راننده و سرنشین جلو.</p>`,
-    specs: [
-      { label: 'پیشرانه', value: '۱.۲ لیتری تنفس طبیعی MPI (۱۲۴۸ سی‌سی)' },
-      { label: 'قدرت', value: '۸۳ اسب بخار در ۶۰۰۰ دور' },
-      { label: 'گشتاور', value: '۱۲۲ نیوتن‌متر در ۴۰۰۰ دور' },
-      { label: 'گیربکس', value: 'اتوماتیک ۴ سرعته' },
-      { label: 'ابعاد (طول/عرض/ارتفاع)', value: '۳۵۹۵ / ۱۵۹۵ / ۱۴۸۵ میلی‌متر' },
-      { label: 'فاصله محوری', value: '۲۴۰۰ میلی‌متر' },
-      { label: 'وزن خالص', value: '۹۸۳ کیلوگرم' },
-      { label: 'ظرفیت صندوق', value: '۲۵۵ لیتر' },
-      { label: 'رینگ و لاستیک', value: 'آلومینیومی ۱۵ اینچ — ۱۸۵/۵۵ R15' },
-      { label: 'مصرف سوخت ترکیبی', value: '۵.۹ لیتر در ۱۰۰ کیلومتر' },
-      { label: 'حجم باک', value: '۳۵ لیتر' },
-      { label: 'تعلیق', value: 'مک‌فرسون جلو / تورشن بیم عقب' },
-      { label: 'ترمز', value: 'دیسکی خنک‌شونده جلو / کاسه‌ای عقب' },
-    ],
-    brochure: {
-      tagline: 'هاچ‌بک شهری کیا — وارداتی کوشا خودرو',
-      highlights: ['موتور ۱.۲ تنفس طبیعی', 'مصرف ۵.۹ لیتر در ۱۰۰ کیلومتر', 'سانروف برقی', 'نمایشگر ۸ اینچی'],
-    },
-  },
-  {
-    name: 'کیا سراتو GT Line',
-    slug: 'kia-cerato-gt-line',
-    model: 'Cerato GT Line',
-    image: 'cerato-gt-2026.jpg',
-    category: 'sedan',
-    featured: 1,
-    sort: 4,
-    price: null,
-    price_note: 'قیمت اعلام نشده — برای استعلام تماس بگیرید',
-    engine: '۲.۰ لیتری تنفس طبیعی — ۱۵۲ اسب بخار',
-    transmission: 'اتوماتیک ۶ سرعته',
-    fuel: 'بنزین',
-    short_desc:
-      'نسخه اسپرت GT Line سراتو با بدنه تیره‌کاری‌شده، رینگ ۱۷ اینچ و امکانات کامل رفاهی و ایمنی.',
-    body: `<p>کیا سراتو GT Line نسخه اسپرت‌تر سدان کامپکت کیا است که کوشا خودرو کاتالوگ مشخصات و امکانات آن را منتشر کرده است. تفاوت اصلی این نسخه با سراتو استاندارد در تجهیزات ظاهری اسپرت و آپشن‌های کامل‌تر است.</p>
-<h3>پیشرانه</h3>
-<p>پیشرانه ۲.۰ لیتری تنفس طبیعی با ۱۵۲ اسب‌بخار قدرت و ۱۹۲ نیوتن‌متر گشتاور، همراه با گیربکس اتوماتیک ۶ سرعته، نیرو را به چرخ‌های جلو می‌رساند.</p>
-<h3>طراحی GT Line</h3>
-<p>جلوپنجره مشبک تیره، سپر جلو با ورودی‌های هوا، رینگ آلومینیومی ۱۷ اینچ با طرح اسپرت، آینه‌های تیره و تریم داخلی مشکی با دوخت قرمز، ظاهر این نسخه را از سراتو معمولی متمایز می‌کند.</p>
-<h3>امکانات</h3>
-<p>نمایشگر لمسی ۱۰.۲۵ اینچی، کلاستر دیجیتال، صندلی‌های چرمی با گرم‌کن و تهویه، سانروف، ورود و استارت بدون کلید، شارژر بی‌سیم، کروز کنترل، دوربین دید عقب و سنسور پارک.</p>
-<h3>ایمنی</h3>
-<p>ترمز اضطراری خودکار با تشخیص عابر پیاده، حفظ خودرو بین خطوط، هشدار نقطه کور، هشدار خروج از خط، کنترل پایداری الکترونیکی، شش کیسه هوا و پایش فشار باد تایرها.</p>`,
-    specs: [
-      { label: 'پیشرانه', value: '۲.۰ لیتری تنفس طبیعی' },
-      { label: 'قدرت', value: '۱۵۲ اسب بخار' },
-      { label: 'گشتاور', value: '۱۹۲ نیوتن‌متر' },
-      { label: 'گیربکس', value: 'اتوماتیک ۶ سرعته' },
-      { label: 'محور محرک', value: 'دیفرانسیل جلو' },
-      { label: 'رینگ', value: 'آلومینیومی ۱۷ اینچ GT Line' },
-      { label: 'نمایشگر مرکزی', value: 'لمسی ۱۰.۲۵ اینچ' },
-      { label: 'کیسه هوا', value: '۶ عدد' },
-    ],
-    brochure: {
-      tagline: 'سدان اسپرت کیا — نسخه GT Line',
-      highlights: ['پیشرانه ۲.۰ لیتری ۱۵۲ اسب‌بخار', 'رینگ ۱۷ اینچ GT Line', 'صندلی چرمی با تهویه', 'ترمز اضطراری خودکار'],
     },
   },
 ];
@@ -205,7 +124,7 @@ const NEWS = [
     title: 'کیا اسپورتیج فیس‌لیفت ۲۰۲۶ با قیمت قطعی به ایران رسید',
     category: 'company-news',
     date: '2026-11-16 10:00:00',
-    image: 'sportage-2026.jpg',
+    image: 'news-1.jpg',
     excerpt:
       'کوشا خودرو نخستین عرضه‌کننده نسخه فیس‌لیفت اسپورتیج در ایران شد؛ خودرویی با چهره بازطراحی‌شده و کابین دو نمایشگر که تحویل آن به‌زودی آغاز می‌شود.',
     body: `<p>کوشا خودرو با ورود کیا اسپورتیج فیس‌لیفت مدل ۲۰۲۶، نخستین عرضه‌کننده این نسخه در بازار ایران شد. این خودرو نسخه به‌روزشده نسل پنجم اسپورتیج است که طراحی جلو و عقب، فضای کابین و پیکربندی امکانات آن تغییر کرده است.</p>
@@ -217,7 +136,7 @@ const NEWS = [
     title: 'شرایط فروش اسپورتیج نیوفیس ۲۰۲۶ در آبان ۱۴۰۵ اعلام شد',
     category: 'sales-notices',
     date: '2026-11-18 12:00:00',
-    image: 'sportage-2026.jpg',
+    image: 'news-4.jpg',
     excerpt:
       'قیمت قطعی ۱۲ میلیارد و ۴۷۳ میلیون تومان، پیش‌پرداخت ۸ میلیارد و ۶۵۲ میلیون تومان، تحویل ۹۰ روزه و گارانتی ۳ ساله.',
     body: `<p>بر اساس اطلاعیه کوشا خودرو، فروش فوق‌العاده کیا اسپورتیج نیوفیس ۲۰۲۶ تک‌دیفرانسیل با قیمت قطعی و موعد تحویل ۹۰ روز اعلام شد. ثبت‌نام از ساعت ۱۰ صبح یکشنبه ۱ آذر ۱۴۰۵ از طریق عاملیت‌های مجاز و سامانه فروش اینترنتی شرکت آغاز می‌شود.</p>
@@ -229,7 +148,7 @@ const NEWS = [
     title: 'قیمت جدید کیا K5 توربو و اسپورتیج نیوفیس در مهر ۱۴۰۵ اعلام شد',
     category: 'auto-industry',
     date: '2026-10-19 09:30:00',
-    image: 'k5-2026.jpg',
+    image: 'k5-hero.jpg',
     excerpt:
       'K5 توربو با افزایش ۳ میلیارد و ۹۲ میلیون تومانی به ۱۱ میلیارد و ۳۵۵ میلیون تومان و اسپورتیج نیوفیس به ۱۱ میلیارد و ۷۳۱ میلیون تومان رسید.',
     body: `<p>کوشا خودرو در مهرماه ۱۴۰۵ قیمت جدید دو خودروی وارداتی کیا K5 توربو و کیا اسپورتیج نیوفیس تک‌دیفرانسیل مدل ۲۰۲۶ را با احتساب تمام هزینه‌های جانبی اعلام کرد.</p>
@@ -272,7 +191,7 @@ const CIRCULARS = [
     title: 'بخشنامه شماره ۱۴۰۵/۳۱۲ — شرایط فروش فوق‌العاده کیا اسپورتیج نیوفیس ۲۰۲۶',
     category: 'sales-circulars',
     date: '2026-11-20 11:52:00',
-    image: 'sportage-2026.jpg',
+    image: 'news-4.jpg',
     excerpt:
       'قیمت قطعی ۱۲٬۴۷۳٬۶۳۴٬۰۰۰ تومان، پیش‌پرداخت ۸٬۶۵۲٬۵۳۲٬۰۰۰ تومان، تحویل ۹۰ روز، سود مشارکت و انصراف صفر درصد، جریمه تأخیر ۳ درصد ماهانه.',
     body: `<p>به اطلاع کلیه عاملیت‌ها و نمایندگی‌های مجاز می‌رساند؛ شرایط فروش فوق‌العاده کیا اسپورتیج نیوفیس ۲۰۲۶ تک‌دیفرانسیل به شرح زیر اعلام می‌شود.</p>
@@ -296,7 +215,7 @@ const CIRCULARS = [
     title: 'بخشنامه شماره ۱۴۰۵/۲۹۸ — اعلام قیمت جدید K5 توربو و اسپورتیج نیوفیس',
     category: 'sales-circulars',
     date: '2026-10-19 09:44:00',
-    image: 'k5-2026.jpg',
+    image: 'k5-hero.jpg',
     excerpt:
       'K5 توربو: ۱۱٬۳۵۵٬۰۰۰٬۰۰۰ تومان و اسپورتیج نیوفیس تک‌دیفرانسیل ۲۰۲۶: ۱۱٬۷۳۱٬۰۰۰٬۰۰۰ تومان با احتساب تمام هزینه‌های جانبی.',
     body: `<p>پیرو اطلاعیه‌های پیشین، قیمت نهایی دو محصول وارداتی به شرح زیر اعلام می‌گردد. قیمت‌ها با احتساب تمامی هزینه‌های جانبی و بر مبنای تعرفه‌های سال ۱۴۰۵ محاسبه شده است.</p>
@@ -331,7 +250,7 @@ const CIRCULARS = [
     title: 'بخشنامه شماره ۱۴۰۵/۲۳۱ — رویه جدید تأمین و توزیع قطعات یدکی',
     category: 'service-circulars',
     date: '2026-07-12 13:20:00',
-    image: null,
+    image: 'news-2.jpg',
     excerpt:
       'سفارش قطعات از طریق سامانه یکپارچه انبار انجام می‌شود؛ زمان‌بندی ارسال و اولویت نمایندگی‌های دارای تعهد خدمات.',
     body: `<p>به منظور تسریع در تأمین قطعات یدکی و شفاف‌سازی فرآیند توزیع، از تاریخ صدور این بخشنامه ثبت سفارش قطعات فقط از طریق سامانه یکپارچه انبار انجام می‌شود.</p>
@@ -349,7 +268,7 @@ const CIRCULARS = [
     title: 'بخشنامه شماره ۱۴۰۵/۲۰۵ — دوره‌های آموزشی تکنسین‌های خدمات پس از فروش',
     category: 'service-circulars',
     date: '2026-06-14 09:10:00',
-    image: null,
+    image: 'news-2.jpg',
     excerpt:
       'برنامه دوره‌های تخصصی برق و الکترونیک، گیربکس اتوماتیک و عیب‌یابی پیشرانه‌های توربوشارژ برای تکنسین‌های شبکه نمایندگی.',
     body: `<p>در راستای ارتقای کیفیت خدمات پس از فروش، برنامه دوره‌های آموزشی تخصصی تکنسین‌های شبکه نمایندگی به شرح زیر اعلام می‌شود.</p>
@@ -368,7 +287,7 @@ const CIRCULARS = [
     title: 'بخشنامه شماره ۱۴۰۵/۱۸۸ — الزامات ثبت پرونده گارانتی و مستندسازی',
     category: 'dealer-circulars',
     date: '2026-05-20 11:00:00',
-    image: null,
+    image: 'news-2.jpg',
     excerpt:
       'ثبت آنلاین پرونده، بارگذاری تصویر قطعه معیوب و ثبت کیلومتر در زمان پذیرش، شرط تأیید هزینه گارانتی است.',
     body: `<p>با توجه به بررسی‌های انجام‌شده در پرونده‌های گارانتی، رعایت الزامات زیر برای تأیید هزینه‌ها ضروری است.</p>
@@ -385,24 +304,24 @@ const CIRCULARS = [
 /* ---------- اسلایدهای صفحه اصلی ---------- */
 const SLIDES = [
   {
-    kicker: 'نماینده رسمی کیا در ایران',
-    title: 'کیا اسپورتیج نیوفیس ۲۰۲۶ رسید',
+    kicker: 'تکمیل شد',
+    title: 'فروش فوق‌العاده کیا اسپورتیج ۲۰۲۶',
     subtitle:
-      'پیشرانه ۱.۵ توربوشارژ ۱۹۸ اسب‌بخار، کابین دو نمایشگر و گارانتی ۳ ساله؛ با قیمت قطعی و تحویل ۹۰ روزه.',
-    image: 'cars/sportage-2026.jpg',
+      'ظرفیت فروش کیا اسپورتیج نیوفیس ۲۰۲۶ در طرح آبان ۱۴۰۵ تکمیل شد؛ اطلاعات طرح‌های فروش بعدی از همین صفحه اعلام می‌شود.',
+    image: 'cars/sportage-2026-hero.jpg',
     overlay: 58,
     align: 'right',
-    btn1_label: 'مشخصات و کاتالوگ',
-    btn1_url: '/products/kia-sportage-2026',
-    btn2_label: 'شرایط فروش',
-    btn2_url: '/circular/bakhshname-1405-312-sportage-aban',
+    btn1_label: 'اطلاع از طرح‌های فروش',
+    btn1_url: '/circulars',
+    btn2_label: 'مشخصات و کاتالوگ',
+    btn2_url: '/products/kia-sportage-2026',
   },
   {
-    kicker: 'بخشنامه‌های رسمی',
-    title: 'آخرین بخشنامه‌های فروش و خدمات',
+    kicker: 'محصولات کیا',
+    title: 'اسپورتیج ۲۰۲۵ در نمایشگاه کوشا خودرو',
     subtitle:
-      'شرایط فروش، اعلام قیمت و دستورالعمل‌های خدمات پس از فروش، به‌تفکیک برای مشتریان و شبکه نمایندگی.',
-    image: 'slides/hero-3.jpg',
+      'کاتالوگ رسمی محصولات کیا؛ مشخصات فنی، امکانات و شرایط فروش، به‌همراه امکان استعلام آنلاین قیمت.',
+    image: 'cars/home-showroom.jpg',
     overlay: 62,
     align: 'right',
     btn1_label: 'آرشیو بخشنامه‌ها',
@@ -412,9 +331,9 @@ const SLIDES = [
   },
   {
     kicker: 'شبکه خدمات پس از فروش',
-    title: 'سرویس دوره‌ای در بیش از ۳۰ نمایندگی',
-    subtitle: 'قطعات اصلی از کره جنوبی، تکنسین‌های آموزش‌دیده و پذیرش آنلاین در سراسر کشور.',
-    image: 'slides/hero-2.jpg',
+    title: 'کوشا خودرو همراه سفرهای شما',
+    subtitle: 'عاملیت‌های کوشا خودرو در سراسر کشور؛ تأمین قطعات اصلی کیا و پذیرش آنلاین سرویس دوره‌ای.',
+    image: 'cars/home-night.jpg',
     overlay: 56,
     align: 'right',
     btn1_label: 'یافتن نمایندگی نزدیک',
@@ -430,13 +349,38 @@ function catId(slug) {
   return c ? c.id : null;
 }
 
+const ALT_BY_FILE = {
+  'sportage-2026.jpg': 'کیا اسپورتیج نیوفیس ۲۰۲۶',
+  'k5-2026.jpg': 'کیا K5 توربو',
+  'cover-sportage-2025.jpg': 'کیا اسپورتیج ۲۰۲۵',
+  'cover-sportage-2024.jpg': 'کیا اسپورتیج ۲۰۲۴',
+  'cover-cerato-2024.jpg': 'کیا سراتو ۲۰۲۴',
+  'cover-cerato-2023.jpg': 'کیا سراتو ۲۰۲۳',
+  'cover-k5-2024.jpg': 'کیا K5 مدل ۲۰۲۴',
+  'cover-k5-2000.jpg': 'کیا K5 ۲۰۰۰ سی‌سی',
+  'cover-sonet-2023.jpg': 'کیا سونت ۲۰۲۳',
+  'cover-seltos-2023.jpg': 'کیا سلتوس ۲۰۲۳',
+  'cover-seltos-14.jpg': 'کیا سلتوس ۱.۴',
+  'cover-ceed.jpg': 'کیا سید',
+  'cover-ev5.jpg': 'کیا EV5',
+  'sportage-2026-hero.jpg': 'کیا اسپورتیج نیوفیس ۲۰۲۶',
+  'home-night.jpg': 'کیا سورنتو — کوشا خودرو',
+  'home-showroom.jpg': 'نمایشگاه کوشا خودرو',
+  'home-accessories.jpg': 'اکسسوری کیا — کوشا خودرو',
+  'news-1.jpg': 'کیا اسپورتیج ۲۰۲۶',
+  'news-2.jpg': 'بخشنامه فروش کوشا خودرو',
+  'news-3.jpg': 'کیا اسپورتیج ۲۰۲۶',
+  'news-4.jpg': 'فروش فوق‌العاده کیا اسپورتیج ۲۰۲۶',
+  'svc-charger.jpg': 'شارژ خودروهای برقی کوشا خودرو',
+  'svc-card.jpg': 'کارت هوشمند کوشا',
+  'svc-app.jpg': 'اپلیکیشن موبایل کوشا',
+};
+
 function imgFor(file) {
   if (!file) return null;
   const [folder] = file.includes('/') ? file.split('/') : ['cars', file];
   const name = file.split('/').pop();
-  const altBox = { 'sportage-2026.jpg': 'کیا اسپورتیج نیوفیس ۲۰۲۶', 'k5-2026.jpg': 'کیا K5 توربو',
-    'picanto-2026.jpg': 'کیا پیکانتto ۲۰۲۶', 'cerato-gt-2026.jpg': 'کیا سراتو GT Line' };
-  return imageId(name, folder === 'slides' ? 'slides' : 'cars', altBox[name] || name);
+  return imageId(name, folder === 'slides' ? 'slides' : 'cars', ALT_BY_FILE[name] || 'کوشا خودرو');
 }
 
 function upsertProduct(p) {
@@ -445,7 +389,8 @@ function upsertProduct(p) {
     name: p.name, slug: p.slug, model: p.model, category_id: catId(p.category),
     short_desc: p.short_desc, body: p.body, price: p.price, price_note: p.price_note,
     engine: p.engine, transmission: p.transmission, fuel: p.fuel, status: 'available',
-    specs_json: JSON.stringify(p.specs), gallery_json: JSON.stringify([]),
+    specs_json: JSON.stringify(p.specs),
+    gallery_json: JSON.stringify((p.gallery || []).map((g) => imgFor(g)).filter(Boolean)),
     cover_id: imgFor(p.image), featured: p.featured ? 1 : 0, sort: p.sort,
     brochure_json: JSON.stringify(p.brochure || {}),
   };
@@ -481,7 +426,7 @@ function upsertPost(p, type) {
 function upsertSlides() {
   // اسلایدهای seed قبلی را با محتوای تازه جایگزین می‌کنیم (فقط یک‌بار)
   const marker = get("SELECT value FROM settings WHERE key = 'seed_koosha_content'");
-  if (marker && marker.value === '2') return;
+  if (marker && (marker.value === '3')) return;
   run("DELETE FROM slides");
   SLIDES.forEach((sl, i) => {
     run(
@@ -492,7 +437,7 @@ function upsertSlides() {
         sl.btn1_label, sl.btn1_url, sl.btn2_label, sl.btn2_url, i]
     );
   });
-  run("INSERT INTO settings (key, value) VALUES ('seed_koosha_content','2') ON CONFLICT(key) DO UPDATE SET value='2'");
+  run("INSERT INTO settings (key, value) VALUES ('seed_koosha_content','3') ON CONFLICT(key) DO UPDATE SET value='3'");
 }
 
 /** تنظیمات پایه: فقط اگر مقدار فعلی خالی یا همان پیش‌فرض قدیمی باشد بازنویسی می‌شود */
@@ -506,6 +451,7 @@ function syncSettings() {
     support_phone: '021-49970000',
     address: 'کیلومتر ۴ جاده مخصوص کرج، شماره ۷۷ — دفتر تهران (فروش و خدمات پس از فروش)',
     site_tagline: 'فروش و خدمات پس از فروش کیا در ایران',
+    sale_url: '/products',
     footer_about: 'کوشا خودرو، عضو رسمی انجمن واردکنندگان خودرو و مرکز فروش و خدمات پس از فروش کیا در ایران؛ '
       + 'با واردات بیش از ۲۵٬۰۰۰ دستگاه خودرو و توزیع قطعات یدکی اصلی در سراسر کشور.',
   };
@@ -517,6 +463,7 @@ function syncSettings() {
     site_tagline: ['نماینده رسمی فروش و خدمات پس از فروش کیا در ایران', ''],
     logo_url: ['', ''],
     favicon_url: ['', ''],
+    sale_url: ['', 'https://kooshakhodro.com', '/'],
   };
   Object.keys(defaults).forEach((k) => {
     const current = get('SELECT value FROM settings WHERE key = ?', [k]);
@@ -563,10 +510,22 @@ function upsertAbout() {
   }
 }
 
+/** حذف محصولاتی که در کاتالوگ رسمی کوشا خودرو نیستند (پیکانتو و سراتو GT لاین) */
+function removeLegacyProducts() {
+  ['kia-picanto-2026', 'kia-cerato-gt-line', 'kia-seltos', 'kia-sonet', 'kia-sportage-2020'].forEach((slug) => {
+    const row = get('SELECT id FROM products WHERE slug = ?', [slug]);
+    if (!row) return;
+    run('DELETE FROM price_items WHERE product_id = ?', [row.id]);
+    run('DELETE FROM products WHERE id = ?', [row.id]);
+  });
+}
+
 function seedKoosha() {
   syncSettings();
   upsertAbout();
-  PRODUCTS.forEach(upsertProduct);
+  removeLegacyProducts();
+  const { CARS } = require('./seed-catalog');
+  PRODUCTS.concat(CARS).forEach(upsertProduct);
   NEWS.forEach((n) => upsertPost(n, 'news'));
   CIRCULARS.forEach((c) => upsertPost(c, 'circular'));
   upsertSlides();

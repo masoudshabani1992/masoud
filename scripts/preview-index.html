@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>پیش‌نمایش سایت کوشا خودرو</title>
+<style>
+  @font-face {
+    font-family: 'Vazirmatn';
+    src: url('fonts/Vazirmatn.woff2') format('woff2');
+    font-weight: 100 900; font-display: swap;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: 'Vazirmatn', Tahoma, sans-serif;
+    background: #0a0a0a; color: #f2f2ef; min-height: 100vh;
+    display: flex; align-items: center; justify-content: center; padding: 40px 18px;
+  }
+  .wrap { max-width: 940px; width: 100%; }
+  .head { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; margin-bottom: 8px; }
+  .head img { height: 80px; width: auto; }
+  .head h1 { margin: 0; font-size: clamp(24px, 4vw, 36px); font-weight: 800; letter-spacing: -.5px; }
+  .head p { margin: 6px 0 0; color: #a3a3a0; font-size: 14.5px; }
+  .rule { height: 1px; background: rgba(255,255,255,.14); margin: 26px 0; }
+  h2 { font-size: 15px; color: #8a8a85; font-weight: 600; letter-spacing: .1em; margin: 0 0 14px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+  a.card {
+    display: block; padding: 18px 20px; border: 1px solid rgba(255,255,255,.14);
+    border-radius: 14px; color: #fff; text-decoration: none; background: #141414;
+    transition: .2s; font-size: 15px;
+  }
+  a.card:hover { background: #fff; color: #0a0a0a; border-color: #fff; transform: translateY(-2px); }
+  a.card small { display: block; margin-top: 6px; font-size: 12px; color: #7c7c78; }
+  a.card:hover small { color: #4a4a46; }
+  a.card.main { background: #fff; color: #0a0a0a; border-color: #fff; }
+  a.card.main small { color: #55524e; }
+  .note {
+    margin-top: 30px; padding: 16px 20px; border-radius: 12px;
+    background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
+    color: #b9b9b4; font-size: 13px; line-height: 2;
+  }
+  .note b { color: #fff; }
+  .footer { margin-top: 26px; color: #6f6f6a; font-size: 12px; text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <img src="img/brand/koosha-logo-white.png" alt="کوشا خودرو">
+    <div>
+      <h1>پیش‌نمایش سایت کوشا خودرو</h1>
+      <p>نسخه آفلاین برای نمایش به کارفرما — بدون نیاز به نصب هیچ نرم‌افزاری</p>
+    </div>
+  </div>
+
+  <div class="rule"></div>
+
+  <h2>صفحه‌های اصلی</h2>
+  <div class="grid">
+    <a class="card main" href="index.html">صفحه اصلی<small>اسلایدر، محصولات، عاملیت‌ها، اخبار</small></a>
+    <a class="card main" href="products.html">محصولات کیا<small>کاتالوگ کامل مدل‌ها</small></a>
+    <a class="card" href="news.html">اخبار<small>آخرین اخبار کوشا خودرو</small></a>
+    <a class="card" href="circulars.html">بخشنامه‌ها<small>اطلاعیه‌های رسمی فروش</small></a>
+    <a class="card" href="dealers.html">عاملیت‌ها<small>شبکه نمایندگی در سراسر کشور</small></a>
+    <a class="card" href="prices.html">لیست قیمت<small>قیمت محصولات برای عاملیت‌ها</small></a>
+    <a class="card" href="contact.html">تماس با ما<small>آدرس، تلفن و فرم ارتباط</small></a>
+    <a class="card" href="p-about.html">درباره کوشا خودرو<small>معرفی شرکت</small></a>
+  </div>
+
+  <div class="note">
+    <b>راهنمای استفاده:</b> همین فایل را دوبار کلیک کنید؛ سایت در مرورگر باز می‌شود و همه صفحه‌ها از طریق منوی بالای سایت قابل مشاهده است.
+    برای ارسال به کارفرما، کل پوشه را zip کنید و بفرستید (این صفحه <b>index.html</b> است).
+    در این نسخه آفلاین فرم‌ها غیرفعال هستند؛ نسخه کامل روی سرور، فرم استعلام و پنل مدیریت را هم دارد.
+  </div>
+
+  <div class="footer">کوشا خودرو — فروش و خدمات پس از فروش کیا در ایران · ۰۲۱-۴۹۹۷۰۰۰۰</div>
+</div>
+</body>
+</html>

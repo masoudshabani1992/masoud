@@ -46,14 +46,14 @@ const PATHS = {
 
 function menu() {
   return [
-    { title: 'خانه', url: '/' },
-    { title: 'محصولات', url: '/products' },
-    { title: 'اخبار', url: '/news' },
-    { title: 'بخشنامه‌ها', url: '/circulars' },
-    { title: 'لیست قیمت', url: '/prices' },
-    { title: 'نمایندگی‌ها', url: '/dealers' },
+    { title: 'صفحه اصلی', url: '/' },
+    { title: 'فروش', url: '/prices' },
+    { title: 'خدمات پس از فروش', url: '/contact' },
+    { title: 'کاتالوگ محصولات کیا', url: '/products' },
+    { title: 'اخبار و بخشنامه', url: '/news' },
+    { title: 'عاملیت‌ها', url: '/dealers' },
+    { title: 'پیدا کردن تعمیرگاه', url: '/dealers' },
     { title: 'درباره ما', url: '/p/about' },
-    { title: 'تماس با ما', url: '/contact' },
   ];
 }
 
