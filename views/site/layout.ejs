@@ -64,8 +64,12 @@
 <header class="site-header">
   <div class="container">
     <a class="brand" href="/">
-      <span class="brand-mark">ک</span>
-      <span><%= s.site_name %><small><%= s.site_tagline %></small></span>
+      <% if (s.logo_url) { %>
+        <img src="<%= s.logo_url %>" alt="<%= s.site_name %>">
+      <% } else { %>
+        <span class="brand-mark">ک</span>
+        <span><%= s.site_name %><small><%= s.site_tagline %></small></span>
+      <% } %>
     </a>
     <button class="burger" aria-label="منو" onclick="document.querySelector('.nav').classList.toggle('open')">
       <span></span><span></span><span></span>

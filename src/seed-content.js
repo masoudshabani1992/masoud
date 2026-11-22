@@ -39,6 +39,7 @@ function seedDemo() {
     if (id) run('UPDATE products SET cover_id = ? WHERE slug = ? AND cover_id IS NULL', [id, slug]);
   }
 
+  // اگر محتوای واقعی کوشا خودرو (seed-koosha) وجود دارد، نمونه‌های نمایشی ساخته نشوند
   if (get("SELECT id FROM posts WHERE type = 'news' LIMIT 1")) return;
 
   const cat = (slug) => (get('SELECT id FROM categories WHERE slug = ?', [slug]) || {}).id || null;

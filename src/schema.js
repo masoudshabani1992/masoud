@@ -459,19 +459,23 @@ function seedAll() {
   migrate();
   seed();
   try {
-    require('./seed-content').seedDemo();
-  } catch (e) {
-    console.error('[seed-content]', e.message);
-  }
-  try {
     require('./seed-dealers').seedDealers();
   } catch (e) {
     console.error('[seed-dealers]', e.message);
   }
+  // محتوای واقعی کوشا خودرو اول ساخته می‌شود
   try {
     require('./seed-koosha').seedKoosha();
   } catch (e) {
     console.error('[seed-koosha]', e.message);
+  }
+  // نمونه نمایشی فقط اگر هیچ خبری وجود نداشت
+  try {
+    if (!require('./db').get("SELECT id FROM posts WHERE type = 'news' LIMIT 1")) {
+      require('./seed-content').seedDemo();
+    }
+  } catch (e) {
+    console.error('[seed-content]', e.message);
   }
 }
 
