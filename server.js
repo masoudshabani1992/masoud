@@ -7,10 +7,12 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 const compression = require('compression');
 const path = require('path');
+const fs = require('fs');
 
 const { seedAll } = require('./src/schema');
 const auth = require('./src/auth');
 const settings = require('./src/settings');
+const { escapeHtml } = require('./src/util');
 
 seedAll();
 auth.cleanupSessions();
@@ -34,6 +36,38 @@ app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 app.use(express.json({ limit: '2mb' }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public'), { maxAge: '7d' }));
+
+// ---- دانلود بسته‌های آماده (فقط اگر پوشه downloads وجود داشته باشد) ----
+const DOWNLOADS_DIR = path.join(__dirname, 'downloads');
+if (fs.existsSync(DOWNLOADS_DIR)) {
+  app.get('/downloads', (req, res) => {
+    let items = [];
+    try { items = fs.readdirSync(DOWNLOADS_DIR).filter((f) => f.endsWith('.zip')); } catch (e) { items = []; }
+    const rows = items.map((f) => {
+      const st = fs.statSync(path.join(DOWNLOADS_DIR, f));
+      const mb = (st.size / 1048576).toFixed(1);
+      const title = f.includes('preview') ? 'نسخه نمایشی (آفلاین، بدون نصب)' : 'نسخه کامل اجراشدنی با start.bat';
+      return `<li style="margin:14px 0"><a href="/downloads/${encodeURIComponent(f)}" download style="font-weight:700;font-size:17px">${escapeHtml(f)}</a>
+        <div style="font-size:13px;color:#666;margin-top:4px">${title} — ${mb} مگابایت</div></li>`;
+    }).join('');
+    res.send(`<!DOCTYPE html><html lang="fa" dir="rtl"><meta charset="utf-8">
+<title>دانلود بسته‌های کوشا خودرو</title>
+<body style="font-family:Tahoma,sans-serif;background:#0a0a0a;color:#eee;padding:40px;line-height:2">
+<h1 style="font-size:24px">بسته‌های آماده دانلود</h1><ul style="list-style:none;padding:0">${rows || '<li>فایلی موجود نیست.</li>'}</ul>
+<p style="color:#888;font-size:13px">پس از دانلود: اکسترکت کنید و روی start.bat (نسخه کامل) یا index.html (نسخه نمایشی) دوبار کلیک کنید.</p>
+</body></html>`);
+  });
+
+  app.use('/downloads', express.static(DOWNLOADS_DIR, {
+    maxAge: 0,
+    setHeaders: (res, filePath) => {
+      if (filePath.endsWith('.zip')) {
+        res.setHeader('Content-Type', 'application/zip');
+        res.setHeader('Content-Disposition', `attachment; filename="${path.basename(filePath)}"`);
+      }
+    },
+  }));
+}
 
 app.use(auth.loadUser);
 app.use(settings.locals);
