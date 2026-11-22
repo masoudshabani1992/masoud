@@ -21,3 +21,4 @@ public/catalogs/*.pdf
 dist-preview/
 build-win/
 deliver/
+downloads/
