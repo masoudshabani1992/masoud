@@ -74,8 +74,61 @@ app.use((err, req, res, next) => {
   );
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, '0.0.0.0', () => {
+const PORT = Number(process.env.PORT) || 3000;
+const HOST = process.env.HOST || '0.0.0.0';
+
+const server = app.listen(PORT, HOST, () => {
   console.log(`کوشا خودرو CMS روی http://localhost:${PORT} اجرا شد`);
   console.log(`پنل مدیریت: http://localhost:${PORT}/admin`);
+  console.log(`[ready] listening on ${HOST}:${PORT}`);
+});
+
+// اگر پورت در اختیار فرآیند دیگری بود، به‌جای کرش با پیام روشن خارج شویم
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`[fatal] پورت ${PORT} در حال استفاده است. فرآیند قبلی را متوقف کنید یا PORT را تغییر دهید.`);
+    process.exit(98);
+  }
+  if (err.code === 'EACCES') {
+    console.error(`[fatal] دسترسی به پورت ${PORT} مجاز نیست (پورت‌های زیر ۱۰۲۴ نیاز به دسترسی ویژه دارند).`);
+    process.exit(77);
+  }
+  console.error('[fatal] خطای سرور:', err.message);
+  process.exit(1);
+});
+
+// خاموشی تمیز: بستن اتصال‌ها و دیتابیس تا پورت و فایل WAL آزاد شوند
+let shuttingDown = false;
+function shutdown(signal) {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  console.log(`[shutdown] دریافت ${signal} — در حال بستن سرور…`);
+
+  const forceExit = setTimeout(() => {
+    console.error('[shutdown] خروج اجباری پس از ۸ ثانیه');
+    process.exit(1);
+  }, 8000);
+  forceExit.unref();
+
+  server.close(() => {
+    try {
+      const { db } = require('./src/db');
+      db.exec('PRAGMA wal_checkpoint(TRUNCATE);');
+      db.close();
+      console.log('[shutdown] دیتابیس بسته شد. خداحافظ.');
+    } catch (e) {
+      console.error('[shutdown] خطا در بستن دیتابیس:', e.message);
+    }
+    process.exit(0);
+  });
+}
+
+['SIGTERM', 'SIGINT', 'SIGHUP'].forEach((sig) => process.on(sig, () => shutdown(sig)));
+
+// خطاهای پیش‌بینی‌نشده نباید بی‌صدا سرور را زمین بزنند
+process.on('unhandledRejection', (reason) => {
+  console.error('[unhandledRejection]', reason && reason.message ? reason.message : reason);
+});
+process.on('uncaughtException', (err) => {
+  console.error('[uncaughtException]', err.message);
 });
