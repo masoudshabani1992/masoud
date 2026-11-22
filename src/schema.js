@@ -106,6 +106,8 @@ function migrate() {
     canonical TEXT,
     robots TEXT DEFAULT 'index,follow',
     og_image_id INTEGER,
+    brochure_id INTEGER,                       -- فایل کاتالوگ PDF در جدول media
+    brochure_json TEXT,                       -- {tagline, highlights[]}
     views INTEGER NOT NULL DEFAULT 0,
     updated_at TEXT NOT NULL DEFAULT (datetime('now')),
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -256,6 +258,18 @@ function migrate() {
   CREATE INDEX IF NOT EXISTS idx_categories_type ON categories(type);
   CREATE INDEX IF NOT EXISTS idx_media_created ON media(created_at);
   `);
+  addColumns();
+}
+
+/** افزودن ستون‌های تازه به دیتابیس‌های موجود (SQLite: ALTER TABLE فقط در صورت نبود ستون) */
+function addColumns() {
+  const has = (table, col) =>
+    require('./db').all(`PRAGMA table_info(${table})`).some((c) => c.name === col);
+  const jobs = [
+    ['products', 'brochure_id', 'ALTER TABLE products ADD COLUMN brochure_id INTEGER'],
+    ['products', 'brochure_json', 'ALTER TABLE products ADD COLUMN brochure_json TEXT'],
+  ];
+  jobs.forEach(([t, c, sql]) => { if (!has(t, c)) exec(sql); });
 }
 
 function seed() {
@@ -323,6 +337,7 @@ function seed() {
     ['product', 'سدان', 'sedan'],
     ['product', 'شاسی‌بلند و کراس‌اور', 'suv'],
     ['product', 'هیبریدی', 'hybrid'],
+    ['product', 'هاچ‌بک شهری', 'hatchback'],
   ];
   const catIds = {};
   for (const [type, name, slug] of cats) {
@@ -454,9 +469,9 @@ function seedAll() {
     console.error('[seed-dealers]', e.message);
   }
   try {
-    require('./seed-slides').seedSlides();
+    require('./seed-koosha').seedKoosha();
   } catch (e) {
-    console.error('[seed-slides]', e.message);
+    console.error('[seed-koosha]', e.message);
   }
 }
 

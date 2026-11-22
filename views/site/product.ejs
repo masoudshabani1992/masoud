@@ -1,144 +1,190 @@
-<section class="article-hero">
+<section class="pd-hero">
   <div class="container">
     <nav class="breadcrumb" aria-label="مسیر صفحه">
       <a href="/">خانه</a><span>/</span><a href="/products">محصولات</a><span>/</span><span><%= p.name %></span>
     </nav>
-    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap">
+
+    <div class="pd-hero-grid">
       <div>
-        <% if (p.cat_name) { %><span class="badge badge-type"><%= p.cat_name %></span><% } %>
-        <h1 style="font-size:32px;margin:10px 0 6px"><%= p.name %></h1>
-        <p class="muted" style="margin:0"><%= U.truncate(p.short_desc, 150) %></p>
-      </div>
-      <div style="text-align:center;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 20px">
-        <span class="muted" style="font-size:12px">قیمت</span>
-        <div style="font-size:20px;font-weight:800;color:var(--brand)">
-          <% if (p.price) { %><%= U.money(p.price) %> <small style="font-size:12px;font-weight:500">تومان</small>
-          <% } else { %>استعلام<% } %>
+        <% if (p.cat_name) { %><span class="badge badge-type" style="background:rgba(255,255,255,.1);color:#e6e6e1;border-color:rgba(255,255,255,.2)"><%= p.cat_name %></span><% } %>
+        <h1 class="pd-title"><%= p.name %></h1>
+        <div class="pd-model"><%= p.model || 'KIA' %></div>
+        <p class="pd-sub"><%= U.truncate(p.short_desc, 190) %></p>
+
+        <div class="pd-price-box">
+          <div class="pd-price">
+            <% if (p.price) { %><%= U.money(p.price) %> <small>تومان</small><% } else { %>استعلام قیمت<% } %>
+          </div>
+          <% if (p.price_note) { %><span class="pd-price-note"><%= p.price_note %></span><% } %>
         </div>
-        <% if (p.price_note) { %><small class="muted"><%= p.price_note %></small><% } %>
+
+        <div class="pd-quick">
+          <% if (brochure) { %>
+            <a class="btn btn-on-dark btn-sm" href="<%= brochure.url %>" target="_blank" rel="noopener">دانلود کاتالوگ PDF</a>
+          <% } else { %>
+            <a class="btn btn-on-dark btn-sm" href="#catalog">کاتالوگ محصول</a>
+          <% } %>
+          <a class="btn btn-outline-dark btn-sm" href="#inquiry">استعلام قیمت</a>
+        </div>
+      </div>
+
+      <div class="pd-media">
+        <% if (coverImg) { %>
+          <img src="<%= coverImg.url %>" alt="<%= coverImg.alt || p.name %>" fetchpriority="high">
+        <% } else { %>
+          <div style="height:100%;display:grid;place-items:center;color:#5a5a56">کیا</div>
+        <% } %>
       </div>
     </div>
   </div>
 </section>
 
-<div class="container">
-  <div class="article-layout">
-    <article>
-      <div class="article-cover" style="background:#f1f6fb;display:grid;place-items:center;min-height:220px">
-        <% if (coverImg) { %>
-          <img src="<%= coverImg.url %>" alt="<%= coverImg.alt || p.name %>">
-        <% } else { %>
-          <div style="font-size:64px;padding:50px">🚗</div>
-        <% } %>
-      </div>
+<section class="pd-specs-strip" aria-label="مشخصات کلیدی">
+  <div class="container" style="padding:0">
+    <div class="pd-specs-grid">
+      <div><span>پیشرانه</span><b><%= p.engine || '—' %></b></div>
+      <div><span>گیربکس</span><b><%= p.transmission || '—' %></b></div>
+      <div><span>سوخت</span><b><%= p.fuel || '—' %></b></div>
+      <div><span>وضعیت</span><b><%= U.STATUS_LABELS[p.status] %></b></div>
+    </div>
+  </div>
+</section>
 
-      <% if (gallery.length) { %>
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:26px">
-          <% gallery.forEach(function (g) { %>
-            <a href="<%= g.url %>" target="_blank" rel="noopener" style="border-radius:10px;overflow:hidden;border:1px solid var(--line)">
-              <img src="<%= g.url %>" alt="<%= g.alt || p.name %>" style="aspect-ratio:4/3;object-fit:cover" loading="lazy">
-            </a>
-          <% }); %>
-        </div>
-      <% } %>
+<div class="pd-body">
+  <div class="container">
+    <div class="pd-layout">
+      <div>
+        <section class="pd-section" id="catalog">
+          <h2>کاتالوگ محصول</h2>
+          <% if (brochure) { %>
+            <div class="catalog-card">
+              <div class="catalog-icon">PDF</div>
+              <div style="flex:1;min-width:180px">
+                <h3>کاتالوگ رسمی <%= p.name %></h3>
+                <p><%= brochureMeta.tagline || 'مشخصات فنی، امکانات و شرایط فروش' %></p>
+              </div>
+              <div class="catalog-actions">
+                <a class="btn btn-on-dark btn-sm" href="<%= brochure.url %>" download>دانلود کاتالوگ</a>
+                <a class="btn btn-outline-dark btn-sm" href="<%= brochure.url %>" target="_blank" rel="noopener">مشاهده آنلاین</a>
+              </div>
+            </div>
+          <% } else { %>
+            <div class="catalog-card">
+              <div class="catalog-icon">PDF</div>
+              <div style="flex:1;min-width:180px">
+                <h3>کاتالوگ مشخصات <%= p.name %></h3>
+                <p>همان اطلاعات این صفحه به‌صورت یک بروشور قابل چاپ و ذخیره؛ بدون نیاز به دانلود.</p>
+              </div>
+              <div class="catalog-actions">
+                <button type="button" class="btn btn-on-dark btn-sm" onclick="window.print()">چاپ / ذخیره PDF</button>
+              </div>
+            </div>
+          <% } %>
 
-      <div class="content">
-        <%- p.body || '<p>' + p.short_desc + '</p>' %>
-      </div>
-
-      <% if (specs.length) { %>
-        <h2 style="margin-top:40px;font-size:22px">مشخصات فنی</h2>
-        <div class="table-wrap">
-          <table class="data">
-            <tbody>
-              <% specs.forEach(function (sp) { %>
-                <tr><th style="width:38%"><%= sp.label %></th><td><%= sp.value %></td></tr>
+          <% if (brochureMeta && brochureMeta.highlights && brochureMeta.highlights.length) { %>
+            <div class="pd-highlights" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-top:18px">
+              <% brochureMeta.highlights.forEach(function (h) { %>
+                <div style="border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 16px;background:#111">
+                  <span style="display:block;width:7px;height:7px;background:#fff;border-radius:2px;margin-bottom:9px"></span>
+                  <span style="font-size:13.5px;color:#e8e8e3"><%= h %></span>
+                </div>
               <% }); %>
-            </tbody>
-          </table>
-        </div>
-      <% } %>
+            </div>
+          <% } %>
+        </section>
 
-      <div id="inquiry" style="margin-top:44px;background:var(--bg);border:1px solid var(--line);border-radius:16px;padding:28px">
-        <h2 style="font-size:20px;margin-bottom:6px">استعلام قیمت و مشاوره خرید</h2>
-        <p class="muted" style="font-size:14px">فرم زیر را تکمیل کنید؛ کارشناسان ما در اولین فرصت با شما تماس می‌گیرند.</p>
-        <% if (sent) { %>
-          <div class="alert alert-success">درخواست شما ثبت شد. کارشناسان ما به‌زودی با شما تماس می‌گیرند.</div>
+        <section class="pd-section">
+          <h2>معرفی و مشخصات</h2>
+          <div class="content"><%- p.body || '<p>' + U.escapeHtml(p.short_desc || '') + '</p>' %></div>
+        </section>
+
+        <% if (specs.length) { %>
+          <section class="pd-section">
+            <h2>جدول مشخصات فنی</h2>
+            <table class="pd-spec-table">
+              <tbody>
+                <% specs.forEach(function (sp) { %>
+                  <tr><th><%= sp.label %></th><td><%= sp.value %></td></tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </section>
         <% } %>
-        <form method="post" action="/products/<%= p.slug %>/inquiry" class="form-grid">
-          <div class="field">
-            <label>نام و نام خانوادگی <span style="color:var(--accent)">*</span></label>
-            <input type="text" name="name" required maxlength="120">
-          </div>
-          <div class="field">
-            <label>شماره تماس <span style="color:var(--accent)">*</span></label>
-            <input type="tel" name="phone" required maxlength="30" placeholder="۰۹۱۲۰۰۰۰۰۰۰">
-          </div>
-          <div class="field">
-            <label>شهر</label>
-            <input type="text" name="city" maxlength="80">
-          </div>
-          <div class="field">
-            <label>ایمیل</label>
-            <input type="email" name="email" maxlength="120">
-          </div>
-          <div class="field" style="grid-column:1/-1">
-            <label>توضیحات</label>
-            <textarea name="message" maxlength="1000" placeholder="سؤال یا درخواست خود را بنویسید..."></textarea>
-          </div>
-          <div style="grid-column:1/-1">
-            <button class="btn btn-primary" type="submit">ارسال درخواست</button>
-            <span class="muted" style="font-size:12px;margin-inline-start:10px">اطلاعات شما محفوظ است.</span>
-          </div>
-        </form>
-      </div>
-    </article>
 
-    <aside>
-      <div class="side-card">
-        <h3>ویژگی‌های کلیدی</h3>
-        <ul class="side-list">
-          <li><b>موتور:</b> <%= p.engine || '—' %></li>
-          <li><b>گیربکس:</b> <%= p.transmission || '—' %></li>
-          <li><b>سوخت:</b> <%= p.fuel || '—' %></li>
-          <li><b>وضعیت:</b> <span class="badge badge-<%= p.status %>"><%= U.STATUS_LABELS[p.status] %></span></li>
-        </ul>
-      </div>
-
-      <div class="side-card">
-        <h3>درخواست سریع</h3>
-        <p style="font-size:13.5px;color:var(--muted)">برای دریافت کاتالوگ و شرایط فروش تماس بگیرید.</p>
-        <a href="tel:<%= U.faToEnDigits(s.sales_phone || s.phone) %>" class="btn btn-primary" style="width:100%;margin-bottom:8px">
-          <%= U.toFa(s.sales_phone || s.phone) %>
-        </a>
-        <a href="<%= s.sale_url %>" target="_blank" rel="noopener" class="btn btn-ghost" style="width:100%">سامانه فروش اینترنتی</a>
-        <div class="share" style="margin-top:14px">
-          <button type="button" onclick="navigator.clipboard&&navigator.clipboard.writeText(location.href).then(()=>this.textContent='کپی شد')">کپی لینک</button>
-          <a href="https://t.me/share/url?url=<%= encodeURIComponent(seo.canonical) %>" target="_blank" rel="noopener">تلگرام</a>
-          <a href="https://wa.me/?text=<%= encodeURIComponent(seo.canonical) %>" target="_blank" rel="noopener">واتساپ</a>
-        </div>
-      </div>
-
-      <% if (related.length) { %>
-        <div class="side-card">
-          <h3>محصولات دیگر</h3>
-          <ul class="side-list">
-            <% related.forEach(function (r) { %>
-              <li>
-                <a href="/products/<%= r.slug %>" style="display:flex;gap:12px;align-items:center">
-                  <span style="flex:0 0 60px;height:46px;border-radius:8px;overflow:hidden;background:#eef4fb;display:grid;place-items:center">
-                    <% if (r.coverUrl) { %><img src="<%= r.coverUrl %>" alt="" style="width:100%;height:100%;object-fit:cover">
-                    <% } else { %>🚗<% } %>
-                  </span>
-                  <span><b style="display:block;color:var(--ink);font-size:13.5px"><%= r.name %></b>
-                    <small class="muted"><% if (r.price) { %><%= U.money(r.price) %> تومان<% } else { %>استعلام قیمت<% } %></small>
-                  </span>
+        <% if (gallery.length) { %>
+          <section class="pd-section">
+            <h2>تصاویر محصول</h2>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+              <% gallery.forEach(function (g) { %>
+                <a href="<%= g.url %>" target="_blank" rel="noopener" style="border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,.1)">
+                  <img src="<%= g.url %>" alt="<%= g.alt || p.name %>" style="aspect-ratio:4/3;object-fit:cover;width:100%" loading="lazy">
                 </a>
-              </li>
-            <% }); %>
-          </ul>
+              <% }); %>
+            </div>
+          </section>
+        <% } %>
+
+        <section class="pd-section" id="inquiry">
+          <h2>استعلام قیمت و مشاوره خرید</h2>
+          <% if (sent) { %>
+            <div class="alert alert-success">درخواست شما ثبت شد. کارشناسان ما به‌زودی با شما تماس می‌گیرند.</div>
+          <% } %>
+          <form method="post" action="/products/<%= p.slug %>/inquiry" class="form-grid pd-form">
+            <div class="field"><label>نام و نام خانوادگی *</label><input type="text" name="name" required maxlength="120"></div>
+            <div class="field"><label>شماره تماس *</label><input type="tel" name="phone" required maxlength="30" placeholder="۰۹۱۲۰۰۰۰۰۰۰"></div>
+            <div class="field"><label>شهر</label><input type="text" name="city" maxlength="80"></div>
+            <div class="field"><label>ایمیل</label><input type="email" name="email" maxlength="120"></div>
+            <div class="field" style="grid-column:1/-1"><label>توضیحات</label><textarea name="message" maxlength="1000" placeholder="سؤال یا درخواست خود را بنویسید..."></textarea></div>
+            <div style="grid-column:1/-1;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+              <button class="btn btn-on-dark" type="submit">ارسال درخواست</button>
+              <span style="font-size:12px;color:#8a8a85">اطلاعات شما محفوظ است.</span>
+            </div>
+          </form>
+        </section>
+      </div>
+
+      <aside>
+        <div class="pd-side-card">
+          <h3>درخواست سریع</h3>
+          <p style="font-size:13px;color:#9a9a95;margin:0 0 14px">برای دریافت کاتالوگ و شرایط فروش تماس بگیرید.</p>
+          <div class="side-actions">
+            <a href="tel:<%= U.faToEnDigits(s.sales_phone || s.phone) %>" class="btn btn-on-dark btn-sm"><%= U.toFa(s.sales_phone || s.phone) %></a>
+            <a href="<%= s.sale_url %>" target="_blank" rel="noopener" class="btn btn-outline-dark btn-sm">سامانه فروش اینترنتی</a>
+            <% if (brochure) { %><a href="<%= brochure.url %>" class="btn btn-outline-dark btn-sm" download>کاتالوگ PDF</a><% } %>
+          </div>
         </div>
-      <% } %>
-    </aside>
+
+        <div class="pd-side-card">
+          <h3>ویژگی‌های کلیدی</h3>
+          <div class="kv"><span>موتور</span><b><%= p.engine || '—' %></b></div>
+          <div class="kv"><span>گیربکس</span><b><%= p.transmission || '—' %></b></div>
+          <div class="kv"><span>سوخت</span><b><%= p.fuel || '—' %></b></div>
+          <div class="kv" style="border-bottom:0"><span>وضعیت</span><b><%= U.STATUS_LABELS[p.status] %></b></div>
+        </div>
+
+        <% if (related.length) { %>
+          <div class="pd-side-card">
+            <h3>محصولات دیگر</h3>
+            <% related.forEach(function (r) { %>
+              <a class="pd-related" href="/products/<%= r.slug %>">
+                <% if (r.coverUrl) { %><img src="<%= r.coverUrl %>" alt="" loading="lazy"><% } %>
+                <span>
+                  <b><%= r.name %></b>
+                  <small><% if (r.price) { %><%= U.money(r.price) %> تومان<% } else { %>استعلام قیمت<% } %></small>
+                </span>
+              </a>
+            <% }); %>
+          </div>
+        <% } %>
+
+        <div class="pd-side-card">
+          <h3>اشتراک‌گذاری</h3>
+          <div class="side-actions">
+            <button type="button" class="btn btn-outline-dark btn-sm" onclick="navigator.clipboard&&navigator.clipboard.writeText(location.href).then(()=>this.textContent='کپی شد')">کپی لینک صفحه</button>
+            <a class="btn btn-outline-dark btn-sm" href="https://t.me/share/url?url=<%= encodeURIComponent(seo.canonical) %>" target="_blank" rel="noopener">تلگرام</a>
+          </div>
+        </div>
+      </aside>
+    </div>
   </div>
 </div>

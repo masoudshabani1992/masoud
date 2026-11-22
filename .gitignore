@@ -8,3 +8,10 @@ public/uploads/*
 .env
 .DS_Store
 npm-debug.log*
+
+# فونت موقت تبدیل‌شده برای ساخت کاتالوگ و پیش‌نمایش‌ها
+data/Vazirmatn-catalog.ttf
+data/*.png
+
+# کاتالوگ‌های تولیدشده (با scripts/build-catalogs.py بازسازی می‌شوند)
+public/catalogs/*.pdf

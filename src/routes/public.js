@@ -56,9 +56,9 @@ function pageUrl(base, q, n) {
 
 /* ---------- صفحه اصلی ---------- */
 router.get('/', (req, res) => {
-  const s = getSettings();
+  const s = getSettings(true);
   const featuredProducts = all(
-    `SELECT * FROM products WHERE status <> 'out' ORDER BY featured DESC, sort, id DESC LIMIT 4`
+    `SELECT * FROM products WHERE status <> 'out' ORDER BY featured DESC, sort, id DESC LIMIT 8`
   ).map((p) => ({ ...p, coverUrl: (media(p.cover_id) || {}).url || null }));
 
   const latestNews = all(
@@ -69,7 +69,7 @@ router.get('/', (req, res) => {
 
   const latestCirculars = all(
     `SELECT p.*, c.name AS cat_name FROM posts p LEFT JOIN categories c ON c.id = p.category_id
-     WHERE ${published("AND p.type = 'circular'")} ORDER BY p.pinned DESC, COALESCE(p.doc_date, p.published_at) DESC LIMIT 5`
+     WHERE ${published("AND p.type = 'circular'")} ORDER BY p.pinned DESC, COALESCE(p.doc_date, p.published_at) DESC LIMIT 8`
   );
 
   const slides = all(
@@ -101,6 +101,7 @@ router.get('/', (req, res) => {
 
   renderPage(res, 'site/home', {
     page: { title: 'خانه' },
+    bodyClass: 'home-dark',
     seo,
     featuredProducts,
     productsCount: get('SELECT COUNT(*) c FROM products').c,
@@ -266,6 +267,8 @@ router.get('/products/:slug', (req, res) => {
   const coverImg = media(p.cover_id);
   const gallery = (JSON.parse(p.gallery_json || '[]')).map(media).filter(Boolean);
   const specs = JSON.parse(p.specs_json || '[]');
+  const brochure = p.brochure_id ? get('SELECT * FROM media WHERE id = ?', [p.brochure_id]) : null;
+  const brochureMeta = JSON.parse(p.brochure_json || '{}');
   const related = all(
     `SELECT name, slug, price, cover_id FROM products WHERE id <> ? ORDER BY featured DESC, sort LIMIT 3`, [p.id]
   ).map((r) => ({ ...r, coverUrl: (media(r.cover_id) || {}).url || null }));
@@ -293,6 +296,7 @@ router.get('/products/:slug', (req, res) => {
 
   renderPage(res, 'site/product', {
     page: { title: p.name }, seo, p, coverImg, gallery, specs, related,
+    brochure, brochureMeta, bodyClass: 'product-dark',
     sent: req.query.sent === '1',
     footerProducts: footerData(),
   });

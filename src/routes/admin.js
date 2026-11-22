@@ -358,7 +358,8 @@ router.get('/products/new', (req, res) => {
     active: 'products', title: 'افزودن محصول',
     p: { status: 'available', robots: 'index,follow', specs_json: '[]', gallery_json: '[]' },
     cats: all("SELECT * FROM categories WHERE type='product' ORDER BY sort, id"),
-    specs: [], gallery: [], coverUrl: null, analysis: seoLib.analyze({ kind: 'product' }), siteHost: siteHost(),
+    specs: [], gallery: [], coverUrl: null, brochureUrl: null,
+    analysis: seoLib.analyze({ kind: 'product' }), siteHost: siteHost(),
     STATUS_LABELS: U.STATUS_LABELS,
   });
 });
@@ -369,8 +370,10 @@ router.get('/products/:id/edit', (req, res) => {
   const specs = JSON.parse(p.specs_json || '[]');
   const gallery = JSON.parse(p.gallery_json || '[]').map(mediaById).filter(Boolean);
   const cov = mediaById(p.cover_id);
+  const bro = mediaById(p.brochure_id);
   render(res, 'admin/product-form', {
     active: 'products', title: 'ویرایش محصول', p, specs, gallery, coverUrl: cov ? cov.url : null,
+    brochureUrl: bro ? bro.url : null,
     cats: all("SELECT * FROM categories WHERE type='product' ORDER BY sort, id"),
     analysis: seoLib.analyze({ ...p, kind: 'product' }),
     STATUS_LABELS: U.STATUS_LABELS, siteHost: siteHost(),
@@ -419,6 +422,7 @@ function saveProduct(req, id) {
     canonical: String(b.canonical || '').trim(),
     robots: b.robots || 'index,follow',
     og_image_id: Number(b.og_image_id) || null,
+    brochure_id: Number(b.brochure_id) || null,
   };
   if (id) {
     const sets = Object.keys(d).map((k) => `${k} = :${k}`).join(', ');
@@ -437,6 +441,16 @@ router.post('/products/save', (req, res, next) => {
     logActivity(req, id ? 'update' : 'create', 'product', savedId, { name: req.body.name });
     res.redirect(`/admin/products/${savedId}/edit?ok=1`);
   } catch (e) { next(e); }
+});
+
+/* ---------- کاتالوگ PDF محصول ---------- */
+router.post('/products/:id/brochure', uploadAny.single('file'), (req, res) => {
+  if (req.get('x-csrf-token') !== auth.csrfToken(req)) return res.status(403).json({ error: 'csrf' });
+  if (!req.file) return res.status(400).json({ error: 'فایلی دریافت نشد' });
+  const id = Number(req.params.id);
+  const meta = record(req.file, req.admin.id, 'کاتالوگ محصول');
+  run('UPDATE products SET brochure_id = ?, updated_at = datetime(\'now\') WHERE id = ?', [meta.id, id]);
+  res.json({ ok: true, item: meta });
 });
 
 router.post('/products/:id/delete', (req, res) => {

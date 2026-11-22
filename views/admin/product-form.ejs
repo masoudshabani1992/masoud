@@ -3,6 +3,7 @@
   <input type="hidden" name="id" value="<%= p.id || '' %>">
   <input type="hidden" name="cover_id" id="cover_id" value="<%= p.cover_id || '' %>">
   <input type="hidden" name="og_image_id" id="og_image_id" value="<%= p.og_image_id || '' %>">
+  <input type="hidden" name="brochure_id" id="brochure_id" value="<%= p.brochure_id || '' %>">
 
   <div class="page-head">
     <div>
@@ -207,6 +208,31 @@
       </div>
 
       <div class="panel">
+        <div class="panel-head"><span>کاتالوگ PDF محصول</span></div>
+        <div class="panel-body">
+          <div id="brochure-box" style="border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px">
+            <% if (brochureUrl) { %>
+              <div class="flex" style="justify-content:space-between;align-items:center">
+                <a href="<%= brochureUrl %>" target="_blank" rel="noopener" style="font-weight:700;font-size:13px">مشاهده فایل فعلی ↗</a>
+                <button type="button" class="btn btn-ghost btn-sm" onclick="clearBrochure()">حذف</button>
+              </div>
+            <% } else { %>
+              <div class="small muted">کاتالوگی برای این محصول ثبت نشده است؛ در صفحه محصول فقط کاتالوگ مشخصات نمایش داده می‌شود.</div>
+            <% } %>
+          </div>
+          <div class="flex" style="gap:8px">
+            <input type="file" id="brochureFile" accept="application/pdf" style="display:none" onchange="uploadBrochure(this)">
+            <button type="button" class="btn btn-primary btn-sm grow" onclick="document.getElementById('brochureFile').click()">آپلود PDF کاتالوگ</button>
+            <% if (p.slug && brochureUrl) { %><a class="btn btn-ghost btn-sm" href="<%= brochureUrl %>" target="_blank" rel="noopener">پیش‌نمایش</a><% } %>
+          </div>
+          <div class="hint" style="margin-top:8px">
+            کاتالوگ رسمی دو صفحه‌ای (جلد + مشخصات فنی) از همین اطلاعات ساخته می‌شود؛
+            روی سرور اجرا کنید: <code dir="ltr">python3 scripts/build-catalogs.py</code>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
         <div class="panel-head"><span>تحلیل سئو</span></div>
         <div class="panel-body">
           <div class="seo-meter">
@@ -224,6 +250,32 @@
     </div>
   </div>
 </form>
+<script>
+  var CSRF_CAT = '<%= csrf %>';
+  var PRODUCT_ID = '<%= p.id || '' %>';
+  function setBrochure(item) {
+    document.getElementById('brochure_id').value = item.id;
+    document.getElementById('brochure-box').innerHTML =
+      '<div class="flex" style="justify-content:space-between;align-items:center">' +
+      '<a href="' + item.url + '" target="_blank" rel="noopener" style="font-weight:700;font-size:13px">مشاهده فایل جدید ↗</a>' +
+      '<span class="badge">' + (item.size ? Math.round(item.size / 1024) + ' KB' : 'PDF') + '</span></div>';
+  }
+  function clearBrochure() {
+    document.getElementById('brochure_id').value = '';
+    document.getElementById('brochure-box').innerHTML = '<div class="small muted">فایل حذف شد؛ برای اعمال، فرم را ذخیره کنید.</div>';
+  }
+  function uploadBrochure(input) {
+    if (!input.files.length) return;
+    var fd = new FormData();
+    fd.append('file', input.files[0]);
+    fetch('/admin/products/' + PRODUCT_ID + '/brochure', {
+      method: 'POST', body: fd, headers: { 'x-csrf-token': CSRF_CAT }
+    }).then(function (r) { return r.json(); }).then(function (d) {
+      if (d.error) { alert('خطا: ' + d.error); return; }
+      setBrochure(d.item);
+    });
+  }
+</script>
 
 <div id="picker" style="display:none;position:fixed;inset:0;background:rgba(9,24,40,.55);z-index:200;padding:24px;overflow:auto">
   <div style="max-width:920px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden">

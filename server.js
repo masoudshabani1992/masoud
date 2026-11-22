@@ -51,6 +51,8 @@ app.use((req, res, next) => {
 
 // ---- مسیرها ----
 app.use('/admin', require('./src/routes/admin'));
+// مسیر عمومی داده کاتالوگ (پیش از میدل‌ور احراز هویت API ثبت می‌شود)
+app.get('/api/catalog/data', require('./src/routes/api').catalogData);
 app.use('/api', require('./src/routes/api'));
 app.use('/', require('./src/routes/public'));
 
