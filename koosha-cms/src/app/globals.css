@@ -1,0 +1,106 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-vazir), Tahoma, Arial, sans-serif;
+  background: #ffffff;
+  color: #0a0a0a;
+}
+
+::selection {
+  background: #0a0a0a;
+  color: #ffffff;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f4f4f5;
+}
+::-webkit-scrollbar-thumb {
+  background: #0a0a0a;
+  border-radius: 8px;
+}
+
+@layer components {
+  .container-kh {
+    @apply mx-auto w-full max-w-container px-5 md:px-8;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-ink px-7 py-3 text-sm font-bold text-white transition-all duration-300 hover:bg-white hover:text-ink border-2 border-ink;
+  }
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border-2 border-ink bg-transparent px-7 py-3 text-sm font-bold text-ink transition-all duration-300 hover:bg-ink hover:text-white;
+  }
+  .btn-outline-white {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border-2 border-white bg-transparent px-7 py-3 text-sm font-bold text-white transition-all duration-300 hover:bg-white hover:text-ink;
+  }
+  .section-eyebrow {
+    @apply mb-3 inline-block text-xs font-bold uppercase tracking-[0.3em] text-ink/60;
+  }
+  .section-title {
+    @apply text-3xl font-black text-ink md:text-4xl lg:text-5xl;
+  }
+  .card-kh {
+    @apply rounded-2xl border border-line bg-white shadow-sm transition-all duration-300 hover:shadow-xl;
+  }
+  .admin-input {
+    @apply w-full rounded-lg border border-line bg-white px-4 py-2.5 text-sm text-ink outline-none transition focus:border-ink;
+  }
+  .admin-label {
+    @apply mb-1.5 block text-sm font-bold text-ink/80;
+  }
+  .admin-card {
+    @apply rounded-xl border border-line bg-white p-6 shadow-sm;
+  }
+  .admin-btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-ink px-5 py-2.5 text-sm font-bold text-white transition hover:opacity-85 disabled:opacity-50;
+  }
+  .admin-btn-outline {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-line bg-white px-5 py-2.5 text-sm font-bold text-ink transition hover:border-ink;
+  }
+  .admin-btn-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-red-700;
+  }
+}
+
+.kh-prose {
+  line-height: 2.1;
+}
+.kh-prose p {
+  margin-bottom: 1.1em;
+}
+.kh-prose h2, .kh-prose h3 {
+  font-weight: 900;
+  margin-top: 1.4em;
+  margin-bottom: 0.6em;
+}
+
+/* Swiper theme overrides - monochrome brand */
+.swiper-pagination-bullet {
+  background: rgba(255, 255, 255, 0.5) !important;
+  opacity: 1 !important;
+  width: 8px !important;
+  height: 8px !important;
+}
+.swiper-pagination-bullet-active {
+  background: #ffffff !important;
+  width: 22px !important;
+  border-radius: 999px !important;
+}
+.kh-light-pagination .swiper-pagination-bullet {
+  background: rgba(10, 10, 10, 0.25) !important;
+}
+.kh-light-pagination .swiper-pagination-bullet-active {
+  background: #0a0a0a !important;
+}
+.kh-carousel .swiper-slide {
+  height: auto;
+}
