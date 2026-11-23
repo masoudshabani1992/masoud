@@ -100,6 +100,13 @@ router.get('/', (req, res) => {
     productsCount: get('SELECT COUNT(*) c FROM products').c,
     latestNews,
     latestCirculars,
+    homeCities: (() => {
+      const prio = ['تهران', 'مشهد', 'اصفهان', 'شیراز', 'تبریز', 'کرج', 'اهواز', 'رشت', 'قم', 'کرمان', 'یزد', 'آمل'];
+      return dealerCities().sort(
+        (a, b) => (prio.indexOf(a.city) + 1 || 99) - (prio.indexOf(b.city) + 1 || 99)
+      );
+    })(),
+    homeDealersCount: get('SELECT COUNT(*) c FROM dealers WHERE active = 1').c,
     homeSections: JSON.parse(s.home_sections || '[]'),
     footerProducts: footerData(),
   });

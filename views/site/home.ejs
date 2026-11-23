@@ -165,6 +165,25 @@
 </section>
 <% } %>
 
+<!-- عاملیت‌ها و نمایندگی‌ها -->
+<section class="dealers-band">
+  <div class="container">
+    <div class="dealers-band-inner">
+      <span class="db-kicker">در سراسر کشور</span>
+      <h2>عاملیت‌ها و نمایندگی‌های کوشا خودرو</h2>
+      <p>شبکه فروش و خدمات پس از فروش کوشا خودرو در شهرهای مختلف ایران آماده ارائه خدمات به مشتریان است.</p>
+
+      <div class="db-chips">
+        <% homeCities.slice(0, 12).forEach(function (c) { %>
+          <a class="db-chip" href="/dealers?city=<%= encodeURIComponent(c.city) %>"><%= c.city %></a>
+        <% }); %>
+      </div>
+
+      <a class="db-btn" href="/dealers">مشاهده همه عاملیت‌ها</a>
+    </div>
+  </div>
+</section>
+
 <!-- درباره -->
 <section class="block alt">
   <div class="container">
