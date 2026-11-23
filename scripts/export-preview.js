@@ -146,11 +146,48 @@ async function main() {
     }
   }
 
-  // ۵) صفحه شروع (index.html) برای دوبار کلیک در ویندوز
+  // ۵) خودکفاسازی: تزریق CSS به‌صورت inline و فونت به‌صورت data-URI
+  //    (تجربه نشان داد بعضی مرورگرها/حالت‌ها فایل CSS کنارِ فایل HTML را بارگذاری نمی‌کنند)
+  let siteCss = '';
+  const siteCssPath = path.join(cssDir, 'site.css');
+  if (fs.existsSync(siteCssPath)) siteCss = fs.readFileSync(siteCssPath, 'utf8');
+
+  const fontPath = path.join(OUT, 'fonts', 'Vazirmatn.woff2');
+  if (siteCss && fs.existsSync(fontPath)) {
+    const b64 = fs.readFileSync(fontPath).toString('base64');
+    siteCss = siteCss.replace(/url\(\s*['"]?\.\.\/fonts\/Vazirmatn\.woff2['"]?\s*\)/g,
+      `url(data:font/woff2;base64,${b64})`);
+  }
+
+  // هر ارجاع تصویری نسبی داخل CSS را به شبکه ایمن تبدیل می‌کنیم
+  siteCss = siteCss.replace(/url\(\s*['"]?(?!data:)([^)'"]+)['"]?\s*\)/g, (all, u) => {
+    if (/^https?:/.test(u)) return all;
+    return `url(\"${u}\")`;
+  });
+
+  if (siteCss) {
+    const tag = `<link rel="stylesheet" href="css/site.css">`;
+    for (const [, file] of written) {
+      const fp = path.join(OUT, file);
+      if (!fs.existsSync(fp)) continue;
+      let html = fs.readFileSync(fp, 'utf8');
+      if (!html.includes(tag)) continue;
+      html = html.replace(tag, `<style>\n${siteCss}\n</style>`);
+      fs.writeFileSync(fp, html, 'utf8');
+    }
+    console.log('CSS درون صفحه‌ها تزریق شد (بدون وابستگی به فایل بیرونی)');
+  }
+
+  // ۶) صفحه شروع (index.html) برای دوبار کلیک در ویندوز
   const landing = path.join(__dirname, 'preview-index.html');
   if (fs.existsSync(landing)) {
     let html = fs.readFileSync(landing, 'utf8');
     html = html.replace(/href="index\.html"/, 'href="home.html"');
+    if (fs.existsSync(fontPath)) {
+      const b64 = fs.readFileSync(fontPath).toString('base64');
+      html = html.replace(/url\(\s*['"]?(?:\.\.\/)?fonts\/Vazirmatn\.woff2['"]?\s*\)/g,
+        `url(data:font/woff2;base64,${b64})`);
+    }
     fs.writeFileSync(path.join(OUT, 'index.html'), html, 'utf8');
   }
 
