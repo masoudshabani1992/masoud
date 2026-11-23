@@ -72,6 +72,12 @@ router.get('/', (req, res) => {
      WHERE ${published("AND p.type = 'circular'")} ORDER BY p.pinned DESC, COALESCE(p.doc_date, p.published_at) DESC LIMIT 5`
   );
 
+  const slides = all(
+    `SELECT sl.*, m.url AS image_url, m.alt AS image_alt
+       FROM slides sl LEFT JOIN media m ON m.id = sl.image_id
+      WHERE sl.active = 1 ORDER BY sl.sort, sl.id`
+  );
+
   const seo = seoLib.build({
     isHome: true,
     title: `${s.site_name} | ${s.site_tagline}`,
@@ -100,6 +106,7 @@ router.get('/', (req, res) => {
     productsCount: get('SELECT COUNT(*) c FROM products').c,
     latestNews,
     latestCirculars,
+    slides,
     homeCities: (() => {
       const prio = ['تهران', 'مشهد', 'اصفهان', 'شیراز', 'تبریز', 'کرج', 'اهواز', 'رشت', 'قم', 'کرمان', 'یزد', 'آمل'];
       return dealerCities().sort(

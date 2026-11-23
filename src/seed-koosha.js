@@ -304,37 +304,51 @@ const CIRCULARS = [
 /* ---------- اسلایدهای صفحه اصلی ---------- */
 const SLIDES = [
   {
-    kicker: 'تکمیل شد',
-    title: 'فروش فوق‌العاده کیا اسپورتیج ۲۰۲۶',
+    kicker: 'نماینده رسمی کیا در ایران',
+    title: 'کیا را با خیال راحت از کوشا خودرو بخرید',
     subtitle:
-      'ظرفیت فروش کیا اسپورتیج نیوفیس ۲۰۲۶ در طرح آبان ۱۴۰۵ تکمیل شد؛ اطلاعات طرح‌های فروش بعدی از همین صفحه اعلام می‌شود.',
+      'از سال ۱۳۸۷ در کنار شما هستیم؛ واردات رسمی محصولات کیا، گارانتی معتبر، تأمین قطعات اصلی و شبکه خدمات پس از فروش در سراسر کشور.',
     image: 'cars/sportage-2026-hero.jpg',
     overlay: 58,
     align: 'right',
-    btn1_label: 'اطلاع از طرح‌های فروش',
-    btn1_url: '/circulars',
-    btn2_label: 'مشخصات و کاتالوگ',
-    btn2_url: '/products/kia-sportage-2026',
+    btn1_label: 'مشاهده محصولات',
+    btn1_url: '/products',
+    btn2_label: 'بخشنامه‌ها و اطلاعیه‌ها',
+    btn2_url: '/circulars',
   },
   {
-    kicker: 'محصولات کیا',
-    title: 'اسپورتیج ۲۰۲۵ در نمایشگاه کوشا خودرو',
+    kicker: 'کیا K5 توربو',
+    title: 'سدان میان‌رده کیا با پیشرانه توربوشارژ',
     subtitle:
-      'کاتالوگ رسمی محصولات کیا؛ مشخصات فنی، امکانات و شرایط فروش، به‌همراه امکان استعلام آنلاین قیمت.',
-    image: 'cars/home-showroom.jpg',
-    overlay: 62,
+      'کابین هوشمند، گیربکس ۷ سرعته دوکلاچه و بسته کامل کمک‌راننده؛ کاتالوگ کامل، مشخصات فنی و شرایط فروش را ببینید.',
+    image: 'cars/k5-hero.jpg',
+    overlay: 54,
     align: 'right',
-    btn1_label: 'آرشیو بخشنامه‌ها',
-    btn1_url: '/circulars',
-    btn2_label: 'لیست قیمت نمایندگی‌ها',
+    btn1_label: 'مشخصات K5 توربو',
+    btn1_url: '/products/kia-k5-turbo',
+    btn2_label: 'لیست قیمت',
     btn2_url: '/prices',
+  },
+  {
+    kicker: 'کیا EV5 برقی',
+    title: 'آینده برقی کیا، اکنون در کوشا خودرو',
+    subtitle:
+      'کراس‌اوور الکتریکی کیا با پلتفرم اختصاصی E-GMP؛ کابین آرام، هزینه نگهداری پایین و گارانتی رسمی کوشا خودرو.',
+    image: 'cars/ev5-hero.jpg',
+    overlay: 48,
+    align: 'right',
+    btn1_label: 'معرفی کیا EV5',
+    btn1_url: '/products/kia-ev5',
+    btn2_label: 'شبکه نمایندگی‌ها',
+    btn2_url: '/dealers',
   },
   {
     kicker: 'شبکه خدمات پس از فروش',
     title: 'کوشا خودرو همراه سفرهای شما',
-    subtitle: 'عاملیت‌های کوشا خودرو در سراسر کشور؛ تأمین قطعات اصلی کیا و پذیرش آنلاین سرویس دوره‌ای.',
+    subtitle:
+      'عاملیت‌های کوشا خودرو در سراسر کشور؛ تأمین قطعات اصلی کیا، پذیرش آنلاین سرویس دوره‌ای و پشتیبانی ۲۴ ساعته مشتریان.',
     image: 'cars/home-night.jpg',
-    overlay: 56,
+    overlay: 60,
     align: 'right',
     btn1_label: 'یافتن نمایندگی نزدیک',
     btn1_url: '/dealers',
@@ -426,7 +440,7 @@ function upsertPost(p, type) {
 function upsertSlides() {
   // اسلایدهای seed قبلی را با محتوای تازه جایگزین می‌کنیم (فقط یک‌بار)
   const marker = get("SELECT value FROM settings WHERE key = 'seed_koosha_content'");
-  if (marker && (marker.value === '3')) return;
+  if (marker && (marker.value === '4')) return;
   run("DELETE FROM slides");
   SLIDES.forEach((sl, i) => {
     run(
@@ -437,7 +451,7 @@ function upsertSlides() {
         sl.btn1_label, sl.btn1_url, sl.btn2_label, sl.btn2_url, i]
     );
   });
-  run("INSERT INTO settings (key, value) VALUES ('seed_koosha_content','3') ON CONFLICT(key) DO UPDATE SET value='3'");
+  run("INSERT INTO settings (key, value) VALUES ('seed_koosha_content','4') ON CONFLICT(key) DO UPDATE SET value='4'");
 }
 
 /** تنظیمات پایه: فقط اگر مقدار فعلی خالی یا همان پیش‌فرض قدیمی باشد بازنویسی می‌شود */
@@ -452,6 +466,8 @@ function syncSettings() {
     address: 'کیلومتر ۴ جاده مخصوص کرج، شماره ۷۷ — دفتر تهران (فروش و خدمات پس از فروش)',
     site_tagline: 'فروش و خدمات پس از فروش کیا در ایران',
     sale_url: '/products',
+    slider_autoplay: '1',
+    slider_interval: '6',
     footer_about: 'کوشا خودرو، عضو رسمی انجمن واردکنندگان خودرو و مرکز فروش و خدمات پس از فروش کیا در ایران؛ '
       + 'با واردات بیش از ۲۵٬۰۰۰ دستگاه خودرو و توزیع قطعات یدکی اصلی در سراسر کشور.',
   };
