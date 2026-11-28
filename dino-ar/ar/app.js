@@ -112,9 +112,72 @@ btnGame.addEventListener('click', function () {
   document.body.classList.toggle('gamemode', gameOn);
   btnGame.classList.toggle('on', gameOn);
   hud.classList.toggle('show', gameOn);
-  if (gameOn) { toast('🎮 بازی شروع شد! روی هر عضو بزن تا یک روپایی بخورد'); hudRender(false); }
-  else toast('🎮 بازی تمام شد');
+  var frame = document.getElementById('frame');
+  if (gameOn) {
+    ensureBall(frame);
+    ballEl.style.display = '';
+    setBall(50, -14);
+    flyBall(50, 76, null);
+    toast('⚽ بازی شروع شد! روی هر عضو بزن تا با توپ روپایی بزند');
+    hudRender(false);
+  } else {
+    if (ballEl) ballEl.style.display = 'none';
+    toast('🎮 بازی تمام شد');
+  }
 });
+
+// ── توپ FIFA ⚽ : با هر ضربه، توپ پیش همان عضو می‌رود و روپایی می‌خورد ──
+var ballEl = null, ballRot = 0, ballPos = { x: 50, y: 76 }, flying = false;
+function ensureBall(frame) {
+  if (ballEl) return ballEl;
+  ballEl = document.createElement('div');
+  ballEl.id = 'bzBall';
+  ballEl.innerHTML = '<i><em><span>⚽</span></em></i>';
+  frame.appendChild(ballEl);
+  var size = function () { if (ballEl) ballEl.style.fontSize = Math.round(frame.clientWidth * 0.115) + 'px'; };
+  size();
+  window.addEventListener('resize', size);
+  return ballEl;
+}
+function setBall(x, y) {
+  ballPos = { x: x, y: y };
+  ballEl.style.left = x + '%';
+  ballEl.style.top = y + '%';
+}
+function flyBall(tx, ty, cb) {
+  if (flying || !ballEl) return;
+  flying = true;
+  var sx = ballPos.x, sy = ballPos.y, t0 = performance.now(), D = 460;
+  var arc = 14 + Math.abs(tx - sx) * 0.3 + Math.abs(ty - sy) * 0.15;
+  var rot0 = ballRot, spin = (tx >= sx ? 1 : -1) * 400;
+  var rot = ballEl.firstElementChild;
+  function step(now) {
+    var t = Math.min(1, (now - t0) / D);
+    var x = sx + (tx - sx) * t;
+    var y = sy + (ty - sy) * t - arc * Math.sin(Math.PI * t);
+    ballEl.style.left = x + '%';
+    ballEl.style.top = y + '%';
+    ballRot = rot0 + spin * t;
+    rot.style.transform = 'translate(-50%, -50%) rotate(' + ballRot.toFixed(1) + 'deg)';
+    if (t < 1) requestAnimationFrame(step);
+    else {
+      flying = false;
+      setBall(tx, ty);
+      ballEl.classList.add('land');
+      setTimeout(function () { if (ballEl) ballEl.classList.remove('land'); }, 240);
+      if (cb) cb();
+    }
+  }
+  requestAnimationFrame(step);
+}
+function charSpot(img) {
+  var frame = document.getElementById('frame');
+  var fr = frame.getBoundingClientRect(), r = img.getBoundingClientRect();
+  return {
+    x: ((r.left - fr.left) + r.width / 2) / fr.width * 100,
+    y: ((r.top - fr.top) + r.height * 0.2) / fr.height * 100
+  };
+}
 function hitChar(c, img, ev) {
   scores[c.id] = (scores[c.id] || 0) + 1;
   img.classList.remove('bz-hit'); void img.offsetWidth; img.classList.add('bz-hit');
@@ -127,6 +190,10 @@ function hitChar(c, img, ev) {
   var pl = document.createElement('span'); pl.className = 'bz-plus'; pl.textContent = '+۱'; pl.style.left = x + 'px'; pl.style.top = (y - 8) + 'px';
   frame.appendChild(b); frame.appendChild(pl);
   setTimeout(function () { b.remove(); pl.remove(); }, 800);
+  if (ballEl && ballEl.style.display !== 'none') {
+    var sp = charSpot(img);
+    flyBall(sp.x, sp.y, null);
+  }
   var members = 0; for (var k in scores) if (scores[k] > 0) members++;
   var all = (STAND.characters || []).length;
   var win = false;

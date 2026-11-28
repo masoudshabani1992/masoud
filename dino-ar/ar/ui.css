@@ -230,3 +230,23 @@ body.portrait { background: #0d1015; }
   background: #000; display: block; margin-top: 8px;
 }
 #videoSheet h3 { color: #ffd65a; margin: 0 0 4px; font-size: 16px; }
+
+/* ── توپ FIFA ⚽ حالت بازی ── */
+#bzBall { position: absolute; left: 50%; top: 76%; width: 0; height: 0; pointer-events: none; z-index: 55; display: none; }
+#bzBall i, #bzBall em, #bzBall span { display: block; }
+#bzBall i { transform: translate(-50%, -50%); }
+#bzBall span {
+  font-size: inherit; line-height: 1;
+  filter: drop-shadow(0 4px 5px rgba(0, 0, 0, .5));
+  animation: bz-ball-idle .85s ease-in-out infinite;
+}
+@keyframes bz-ball-idle {
+  0%   { transform: translateY(0) scale(1.06, .9); }
+  45%  { transform: translateY(-30%) scale(.98, 1.04); }
+  100% { transform: translateY(0) scale(1.06, .9); }
+}
+#bzBall.land em { animation: bz-ball-land .22s ease-out; }
+@keyframes bz-ball-land {
+  0%   { transform: scale(1.28, .72); }
+  100% { transform: scale(1, 1); }
+}
