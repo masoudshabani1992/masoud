@@ -80,15 +80,83 @@ function start(st) {
     img.style.width = (c.width != null ? c.width : 50) + '%';
     img.style.animationDuration = (c.dur || 3) + 's';
     img.style.animationDelay = (-Math.random() * 2).toFixed(2) + 's';
-    img.addEventListener('click', function () { openPopup(c); });
+    img.addEventListener('click', function (ev) { if (gameOn) hitChar(c, img, ev); else openPopup(c); });
     frame.appendChild(img);
   });
+
+  var bv = document.getElementById('btnVideo');
+  if (bv) bv.style.display = st.video ? '' : 'none';
 
   setTimeout(function () {
     var h = document.getElementById('hint');
     if (h) h.style.opacity = '0';
   }, 6000);
 }
+
+// ── بازی روپایی 🎮 : هر ضربه = یک روپایی به همان عضو ──
+var gameOn = false, scores = {}, roundWon = false;
+var btnGame = document.getElementById('btnGame');
+var hud = document.getElementById('gameHud');
+function faNum(n) { return String(n).replace(/\d/g, function (d) { return '۰۱۲۳۴۵۶۷۸۹'[d]; }); }
+function hudRender(win) {
+  var total = 0, members = 0;
+  for (var k in scores) { total += scores[k]; if (scores[k] > 0) members++; }
+  var all = (STAND && STAND.characters) ? STAND.characters.length : 0;
+  var t = '🎮 روپایی‌ها: ' + faNum(total) + ' — عضوها: ' + faNum(members) + ' از ' + faNum(all);
+  if (win) t += '  🏆 آفرین! به همهٔ عضو‌ها روپایی زدی!';
+  document.getElementById('hudTxt').textContent = t;
+}
+btnGame.addEventListener('click', function () {
+  gameOn = !gameOn;
+  scores = {}; roundWon = false;
+  document.body.classList.toggle('gamemode', gameOn);
+  btnGame.classList.toggle('on', gameOn);
+  hud.classList.toggle('show', gameOn);
+  if (gameOn) { toast('🎮 بازی شروع شد! روی هر عضو بزن تا یک روپایی بخورد'); hudRender(false); }
+  else toast('🎮 بازی تمام شد');
+});
+function hitChar(c, img, ev) {
+  scores[c.id] = (scores[c.id] || 0) + 1;
+  img.classList.remove('bz-hit'); void img.offsetWidth; img.classList.add('bz-hit');
+  if (!muted && c.roar) { try { var a = new Audio(c.roar); a.volume = 0.9; a.play().catch(function () {}); } catch (e) {} }
+  var frame = document.getElementById('frame');
+  var r = frame.getBoundingClientRect();
+  var x = (ev && ev.clientX != null) ? ev.clientX - r.left : r.width / 2;
+  var y = (ev && ev.clientY != null) ? ev.clientY - r.top : r.height / 2;
+  var b = document.createElement('span'); b.className = 'bz-burst'; b.style.left = x + 'px'; b.style.top = y + 'px';
+  var pl = document.createElement('span'); pl.className = 'bz-plus'; pl.textContent = '+۱'; pl.style.left = x + 'px'; pl.style.top = (y - 8) + 'px';
+  frame.appendChild(b); frame.appendChild(pl);
+  setTimeout(function () { b.remove(); pl.remove(); }, 800);
+  var members = 0; for (var k in scores) if (scores[k] > 0) members++;
+  var all = (STAND.characters || []).length;
+  var win = false;
+  if (all > 0 && members >= all && !roundWon) { roundWon = true; win = true; toast('🏆 آفرین! به همهٔ عضو‌ها روپایی زدی!'); }
+  hudRender(win);
+}
+
+// ── ویدیوی استند 🎬 (فایل خودمیزبان یا لینک Drive) ──
+var btnVideo = document.getElementById('btnVideo');
+var videoSheet = document.getElementById('videoSheet');
+btnVideo.addEventListener('click', function () {
+  if (!STAND || !STAND.video) { toast('🎬 برای این استند ویدیویی تعریف نشده'); return; }
+  var v = document.getElementById('vidEl'), f = document.getElementById('vidFrame');
+  var m = /drive\.google\.com\/file\/d\/([^/?]+)|[?&]id=([^&]+)/.exec(STAND.video);
+  if (/^https?:/.test(STAND.video) && m) {
+    f.src = 'https://drive.google.com/file/d/' + (m[1] || m[2]) + '/preview';
+    f.style.display = ''; v.style.display = 'none';
+  } else {
+    v.style.display = ''; f.style.display = 'none'; f.src = '';
+    v.src = STAND.video; v.muted = muted;
+    v.play().catch(function () {});
+  }
+  videoSheet.classList.add('open');
+});
+document.getElementById('videoClose').addEventListener('click', function () {
+  var v = document.getElementById('vidEl'), f = document.getElementById('vidFrame');
+  try { v.pause(); v.removeAttribute('src'); v.load(); } catch (e) {}
+  f.src = ''; f.style.display = 'none';
+  videoSheet.classList.remove('open');
+});
 
 // ── پاپ‌آپ + صدا ──
 function openPopup(d) {

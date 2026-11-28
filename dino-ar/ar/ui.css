@@ -186,3 +186,47 @@ body.portrait { background: #0d1015; }
   100% { transform: scaleY(1) translateY(0); }
 }
 #frame .anim-breathe { transform-origin: 50% 100%; animation: bz-breathe 3.2s ease-in-out infinite; }
+
+/* ── حالت بازی روپایی 🎮 ── */
+#gameHud { display: none; justify-content: center; margin: 2px 0 6px; }
+#gameHud.show { display: flex; }
+#gameHud span {
+  background: rgba(20, 16, 10, .78); color: #ffd65a; border: 1px solid rgba(255, 214, 90, .45);
+  border-radius: 999px; padding: 5px 16px; font-size: 13px; font-weight: 700;
+  backdrop-filter: blur(4px); text-align: center; max-width: 92%;
+}
+.big-btn.on { background: linear-gradient(180deg, #ffd65a, #f0a52e); color: #3a2708; border-color: #fff3c4; }
+.gamemode #frame .char { cursor: pointer; filter: drop-shadow(0 0 7px rgba(255, 230, 120, .4)); }
+@keyframes bz-hit {
+  0%   { transform: translateY(0) scale(1, 1); }
+  28%  { transform: translateY(1.6%) scale(1.07, .88); }
+  62%  { transform: translateY(-5.5%) scale(.95, 1.07); }
+  100% { transform: translateY(0) scale(1, 1); }
+}
+#frame .bz-hit { animation: bz-hit .5s ease-out both !important; }
+@keyframes bz-burst-k {
+  0%   { transform: translate(-50%, -50%) scale(.25); opacity: .95; }
+  100% { transform: translate(-50%, -50%) scale(2.6);  opacity: 0; }
+}
+.bz-burst {
+  position: absolute; width: 46px; height: 46px; border-radius: 50%;
+  border: 3px solid rgba(255, 214, 90, .95); box-shadow: 0 0 14px rgba(255, 180, 60, .7) inset;
+  pointer-events: none; animation: bz-burst-k .6s ease-out both; z-index: 60;
+}
+@keyframes bz-plus-k {
+  0%   { transform: translate(-50%, -60%); opacity: 1; }
+  100% { transform: translate(-50%, -190%); opacity: 0; }
+}
+.bz-plus {
+  position: absolute; color: #fff; font-weight: 900; font-size: 20px;
+  text-shadow: 0 0 8px rgba(255, 160, 40, .95); pointer-events: none;
+  animation: bz-plus-k .7s ease-out both; z-index: 61;
+}
+
+/* ── sheet ویدیو 🎬 ── */
+#videoSheet .box.vbox { width: min(94vw, 640px); background: #14100a; }
+#videoSheet video, #videoSheet iframe {
+  width: 100%; aspect-ratio: 16 / 9; border: 0; border-radius: 12px;
+  background: #000; display: block; margin-top: 8px;
+}
+#videoSheet h3 { color: #ffd65a; margin: 0 0 4px; font-size: 16px; }

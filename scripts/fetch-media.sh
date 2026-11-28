@@ -34,4 +34,22 @@ for fid, name in pairs:
 print('== folder fetch done:', len(seen), 'files')
 PY
 ls -la "$DEST"
+
+# --- ویدیوی استند دایناسور (فایل تکی) ---
+VID="1VIXDIC3vGswpXnImExMR0pro-nMgCmSy"
+VDEST="dino-ar/content/dino/video"
+mkdir -p "$VDEST"
+curl -sL "https://drive.google.com/uc?export=download&id=${VID}" -o "$VDEST/daynasur.mp4" || true
+python3 - "$VDEST/daynasur.mp4" <<'PY'
+import sys, os, subprocess
+p = sys.argv[1]
+with open(p, 'rb') as f: head = f.read(300)
+if b'<html' in head.lower()[:300]:
+    print('video html gate — retry with confirm')
+    subprocess.run(['curl', '-sL', '-b', '/tmp/cj', '-c', '/tmp/cj',
+                    'https://drive.google.com/uc?export=download&confirm=t&id=1VIXDIC3vGswpXnImExMR0pro-nMgCmSy',
+                    '-o', p], check=True)
+print('video size:', os.path.getsize(p))
+PY
+ls -la "$VDEST"
 echo "== done"

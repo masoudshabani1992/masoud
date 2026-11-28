@@ -14,7 +14,7 @@ $BZ_TOK = bz_token();
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>بازیکا — استند زنده</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦖</text></svg>" />
-  <link rel="stylesheet" href="ui.css?v=9" />
+  <link rel="stylesheet" href="ui.css?v=10" />
   <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap" rel="stylesheet" />
 </head>
 <body class="portrait">
@@ -23,6 +23,7 @@ $BZ_TOK = bz_token();
 
     <div id="frameWrap">
       <div id="standTitle">استند زنده</div>
+      <div id="gameHud"><span id="hudTxt"></span></div>
       <div id="frame">
         <div id="stage"></div>
         <div id="hint">🦖 روی دایناسورها ضربه بزنید!</div>
@@ -34,6 +35,8 @@ $BZ_TOK = bz_token();
     <!-- نوار پایین: پخش صدای راوی + اطلاعات -->
     <div id="bottombar">
       <button id="btnPlay" class="big-btn">▶<span>صدای راوی</span></button>
+      <button id="btnGame" class="big-btn" aria-label="بازی روپایی">🎮<span>بازی</span></button>
+      <button id="btnVideo" class="big-btn" style="display:none" aria-label="پخش ویدیو">🎬<span>ویدیو</span></button>
       <button id="btnMute" class="big-btn" aria-label="قطع/وصل صدا">🔊<span>صدا</span></button>
       <button id="btnInfo" class="big-btn">ℹ<span>اطلاعات</span></button>
     </div>
@@ -58,11 +61,21 @@ $BZ_TOK = bz_token();
       </div>
     </div>
 
+    <!--.sheet ویدیو -->
+    <div id="videoSheet" class="sheet">
+      <div class="box vbox">
+        <button class="close" id="videoClose" aria-label="بستن">✖</button>
+        <h3>🎬 ویدیوی استند</h3>
+        <video id="vidEl" controls playsinline></video>
+        <iframe id="vidFrame" style="display:none" allow="autoplay; fullscreen" allowfullscreen></iframe>
+      </div>
+    </div>
+
     <div id="toast"></div>
   </div>
 
   <script>window.BZ_TOKEN = <?php echo json_encode($BZ_TOK); ?>;</script>
-  <script src="app.js?v=9"></script>
+  <script src="app.js?v=10"></script>
   <script>
     (function () {
       var d = document.getElementById('diag');

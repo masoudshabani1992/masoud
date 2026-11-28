@@ -99,6 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save'])) {
         'month' => trim((string)$_POST['month']),
         'background' => (string)($_POST['background'] ?: ($old['background'] ?? '')),
         'narration' => (string)($_POST['narration'] ?: ($old['narration'] ?? '')),
+        'video' => (string)($_POST['video'] ?: ($old['video'] ?? '')),
         'aboutText' => (string)$_POST['aboutText'],
         'bounds' => [
             'x' => (float)($_POST['bx'] ?: 1.15),
@@ -113,6 +114,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save'])) {
     if ($bg) $st['background'] = '../data/stands/' . $id . '/media/' . $bg;
     $nar = save_upload('f_narration', $media);
     if ($nar) $st['narration'] = '../data/stands/' . $id . '/media/' . $nar;
+    $vid = save_upload('f_video', $media);
+    if ($vid) $st['video'] = '../data/stands/' . $id . '/media/' . $vid;
 
     // شخصیت‌ها
     $n = (int)$_POST['charCount'];
@@ -196,6 +199,10 @@ if (isset($_GET['edit'])) {
         . '<label>صدای راوی</label>'
         . ($st['narration'] ? '<p class="dim">فعلی: ' . h($st['narration']) . '</p>' : '')
         . '<input type="hidden" name="narration" value="' . h($st['narration']) . '"><input type="file" name="f_narration" accept="audio/*">'
+        . '<label>🎬 ویدیوی استند (اختیاری)</label>'
+        . ($st['video'] ? '<p class="dim">فعلی: ' . h($st['video']) . '</p>' : '')
+        . '<p class="dim">یا فایل mp4 آپلود کنید، یا لینک Drive را در کادر بنویسید (دکمهٔ 🎬 در استند ظاهر می‌شود)</p>'
+        . '<input type="hidden" name="video" value="' . h($st['video'] ?? '') . '"><input type="file" name="f_video" accept="video/*">'
         . '<label>متن دکمهٔ ℹ (اطلاعات)</label><textarea name="aboutText" rows="8">' . h($st['aboutText'] ?? '') . '</textarea>'
         . '<h3>🦖 شخصیت‌ها (داخل استند)</h3>'
         . '<p class="dim">محدودهٔ حرکت: X ±<input name="bx" style="width:60px" value="' . h($st['bounds']['x'] ?? 1.15) . '"> Z از <input name="bzmin" style="width:60px" value="' . h($st['bounds']['zMin'] ?? 0.1) . '"> تا <input name="bzmax" style="width:60px" value="' . h($st['bounds']['zMax'] ?? 1.5) . '"></p>';
